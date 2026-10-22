@@ -14,6 +14,10 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 
 Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
 
+This repo is **`ryry55/project-rpl`** (private). `gh` lives at `C:\Program Files\GitHub CLI\gh.exe`;
+new PowerShell sessions find it on PATH, but a session opened before the install needs
+`$env:Path = "C:\Program Files\GitHub CLI;$env:Path"` first.
+
 ## Pull requests as a triage surface
 
 **PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature requests; `/triage` reads this flag.)_

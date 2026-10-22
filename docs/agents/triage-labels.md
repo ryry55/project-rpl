@@ -16,8 +16,8 @@ Edit the "Label in our tracker" column to match whatever vocabulary you actually
 
 ## Status of label creation
 
-These five labels still need to be created on the GitHub repo. `gh` is not installed on the
-current machine, so nothing has been created yet. Once `gh` is available and a remote exists:
+All five labels exist on the GitHub repository (`ryry55/project-rpl`). `wontfix` was already a
+GitHub default, so only four needed creating. If the repo is ever recreated:
 
 ```powershell
 gh label create needs-triage    --description "Maintainer needs to evaluate this issue"
