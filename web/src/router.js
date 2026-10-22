@@ -7,6 +7,7 @@ import PenghuniView from './views/pemilik/PenghuniView.vue'
 import KontrakView from './views/pemilik/KontrakView.vue'
 import TagihanView from './views/pemilik/TagihanView.vue'
 import TunggakanView from './views/pemilik/TunggakanView.vue'
+import AuditLogView from './views/pemilik/AuditLogView.vue'
 import DashboardPenghuni from './views/DashboardPenghuni.vue'
 
 const routes = [
@@ -23,6 +24,7 @@ const routes = [
       { path: 'kontrak', name: 'pemilik-kontrak', component: KontrakView },
       { path: 'tagihan', name: 'pemilik-tagihan', component: TagihanView },
       { path: 'tunggakan', name: 'pemilik-tunggakan', component: TunggakanView },
+      { path: 'audit', name: 'pemilik-audit', component: AuditLogView },
     ],
   },
   {

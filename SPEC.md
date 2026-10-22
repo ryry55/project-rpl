@@ -328,6 +328,23 @@ mendemokan "hari ke-37" berarti menunggu 37 hari. Endpoint dan header ini tidak 
 | Penjumlahan `dibayar` di daftar | `withSum('pembayaran as total_dibayar')`, satu query untuk satu halaman | Tanpa ini, daftar 30 tagihan menjalankan 30 query penjumlahan; halaman daftar jadi lambat justru karena fitur pembayaran |
 | Rumus `pokok + denda` | satu tempat: `HasilDenda::total()` | Tiga salinan rumus yang sama pasti akan menyimpang |
 
+**Keputusan T9, dicatat saat implementasi.**
+
+| Hal | Keputusan | Alasan |
+|---|---|---|
+| Isolasi penghuni | **scope di model** (`Tagihan::terlihatOleh`), bukan `if` di controller | Aturan yang disalin ke tiap endpoint akan lupa disalin pada endpoint yang ditambahkan belakangan, dan tidak ada yang menyadarinya sampai ada kebocoran |
+| Tagihan orang lain | **404**, bukan 403 | 403 berarti "ada, tapi bukan milikmu" — cukup untuk memetakan tagihan siapa saja yang ada dengan mencoba id berurutan |
+| `show` dan `denda` | mengambil **ulang** barisnya lewat scope, meski binding sudah menyediakannya | Route model binding mengambil baris tanpa memandang pemiliknya; membiarkannya berarti isolasi hanya ada di daftar, tidak di detail |
+| Akun penghuni tanpa `penghuni_id` | daftar **kosong**, bukan 403/500 | Akun seperti itu tetap bisa login; "belum ada tagihan" lebih jujur daripada galat yang tidak bisa ia perbaiki |
+| Endpoint portal | `/penghuni/tagihan` **terpisah** dari `/tagihan` | `/tagihan` adalah halaman kerja pemilik (saring per kontrak, terbitkan, catat bayar). Menumpuk dua peran di satu endpoint membuat tiap perubahan harus dipikirkan dua kali |
+| Urutan rute | `/penghuni/tagihan` didaftarkan **sebelum** `apiResource('penghuni')` | Kalau tidak, "tagihan" ditangkap sebagai id penghuni dan PostgreSQL menolaknya dengan `22P02`. Sama kelasnya dengan `/tagihan/terbitkan` di T4 |
+| Log audit | hanya `index`; **tidak ada** endpoint tulis | Jejak ditulis `PencatatAudit` di dalam transaksi perubahan. Endpoint tulis akan memungkinkan jejak palsu, dan itu menghancurkan seluruh gunanya |
+| Append-only | ditegakkan **trigger basis data**, bukan hanya kode aplikasi | Riwayat yang bisa diubah dari `psql` bukan riwayat. Tesnya memakai `DB::statement` mentah, bukan Eloquent |
+| Urutan log | `dibuat_pada DESC, id DESC` | Dua baris bisa lahir pada detik yang sama; tanpa pemutus, urutannya berubah-ubah antar permintaan dan jejak yang seharusnya tetap terlihat bergerak |
+| `batas` log | maksimum 500, dan pemotongan **diumumkan** di `meta.dipotong` | Tanpa pengumuman, layar menyiratkan bahwa 200 baris adalah seluruh isi log |
+| Nilai lama di layar | ditampilkan berdampingan dengan nilai baru; baris baru tidak diberi panah | "— → 1.500.000" terbaca seperti perubahan dari kosong, padahal barisnya memang baru dibuat |
+| Simulasi tanggal di portal | header ikut dikirim, status dibaca dari `meta.simulasi` | Kalau portal menghitung terhadap tanggal berbeda dari layar pemilik, dua layar menampilkan denda berbeda untuk tagihan yang sama |
+
 ---
 
 ## 6. Model data
@@ -381,9 +398,10 @@ pembayaran       id, tagihan_id, jumlah (numeric 14,0), tanggal_pembayaran (date
                  -- append-only lewat trigger BEFORE UPDATE OR DELETE
                  -- jumlah selalu > 0; kelebihan bayar ditolak sebelum tersimpan
 
-log_audit        id, aktor_id, aktor_nama, aksi, entitas, entitas_id, waktu,
+log_audit        id, aktor_id, aktor_nama, aksi, entitas, entitas_id, dibuat_pada,
                  nilai_lama (json), nilai_baru (json)
-                 -- append-only; aktor_id sengaja tanpa foreign key
+                 -- append-only lewat trigger BEFORE UPDATE OR DELETE
+                 -- aktor_id sengaja tanpa foreign key; aktor_nama disalin, bukan join
 ```
 
 `tagihan.denda` dan `tagihan.sisa` **tidak ada sebagai kolom** — keduanya turunan, dihitung dari
@@ -433,6 +451,15 @@ Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
 | GET | `/tunggakan` | pemilik | T7 |
 | GET | `/audit-log` | pemilik | T9 |
 | GET | `/penghuni/tagihan` | penghuni | T9 |
+
+**Dua jalur baca yang terbuka untuk kedua peran.** `/tagihan/{id}` dan `/tagihan/{id}/denda`
+disaring scope `Tagihan::terlihatOleh`: pemilik melihat semuanya, penghuni hanya miliknya, dan id
+milik orang lain dijawab **404 yang tidak bisa dibedakan** dari id yang tidak ada.
+
+**Urutan pendaftaran rute ikut menentukan perilaku.** Laravel mencocokkan rute sesuai urutan
+deklarasi, jadi `/penghuni/tagihan` harus didaftarkan **sebelum** `apiResource('penghuni')` —
+kalau tidak, "tagihan" ditangkap sebagai `{penghuni}` dan PostgreSQL menolaknya dengan `22P02`.
+Kelas kesalahan yang sama sudah dua kali terjadi (`/tagihan/terbitkan` di T4).
 
 **Konvensi status code.**
 
@@ -560,6 +587,34 @@ Sebagai penghuni, saya ingin melihat tagihan saya sendiri, supaya saya tahu haru
 - [ ] Perubahan status tagihan tercatat di `log_audit`
 - [ ] Operasi UPDATE/DELETE langsung ke `log_audit` **ditolak** basis data
 
+**Selesai di T9.** `Tagihan::scopeTerlihatOleh` + `PortalPenghuniController` + `AuditLogController`;
+`IsolasiDanAuditTest` (18 tes, 65 asersi) dan `docs/uji/e2e-t9.mjs` (23/23). Isolasi ditulis sebagai
+scope di model, bukan `if` di tiap controller: aturan yang disalin ke setiap endpoint akan lupa
+disalin pada endpoint yang ditambahkan belakangan, dan tidak ada yang menyadarinya sampai ada yang
+membuka URL milik orang lain. `show` dan `denda` mengambil ulang barisnya lewat scope itu meskipun
+route model binding sudah menyediakannya — binding mengambil baris tanpa memandang pemiliknya.
+
+**404, bukan 403.** Penghuni yang membuka tagihan orang lain mendapat jawaban yang **persis sama**
+dengan id yang tidak ada. 403 akan mengatakan "ada, tapi bukan milikmu" — dan itu sudah cukup untuk
+memetakan tagihan siapa saja yang ada di sistem hanya dengan mencoba id berurutan. Tesnya
+membandingkan kedua jawaban itu, bukan hanya memeriksa satu.
+
+**Akun yatim.** Penghuni yang tidak terhubung ke data penghuni mendapat daftar kosong, bukan 403
+dan bukan 500. Akun seperti itu tetap bisa login; menampilkan "belum ada tagihan" lebih jujur
+daripada galat yang tidak bisa ia perbaiki sendiri.
+
+**Log audit hanya punya `index`.** Tidak ada `store`, `update`, maupun `destroy`, dan itu bukan
+kelalaian: jejak ditulis `PencatatAudit` di dalam transaksi perubahan, sedangkan endpoint tulis akan
+memungkinkan seseorang menambahkan jejak palsu. Penegakan append-only-nya ada di **basis data**
+(trigger `BEFORE UPDATE OR DELETE`), bukan hanya di kode — tes memakai `DB::statement` mentah untuk
+membuktikannya, karena riwayat yang bisa diubah dari `psql` bukan riwayat.
+
+**Dua kesalahan yang ditemukan saat mengerjakan T9, keduanya di tes.** (a) `PUT /api/kamar/1`
+semula diasersikan 403 dengan id tetap; `SubstituteBindings` berjalan **sebelum** `PastikanPeran`,
+jadi id yang kebetulan tidak ada menghasilkan 404 lebih dulu — tes lulus sendiri-sendiri dan gagal
+saat dijalankan bersama. (b) Satu asersi memakai `/15\\.000/`, yang di JavaScript biasa berarti
+"backslash literal", bukan titik — pola yang sama sudah tercatat di T5 dan T6.
+
 ---
 
 ## 9. Dua seam pengujian
@@ -599,7 +654,7 @@ Lokasi: `docs/uji/audit-ketertelusuran.md`.
 | R-04 umur tunggakan | `Kalkulator::kelompokUmur` | `test_batas_30_31`, `test_batas_60_61` | ✅ |
 | R-05 deposit | — | — | ⏸ ditunda (T8) |
 | R-06 tarif tidak surut | `tarif_sewa` append-only + snapshot `tarif_terpakai` | `test_tagihan_lama_tidak_berubah` | ✅ |
-| R-07 isolasi + audit | filter query + `log_audit` append-only | `test_akses_silang_404`, `test_pembayaran_menolak_perubahan_dan_penghapusan` | ⚠ audit (tulis) selesai; baca + portal penghuni di T9 |
+| R-07 isolasi + audit | scope `Tagihan::terlihatOleh` + `log_audit` append-only (trigger basis data) | `IsolasiDanAuditTest` (18 tes): `test_penghuni_hanya_melihat_tagihannya_sendiri`, `test_penghuni_mengakses_tagihan_orang_lain_mendapat_404_bukan_403`, `test_penghuni_mengakses_denda_tagihan_orang_lain_mendapat_404`, `test_penghuni_memanggil_endpoint_pemilik_ditolak_403`, `test_update_langsung_ke_log_audit_ditolak_basis_data`, `test_delete_langsung_ke_log_audit_ditolak_basis_data`; `docs/uji/e2e-t9.mjs` (23/23) | ✅ |
 
 Status: ⏳ belum, ✅ selesai, ⚠ sebagian, ⏸ ditunda.
 

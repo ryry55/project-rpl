@@ -44,6 +44,7 @@ node docs/uji/e2e-t6.mjs   # tagihan + demo denda lewat simulasi tanggal
 node docs/uji/e2e-t7.mjs   # empat kelompok umur tunggakan
 node docs/uji/e2e-t4.mjs   # terbit massal + penolakan duplikat
 node docs/uji/e2e-t5.mjs   # catat pembayaran sebagian lalu lunas
+node docs/uji/e2e-t9.mjs   # isolasi portal penghuni + log audit pemilik
 ```
 
 Uji balapan (bukan browser, jadi tidak butuh Chrome):
@@ -176,6 +177,24 @@ Catatan penting: tabel `pembayaran` bersifat **append-only** (trigger menolak UP
 dan baris pembalik belum ada. Salah input jumlah karena itu **tidak bisa diperbaiki dari
 aplikasi** — lihat batasan yang dicatat di `SPEC.md` §5.
 
+## Portal penghuni
+
+Masuk sebagai penghuni (`penghuni@kos.test` / `password`) membuka **Tagihan saya**: daftar tagihan
+miliknya sendiri, lengkap dengan denda berjalan, sisa, dan riwayat pembayaran.
+
+Isolasinya bukan sekadar penyaringan di layar. Kalau penghuni membuka `/api/tagihan/<id>` milik
+penghuni lain, jawabannya **404 yang tidak bisa dibedakan** dari id yang memang tidak ada. 403 akan
+mengatakan "ada, tapi bukan milikmu" — cukup untuk memetakan tagihan siapa saja yang ada dengan
+mencoba id berurutan.
+
+| Yang dicoba penghuni | Hasil |
+|---|---|
+| Membuka tagihannya sendiri | 200 |
+| Membuka tagihan penghuni lain | **404** |
+| Membuka `/tagihan/{id}/denda` milik orang lain | **404** |
+| Memanggil `/tagihan`, `/kamar`, `/audit-log` | **403** |
+| Mencatat pembayaran | **403** |
+
 ## Jejak audit
 
 Setiap tagihan yang terbit, setiap pembayaran yang tercatat, setiap tarif baru, dan setiap parameter
@@ -183,10 +202,35 @@ denda baru dicatat di tabel `log_audit` — aktor, aksi, entitas, id, waktu, nil
 baru. Tabel itu **append-only**: trigger basis data menolak UPDATE dan DELETE, jadi riwayatnya tidak
 bisa diubah lewat SQL langsung sekalipun.
 
+Halaman **Jejak audit** di sisi pemilik menampilkan log itu, bisa disaring per entitas, id entitas,
+dan jenis aksi. Tidak ada tombol ubah maupun hapus — bukan karena belum dibuat, tetapi karena
+endpoint-nya memang tidak ada: jejak ditulis di dalam transaksi perubahannya, dan endpoint tulis akan
+memungkinkan jejak palsu.
+
+Nilai lama ditampilkan berdampingan dengan nilai baru (`belum_bayar → sebagian`), karena tanpa nilai
+lama sebuah baris tidak bisa menjelaskan dari mana asalnya. Baris yang **dibuat** tidak diberi panah:
+"— → 1.500.000" terbaca seperti perubahan dari kosong, padahal barisnya memang baru.
+
 Jejak ditulis di dalam transaksi yang sama dengan perubahannya. Kalau ditulis setelah commit, ada
 jendela waktu di mana data sudah berubah tetapi jejaknya belum ada.
 
-Endpoint baca `GET /api/audit-log` dan halaman log untuk pemilik masuk di T9.
+Lewat API:
+
+```bash
+curl -H "Authorization: Bearer <token>" \
+     "http://localhost:8081/api/audit-log?entitas=tagihan&entitas_id=1"
+```
+
+Log tumbuh terus, jadi `GET /audit-log` dibatasi 200 baris secara bawaan (maksimum `batas=500`).
+Kalau hasilnya terpotong, `meta.dipotong` bernilai `true` — layar mengatakannya, bukan berpura-pura
+sudah menampilkan seluruh isi log.
+
+Coba ubah riwayatnya langsung lewat `psql`, dan basis data sendiri yang menolak:
+
+```bash
+docker compose exec db psql -U kos -d kos -c "UPDATE log_audit SET aksi = 'diubah' WHERE id = 1"
+# ERROR: Tabel log_audit bersifat append-only (R-07): UPDATE tidak diizinkan.
+```
 
 ## Menghentikan
 
@@ -230,7 +274,8 @@ dari database demo supaya data sidang tidak pernah terhapus oleh tes.
 │   ├── docker/php/       php.ini, opcache.ini, entrypoint.sh
 │   └── docker/nginx/     Konfigurasi nginx untuk API
 ├── web/                  Vue 3 + Vite
-│   ├── src/views/pemilik/    KamarView, PenghuniView, KontrakView
+│   ├── src/views/pemilik/    Kamar, Penghuni, Kontrak, Tagihan, Tunggakan, AuditLog
+│   ├── src/views/DashboardPenghuni.vue  Portal penghuni (T9)
 │   ├── src/komponen/         TataLetakPemilik (sidebar + navigasi)
 │   ├── src/format.js         Rupiah, tanggal, dan ringkasan galat validasi
 │   └── docker/nginx/     Konfigurasi nginx untuk SPA

@@ -420,8 +420,13 @@ class DendaHttpTest extends TestCase
 
     // --- Akses -------------------------------------------------------------
 
-    public function test_penghuni_tidak_boleh_melihat_denda(): void
+    public function test_penghuni_tidak_boleh_melihat_denda_tagihan_orang_lain(): void
     {
+        // T6 semula menutup endpoint ini rapat-rapat untuk peran penghuni.
+        // T9 sengaja membukanya: penghuni berhak tahu dendanya sendiri, karena
+        // itulah angka yang harus ia bayar. Yang tetap ditutup adalah tagihan
+        // orang lain — dan di sini 404, bukan 403, karena 403 membocorkan bahwa
+        // tagihan itu ada (R-07).
         $tagihan = $this->buatTagihan();
 
         $penghuni = Penghuni::create(['nama' => 'Budi', 'email' => 'budi2@kos.test']);
@@ -435,6 +440,6 @@ class DendaHttpTest extends TestCase
 
         $this->actingAs($akun, 'sanctum')
             ->getJson("/api/tagihan/{$tagihan->id}/denda")
-            ->assertStatus(403);
+            ->assertStatus(404);
     }
 }

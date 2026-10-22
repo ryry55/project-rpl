@@ -16,7 +16,7 @@ Status: ✅ selesai · ⚠ sebagian · ⏳ belum · ⏸ ditunda
 | **R-05** deposit hanya untuk kerusakan | kolom `kontrak.deposit` sudah ada dan terisi | — | ⏸ ditunda (T8) |
 | **R-06** tarif tidak berlaku surut — **lapis 1** (riwayat) | `tarif_sewa`, `komponen_biaya`, `parameter_denda` append-only + trigger `BEFORE UPDATE OR DELETE`; `App\Domain\Tarif\PencariTarif` memilih baris dengan `berlaku_dari` terbesar ≤ awal periode | `RiwayatTarifTest` (16 tes): `test_mengubah_tarif_menambah_baris_dan_baris_lama_tetap`, `test_tarif_efektif_adalah_baris_terakhir_…`, `test_update_langsung_ke_tarif_sewa_ditolak_database`, `test_delete_langsung_ke_tarif_sewa_ditolak_database`, `test_update_langsung_ke_parameter_denda_ditolak_database`, `test_update_langsung_ke_komponen_biaya_ditolak_database` | ✅ lapis 1 |
 | **R-06** tarif tidak berlaku surut — **lapis 2** (snapshot di tagihan) | `tagihan.pokok` dibekukan + `tagihan.tarif_terpakai` (JSON: tarif, komponen, parameter denda) + kolom `tarif_denda_persen`/`plafon_persen`/`masa_tenggang` | `test_tagihan_menyimpan_snapshot_tarif_dan_komponen`, `test_menaikkan_tarif_tidak_mengubah_tagihan_yang_sudah_terbit`, `test_menaikkan_tarif_berlaku_untuk_tagihan_berikutnya`, `test_parameter_denda_dibekukan_di_tagihan` | ✅ lapis 2 |
-| **R-07** isolasi penghuni + log audit | **log audit sudah ada dan append-only** (tabel `log_audit` + trigger `BEFORE UPDATE OR DELETE`, `PencatatAudit` menulis di dalam transaksi yang sama dengan perubahannya); diisi untuk penerbitan tagihan, **pencatatan pembayaran**, penambahan tarif, dan penambahan parameter denda. Isolasi penghuni belum — itu T9 | `test_setiap_tagihan_yang_terbit_tercatat_di_log_audit`, `test_setiap_pembayaran_tercatat_di_log_audit`, `test_pembayaran_ditolak_tidak_menulis_jejak_audit`, `test_log_audit_menolak_perubahan_dan_penghapusan`, `test_pembayaran_menolak_perubahan_dan_penghapusan`, `test_perubahan_tarif_tercatat_di_log_audit`, `test_perubahan_parameter_denda_tercatat_di_log_audit`, `test_tagihan_yang_dilewati_tidak_menghasilkan_jejak_audit`; `test_penghuni_tidak_boleh_menyentuh_data_induk`, `test_penghuni_tidak_boleh_menerbitkan_tagihan`, `test_penghuni_tidak_boleh_mencatat_pembayaran` | ⚠ log audit ✅, isolasi belum (T9) |
+| **R-07** isolasi penghuni + log audit | **Isolasi**: scope `Tagihan::terlihatOleh` — pemilik melihat semua, penghuni hanya lewat `whereHas('kontrak', penghuni_id)`, dan `show`/`denda` mengambil ulang barisnya lewat scope yang sama meski route model binding sudah menyediakannya. **Audit**: tabel `log_audit` + trigger `BEFORE UPDATE OR DELETE`, `PencatatAudit` menulis di dalam transaksi yang sama dengan perubahannya, diisi untuk penerbitan tagihan, pencatatan pembayaran, penambahan tarif, dan penambahan parameter denda. Endpoint baca `GET /audit-log` hanya punya `index` — tidak ada jalur tulis | `IsolasiDanAuditTest` (18 tes): `test_penghuni_hanya_melihat_tagihannya_sendiri`, `test_penghuni_mengakses_tagihan_orang_lain_mendapat_404_bukan_403`, `test_penghuni_mengakses_denda_tagihan_orang_lain_mendapat_404`, `test_penghuni_bisa_melihat_denda_tagihannya_sendiri`, `test_penghuni_memanggil_endpoint_pemilik_ditolak_403`, `test_penghuni_tidak_bisa_mengubah_apa_pun`, `test_penghuni_tanpa_data_penghuni_melihat_daftar_kosong`, `test_pemilik_melihat_semua_tagihan`, `test_pemilik_membaca_log_audit`, `test_log_audit_bisa_disaring_per_entitas`, `test_log_audit_urut_terbaru_dulu`, `test_batas_jumlah_baris_diumumkan`, `test_tidak_ada_endpoint_untuk_mengubah_atau_menghapus_log_audit`, `test_update_langsung_ke_log_audit_ditolak_basis_data`, `test_delete_langsung_ke_log_audit_ditolak_basis_data`; ditambah `test_setiap_pembayaran_tercatat_di_log_audit`, `test_perubahan_tarif_tercatat_di_log_audit`, `test_perubahan_parameter_denda_tercatat_di_log_audit`, `test_pembayaran_menolak_perubahan_dan_penghapusan`; `docs/uji/e2e-t9.mjs` (23/23) | ✅ |
 
 ## Aturan data induk (T2)
 
@@ -91,6 +91,28 @@ Kriteria penerimaan T2 yang bukan turunan langsung R-01..R-07.
 | Dua pembayaran serentak tidak melebihi tagihan | `SELECT ... FOR UPDATE` pada baris `tagihan` sebelum memeriksa sisa | `docs/uji/uji-balapan-t5.mjs` (11/11): satu 201, satu 422, pesan menyebut sisa Rp 500.000 | ✅ |
 | Penghuni tidak boleh mencatat pembayaran | `PastikanPeran` | `test_penghuni_tidak_boleh_mencatat_pembayaran`, `test_tanpa_login_ditolak`, `test_tagihan_tidak_ada_menghasilkan_404` | ✅ |
 
+## Aturan isolasi & audit (T9)
+
+| Kontrak | Implementasi | Tes | Status |
+|---|---|---|---|
+| Penghuni melihat **hanya** tagihannya sendiri | scope `Tagihan::terlihatOleh` — filter di query, bukan setelah data diambil | `test_penghuni_hanya_melihat_tagihannya_sendiri`, E2E *"penghuni A hanya melihat satu tagihan"* | ✅ |
+| Tagihan penghuni lain → **404**, bukan 403 | `findOrFail` di atas query yang sudah discope | `test_penghuni_mengakses_tagihan_orang_lain_mendapat_404_bukan_403`, E2E *"tagihan penghuni B dijawab 404, bukan 403"* | ✅ |
+| Pintu samping `/denda` dijaga sama ketatnya | `DendaController@show` mengambil ulang lewat scope yang sama | `test_penghuni_mengakses_denda_tagihan_orang_lain_mendapat_404` | ✅ |
+| Penghuni boleh melihat denda miliknya | scope mengizinkan jalur baca untuk pemilik tagihan | `test_penghuni_bisa_melihat_denda_tagihannya_sendiri` | ✅ |
+| 404 tidak bisa dibedakan dari id yang tidak ada | dua jalur memakai `findOrFail` yang sama | E2E *"id yang tidak ada menghasilkan jawaban yang sama persis"* | ✅ |
+| Penghuni ditolak di seluruh endpoint pemilik | `PastikanPeran:pemilik` | `test_penghuni_memanggil_endpoint_pemilik_ditolak_403`, E2E (tagihan/audit/kamar = 403) | ✅ |
+| Penghuni tidak bisa mengubah apa pun | seluruh jalur tulis di grup pemilik | `test_penghuni_tidak_bisa_mengubah_apa_pun`, E2E *"penghuni tidak bisa mencatat pembayaran"* | ✅ |
+| Akun penghuni tanpa `penghuni_id` → daftar kosong | `milikPenghuni((int) ($user->penghuni_id ?? 0))` | `test_penghuni_tanpa_data_penghuni_melihat_daftar_kosong` | ✅ |
+| Pemilik melihat semua tagihan dan log | scope meneruskan query apa adanya untuk pemilik | `test_pemilik_melihat_semua_tagihan`, `test_pemilik_melihat_tagihan_penghuni_mana_pun`, `test_pemilik_membaca_log_audit` | ✅ |
+| Log menyebut aktor, aksi, entitas, id, waktu, nilai lama & baru | `AuditLogController@index` | `test_pemilik_membaca_log_audit` (termasuk `nilai_lama.status` dan `nilai_baru.status`), E2E *"log menyebut aktor yang melakukannya"* | ✅ |
+| Log bisa disaring per entitas / id / aksi | `?entitas=&entitas_id=&aksi=&aktor_id=` | `test_log_audit_bisa_disaring_per_entitas` | ✅ |
+| Urutan log tetap antar permintaan | `dibuat_pada DESC, id DESC` | `test_log_audit_urut_terbaru_dulu` | ✅ |
+| Pemotongan jumlah baris diumumkan | `batas` maks 500, `meta.dipotong` | `test_batas_jumlah_baris_diumumkan` | ✅ |
+| Tidak ada jalur HTTP untuk mengubah/menghapus log | hanya `index` terdaftar; `POST` → 405, `PUT`/`DELETE` → 404 | `test_tidak_ada_endpoint_untuk_mengubah_atau_menghapus_log_audit`, E2E *"tidak ada tombol untuk mengubah atau menghapus log"* | ✅ |
+| UPDATE langsung ke `log_audit` ditolak **basis data** | trigger `BEFORE UPDATE` | `test_update_langsung_ke_log_audit_ditolak_basis_data` (memakai `DB::statement` mentah) | ✅ |
+| DELETE langsung ke `log_audit` ditolak **basis data** | trigger `BEFORE DELETE` | `test_delete_langsung_ke_log_audit_ditolak_basis_data` | ✅ |
+| Penolakan menyebut alasannya, bukan galat acak | pesan trigger memuat "append-only" | `test_penolakan_menyebut_append_only_bukan_galat_acak` | ✅ |
+
 ## Konvensi HTTP (seam 2)
 
 Bukan aturan bisnis, tapi kontrak yang harus berlaku sejak tiket pertama.
@@ -119,12 +141,13 @@ Bukan aturan bisnis, tapi kontrak yang harus berlaku sejak tiket pertama.
 | T7 Umur tunggakan | #8 | 164 tes hijau (1421 asersi) - 60 tes murni tanpa DB; 31/31 langkah E2E browser; 1 screenshot (`T7-tunggakan.png`) |
 | T4 Terbit massal | #5 | 186 tes hijau (1517 asersi) - 60 tes murni tanpa DB; 15/15 langkah E2E browser; 9/9 langkah uji balapan HTTP; 1 screenshot (`T4-terbit-massal.png`) |
 | T5 Catat pembayaran | #6 | 214 tes hijau (1638 asersi); 21/21 langkah E2E browser; 11/11 langkah uji balapan HTTP; 1 screenshot (`T5-pembayaran.png`) |
+| T9 Portal penghuni + log audit | #9 | 232 tes hijau (1703 asersi); 23/23 langkah E2E browser; 2 screenshot (`T9-portal-penghuni.png`, `T9-log-audit.png`) |
 
 ## Cara menjalankan ulang bukti
 
 ```bash
 docker compose up -d
-docker compose exec api php artisan test          # 214 tes
+docker compose exec api php artisan test          # 232 tes
 docker compose exec api php artisan test --testsuite=Unit   # 60 tes murni, tanpa DB
 node docs/uji/e2e-t1.mjs                          # perlu Chrome --remote-debugging-port=9222
 node docs/uji/e2e-t2.mjs                          # 8 kamar + 6 penghuni + kontrak lewat UI
@@ -133,11 +156,12 @@ node docs/uji/e2e-t6.mjs                          # denda 0 → 15.000 → 450.0
 node docs/uji/e2e-t7.mjs                          # empat kelompok umur tunggakan + konsistensi denda
 node docs/uji/e2e-t4.mjs                          # terbit massal + penolakan duplikat lewat UI
 node docs/uji/e2e-t5.mjs                          # catat pembayaran sebagian lalu lunas lewat UI
+node docs/uji/e2e-t9.mjs                          # isolasi portal penghuni + log audit pemilik
 node docs/uji/uji-balapan-t4.mjs                  # dua permintaan HTTP serentak → satu 201, satu 409
 node docs/uji/uji-balapan-t5.mjs                  # dua pembayaran serentak → satu 201, satu 422
 ```
 
-`e2e-t2.mjs`, `e2e-t3.mjs`, `e2e-t4.mjs`, `e2e-t5.mjs`, `e2e-t6.mjs`, `e2e-t7.mjs`,
+`e2e-t2.mjs`, `e2e-t3.mjs`, `e2e-t4.mjs`, `e2e-t5.mjs`, `e2e-t6.mjs`, `e2e-t7.mjs`, `e2e-t9.mjs`,
 `uji-balapan-t4.mjs`, dan `uji-balapan-t5.mjs` mengubah database demo. Untuk mengulang dari
 keadaan bersih: `docker compose exec api php artisan migrate:fresh --seed`.
 
@@ -358,3 +382,50 @@ yang bisa diedit diam-diam tidak layak dipercaya — dan jalan keluarnya sudah j
 (entri balik bertanda dengan rujukan ke baris yang dikoreksi), tetapi membangunnya butuh alur
 tersendiri. Dicatat di SPEC §5 dan §11, di README, dan di komentar migrasi, supaya tidak menjadi
 temuan yang tidak terjawab saat sidang.
+
+**T9: 404 dipilih karena 403 membocorkan lebih banyak daripada yang ditutupnya.** Naluri pertama
+untuk "penghuni membuka tagihan orang lain" adalah 403 — "kamu login, tapi ini bukan milikmu". Itu
+salah untuk kasus ini. 403 membedakan "ada" dari "tidak ada", sehingga dengan mencoba id berurutan
+seseorang bisa memetakan berapa tagihan yang ada dan id mana yang hidup, tanpa pernah membaca satu
+baris pun isinya. 404 menyamakan kedua jawaban, dan itulah yang diuji: tes membandingkan respons
+untuk tagihan orang lain dengan respons untuk id yang tidak pernah ada, bukan hanya memeriksa satu
+kode status. Perbedaan 403 vs 404 di endpoint pemilik justru sebaliknya dan tetap benar — di sana
+pengguna memang berhak tahu bahwa endpoint itu ada, hanya perannya tidak cocok.
+
+**T9: route model binding mengambil baris tanpa memandang pemiliknya.** Isolasi di daftar terasa
+cukup sampai ada yang mengetik `/api/tagihan/7` langsung. `Tagihan $tagihan` di tanda tangan
+controller sudah berisi baris siapa pun sebelum satu baris kode pun sempat memeriksa. Karena itu
+`show` dan `denda` **mengambil ulang** barisnya lewat scope yang sama meskipun binding sudah
+menyediakannya — satu query tambahan ditukar dengan satu tempat yang tidak bisa lupa. Ini juga
+alasan aturannya ditulis sebagai scope di model, bukan `if ($user->isPenghuni())` yang disalin ke
+tiap controller: penyalinan akan terlewat pada endpoint yang ditambahkan belakangan, dan tidak ada
+yang menyadarinya sampai ada kebocoran.
+
+**T9: `/penghuni/tagihan` ditelan `apiResource('penghuni')`.** Gejalanya
+`SQLSTATE[22P02] invalid input syntax for type bigint: "tagihan"` — "tagihan" diperlakukan sebagai
+id penghuni. Ini kejadian **kedua** dengan kelas yang sama setelah `/tagihan/terbitkan` di T4, dan
+penyebabnya selalu satu: Laravel mencocokkan rute sesuai urutan deklarasi, bukan berdasarkan
+kekhususan. Rute yang lebih spesifik harus didaftarkan lebih dulu. Polanya sekarang dicatat di
+SPEC §7 supaya tidak menjadi kejadian ketiga.
+
+**T9: satu tes lulus sendiri tetapi gagal saat dijalankan bersama.** `PUT /api/kamar/1` diasersikan
+403, dan saat tes itu berjalan sendiri memang 403. Dalam satu run penuh hasilnya 404. Penyebabnya
+bukan aplikasi: `SubstituteBindings` berjalan **sebelum** `PastikanPeran`, jadi id kamar yang
+kebetulan tidak ada menghasilkan 404 sebelum 403 sempat diperiksa — dan id 1 hanya ada bila tes itu
+kebetulan yang pertama membuat kamar. Diperbaiki dengan memakai id dari data yang baru dibuat, bukan
+angka tetap. Aturan umumnya: tes yang bergantung pada urutan id akan berperilaku berbeda tergantung
+tes lain yang berjalan lebih dulu, dan kegagalannya tidak menunjuk ke apa pun yang nyata.
+
+**T9: log audit menampilkan "— → 1.500.000" untuk baris yang baru dibuat.** Ditemukan dari
+tangkapan layar, bukan dari tes: semua angka benar, tetapi panahnya menyiratkan perubahan dari nilai
+kosong padahal tidak ada yang berubah — barisnya memang baru. Sekarang baris baru hanya menampilkan
+nilainya, tanpa panah dan tanpa coretan. Ini contoh ketiga di proyek ini (setelah penjepitan jatuh
+tempo dan `total_final`) bahwa **yang menangkap ketidakcocokan adalah memeriksa tampilan**, bukan
+menjalankan tes: tidak ada satu pun angka yang salah.
+
+**T9: satu tes lama memang harus berubah, dan itu bukan regresi.** `DendaHttpTest` semula menegaskan
+penghuni **tidak boleh** melihat denda sama sekali (403). T9 sengaja membukanya untuk tagihan
+miliknya sendiri, karena denda adalah angka yang harus ia bayar. Tesnya diganti — bukan dihapus —
+menjadi penegasan aturan yang sekarang berlaku: tagihan orang lain tetap 404. Perbedaan antara
+"tes usang" dan "regresi" hanya bisa dibedakan kalau aturan yang berubah dicatat lebih dulu; tanpa
+itu, memperbaiki tes akan terlihat sama dengan menutupi kegagalan.

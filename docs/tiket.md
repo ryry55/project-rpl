@@ -13,14 +13,14 @@ dikerjakan akan tampil terkunci di UI.
 | T5 Catat pembayaran | **#6** | — | #4 | ✅ selesai |
 | T6 Denda + simulasi tanggal | **#7** | R-03 | #4 | ✅ selesai |
 | T7 Umur tunggakan | **#8** | R-04 | #7 | ✅ selesai |
-| T9 Portal penghuni + log audit | **#9** | R-07 | #5, #6 | siap |
+| T9 Portal penghuni + log audit | **#9** | R-07 | #5, #6 | ✅ selesai |
 
 ```
 #2 T1 ✅
  └─ #3 T2 ✅
      └─ #4 T3 ─┬─ #5 T4 ──┐
-               ├─ #6 T5 ──┴─ #9 T9
-               └─ #7 T6 ── #8 T7
+               ├─ #6 T5 ──┴─ #9 T9 ✅
+               └─ #7 T6 ── #8 T7 ✅
 ```
 
 ## Urutan kerja
@@ -79,6 +79,18 @@ dibekukan sekali saat lunas, `sisa` dijepit `max(0, ...)`, `pembayaran` append-o
 dijumlahkan dengan `withSum` untuk menghindari N+1, dan rumus `pokok + denda` hanya ada di
 `HasilDenda::total()`. Batasan dicatat jujur: belum ada baris pembalik, jadi salah input jumlah
 tidak bisa diperbaiki dari aplikasi.
+
+**T9 (#9)** — 232 tes hijau (1703 asersi); 23/23 langkah E2E browser, 2 screenshot. R-07 selesai.
+Keputusan yang dicatat di SPEC §5: isolasi ditulis sebagai scope `Tagihan::terlihatOleh` bukan `if`
+di tiap controller, tagihan orang lain dijawab **404** yang tidak bisa dibedakan dari id yang tidak
+ada, `show` dan `denda` mengambil ulang barisnya lewat scope meski route model binding sudah
+menyediakannya, akun penghuni tanpa `penghuni_id` mendapat daftar kosong, endpoint portal terpisah
+dari `/tagihan`, `/penghuni/tagihan` didaftarkan sebelum `apiResource('penghuni')`, log audit hanya
+punya `index`, append-only ditegakkan trigger basis data, urutan `dibuat_pada DESC, id DESC`, `batas`
+diumumkan lewat `meta.dipotong`, dan baris baru di log tidak diberi panah "— → nilai".
+
+Dengan ini seluruh tiket yang dikerjakan selesai: T1, T2, T3, T6, T7, T4, T5, T9. R-01 sampai R-07
+tertutup kecuali R-05 (deposit) yang memang ditunda ke T8.
 
 ## Ditunda (tidak punya issue)
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -66,6 +67,45 @@ class Tagihan extends Model
     public function kontrak(): BelongsTo
     {
         return $this->belongsTo(Kontrak::class);
+    }
+
+    /**
+     * Batasi query ke tagihan milik satu penghuni (R-07).
+     *
+     * Penyaringan dilakukan **di query**, bukan dengan memeriksa hasil setelah
+     * diambil. Kalau tagihan milik orang lain tidak pernah dimuat, tidak ada
+     * kesempatan untuk membocorkannya lewat resource, serialisasi, atau
+     * `whenLoaded` yang lupa diperiksa.
+     *
+     * Ditulis sebagai scope di model, bukan sebagai `if` di tiap controller:
+     * isolasi yang disalin ke setiap endpoint akan lupa diterapkan pada endpoint
+     * yang ditambahkan belakangan, dan tidak ada yang menyadarinya sampai ada
+     * kebocoran.
+     */
+    public function scopeMilikPenghuni(Builder $query, int $penghuniId): Builder
+    {
+        return $query->whereHas('kontrak', fn (Builder $q) => $q->where('penghuni_id', $penghuniId));
+    }
+
+    /**
+     * Batasi query ke tagihan yang boleh dilihat pengguna ini (R-07).
+     *
+     * Satu tempat untuk seluruh jalur baca. Kalau aturannya ditulis ulang di
+     * tiap controller — `if ($user->isPenghuni()) { ... }` — maka satu endpoint
+     * baru yang lupa menyalinnya langsung menjadi kebocoran, dan tidak ada yang
+     * menyadarinya sampai ada yang membuka URL milik orang lain.
+     *
+     * Penghuni tanpa `penghuni_id` (akun yatim) tidak melihat apa pun: id 0
+     * tidak pernah cocok dengan kontrak mana pun. Itu lebih aman daripada
+     * melempar exception, karena akun seperti itu tetap bisa login.
+     */
+    public function scopeTerlihatOleh(Builder $query, User $user): Builder
+    {
+        if ($user->isPemilik()) {
+            return $query;
+        }
+
+        return $query->milikPenghuni((int) ($user->penghuni_id ?? 0));
     }
 
     public function rincian(): HasMany

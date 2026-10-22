@@ -33,6 +33,8 @@ class TagihanController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Tagihan::query()
+            // R-07: isolasi diterapkan di query, bukan setelah data diambil.
+            ->terlihatOleh($request->user())
             ->with(['rincian', 'kontrak.kamar', 'kontrak.penghuni'])
             // Satu query penjumlahan untuk seluruh halaman, bukan satu per
             // tagihan. Tanpa ini, layar daftar menjalankan N+1 query hanya untuk
@@ -95,9 +97,23 @@ class TagihanController extends Controller
         return response()->json(['data' => new TagihanResource($tagihan)], 201);
     }
 
-    public function show(Tagihan $tagihan): JsonResponse
+    /**
+     * Rincian satu tagihan.
+     *
+     * `Tagihan $tagihan` dari route model binding sengaja **tidak** dipakai
+     * langsung: binding mengambil baris tanpa memandang pemiliknya, sehingga
+     * penghuni bisa membaca tagihan orang lain hanya dengan menebak id. Baris
+     * diambil ulang lewat scope `terlihatOleh`, dan yang tidak terlihat
+     * menghasilkan 404 — bukan 403, karena 403 membocorkan bahwa tagihan itu
+     * ada.
+     */
+    public function show(Request $request, Tagihan $tagihan): JsonResponse
     {
-        $tagihan->load(['rincian', 'pembayaran', 'kontrak.kamar', 'kontrak.penghuni']);
+        $tagihan = Tagihan::query()
+            ->terlihatOleh($request->user())
+            ->with(['rincian', 'pembayaran', 'kontrak.kamar', 'kontrak.penghuni'])
+            ->withSum('pembayaran as total_dibayar', 'jumlah')
+            ->findOrFail($tagihan->getKey());
 
         return response()->json(['data' => new TagihanResource($tagihan)]);
     }

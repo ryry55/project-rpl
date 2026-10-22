@@ -12,6 +12,7 @@ const menu = [
   { nama: 'kontrak', label: 'Kontrak', ket: 'Penghuni menempati kamar' },
   { nama: 'tagihan', label: 'Tagihan', ket: 'Terbitkan dan periksa tagihan' },
   { nama: 'tunggakan', label: 'Tunggakan', ket: 'Siapa menunggak dan sudah separah apa' },
+  { nama: 'audit', label: 'Jejak audit', ket: 'Siapa mengubah apa, kapan' },
 ]
 
 const inisial = computed(() => {
