@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Audit\PencatatAudit;
 use App\Domain\Tarif\PencariTarif;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SimpanTarifRequest;
@@ -21,7 +22,10 @@ use Illuminate\Http\Request;
  */
 class TarifController extends Controller
 {
-    public function __construct(private readonly PencariTarif $pencari) {}
+    public function __construct(
+        private readonly PencariTarif $pencari,
+        private readonly PencatatAudit $audit,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -39,7 +43,25 @@ class TarifController extends Controller
     public function store(SimpanTarifRequest $request): JsonResponse
     {
         try {
-            $tarif = TarifSewa::create($request->validated());
+            $tarif = \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+                $tarif = TarifSewa::create($request->validated());
+
+                // R-06 lapis 1: perubahan tarif adalah kejadian yang harus bisa
+                // ditelusuri. Yang dicatat nilai barunya saja — baris lama tidak
+                // diubah, jadi tidak ada nilai lama pada baris ini.
+                $this->audit->catat(
+                    aksi: PencatatAudit::AKSI_TARIF_TAMBAH,
+                    entitas: 'tarif_sewa',
+                    entitasId: $tarif->id,
+                    nilaiBaru: [
+                        'kamar_id' => $tarif->kamar_id,
+                        'nilai' => (int) $tarif->nilai,
+                        'berlaku_dari' => $tarif->berlaku_dari->toDateString(),
+                    ],
+                );
+
+                return $tarif;
+            });
         } catch (QueryException $e) {
             if ($e->getCode() === '23505') {
                 return response()->json([

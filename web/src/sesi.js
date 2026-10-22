@@ -32,6 +32,11 @@ async function panggil(path, opsi = {}) {
     const galat = new Error(isi?.message || `Permintaan gagal (${res.status})`)
     galat.status = res.status
     galat.errors = isi?.errors || {}
+    // Badan respons ikut dibawa. Beberapa penolakan bukan kegagalan melainkan
+    // jawaban yang berguna — 409 pada terbit massal menyertakan rincian kontrak
+    // mana yang dilewati dan mengapa. Membuangnya memaksa layar menampilkan
+    // "permintaan gagal" padahal server sudah menjelaskan.
+    galat.body = isi
     throw galat
   }
 

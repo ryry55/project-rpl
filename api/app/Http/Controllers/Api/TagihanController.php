@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Billing\PenerbitanMassal;
 use App\Domain\Billing\PenerbitTagihan;
 use App\Domain\Billing\TagihanTidakDapatDiterbitkan;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\TerbitkanMassalRequest;
 use App\Http\Requests\Api\TerbitkanTagihanRequest;
 use App\Http\Resources\TagihanResource;
 use App\Models\Kontrak;
@@ -19,6 +21,7 @@ class TagihanController extends Controller
 {
     public function __construct(
         private readonly PenerbitTagihan $penerbit,
+        private readonly PenerbitanMassal $penerbitanMassal,
         private readonly WaktuSistem $waktu,
     ) {}
 
@@ -87,5 +90,47 @@ class TagihanController extends Controller
         $tagihan->load(['rincian', 'kontrak.kamar', 'kontrak.penghuni']);
 
         return response()->json(['data' => new TagihanResource($tagihan)]);
+    }
+
+    /**
+     * Terbitkan tagihan untuk semua kontrak aktif pada satu periode (R-02).
+     *
+     * Kode statusnya dipilih untuk menjawab pertanyaan yang sebenarnya
+     * ditanyakan pemilik: "apakah aksi saya tadi mengubah sesuatu?"
+     *
+     *   201 — ada tagihan baru terbit.
+     *   409 — tidak ada yang terbit karena semuanya sudah punya tagihan periode
+     *         ini. Ini yang terjadi saat tombol ditekan dua kali, dan ia harus
+     *         terlihat sebagai penolakan, bukan sebagai sukses kosong.
+     *   200 — tidak ada yang terbit karena kontraknya memang belum mulai.
+     *         Bukan kesalahan; tidak ada yang perlu diperbaiki pemilik.
+     *   422 — prasyarat belum terpenuhi: belum ada kontrak aktif sama sekali.
+     */
+    public function terbitkan(TerbitkanMassalRequest $request): JsonResponse
+    {
+        if (! Kontrak::query()->where('status', 'aktif')->exists()) {
+            return response()->json([
+                'message' => 'Belum ada kontrak aktif. Tambahkan kontrak lebih dulu.',
+                'errors' => ['periode' => ['Belum ada kontrak aktif.']],
+            ], 422);
+        }
+
+        $periode = Carbon::parse($request->string('periode')->value());
+        $hasil = $this->penerbitanMassal->jalankan($periode);
+
+        $status = match (true) {
+            $hasil['terbit'] > 0 => 201,
+            $hasil['dilewati_duplikat'] > 0 => 409,
+            default => 200,
+        };
+
+        return response()->json([
+            'data' => $hasil,
+            'meta' => [
+                'tanggal_acuan' => $this->waktu->hariIni()->toDateString(),
+                'simulasi' => $this->waktu->sedangSimulasi(),
+                'demo_mode' => (bool) config('app.demo_mode'),
+            ],
+        ], $status);
     }
 }

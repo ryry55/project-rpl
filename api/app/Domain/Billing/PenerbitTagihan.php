@@ -2,6 +2,7 @@
 
 namespace App\Domain\Billing;
 
+use App\Domain\Audit\PencatatAudit;
 use App\Domain\Tarif\PencariTarif;
 use App\Models\Kontrak;
 use App\Models\Tagihan;
@@ -30,6 +31,7 @@ class PenerbitTagihan
     public function __construct(
         private readonly Kalkulator $kalkulator,
         private readonly PencariTarif $pencari,
+        private readonly PencatatAudit $audit,
     ) {}
 
     /**
@@ -169,6 +171,29 @@ class PenerbitTagihan
                     'urutan' => $urutan,
                 ]);
             }
+
+            // Jejak audit ditulis di dalam transaksi yang sama dengan tagihannya.
+            // Kalau ditulis setelah commit, ada jendela waktu di mana tagihan
+            // sudah ada tetapi jejaknya belum — dan kegagalan tepat di jendela
+            // itu menghasilkan tagihan tanpa jejak, persis yang ingin dicegah.
+            $this->audit->catat(
+                aksi: PencatatAudit::AKSI_TAGIHAN_TERBIT,
+                entitas: 'tagihan',
+                entitasId: $tagihan->id,
+                nilaiLama: null,
+                nilaiBaru: [
+                    'kontrak_id' => $kontrak->id,
+                    'periode' => $awalPeriode->toDateString(),
+                    'pokok' => $pokok,
+                    'jatuh_tempo' => $tagihan->jatuh_tempo->toDateString(),
+                    'status' => Tagihan::STATUS_BELUM_BAYAR,
+                    'tarif_terpakai' => [
+                        'tarif_sewa_id' => $tarif->id,
+                        'nilai' => (int) $tarif->nilai,
+                        'parameter_denda_id' => $parameter->id,
+                    ],
+                ],
+            );
 
             return $tagihan;
         });

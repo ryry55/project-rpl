@@ -71,6 +71,13 @@ Route::middleware('auth:sanctum')->group(function () {
         // --- Tagihan (T3) -------------------------------------------------
         Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
         Route::post('/tagihan', [TagihanController::class, 'store'])->name('tagihan.store');
+
+        // Terbit massal (T4). Wajib didaftarkan SEBELUM `/tagihan/{tagihan}`,
+        // kalau tidak "terbitkan" akan ditangkap sebagai id tagihan dan
+        // menghasilkan 404 dari route model binding.
+        Route::post('/tagihan/terbitkan', [TagihanController::class, 'terbitkan'])
+            ->name('tagihan.terbitkan');
+
         Route::get('/tagihan/{tagihan}', [TagihanController::class, 'show'])->name('tagihan.show');
 
         // --- Denda (T6) ---------------------------------------------------

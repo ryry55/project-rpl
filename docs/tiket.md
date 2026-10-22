@@ -9,7 +9,7 @@ dikerjakan akan tampil terkunci di UI.
 | T1 Walking skeleton | **#2** | — | — | ✅ selesai |
 | T2 Data induk + tarif append-only | **#3** | R-06 (lapis 1) | #2 | ✅ selesai |
 | T3 Tagihan + prorata | **#4** | R-01, R-06 | #3 | ✅ selesai |
-| T4 Terbit massal + tolak duplikat | **#5** | R-02 | #4 | siap (R-02 sudah aktif di T3) |
+| T4 Terbit massal + tolak duplikat | **#5** | R-02 | #4 | ✅ selesai |
 | T5 Catat pembayaran | **#6** | — | #4 | siap |
 | T6 Denda + simulasi tanggal | **#7** | R-03 | #4 | ✅ selesai |
 | T7 Umur tunggakan | **#8** | R-04 | #7 | ✅ selesai |
@@ -60,6 +60,15 @@ terlambat sebagai argumen (tidak memanggil jam), rumus denda dipanggil dari kalk
 bukan disalin, penyaringan status di SQL, `sebagian` tetap dihitung tunggakan, kelompok kosong tetap
 dikirim, "belum jatuh tempo" kelompok tersendiri, dan kendali simulasi diekstrak jadi satu komponen
 yang dipakai Tagihan dan Tunggakan.
+
+**T4 (#5)** — 186 tes hijau (1517 asersi), 60 di antaranya tes murni tanpa DB; 15/15 langkah E2E
+browser, 9/9 langkah uji balapan HTTP, 1 screenshot. R-02 selesai. Keputusan yang dicatat di SPEC §5:
+kode status 201/409/200/422 membedakan tiga nasib kontrak, `dilewati_duplikat` dipisah dari
+`dilewati`, transaksi per kontrak, pemeriksaan `exists()` bukan pengaman utama, `aktor_id` tanpa
+foreign key, `aktor_nama` disalin, jejak audit di dalam transaksi perubahan, batch yang seluruhnya
+dilewati tidak menulis jejak. Fondasi `log_audit` (tabel + trigger + `PencatatAudit`) dibangun di
+sini karena kriteria T4 menuntutnya, sementara T9 justru diblokir T4; T9 tinggal portal penghuni dan
+endpoint baca.
 
 ## Ditunda (tidak punya issue)
 

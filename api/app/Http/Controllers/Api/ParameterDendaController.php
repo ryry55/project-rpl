@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Audit\PencatatAudit;
 use App\Domain\Tarif\PencariTarif;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SimpanParameterDendaRequest;
@@ -9,6 +10,7 @@ use App\Http\Resources\ParameterDendaResource;
 use App\Models\ParameterDenda;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Parameter denda — append-only.
@@ -19,7 +21,10 @@ use Illuminate\Http\Request;
  */
 class ParameterDendaController extends Controller
 {
-    public function __construct(private readonly PencariTarif $pencari) {}
+    public function __construct(
+        private readonly PencariTarif $pencari,
+        private readonly PencatatAudit $audit,
+    ) {}
 
     /**
      * Parameter yang berlaku sekarang, atau pada `berlaku_pada` bila diberikan.
@@ -59,7 +64,26 @@ class ParameterDendaController extends Controller
 
     public function store(SimpanParameterDendaRequest $request): JsonResponse
     {
-        $parameter = ParameterDenda::create($request->validated());
+        $parameter = DB::transaction(function () use ($request) {
+            $parameter = ParameterDenda::create($request->validated());
+
+            // Mengubah parameter denda berarti memberlakukan yang baru mulai
+            // tanggal tertentu; baris lama tetap ada. Jejaknya dicatat supaya
+            // "denda 1%/hari" bisa dipertanggungjawabkan ke parameter mana.
+            $this->audit->catat(
+                aksi: PencatatAudit::AKSI_PARAMETER_DENDA_TAMBAH,
+                entitas: 'parameter_denda',
+                entitasId: $parameter->id,
+                nilaiBaru: [
+                    'tarif_persen' => (string) $parameter->tarif_persen,
+                    'plafon_persen' => (string) $parameter->plafon_persen,
+                    'masa_tenggang' => $parameter->masa_tenggang,
+                    'berlaku_dari' => $parameter->berlaku_dari->toDateString(),
+                ],
+            );
+
+            return $parameter;
+        });
 
         return response()->json(['data' => new ParameterDendaResource($parameter)], 201);
     }

@@ -296,6 +296,21 @@ mendemokan "hari ke-37" berarti menunggu 37 hari. Endpoint dan header ini tidak 
 | Tanggal acuan | hanya lewat `X-Simulasi-Tanggal`, tidak ada parameter query tanggal | Dua jalur penggeseran tanggal menghasilkan dua acuan berbeda untuk tagihan yang sama |
 | Kendali simulasi di UI | satu komponen `KendaliSimulasi.vue` + satu state `simulasi.js`, dipakai Tagihan dan Tunggakan | Dua salinan yang menyimpang membuat salah satu halaman tidak bisa dipakai mendemokan yang lain |
 
+**Keputusan T4, dicatat saat implementasi.**
+
+| Hal | Keputusan | Alasan |
+|---|---|---|
+| Kode status terbit massal | **201** ada yang terbit · **409** tidak ada yang terbit karena duplikat · **200** tidak ada yang terbit karena belum mulai · **422** tidak ada kontrak aktif | Pemilik bertanya "apakah aksi saya mengubah sesuatu?"; 409 harus terlihat sebagai penolakan, bukan sukses kosong |
+| `dilewati_duplikat` dipisah dari `dilewati` | dua penghitung terpisah di respons | "Sudah pernah diterbitkan" dan "memang belum waktunya" punya arti berbeda; hanya yang pertama berarti tombol ditekan dua kali |
+| Transaksi per kontrak | tiap kontrak punya `DB::transaction` sendiri | Satu kamar tanpa tarif tidak boleh menggagalkan penerbitan sebulan penuh untuk semua penghuni |
+| Pemeriksaan `exists()` di aplikasi | tetap ada, **bukan** pengaman utama | Memberi alasan yang terbaca; pengaman sebenarnya tetap unique index, karena `exists()` punya celah balapan |
+| `aktor_id` tanpa foreign key | kolom biasa, tanpa constraint | `ON DELETE SET NULL` adalah UPDATE yang ditolak trigger; `RESTRICT` membuat user yang pernah tercatat tidak bisa dihapus selamanya |
+| `aktor_nama` disalin | snapshot, bukan join | Kalau di-join, mengganti nama user menulis ulang sejarah log |
+| Jejak audit ditulis di dalam transaksi perubahan | `PencatatAudit` dipanggil sebelum commit | Menulis setelah commit meninggalkan jendela waktu di mana data berubah tetapi jejaknya belum ada |
+| Batch yang seluruhnya dilewati | **tidak** menulis jejak audit | Log mencatat perubahan, bukan percobaan |
+| Perintah `tagihan:terbitkan` | ada, memanggil layanan yang sama dengan endpoint | Penerbitan bulanan adalah pekerjaan terjadwal, bukan sesuatu yang bergantung pada ada orang membuka halaman |
+| Audit tarif & parameter denda | dikerjakan di T4, bukan menunggu T9 | Endpoint-nya sudah ada; menunda berarti perubahan tarif tanpa jejak selama beberapa tiket |
+
 ---
 
 ## 6. Model data
@@ -451,6 +466,11 @@ menekan satu per satu.
 - [ ] Menekan lagi untuk periode yang sama → **409** (R-02), bukan dua baris
 - [ ] Dua request bersamaan → tetap satu yang menang, satunya 409
 - [ ] Respons menyebut berapa terbit dan berapa dilewati
+
+**Selesai di T4.** `PenerbitanMassal` + `POST /tagihan/terbitkan` + `tagihan:terbitkan`;
+`PenerbitanMassalTest` (17 tes) dan `PenerbitanBalapanTest` (3 tes invarian); balapan sungguhan
+diuji lewat dua permintaan HTTP paralel di `docs/uji/uji-balapan-t4.mjs` (9/9). Respons juga
+memisahkan `dilewati_duplikat` dari `dilewati`, dan tiap tagihan yang terbit menulis `log_audit`.
 
 ### US-5 — Mencatat pembayaran (T5)
 

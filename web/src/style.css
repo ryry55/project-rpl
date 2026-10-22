@@ -176,6 +176,17 @@ button.mungil {
   border-radius: 8px;
 }
 
+/* Untuk keadaan yang bukan keberhasilan dan bukan kesalahan: "tidak ada yang
+   perlu dikerjakan". Mewarnainya merah membuat pemilik mengira ada yang rusak. */
+.pesan-netral {
+  padding: 10px 12px;
+  font-size: 13.5px;
+  color: var(--teks-lemah);
+  background: #f4f5f7;
+  border: 1px solid var(--garis);
+  border-radius: 8px;
+}
+
 .lemah {
   color: var(--teks-lemah);
 }

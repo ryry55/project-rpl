@@ -10,13 +10,13 @@ Status: ✅ selesai · ⚠ sebagian · ⏳ belum · ⏸ ditunda
 | Aturan | Implementasi | Tes | Status |
 |---|---|---|---|
 | **R-01** prorata bulan pertama | `App\Domain\Billing\Kalkulator::hitungSewaBulanPertama` + `hariTinggal` (murni, tanpa DB); dipakai `PenerbitTagihan` | `KalkulatorTest` (22 tes, tanpa DB): `test_prorata` 7 set data termasuk `masuk 15 Oktober (17/31)` → 822.581, `masuk 31 Oktober (1/31)` → 48.387, `masuk 28 Februari (1/28)` → 53.571, `masuk tanggal 1` → tarif penuh; `test_sebulan_penuh_selalu_persis_tarif_untuk_banyak_nilai` (7 tarif × 4 panjang bulan); `TagihanTest`: `test_masuk_tanggal_1_mendapat_tarif_penuh_bukan_kurang_serupiah`, `test_bulan_berikutnya_selalu_tarif_penuh_tanpa_prorata`, `test_tidak_ada_prorata_saat_penghuni_keluar_di_tengah_bulan` | ✅ |
-| **R-02** satu tagihan per kontrak per periode | unique index `tagihan(kontrak_id, periode)` + tangkap `23505` → 409 | `test_menerbitkan_tagihan_periode_sama_ditolak_409` (via E2E), `test_periode_disimpan_sebagai_tanggal_1` | ✅ lebih awal dari T4 |
+| **R-02** satu tagihan per kontrak per periode | unique index `tagihan(kontrak_id, periode)` + tangkap SQLSTATE `23505` → 409, di jalur terbit tunggal maupun massal | `test_menekan_dua_kali_menghasilkan_409_bukan_tagihan_kedua`, `test_unique_index_menolak_duplikat_walau_aplikasi_dilewati`, `test_berapa_kali_pun_dicoba_jumlah_baris_tetap_satu`; balapan dua permintaan HTTP serentak: `docs/uji/uji-balapan-t4.mjs` (9/9) | ✅ |
 | **R-03** denda 1%/hari, plafon 30%, mulai hari ke-8, plafon di hari ke-37 | `App\Domain\Billing\Kalkulator::hitungDenda` + `hariHinggaPlafon` (murni, tanpa DB); `PenghitungDenda` membaca snapshot parameter dari baris `tagihan`; `App\Support\WaktuSistem` sebagai satu-satunya sumber "hari ini" | `DendaTest` (21 tes, tanpa DB): `test_urutan_lengkap_dari_tiket` → `[0, 15.000, 345.000, 450.000, 450.000, 450.000]`, `test_plafon_tercapai_tepat_di_hari_terlambat_37`, `test_belum_jatuh_tempo_berarti_tanpa_denda`, `test_denda_tidak_pernah_melebihi_plafon_untuk_banyak_pokok` (6 pokok × 11 hari), `test_denda_tidak_pernah_menurun_walau_hari_bertambah` (61 hari), `test_hasil_sama_berapa_kali_pun_dipanggil` (100×); `DendaHttpTest` (20 tes): titik batas 7/8/30/37/365 lewat HTTP, `test_pembayaran_sebagian_tidak_menurunkan_dasar_denda`, `test_mengubah_parameter_denda_tidak_mengubah_tagihan_lama`, `test_header_simulasi_diabaikan_saat_mode_demo_mati`, `test_tanggal_simulasi_tidak_bocor_ke_permintaan_berikutnya` | ✅ |
 | **R-04** umur tunggakan 0-30 / 31-60 / >60, plus kelompok belum jatuh tempo | `App\Domain\Billing\Kalkulator::kelompokUmur` (murni, menerima hari terlambat sebagai argumen); `UmurTunggakan` sebagai kunci/label/keterangan; `DaftarTunggakan` menyusun kelompok dengan memanggil `PenghitungDenda` yang sama dengan endpoint denda, dan menyaring `status NOT IN ('lunas','dibatalkan')` di SQL | `UmurTunggakanTest` (14 tes, tanpa DB): `test_kelompok_pada_titik_batas` dengan data set -365, -1, 0, 30, 31, 60, 61, 365, 10000; `test_hari_negatif_bukan_kelompok_nol_sampai_tiga_puluh`; `test_setiap_hari_dari_negatif_sampai_seratus_masuk_tepat_satu_kelompok`; `test_batas_kelompok_bersambung_tanpa_celah`. `TunggakanHttpTest` (14 tes): batas 30/31 dan 60/61 lewat HTTP, `test_tagihan_lunas_dan_dibatalkan_tidak_muncul_di_kelompok_mana_pun`, `test_status_sebagian_tetap_muncul_sebagai_tunggakan`, `test_angka_tunggakan_identik_dengan_endpoint_denda`, `test_konsistensi_bertahan_di_beberapa_tanggal_acuan` (6 tanggal) | ✅ |
 | **R-05** deposit hanya untuk kerusakan | kolom `kontrak.deposit` sudah ada dan terisi | — | ⏸ ditunda (T8) |
 | **R-06** tarif tidak berlaku surut — **lapis 1** (riwayat) | `tarif_sewa`, `komponen_biaya`, `parameter_denda` append-only + trigger `BEFORE UPDATE OR DELETE`; `App\Domain\Tarif\PencariTarif` memilih baris dengan `berlaku_dari` terbesar ≤ awal periode | `RiwayatTarifTest` (16 tes): `test_mengubah_tarif_menambah_baris_dan_baris_lama_tetap`, `test_tarif_efektif_adalah_baris_terakhir_…`, `test_update_langsung_ke_tarif_sewa_ditolak_database`, `test_delete_langsung_ke_tarif_sewa_ditolak_database`, `test_update_langsung_ke_parameter_denda_ditolak_database`, `test_update_langsung_ke_komponen_biaya_ditolak_database` | ✅ lapis 1 |
 | **R-06** tarif tidak berlaku surut — **lapis 2** (snapshot di tagihan) | `tagihan.pokok` dibekukan + `tagihan.tarif_terpakai` (JSON: tarif, komponen, parameter denda) + kolom `tarif_denda_persen`/`plafon_persen`/`masa_tenggang` | `test_tagihan_menyimpan_snapshot_tarif_dan_komponen`, `test_menaikkan_tarif_tidak_mengubah_tagihan_yang_sudah_terbit`, `test_menaikkan_tarif_berlaku_untuk_tagihan_berikutnya`, `test_parameter_denda_dibekukan_di_tagihan` | ✅ lapis 2 |
-| **R-07** isolasi penghuni + log audit | isolasi belum; `PastikanPeran` sudah menutup data induk, penerbitan tagihan, dan pembacaan denda untuk peran penghuni | `test_penghuni_tidak_boleh_menyentuh_data_induk`, `test_penghuni_tidak_boleh_menerbitkan_tagihan`, `test_penghuni_tidak_boleh_melihat_denda` | ⚠ sebagian (T9) |
+| **R-07** isolasi penghuni + log audit | **log audit sudah ada dan append-only** (tabel `log_audit` + trigger `BEFORE UPDATE OR DELETE`, `PencatatAudit` menulis di dalam transaksi yang sama dengan perubahannya); diisi untuk penerbitan tagihan, penambahan tarif, dan penambahan parameter denda. Isolasi penghuni belum — itu T9 | `test_setiap_tagihan_yang_terbit_tercatat_di_log_audit`, `test_log_audit_menolak_perubahan_dan_penghapusan`, `test_perubahan_tarif_tercatat_di_log_audit`, `test_perubahan_parameter_denda_tercatat_di_log_audit`, `test_tagihan_yang_dilewati_tidak_menghasilkan_jejak_audit`; `test_penghuni_tidak_boleh_menyentuh_data_induk`, `test_penghuni_tidak_boleh_menerbitkan_tagihan` | ⚠ log audit ✅, isolasi belum (T9) |
 
 ## Aturan data induk (T2)
 
@@ -95,21 +95,25 @@ Bukan aturan bisnis, tapi kontrak yang harus berlaku sejak tiket pertama.
 | T3 Tagihan + prorata | #4 | 91 tes hijau (387 asersi) — termasuk 22 tes kalkulator murni tanpa DB; 18/18 langkah E2E browser; 2 screenshot (`T3-tagihan.png`, `T3-rincian.png`) |
 | T6 Denda + simulasi tanggal | #7 | 136 tes hijau (992 asersi) - 46 tes murni tanpa DB; 23/23 langkah E2E browser; 2 screenshot (`T6-denda.png`, `T6-tanpa-simulasi.png`) |
 | T7 Umur tunggakan | #8 | 164 tes hijau (1421 asersi) - 60 tes murni tanpa DB; 31/31 langkah E2E browser; 1 screenshot (`T7-tunggakan.png`) |
+| T4 Terbit massal | #5 | 186 tes hijau (1517 asersi) - 60 tes murni tanpa DB; 15/15 langkah E2E browser; 9/9 langkah uji balapan HTTP; 1 screenshot (`T4-terbit-massal.png`) |
 
 ## Cara menjalankan ulang bukti
 
 ```bash
 docker compose up -d
-docker compose exec api php artisan test          # 164 tes
+docker compose exec api php artisan test          # 186 tes
 docker compose exec api php artisan test --testsuite=Unit   # 60 tes murni, tanpa DB
 node docs/uji/e2e-t1.mjs                          # perlu Chrome --remote-debugging-port=9222
 node docs/uji/e2e-t2.mjs                          # 8 kamar + 6 penghuni + kontrak lewat UI
 node docs/uji/e2e-t3.mjs                          # terbit tagihan + rincian + prorata lewat UI
 node docs/uji/e2e-t6.mjs                          # denda 0 → 15.000 → 450.000 lewat simulasi tanggal
 node docs/uji/e2e-t7.mjs                          # empat kelompok umur tunggakan + konsistensi denda
+node docs/uji/e2e-t4.mjs                          # terbit massal + penolakan duplikat lewat UI
+node docs/uji/uji-balapan-t4.mjs                  # dua permintaan HTTP serentak → satu 201, satu 409
 ```
 
-`e2e-t2.mjs`, `e2e-t3.mjs`, `e2e-t6.mjs`, dan `e2e-t7.mjs` mengubah database demo. Untuk mengulang dari
+`e2e-t2.mjs`, `e2e-t3.mjs`, `e2e-t4.mjs`, `e2e-t6.mjs`, `e2e-t7.mjs`, dan `uji-balapan-t4.mjs`
+mengubah database demo. Untuk mengulang dari
 keadaan bersih: `docker compose exec api php artisan migrate:fresh --seed`.
 
 **Tutup tab Chrome yatim sebelum menjalankan E2E lagi.** Skrip membuka tab baru tiap kali
@@ -234,3 +238,52 @@ tidak bisa dijangkau asersi teks.**
 tanggal acuan 2020-01-01. Yang terjadi: keempat tagihan memang **belum jatuh tempo**, jadi
 semuanya masuk kelompok `belum_jatuh_tempo` (`[4,0,0,0]`) — dan itu perilaku yang benar, sekaligus
 bukti bahwa kelompok "belum jatuh tempo" benar-benar terpisah dari 0-30. Asersinya diperbaiki.
+
+**T4: batas yang tidak bisa ditembus tes PHPUnit.** Kriteria tiket menuntut "dua request bersamaan →
+tetap hanya satu yang menang". Itu tidak bisa dibuat di dalam satu proses PHP: permintaan kedua
+selalu berjalan setelah yang pertama selesai, jadi yang diuji adalah urutan, bukan balapan.
+Percobaan pertama memakai dua koneksi basis data di dalam satu tes juga gagal secara berarti —
+PostgreSQL memblokir penulis kedua dengan `55P03` (lock timeout), bukan menolaknya dengan `23505`,
+sehingga kegagalan yang terlihat bukan berasal dari constraint yang sedang diuji. Asersi `23505`
+pada percobaan itu **salah**, dan tesnya dibuang alih-alih dilonggarkan.
+
+Solusinya memisahkan dua hal yang berbeda sifat: `PenerbitanBalapanTest` menguji **invarian**
+(berapa kali pun dicoba, jumlah baris tetap satu; periode lain dan kontrak lain tetap boleh), dan
+`docs/uji/uji-balapan-t4.mjs` menguji **balapan sungguhan** lewat dua permintaan HTTP paralel.
+Bukti dari yang kedua kuat karena pesan yang kalah adalah *"Tagihan periode ini baru saja diterbitkan
+oleh proses lain"* — kalimat itu hanya bisa muncul dari jalur `23505`, bukan dari pemeriksaan
+`exists()` di aplikasi.
+
+**T4: dua keadaan yang tidak bisa dibuat lewat API.** E2E semula merencanakan satu kontrak tanpa
+tarif (untuk membuktikan "gagal" terpisah dari "terbit") dan satu kontrak bertanggal masuk masa
+depan (untuk "belum mulai"). Keduanya ditolak endpoint kontrak lebih dulu — kamar tanpa tarif dan
+tanggal masuk masa depan sama-sama 422. Itu keputusan T2 yang benar, jadi skenarionya yang
+disesuaikan: E2E mendemokan "terbit" dan "dilewati", sementara "gagal" dan "belum mulai" tetap
+terbukti di tes fitur. Yang penting bukan bahwa setiap nasib muncul di browser, melainkan bahwa
+setiap nasib punya bukti di lapisan tempat ia bisa terjadi.
+
+**T4: skrip E2E yang menggantung saat gagal.** Dua kali skrip berhenti di tengah dan prosesnya tidak
+pernah selesai, sehingga perintah menabrak batas waktu 10 menit. Penyebabnya: tab Chrome hanya
+ditutup di jalur sukses. Ditambahkan penutupan tab di `catch`, yang sekaligus mengurangi tab yatim —
+masalah yang sudah tercatat di catatan operasional sebelumnya.
+
+**T4: `sesi.panggil` membuang badan respons galat.** Penolakan 409 pada terbit massal menyertakan
+rincian kontrak mana yang dilewati dan mengapa. Sebelumnya `sesi.js` hanya meneruskan `status` dan
+`errors`, jadi layar hanya bisa menampilkan "permintaan gagal" padahal server sudah menjelaskan.
+Badan respons sekarang ikut dibawa sebagai `galat.body`, dan panel menampilkannya sebagai hasil —
+karena 409 di sini bukan kerusakan, melainkan jawaban.
+
+**T4: pesan "tidak ada tagihan baru" berwarna merah.** Di tangkapan layar pertama, keadaan yang
+sepenuhnya normal ("semua kontrak sudah tertagih") tampil dengan latar merah bahaya. Ditambahkan
+kelas `.pesan-netral` di `style.css` untuk keadaan yang bukan keberhasilan dan bukan kesalahan.
+Ditemukan dari memeriksa gambar, bukan dari asersi teks — kelas bug yang sama dengan catatan T7.
+
+**T4: `log_audit` dibangun lebih awal dari tiketnya.** Kriteria penerimaan T4 menuntut "setiap
+tagihan yang terbit tercatat di `log_audit`", padahal tabel itu lingkup T9 — dan T9 justru diblokir
+T4. Yang dibangun sekarang adalah fondasi **tulis**: tabel, trigger append-only, `PencatatAudit`,
+dan pemanggilannya pada penerbitan tagihan, penambahan tarif, dan penambahan parameter denda. T9
+tinggal menambah portal penghuni dan endpoint **baca** `GET /audit-log`. Dua keputusan bentuk yang
+perlu dicatat: `aktor_id` sengaja **tanpa foreign key** (karena `ON DELETE SET NULL` adalah UPDATE
+yang akan ditolak trigger, sementara `RESTRICT` membuat user yang pernah tercatat tidak bisa
+dihapus selamanya), dan `aktor_nama` **disalin** alih-alih di-join (kalau di-join, mengganti nama
+user akan menulis ulang sejarah log).

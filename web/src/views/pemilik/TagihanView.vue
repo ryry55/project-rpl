@@ -19,6 +19,16 @@ const form = ref({ kontrak_id: '', periode: '' })
 const detail = ref(null)
 const memuatDetail = ref(false)
 
+// --- Terbit massal (T4) -----------------------------------------------------
+// Hasil batch ditampilkan sebagai ringkasan yang bisa dibaca, bukan sekadar
+// "berhasil": pemilik harus tahu berapa yang terbit, berapa yang dilewati, dan
+// — yang paling penting — kamar mana yang gagal dan mengapa.
+const massalTerbuka = ref(false)
+const massalProses = ref(false)
+const massalHasil = ref(null)
+const massalGalat = ref('')
+const massalPeriode = ref('')
+
 // --- Simulasi tanggal (mode demo) ------------------------------------------
 // Tanggalnya sendiri disimpan di `simulasi.js` karena juga dipakai halaman
 // Tunggakan. Kalau tiap halaman menyimpan sendiri, dua layar bisa memakai
@@ -123,6 +133,58 @@ function tutupDetail() {
   detail.value = null
 }
 
+function bukaMassal() {
+  massalPeriode.value = periodeHariIni()
+  massalHasil.value = null
+  massalGalat.value = ''
+  massalTerbuka.value = true
+}
+
+/**
+ * Tiga nasib kontrak perlu tiga label berbeda.
+ *
+ * Kalau semuanya ditampilkan "berhasil", batch yang separuh gagal karena tarif
+ * belum diisi akan tampak sama dengan batch yang berhasil penuh.
+ */
+function labelHasil(status) {
+  return { terbit: 'Terbit', dilewati: 'Dilewati', gagal: 'Gagal' }[status] || status
+}
+
+function kelasHasil(status) {
+  // `lencana-status` global sudah punya warna untuk lunas (hijau) dan
+  // dibatalkan (merah). Dipakai ulang supaya bahasa warnanya konsisten.
+  return { terbit: 'lunas', dilewati: 'selesai', gagal: 'dibatalkan' }[status] || 'kosong'
+}
+
+async function terbitkanMassal() {
+  massalProses.value = true
+  massalGalat.value = ''
+  massalHasil.value = null
+  try {
+    const hasil = await sesi.panggil('/tagihan/terbitkan', {
+      method: 'POST',
+      body: JSON.stringify({ periode: massalPeriode.value }),
+    })
+    massalHasil.value = hasil.data
+
+    // Daftar ikut disegarkan supaya tagihan yang baru terbit langsung terlihat.
+    // Tanpa ini, pemilik melihat ringkasan "12 terbit" di bawah tabel yang
+    // masih kosong.
+    await muat()
+  } catch (e) {
+    // 409 bukan kesalahan sistem: artinya periode ini sudah pernah diterbitkan.
+    // Server tetap mengirim rincian yang berguna, jadi ditampilkan sebagai
+    // hasil, bukan sebagai galat merah.
+    if (e?.status === 409 && e?.body?.data) {
+      massalHasil.value = e.body.data
+    } else {
+      massalGalat.value = pesanGalat(e)
+    }
+  } finally {
+    massalProses.value = false
+  }
+}
+
 onMounted(muat)
 </script>
 
@@ -136,8 +198,98 @@ onMounted(muat)
           <template v-if="totalDenda > 0">· denda {{ rupiah(totalDenda) }}</template>
         </p>
       </div>
-      <button v-if="!formTerbuka" @click="bukaForm">Terbitkan tagihan</button>
+      <div class="aksi-kepala">
+        <button v-if="!massalTerbuka" class="halus" @click="bukaMassal">Terbitkan semua</button>
+        <button v-if="!formTerbuka" @click="bukaForm">Terbitkan tagihan</button>
+      </div>
     </header>
+
+    <!-- Terbit massal (T4). Panel terpisah dari form satu kontrak karena
+         maksudnya berbeda: yang ini untuk sebulan sekaligus. -->
+    <section v-if="massalTerbuka" class="kartu panel panel-massal">
+      <div class="panel-kepala">
+        <div>
+          <h2>Terbitkan semua kontrak aktif</h2>
+          <p class="bantuan mungil">
+            Satu tagihan per kontrak untuk periode ini. Kontrak yang sudah punya tagihan
+            dilewati, bukan diterbitkan dua kali.
+          </p>
+        </div>
+        <button class="halus mungil" @click="massalTerbuka = false">Tutup</button>
+      </div>
+
+      <form class="bidang" @submit.prevent="terbitkanMassal">
+        <div class="baris-bidang">
+          <div>
+            <label for="periode-massal">Periode</label>
+            <input id="periode-massal" v-model="massalPeriode" type="date" required />
+            <p class="bantuan">Tanggal berapa pun dalam bulan itu; disimpan sebagai tanggal 1.</p>
+          </div>
+        </div>
+
+        <p v-if="massalGalat" class="pesan-galat">{{ massalGalat }}</p>
+
+        <div class="aksi">
+          <button type="submit" :disabled="massalProses">
+            {{ massalProses ? 'Menerbitkan…' : 'Terbitkan semua' }}
+          </button>
+        </div>
+      </form>
+
+      <!-- Ringkasan hasil. Tiga angka dipisah karena artinya berbeda bagi
+           pemilik: terbit = berhasil, dilewati = tidak perlu tindakan,
+           gagal = perlu diperbaiki. -->
+      <div v-if="massalHasil" class="hasil-massal">
+        <p v-if="massalHasil.terbit > 0" class="pesan-sukses mungil">
+          {{ massalHasil.terbit }} tagihan terbit untuk periode
+          {{ tanggal(massalHasil.periode) }}.
+        </p>
+        <!-- Netral, bukan merah: tidak ada yang salah di sini. Seluruh kontrak
+             memang sudah tertagih, dan itu keadaan yang baik. -->
+        <p v-else class="pesan-netral mungil">
+          Tidak ada tagihan baru yang terbit. Semua kontrak aktif sudah punya tagihan
+          periode ini, atau belum mulai.
+        </p>
+
+        <p class="mungil lemah">
+          {{ massalHasil.terbit }} terbit · {{ massalHasil.dilewati }} dilewati ·
+          {{ massalHasil.gagal }} gagal
+        </p>
+
+        <details v-if="massalHasil.rincian.length" class="rincian-massal">
+          <summary class="mungil lemah">Rincian per kontrak</summary>
+          <div class="tabel-bungkus">
+            <table class="tabel">
+              <thead>
+                <tr>
+                  <th>Penghuni</th>
+                  <th>Kamar</th>
+                  <th>Hasil</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="r in massalHasil.rincian" :key="r.kontrak_id">
+                  <td>{{ r.penghuni || '—' }}</td>
+                  <td>{{ r.kamar || '—' }}</td>
+                  <td>
+                    <span class="lencana-status" :class="'status-' + kelasHasil(r.status)">
+                      {{ labelHasil(r.status) }}
+                    </span>
+                  </td>
+                  <td class="mungil lemah">
+                    <template v-if="r.status === 'terbit'">
+                      Jatuh tempo {{ tanggal(r.jatuh_tempo) }} · {{ rupiah(r.pokok) }}
+                    </template>
+                    <template v-else>{{ r.alasan }}</template>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+    </section>
 
     <!-- Kendali simulasi tanggal, dipakai bersama halaman Tunggakan. -->
     <KendaliSimulasi
@@ -336,6 +488,39 @@ onMounted(muat)
 
 .kepala p {
   margin: 3px 0 0;
+}
+
+/* Dua tombol di kepala halaman. Dikelompokkan supaya tetap rapat di layar
+   sempit, bukan tersebar oleh justify-content milik .kepala. */
+.aksi-kepala {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.panel-massal {
+  border-color: #cfd9f5;
+  background: #fbfcfe;
+}
+
+.hasil-massal {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--garis);
+  display: grid;
+  gap: 8px;
+}
+
+.hasil-massal p {
+  margin: 0;
+}
+
+.rincian-massal summary {
+  cursor: pointer;
+}
+
+.rincian-massal .tabel-bungkus {
+  margin-top: 10px;
 }
 
 .panel {

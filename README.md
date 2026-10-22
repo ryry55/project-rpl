@@ -42,6 +42,13 @@ node docs/uji/e2e-t2.mjs   # 8 kamar, 6 penghuni, 1 kontrak
 node docs/uji/e2e-t3.mjs   # 2 kontrak + tagihan prorata & penuh
 node docs/uji/e2e-t6.mjs   # tagihan + demo denda lewat simulasi tanggal
 node docs/uji/e2e-t7.mjs   # empat kelompok umur tunggakan
+node docs/uji/e2e-t4.mjs   # terbit massal + penolakan duplikat
+```
+
+Uji balapan R-02 (bukan browser, jadi tidak butuh Chrome):
+
+```bash
+node docs/uji/uji-balapan-t4.mjs   # dua permintaan HTTP serentak → satu 201, satu 409
 ```
 
 Untuk kembali ke keadaan bersih:
@@ -105,6 +112,50 @@ curl -H "X-Simulasi-Tanggal: 2026-11-21" \
      -H "Authorization: Bearer <token>" \
      http://localhost:8081/api/tunggakan
 ```
+
+## Menerbitkan tagihan sebulan sekaligus
+
+Halaman **Tagihan** punya tombol **Terbitkan semua**. Satu tagihan per kontrak aktif untuk periode
+yang dipilih; kontrak yang sudah punya tagihan periode itu dilewati, bukan diterbitkan dua kali.
+
+Hasilnya memisahkan tiga nasib, karena artinya berbeda bagi pemilik:
+
+| Hasil | Arti | Perlu tindakan? |
+|---|---|---|
+| **Terbit** | Tagihan baru dibuat | Tidak |
+| **Dilewati** | Sudah punya tagihan periode ini, atau kontraknya belum mulai | Tidak |
+| **Gagal** | Kamar belum punya tarif, atau parameter denda belum ditetapkan | Ya |
+
+Menekan tombol dua kali untuk periode yang sama menghasilkan **HTTP 409**, bukan tagihan kedua.
+Aturan ini ditegakkan unique index `(kontrak_id, periode)` di basis data, bukan hanya pengecekan di
+aplikasi — pengecekan di aplikasi punya celah balapan, dan dua permintaan yang tiba bersamaan bisa
+lolos keduanya.
+
+Lewat API:
+
+```bash
+curl -X POST -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
+     -d '{"periode":"2026-11-01"}' \
+     http://localhost:8081/api/tagihan/terbitkan
+```
+
+Atau lewat perintah, untuk penerbitan terjadwal:
+
+```bash
+docker compose exec api php artisan tagihan:terbitkan 2026-11-01
+```
+
+## Jejak audit
+
+Setiap tagihan yang terbit, setiap tarif baru, dan setiap parameter denda baru dicatat di tabel
+`log_audit` — aktor, aksi, entitas, id, waktu, nilai lama, dan nilai baru. Tabel itu **append-only**:
+trigger basis data menolak UPDATE dan DELETE, jadi riwayatnya tidak bisa diubah lewat SQL langsung
+sekalipun.
+
+Jejak ditulis di dalam transaksi yang sama dengan perubahannya. Kalau ditulis setelah commit, ada
+jendela waktu di mana data sudah berubah tetapi jejaknya belum ada.
+
+Endpoint baca `GET /api/audit-log` dan halaman log untuk pemilik masuk di T9.
 
 ## Menghentikan
 
