@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SimpanKomponenBiayaRequest;
 use App\Http\Resources\KomponenBiayaResource;
 use App\Models\KomponenBiaya;
+use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,7 +28,7 @@ class KomponenBiayaController extends Controller
 
         if ($request->filled('berlaku_pada')) {
             $request->validate(['berlaku_pada' => ['date_format:Y-m-d']]);
-            $periode = \Carbon\Carbon::parse($request->string('berlaku_pada')->value());
+            $periode = Carbon::parse($request->string('berlaku_pada')->value());
 
             return response()->json([
                 'data' => KomponenBiayaResource::collection($this->pencari->komponenUntuk($periode)),

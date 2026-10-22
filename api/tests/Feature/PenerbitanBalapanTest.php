@@ -8,6 +8,7 @@ use App\Models\ParameterDenda;
 use App\Models\Penghuni;
 use App\Models\Tagihan;
 use App\Models\TarifSewa;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -103,7 +104,7 @@ class PenerbitanBalapanTest extends TestCase
             try {
                 DB::transaction(fn () => DB::table('tagihan')->insert($this->barisTagihan()));
                 $berhasil++;
-            } catch (\Illuminate\Database\QueryException $e) {
+            } catch (QueryException $e) {
                 $this->assertSame('23505', $e->getCode(), 'penolakan harus dari unique index');
                 $ditolak++;
             }

@@ -9,9 +9,11 @@ use App\Http\Requests\Api\SimpanTarifRequest;
 use App\Http\Resources\TarifSewaResource;
 use App\Models\Kamar;
 use App\Models\TarifSewa;
+use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Riwayat tarif sewa — lapis pertama R-06.
@@ -43,7 +45,7 @@ class TarifController extends Controller
     public function store(SimpanTarifRequest $request): JsonResponse
     {
         try {
-            $tarif = \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+            $tarif = DB::transaction(function () use ($request) {
                 $tarif = TarifSewa::create($request->validated());
 
                 // R-06 lapis 1: perubahan tarif adalah kejadian yang harus bisa
@@ -90,7 +92,7 @@ class TarifController extends Controller
             'periode' => ['required', 'date_format:Y-m-d'],
         ]);
 
-        $periode = \Carbon\Carbon::parse($request->string('periode')->value());
+        $periode = Carbon::parse($request->string('periode')->value());
         $tarif = $this->pencari->sewaUntuk($kamar, $periode);
 
         if (! $tarif) {

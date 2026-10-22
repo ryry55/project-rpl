@@ -32,11 +32,14 @@ use Illuminate\Database\QueryException;
 class PenerbitanMassal
 {
     public const TERBIT = 'terbit';
+
     public const DILEWATI = 'dilewati';
+
     public const GAGAL = 'gagal';
 
     /** Sebab diloloskannya sebuah kontrak, dipakai menentukan kode status. */
     public const SEBAB_DUPLIKAT = 'duplikat';
+
     public const SEBAB_BELUM_MULAI = 'belum_mulai';
 
     public function __construct(private readonly PenerbitTagihan $penerbit) {}

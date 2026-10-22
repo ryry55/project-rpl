@@ -12,6 +12,7 @@ use App\Models\Penghuni;
 use App\Models\Tagihan;
 use App\Models\TarifSewa;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -476,7 +477,7 @@ class PembayaranTest extends TestCase
             try {
                 DB::transaction($aksi);
                 $this->fail("{$sebutan} pada pembayaran seharusnya ditolak trigger");
-            } catch (\Illuminate\Database\QueryException $e) {
+            } catch (QueryException $e) {
                 $this->assertStringContainsString(
                     'append-only',
                     $e->getMessage(),

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * Satu pembayaran yang diterima (proses 4.0).
@@ -19,7 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $tagihan_id
  * @property string $jumlah
- * @property \Illuminate\Support\Carbon $tanggal_pembayaran
+ * @property Carbon $tanggal_pembayaran
  * @property string|null $catatan
  */
 class Pembayaran extends Model

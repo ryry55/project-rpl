@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SimpanParameterDendaRequest;
 use App\Http\Resources\ParameterDendaResource;
 use App\Models\ParameterDenda;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +35,7 @@ class ParameterDendaController extends Controller
         $request->validate(['berlaku_pada' => ['nullable', 'date_format:Y-m-d']]);
 
         $periode = $request->filled('berlaku_pada')
-            ? \Carbon\Carbon::parse($request->string('berlaku_pada')->value())
+            ? Carbon::parse($request->string('berlaku_pada')->value())
             : now();
 
         $parameter = $this->pencari->parameterDendaUntuk($periode);

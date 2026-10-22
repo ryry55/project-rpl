@@ -117,29 +117,24 @@ if (-not $tesOk) {
 # karena hasilnya dicurigai.
 #
 # `pint --dirty` juga tidak bisa dipakai di dalam container: tidak ada `.git`
-# di sana. Daftar berkasnya diambil dari git di host.
-Judul 'Format (pint pada berkas yang berubah)'
-$phpBerubah = @(git status --porcelain | ForEach-Object {
-    $jalur = $_.Substring(3).Trim()
-    if ($jalur -match '^api/.+\.php$') { $jalur.Substring(4) }
-})
-if ($phpBerubah.Count -eq 0) {
-    Write-Host '  tidak ada berkas PHP yang berubah' -ForegroundColor Yellow
-} else {
-    # Pint dijalankan dari dalam `api/`: jalur yang diberikannya relatif
-    # terhadap direktori itu, bukan terhadap root repo.
-    Push-Location api
-    try {
-        $keluaranPint = & php vendor\bin\pint --test @phpBerubah 2>&1
-        $pintOk = $LASTEXITCODE -eq 0
-    } finally {
-        Pop-Location
-    }
-    Catat ("pint bersih pada $($phpBerubah.Count) berkas") $pintOk `
-        'jalankan: php api\vendor\bin\pint <berkas>'
-    if (-not $pintOk) {
-        $keluaranPint | Select-Object -First 10 | ForEach-Object { Write-Host ('    ' + $_) }
-    }
+# di sana.
+#
+# Diperiksa SELURUH kode, bukan hanya berkas yang berubah. Versi sebelumnya
+# hanya memeriksa berkas yang berubah, dan itu membuat repo yang tidak
+# pint-clean lolos selamanya: tidak ada yang berubah, jadi tidak ada yang
+# diperiksa. Saat itu terungkap ada 35 berkas yang tidak sesuai format dan
+# guardrail tetap hijau.
+Judul 'Format (pint pada seluruh kode)'
+Push-Location api
+try {
+    $keluaranPint = & php vendor\bin\pint --test 2>&1
+    $pintOk = $LASTEXITCODE -eq 0
+} finally {
+    Pop-Location
+}
+Catat 'pint bersih pada seluruh kode' $pintOk 'jalankan: cd api; php vendor\bin\pint'
+if (-not $pintOk) {
+    $keluaranPint | Select-Object -First 10 | ForEach-Object { Write-Host ('    ' + $_) }
 }
 
 # --- 5. Lint frontend -------------------------------------------------------

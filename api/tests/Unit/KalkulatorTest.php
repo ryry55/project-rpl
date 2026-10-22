@@ -22,7 +22,7 @@ class KalkulatorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->kalkulator = new Kalkulator();
+        $this->kalkulator = new Kalkulator;
     }
 
     /**

@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\PaksaJson;
+use App\Http\Middleware\PastikanPeran;
+use App\Http\Middleware\SimulasiTanggal;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,18 +17,18 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'peran' => \App\Http\Middleware\PastikanPeran::class,
+            'peran' => PastikanPeran::class,
         ]);
 
         // Semua /api/* selalu dijawab JSON: 401, 403, 404, 422 — tidak pernah
         // redirect dan tidak pernah HTML. Lihat App\Http\Middleware\PaksaJson.
-        $middleware->prependToGroup('api', \App\Http\Middleware\PaksaJson::class);
+        $middleware->prependToGroup('api', PaksaJson::class);
 
         // "Hari ini" harus sudah ditetapkan sebelum controller mana pun berjalan,
         // karena denda dan umur tunggakan membacanya. Ditempel ke seluruh grup
         // api, bukan hanya endpoint denda: dua layar yang memakai tanggal acuan
         // berbeda untuk tagihan yang sama akan tampak seperti bug.
-        $middleware->prependToGroup('api', \App\Http\Middleware\SimulasiTanggal::class);
+        $middleware->prependToGroup('api', SimulasiTanggal::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Semua permintaan ke /api/* dijawab JSON, termasuk 401 dan 404,

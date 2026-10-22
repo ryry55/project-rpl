@@ -7,11 +7,10 @@ use App\Models\KomponenBiaya;
 use App\Models\ParameterDenda;
 use App\Models\TarifSewa;
 use App\Models\User;
-use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -172,7 +171,7 @@ class RiwayatTarifTest extends TestCase
         $kamar = Kamar::create(['nomor' => 'A1']);
         TarifSewa::create(['kamar_id' => $kamar->id, 'nilai' => 1500000, 'berlaku_dari' => '2026-10-01']);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         DB::table('tarif_sewa')->update(['nilai' => 1]);
     }
@@ -182,7 +181,7 @@ class RiwayatTarifTest extends TestCase
         $kamar = Kamar::create(['nomor' => 'A1']);
         TarifSewa::create(['kamar_id' => $kamar->id, 'nilai' => 1500000, 'berlaku_dari' => '2026-10-01']);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         DB::table('tarif_sewa')->delete();
     }
@@ -196,7 +195,7 @@ class RiwayatTarifTest extends TestCase
             'berlaku_dari' => '2026-10-01',
         ]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         DB::table('parameter_denda')->update(['tarif_persen' => 5]);
     }
@@ -209,7 +208,7 @@ class RiwayatTarifTest extends TestCase
             'berlaku_dari' => '2026-10-01',
         ]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         DB::table('komponen_biaya')->update(['nilai' => 1]);
     }

@@ -31,7 +31,7 @@ class DendaTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->kalkulator = new Kalkulator();
+        $this->kalkulator = new Kalkulator;
         $this->parameter = [
             'tarif_persen' => '1.00',
             'plafon_persen' => '30.00',

@@ -11,6 +11,7 @@ use App\Models\Penghuni;
 use App\Models\Tagihan;
 use App\Models\TarifSewa;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -180,7 +181,7 @@ class PenerbitanMassalTest extends TestCase
         try {
             $baris();
             $this->fail('unique index (kontrak_id, periode) tidak menolak duplikat');
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             $this->assertSame('23505', $e->getCode(), 'kode SQLSTATE harus 23505');
         }
     }
@@ -343,7 +344,7 @@ class PenerbitanMassalTest extends TestCase
             try {
                 DB::transaction($aksi);
                 $this->fail("{$sebutan} pada log_audit seharusnya ditolak trigger");
-            } catch (\Illuminate\Database\QueryException $e) {
+            } catch (QueryException $e) {
                 $this->assertStringContainsString(
                     'append-only',
                     $e->getMessage(),

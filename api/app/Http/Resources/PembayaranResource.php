@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,7 +14,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * membuat frontend harus ingat mengubahnya sendiri — satu tempat yang lupa akan
  * menampilkan "1500000" tanpa pemisah ribuan.
  *
- * @mixin \App\Models\Pembayaran
+ * @mixin Pembayaran
  */
 class PembayaranResource extends JsonResource
 {

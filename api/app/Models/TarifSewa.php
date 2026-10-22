@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * Riwayat tarif sewa. Append-only — tidak pernah di-UPDATE atau dihapus.
  *
- * @see \App\Models\Kamar
+ * @see Kamar
  */
 class TarifSewa extends Model
 {

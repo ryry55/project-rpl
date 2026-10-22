@@ -2,11 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\KomponenBiaya;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\KomponenBiaya
+ * @mixin KomponenBiaya
  */
 class KomponenBiayaResource extends JsonResource
 {

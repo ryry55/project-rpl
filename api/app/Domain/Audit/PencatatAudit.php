@@ -24,8 +24,11 @@ use Illuminate\Contracts\Auth\Authenticatable;
 class PencatatAudit
 {
     public const AKSI_TAGIHAN_TERBIT = 'tagihan.terbit';
+
     public const AKSI_TAGIHAN_BAYAR = 'tagihan.bayar';
+
     public const AKSI_TARIF_TAMBAH = 'tarif.tambah';
+
     public const AKSI_PARAMETER_DENDA_TAMBAH = 'parameter_denda.tambah';
 
     public function catat(

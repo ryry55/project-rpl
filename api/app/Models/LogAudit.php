@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * Satu baris jejak audit (R-07).
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int|null $entitas_id
  * @property array<string, mixed>|null $nilai_lama
  * @property array<string, mixed>|null $nilai_baru
- * @property \Illuminate\Support\Carbon $dibuat_pada
+ * @property Carbon $dibuat_pada
  */
 class LogAudit extends Model
 {

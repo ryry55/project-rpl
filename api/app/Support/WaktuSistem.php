@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Http\Middleware\SimulasiTanggal;
 use Carbon\CarbonImmutable;
 
 /**
@@ -17,7 +18,7 @@ use Carbon\CarbonImmutable;
  * tidak ada jalan bagi klien untuk memundurkan tanggal dan menghapus denda.
  *
  * Instans ini singleton dan di-reset di awal setiap permintaan oleh middleware
- * {@see \App\Http\Middleware\SimulasiTanggal}. Tanpa reset, tanggal simulasi
+ * {@see SimulasiTanggal}. Tanpa reset, tanggal simulasi
  * dari satu permintaan akan bocor ke permintaan berikutnya.
  */
 class WaktuSistem

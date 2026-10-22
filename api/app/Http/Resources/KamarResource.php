@@ -2,11 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Kamar;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\Kamar
+ * @mixin Kamar
  */
 class KamarResource extends JsonResource
 {

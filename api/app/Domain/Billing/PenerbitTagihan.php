@@ -37,7 +37,7 @@ class PenerbitTagihan
     /**
      * Terbitkan satu tagihan untuk satu kontrak pada satu periode.
      *
-     * @throws \App\Domain\Billing\TagihanTidakDapatDiterbitkan
+     * @throws TagihanTidakDapatDiterbitkan
      */
     public function terbitkan(Kontrak $kontrak, CarbonInterface $periode): Tagihan
     {

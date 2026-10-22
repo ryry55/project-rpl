@@ -7,10 +7,12 @@ use App\Models\Kamar;
 use App\Models\Kontrak;
 use App\Models\LogAudit;
 use App\Models\ParameterDenda;
+use App\Models\Pembayaran;
 use App\Models\Penghuni;
 use App\Models\Tagihan;
 use App\Models\TarifSewa;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -205,7 +207,7 @@ class IsolasiDanAuditTest extends TestCase
         $this->sebagai($a['user'])
             ->putJson("/api/kamar/{$a['kamar']->id}", ['nomor' => 'Z9'])
             ->assertStatus(403);
-        $this->assertSame(0, \App\Models\Pembayaran::count());
+        $this->assertSame(0, Pembayaran::count());
     }
 
     public function test_id_tagihan_yang_tidak_ada_menghasilkan_404(): void
@@ -405,7 +407,7 @@ class IsolasiDanAuditTest extends TestCase
             'entitas_id' => 1,
         ]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         // Query mentah, bukan Eloquent: yang diuji adalah trigger basis data,
         // bukan perilaku model.
@@ -422,7 +424,7 @@ class IsolasiDanAuditTest extends TestCase
             'entitas_id' => 1,
         ]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         DB::statement("DELETE FROM log_audit WHERE aksi = 'uji.manual'");
     }
@@ -439,7 +441,7 @@ class IsolasiDanAuditTest extends TestCase
         try {
             DB::transaction(fn () => DB::table('log_audit')->where('aksi', 'uji.pesan')->delete());
             $this->fail('DELETE pada log_audit seharusnya ditolak trigger');
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             $this->assertStringContainsString('append-only', $e->getMessage());
         }
 

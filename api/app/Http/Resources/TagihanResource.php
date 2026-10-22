@@ -2,11 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Domain\Billing\PenghitungDenda;
+use App\Models\Tagihan;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\Tagihan
+ * @mixin Tagihan
  */
 class TagihanResource extends JsonResource
 {
@@ -19,7 +21,7 @@ class TagihanResource extends JsonResource
         // bergantung pada "hari ini", jadi kolom akan selalu basi dan butuh job
         // penyegar. Perhatikan bahwa ini hanya dihitung bila relasi/tagihan
         // memang diminta — daftar tagihan tetap ringan.
-        $hasilDenda = app(\App\Domain\Billing\PenghitungDenda::class)->hitung($this->resource);
+        $hasilDenda = app(PenghitungDenda::class)->hitung($this->resource);
 
         $dibayar = $this->totalDibayar();
 

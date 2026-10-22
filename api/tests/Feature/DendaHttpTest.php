@@ -3,12 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Kamar;
-use App\Models\KomponenBiaya;
 use App\Models\Kontrak;
 use App\Models\ParameterDenda;
 use App\Models\Penghuni;
 use App\Models\Tagihan;
-use App\Models\TarifSewa;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
