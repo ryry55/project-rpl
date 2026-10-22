@@ -203,6 +203,25 @@ migrasi data historis lebih dari 12 bulan, deposit (T8), modul laporan lengkap (
 Log audit R-07 harus **append-only**. Kalau log bisa diedit atau dihapus, audit tidak
 membuktikan apa pun, dan itu meruntuhkan salah satu dari tujuh aturan bisnis.
 
+## Catatan alat: encoding saat mengirim teks ke GitHub
+
+PowerShell 5.1 `Get-Content -Raw` membaca berkas UTF-8 **sebagai ANSI**, sehingga karakter
+non-ASCII rusak saat dikirim ke `gh issue create --body-file`. Em dash (U+2014) selamat, tapi
+panah (U+2192), centang (U+2705), dan simbol status (U+23F3) hancur menjadi byte sampah.
+
+Pakai pembacaan eksplisit:
+
+```powershell
+$spec = [System.IO.File]::ReadAllText("SPEC.md", [System.Text.Encoding]::UTF8)
+[System.IO.File]::WriteAllText("$env:TEMP\body.md", $spec, (New-Object System.Text.UTF8Encoding($false)))
+gh issue edit 1 --body-file "$env:TEMP\body.md"
+```
+
+Verifikasi wajib setelah unggah: ambil ulang lewat `gh api ... > file.json` (redirect **cmd**, bukan
+pipe PowerShell), lalu bandingkan jumlah kemunculan tiap karakter non-ASCII dengan berkas lokal.
+Jangan percaya tampilan konsol — konsol yang menampilkan mojibake belum tentu servernya rusak,
+dan sebaliknya.
+
 ## Perubahan yang menggantikan dokumen lama
 
 R-03 semula tertulis "nominal tetap per hari". Pada 22 Oktober 2026 diubah menjadi
