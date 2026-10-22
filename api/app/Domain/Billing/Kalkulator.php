@@ -184,6 +184,39 @@ class Kalkulator
     }
 
     /**
+     * Kelompok umur tunggakan (R-04).
+     *
+     * Hari terlambat diterima sebagai argumen, **tidak** dibaca dari `now()`.
+     * Itu bukan soal kerapian: kalau fungsi ini memanggil jam sendiri, ia
+     * menjadi bergantung pada waktu dan tidak bisa diuji pada titik batas tanpa
+     * menggeser jam global. Pemanggil — yang sudah punya `WaktuSistem` — yang
+     * menghitung hari terlambat, sehingga `X-Simulasi-Tanggal` dan tes berjalan
+     * lewat jalur yang sama.
+     *
+     * Batasnya inklusif di kedua ujung: hari ke-30 masih kelompok 0-30, hari
+     * ke-31 sudah 31-60. Pergeseran satu hari di sini berarti pemilik menagih
+     * orang di kelompok yang salah.
+     */
+    public function kelompokUmur(int $hariTerlambat): string
+    {
+        // Negatif berarti tagihan belum jatuh tempo. Ini kelompok tersendiri,
+        // bukan 0-30: orang yang belum waktunya bayar bukan penunggak.
+        if ($hariTerlambat < 0) {
+            return UmurTunggakan::BELUM_JATUH_TEMPO;
+        }
+
+        if ($hariTerlambat <= 30) {
+            return UmurTunggakan::HARI_0_30;
+        }
+
+        if ($hariTerlambat <= 60) {
+            return UmurTunggakan::HARI_31_60;
+        }
+
+        return UmurTunggakan::LEBIH_60;
+    }
+
+    /**
      * Pembagian bulat dengan pembulatan half-up, tanpa float.
      *
      * Memakai aritmetika bilangan bulat: sisa dibandingkan dengan setengah

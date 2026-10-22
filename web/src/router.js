@@ -6,6 +6,7 @@ import KamarView from './views/pemilik/KamarView.vue'
 import PenghuniView from './views/pemilik/PenghuniView.vue'
 import KontrakView from './views/pemilik/KontrakView.vue'
 import TagihanView from './views/pemilik/TagihanView.vue'
+import TunggakanView from './views/pemilik/TunggakanView.vue'
 import DashboardPenghuni from './views/DashboardPenghuni.vue'
 
 const routes = [
@@ -21,6 +22,7 @@ const routes = [
       { path: 'penghuni', name: 'pemilik-penghuni', component: PenghuniView },
       { path: 'kontrak', name: 'pemilik-kontrak', component: KontrakView },
       { path: 'tagihan', name: 'pemilik-tagihan', component: TagihanView },
+      { path: 'tunggakan', name: 'pemilik-tunggakan', component: TunggakanView },
     ],
   },
   {

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\PenghuniController;
 use App\Http\Controllers\Api\ParameterDendaController;
 use App\Http\Controllers\Api\TagihanController;
 use App\Http\Controllers\Api\TarifController;
+use App\Http\Controllers\Api\TunggakanController;
 use App\Http\Middleware\PastikanPeran;
 use Illuminate\Support\Facades\Route;
 
@@ -75,5 +76,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // --- Denda (T6) ---------------------------------------------------
         Route::get('/tagihan/{tagihan}/denda', [DendaController::class, 'show'])
             ->name('tagihan.denda');
+
+        // --- Tunggakan per umur (T7) --------------------------------------
+        Route::get('/tunggakan', [TunggakanController::class, 'index'])
+            ->name('tunggakan.index');
     });
 });

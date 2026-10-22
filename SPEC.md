@@ -282,6 +282,20 @@ mendemokan "hari ke-37" berarti menunggu 37 hari. Endpoint dan header ini tidak 
 | Tarif 0% | sah, berarti tanpa denda | Cara mematikan denda tanpa mengubah skema; tidak boleh menjadi pembagian dengan nol |
 | Persentase | diurai dari **teks**, bukan di-cast ke float | 1,15% tidak bisa direpresentasikan eksak sebagai float; pembulatan denda bisa meleset Rp 1 |
 
+**Keputusan T7, dicatat saat implementasi.**
+
+| Hal | Keputusan | Alasan |
+|---|---|---|
+| Sumber hari terlambat | `kelompokUmur(hariTerlambat)` menerima angka, **tidak** memanggil `now()` | Fungsi yang membaca jam sendiri tidak bisa diuji pada titik batas tanpa menggeser jam global, dan tidak ikut aturan `X-Simulasi-Tanggal` |
+| Rumus denda di endpoint tunggakan | **memanggil `PenghitungDenda` yang sama** dengan endpoint denda, tidak disalin | Dua salinan rumus akan menyimpang; kriteria penerimaan tiket menuntut angka yang identik |
+| Penyaringan status | `status NOT IN ('lunas','dibatalkan')` **di SQL** | Menyaring di PHP membuat `count`/`sum` menghitung baris yang seharusnya tidak ada |
+| `sebagian` | **tetap** dihitung tunggakan | Dibayar sebagian belum lunas; kalau tersaring, tunggakan paling berbahaya justru hilang dari layar |
+| Kelompok kosong | tetap dikembalikan, selalu empat kelompok dalam urutan tetap | "0 di atas 60 hari" adalah kabar baik, bukan kelompok yang hilang |
+| "Belum jatuh tempo" | kelompok **tersendiri**, bukan bagian 0-30 | Orang yang belum waktunya bayar bukan penunggak; memasukkannya membuat angka penunggak tidak bisa dipercaya |
+| Kunci kelompok | `belum_jatuh_tempo`, `0_30`, `31_60`, `lebih_60` — konstan, bukan label | Dipakai sebagai kunci JSON sekaligus kelas CSS; label tampilan boleh berubah tanpa memecah apa pun |
+| Tanggal acuan | hanya lewat `X-Simulasi-Tanggal`, tidak ada parameter query tanggal | Dua jalur penggeseran tanggal menghasilkan dua acuan berbeda untuk tagihan yang sama |
+| Kendali simulasi di UI | satu komponen `KendaliSimulasi.vue` + satu state `simulasi.js`, dipakai Tagihan dan Tunggakan | Dua salinan yang menyimpang membuat salah satu halaman tidak bisa dipakai mendemokan yang lain |
+
 ---
 
 ## 6. Model data
@@ -366,6 +380,7 @@ Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
 | GET/POST | `/tagihan` | pemilik | T3 |
 | GET | `/tagihan/{id}` | pemilik (semua), penghuni (miliknya) | T3 |
 | GET | `/tagihan/{id}/denda` | pemilik | T6 |
+| GET | `/tunggakan` | pemilik | T7 |
 | POST | `/tagihan/terbitkan` | pemilik | T4 |
 | POST | `/tagihan/{id}/pembayaran` | pemilik | T5 |
 | GET | `/tagihan/{id}/denda` | pemilik, penghuni (miliknya) | T6 |

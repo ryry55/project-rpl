@@ -12,7 +12,7 @@ dikerjakan akan tampil terkunci di UI.
 | T4 Terbit massal + tolak duplikat | **#5** | R-02 | #4 | siap (R-02 sudah aktif di T3) |
 | T5 Catat pembayaran | **#6** | — | #4 | siap |
 | T6 Denda + simulasi tanggal | **#7** | R-03 | #4 | ✅ selesai |
-| T7 Umur tunggakan | **#8** | R-04 | #7 | siap |
+| T7 Umur tunggakan | **#8** | R-04 | #7 | ✅ selesai |
 | T9 Portal penghuni + log audit | **#9** | R-07 | #5, #6 | terkunci |
 
 ```
@@ -53,6 +53,13 @@ browser, 2 screenshot. R-03 selesai. Keputusan yang dicatat di SPEC §5: satu su
 (`WaktuSistem`), header simulasi diabaikan bila tidak sah, status simulasi diumumkan di `meta`
 badan respons, denda tidak disimpan, dasar denda adalah pokok beku, parameter dibaca dari snapshot
 baris `tagihan`, tarif 0% sah, persentase diurai dari teks.
+
+**T7 (#8)** — 164 tes hijau (1421 asersi), 60 di antaranya tes murni tanpa DB; 31/31 langkah E2E
+browser, 1 screenshot. R-04 selesai. Keputusan yang dicatat di SPEC §5: `kelompokUmur` menerima hari
+terlambat sebagai argumen (tidak memanggil jam), rumus denda dipanggil dari kalkulator yang sama
+bukan disalin, penyaringan status di SQL, `sebagian` tetap dihitung tunggakan, kelompok kosong tetap
+dikirim, "belum jatuh tempo" kelompok tersendiri, dan kendali simulasi diekstrak jadi satu komponen
+yang dipakai Tagihan dan Tunggakan.
 
 ## Ditunda (tidak punya issue)
 

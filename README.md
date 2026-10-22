@@ -41,6 +41,7 @@ Untuk data contoh tanpa mengetik, jalankan skrip E2E yang melakukan persis alur 
 node docs/uji/e2e-t2.mjs   # 8 kamar, 6 penghuni, 1 kontrak
 node docs/uji/e2e-t3.mjs   # 2 kontrak + tagihan prorata & penuh
 node docs/uji/e2e-t6.mjs   # tagihan + demo denda lewat simulasi tanggal
+node docs/uji/e2e-t7.mjs   # empat kelompok umur tunggakan
 ```
 
 Untuk kembali ke keadaan bersih:
@@ -76,6 +77,34 @@ Urutan yang cocok untuk sidang, untuk tagihan pokok Rp 1.500.000 yang jatuh temp
 | 2026-11-14 | 30 | Rp 345.000 |
 | 2026-11-21 | 37 | Rp 450.000 (plafon) |
 | 2027-10-15 | 365 | Rp 450.000 (tetap plafon) |
+
+## Membaca tunggakan
+
+Halaman **Tunggakan** menjawab pertanyaan yang muncul tiap bulan: siapa yang menunggak, dan sudah
+separah apa. Empat kartu di atas daftar menunjukkan jumlah dan total rupiah per kelompok umur;
+menekan salah satu kartu menyaring daftar ke kelompok itu.
+
+| Kelompok | Arti | Yang biasanya dilakukan |
+|---|---|---|
+| Belum jatuh tempo | Belum waktunya bayar | Tidak ada — bukan penunggak |
+| 0–30 hari | Baru terlambat | Ingatkan |
+| 31–60 hari | Perlu tindakan | Tagih langsung |
+| Lebih dari 60 hari | Sudah lama | Putuskan: tegur atau akhiri kontrak |
+
+Tagihan `lunas` dan `dibatalkan` tidak pernah muncul di sini. Tagihan `sebagian` **tetap** muncul —
+dibayar sebagian belum berarti lunas.
+
+Angka denda di halaman ini dihitung dengan kalkulator yang sama dengan endpoint
+`GET /api/tagihan/{id}/denda`, bukan dengan rumus salinan; ada tes yang memastikan keduanya
+identik untuk tagihan yang sama di beberapa tanggal acuan.
+
+Lewat API:
+
+```bash
+curl -H "X-Simulasi-Tanggal: 2026-11-21" \
+     -H "Authorization: Bearer <token>" \
+     http://localhost:8081/api/tunggakan
+```
 
 ## Menghentikan
 

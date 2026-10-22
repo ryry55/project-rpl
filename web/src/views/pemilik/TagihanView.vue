@@ -2,6 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { sesi } from '../../sesi.js'
 import { rupiah, tanggal, tanggalHariIni, pesanGalat, galatPerBidang } from '../../format.js'
+import { simulasiTanggal } from '../../simulasi.js'
+import KendaliSimulasi from '../../komponen/KendaliSimulasi.vue'
 
 const daftar = ref([])
 const kontrak = ref([])
@@ -18,33 +20,14 @@ const detail = ref(null)
 const memuatDetail = ref(false)
 
 // --- Simulasi tanggal (mode demo) ------------------------------------------
-// Disimpan di localStorage supaya bertahan saat berpindah halaman. Header ini
-// hanya berlaku bila backend berjalan dengan APP_DEMO_MODE=true; bila tidak,
-// server mengabaikannya dan mengirim X-Simulasi-Dipakai: false.
-const KUNCI_SIMULASI = 'kos.simulasiTanggal'
-const simulasi = ref(localStorage.getItem(KUNCI_SIMULASI) || '')
+// Tanggalnya sendiri disimpan di `simulasi.js` karena juga dipakai halaman
+// Tunggakan. Kalau tiap halaman menyimpan sendiri, dua layar bisa memakai
+// tanggal acuan berbeda untuk tagihan yang sama.
 const simulasiDipakai = ref(false)
 const tanggalAcuan = ref('')
 
-function terapkanSimulasi() {
-  if (simulasi.value) {
-    localStorage.setItem(KUNCI_SIMULASI, simulasi.value)
-  } else {
-    localStorage.removeItem(KUNCI_SIMULASI)
-  }
-  muat()
-}
-
-function bersihkanSimulasi() {
-  simulasi.value = ''
-  localStorage.removeItem(KUNCI_SIMULASI)
-  muat()
-}
-
 /** Header tambahan untuk setiap permintaan selama simulasi aktif. */
-function headerSimulasi() {
-  return simulasi.value ? { 'X-Simulasi-Tanggal': simulasi.value } : {}
-}
+const headerSimulasi = simulasiTanggal.header
 
 const totalPokok = computed(() => daftar.value.reduce((j, t) => j + t.pokok, 0))
 const totalDenda = computed(() => daftar.value.reduce((j, t) => j + (t.denda || 0), 0))
@@ -156,31 +139,13 @@ onMounted(muat)
       <button v-if="!formTerbuka" @click="bukaForm">Terbitkan tagihan</button>
     </header>
 
-    <!-- Kendali simulasi tanggal. Hanya berguna saat APP_DEMO_MODE=true; bila
-         backend tidak dalam mode demo, header diabaikan dan nilai ini tidak
-         berpengaruh — karena itu ada keterangan eksplisit di bawahnya. -->
-    <section class="kartu panel simulasi-panel">
-      <div class="simulasi-baris">
-        <div>
-          <h2 class="mungil">Simulasi tanggal</h2>
-          <p class="bantuan">
-            Menggeser "hari ini" untuk melihat denda berjalan tanpa menunggu.
-            Hanya berlaku bila backend berjalan dengan <code>APP_DEMO_MODE=true</code>.
-          </p>
-        </div>
-        <div class="simulasi-kendali">
-          <input v-model="simulasi" type="date" aria-label="Tanggal simulasi" />
-          <button class="halus mungil" @click="terapkanSimulasi">Terapkan</button>
-          <button v-if="simulasi" class="halus mungil" @click="bersihkanSimulasi">Hari ini</button>
-        </div>
-      </div>
-      <p v-if="simulasi && !simulasiDipakai" class="pesan-galat mungil">
-        Tanggal simulasi tidak dipakai server — mode demo tidak aktif.
-      </p>
-      <p v-else-if="tanggalAcuan" class="bantuan mungil">
-        Denda dihitung pada {{ tanggal(tanggalAcuan) }}.
-      </p>
-    </section>
+    <!-- Kendali simulasi tanggal, dipakai bersama halaman Tunggakan. -->
+    <KendaliSimulasi
+      :dipakai="simulasiDipakai"
+      :tanggal-acuan="tanggalAcuan"
+      konteks="Denda"
+      @berubah="muat"
+    />
 
     <p v-if="galatMuat" class="pesan-galat">{{ galatMuat }}</p>
 
@@ -424,35 +389,6 @@ onMounted(muat)
   background: #f6f7f9;
   border: 1px solid var(--garis);
   border-radius: 8px;
-}
-
-/* Panel simulasi dibuat menonjol tapi tenang: ia alat demo, bukan bagian
-   alur kerja sehari-hari. Latar berbeda menandainya sebagai kendali, bukan data. */
-.simulasi-panel {
-  background: #f8f9fb;
-  border-style: dashed;
-}
-
-.simulasi-baris {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.simulasi-baris h2 {
-  margin: 0 0 3px;
-}
-
-.simulasi-kendali {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.simulasi-kendali input {
-  width: auto;
 }
 
 .denda-uraian {
