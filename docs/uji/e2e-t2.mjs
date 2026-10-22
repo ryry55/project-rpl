@@ -7,6 +7,24 @@
 // Pakai: node docs/uji/e2e-t2.mjs
 // Prasyarat: docker compose up sudah jalan (web :3000, api :8081), Chrome
 // dengan --remote-debugging-port=9222.
+//
+// Skrip ini MENGUBAH database demo. Untuk mengulang dari keadaan bersih:
+//   docker compose exec api php artisan migrate:fresh --seed
+//
+// Dua jebakan yang sudah memakan waktu, jangan diulang:
+//
+// 1. Nama yang dipakai memeriksa keberhasilan harus BENAR-BENAR baru. Sempat
+//    dipakai "Budi Santoso" yang sudah ada dari seeder; pemeriksaan "nama
+//    muncul di tabel" langsung lulus sebelum formulir terkirim, formulir tetap
+//    terbuka, dan tombol "Tambah" hilang pada iterasi berikutnya. Karena itu
+//    keberhasilan ditentukan oleh formulir TERTUTUP lebih dulu.
+// 2. Jangan menebak ID baris (mis. "A2 ber-ID 2"). ID dicari dari daftar lewat
+//    API, supaya skrip tetap benar walau urutan pembuatan berubah.
+//
+// Untuk halaman yang di dalamnya ada beberapa <form>, `document.querySelector('form')`
+// mengambil yang pertama. Saat ini aman karena formulir tambah selalu muncul di atas
+// daftar. Kalau nanti ada dua formulir terbuka bersamaan, pakai selektor yang lebih
+// spesifik.
 
 const CDP_BASE = process.env.CDP_BASE || 'http://127.0.0.1:9222'
 const APP = process.env.APP_URL || 'http://localhost:3000'
