@@ -38,8 +38,6 @@ const ringkasan = computed(() => {
   }
 })
 
-const tagihanTerbuka = computed(() => daftar.value.find((t) => t.id === terbuka.value) || null)
-
 async function muat() {
   memuat.value = true
   galatMuat.value = ''

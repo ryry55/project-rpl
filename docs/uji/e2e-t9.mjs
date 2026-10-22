@@ -11,103 +11,32 @@
 //
 // Skrip ini MENGUBAH database demo.
 
-const CDP_BASE = process.env.CDP_BASE || 'http://127.0.0.1:9222'
-const APP = process.env.APP_URL || 'http://localhost:3000'
-const API = process.env.API_URL || 'http://localhost:8081/api'
+import {
+  APP,
+  API,
+  kirim,
+  evaluasi,
+  tungguSampai,
+  masukSebagai,
+  panggilApi,
+  tangkapLayar,
+  mulaiUji,
+  jalankan,
+  teksMemuat,
+  rupiah,
+} from './_cdp.mjs'
 
 const SIMULASI = '2026-11-23'
 const PERIODE = '2026-11-01'
 const POKOK = 1_500_000
 
-const langkah = []
-function lapor(nama, lulus, detail = '') {
-  langkah.push({ nama, lulus, detail })
-  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' — ' + detail : ''}`)
-}
+// Denda yang diharapkan: jatuh tempo 15 Nov, simulasi 23 Nov → terlambat 8
+// hari, masa tenggang 7, jadi 1 hari kena denda = 1% × 1.500.000.
+const DENDA_DIHARAPKAN = 15_000
 
-async function targetBaru() {
-  const res = await fetch(`${CDP_BASE}/json/new?about:blank`, { method: 'PUT' })
-  if (!res.ok) throw new Error(`gagal membuat tab: ${res.status}`)
-  return res.json()
-}
-
-function hubungkan(wsUrl) {
-  return new Promise((resolve, reject) => {
-    const ws = new WebSocket(wsUrl)
-    ws.onopen = () => resolve(ws)
-    ws.onerror = (e) => reject(new Error('websocket gagal: ' + e.message))
-  })
-}
-
-let idPesan = 0
-function kirim(ws, method, params = {}) {
-  return new Promise((resolve, reject) => {
-    const id = ++idPesan
-    const onMsg = (ev) => {
-      let msg
-      try {
-        msg = JSON.parse(ev.data)
-      } catch {
-        return
-      }
-      if (msg.id !== id) return
-      ws.removeEventListener('message', onMsg)
-      if (msg.error) reject(new Error(`${method}: ${msg.error.message}`))
-      else resolve(msg.result)
-    }
-    ws.addEventListener('message', onMsg)
-    ws.send(JSON.stringify({ id, method, params }))
-  })
-}
-
-async function evaluasi(ws, ekspresi) {
-  const r = await kirim(ws, 'Runtime.evaluate', {
-    expression: ekspresi,
-    awaitPromise: true,
-    returnByValue: true,
-  })
-  if (r.exceptionDetails) {
-    throw new Error(r.exceptionDetails.exception?.description || 'evaluasi gagal')
-  }
-  return r.result.value
-}
-
-async function tungguSampai(ws, ekspresi, batasMs = 12000) {
-  const mulai = Date.now()
-  while (Date.now() - mulai < batasMs) {
-    if (await evaluasi(ws, `Boolean(${ekspresi})`)) return true
-    await new Promise((r) => setTimeout(r, 150))
-  }
-  return false
-}
-
-/** Login lewat formulir, bukan dengan menanam token — jalur yang dipakai orang. */
-async function masukSebagai(ws, email) {
-  await kirim(ws, 'Page.navigate', { url: `${APP}/masuk` })
-  await tungguSampai(ws, `document.querySelector('#email')`)
-  await evaluasi(ws, `
-    (() => {
-      const set = (sel, v) => {
-        const el = document.querySelector(sel)
-        el.value = v
-        el.dispatchEvent(new Event('input', { bubbles: true }))
-      }
-      set('#email', '${email}')
-      set('#password', 'password')
-      document.querySelector('form').dispatchEvent(
-        new Event('submit', { bubbles: true, cancelable: true }))
-      return true
-    })()
-  `)
-  return tungguSampai(ws, `!location.pathname.startsWith('/masuk')`, 15000)
-}
-
-async function jalan() {
-  const tab = await targetBaru()
-  const ws = await hubungkan(tab.webSocketDebuggerUrl)
-
-  await kirim(ws, 'Page.enable')
-  await kirim(ws, 'Runtime.enable')
+jalankan(async () => {
+  const uji = await mulaiUji()
+  const { ws, lapor } = uji
 
   // --- Siapkan dua penghuni, masing-masing satu tagihan --------------------
   const masukPemilik = await masukSebagai(ws, 'pemilik@kos.test')
@@ -169,7 +98,11 @@ async function jalan() {
       return { tagihanA: a.tagihanId, tagihanB: b.tagihanId }
     })()
   `)
-  lapor('dua penghuni dengan satu tagihan masing-masing siap', !siap.galat, siap.galat || `#${siap.tagihanA} dan #${siap.tagihanB}`)
+  lapor(
+    'dua penghuni dengan satu tagihan masing-masing siap',
+    !siap.galat,
+    siap.galat || `#${siap.tagihanA} dan #${siap.tagihanB}`,
+  )
   if (siap.galat) throw new Error('data uji gagal disiapkan: ' + siap.galat)
 
   // --- Portal penghuni: hanya tagihannya sendiri ---------------------------
@@ -197,21 +130,17 @@ async function jalan() {
       const lencana = baris[0]?.querySelector('.lencana-status')
       return {
         jumlah: baris.length,
-        teks: document.querySelector('.tabel')?.textContent.replace(/\\s+/g, ' ').trim() || '',
+        teks: document.querySelector('.tabel')?.textContent || '',
         warna: lencana ? getComputedStyle(lencana).color : '',
         latar: lencana ? getComputedStyle(lencana).backgroundColor : '',
       }
     })()
   `)
-  lapor(
-    'penghuni A hanya melihat satu tagihan',
-    isiPortal.jumlah === 1,
-    `${isiPortal.jumlah} baris`,
-  )
+  lapor('penghuni A hanya melihat satu tagihan', isiPortal.jumlah === 1, `${isiPortal.jumlah} baris`)
   lapor(
     'yang tampil adalah tagihan penghuni A, bukan milik B',
-    /Sari Sembilan|T9-A/.test(isiPortal.teks) && !/Bayu Sembilan|T9-B/.test(isiPortal.teks),
-    isiPortal.teks.slice(0, 130),
+    teksMemuat(isiPortal.teks, 'T9-A') && !teksMemuat(isiPortal.teks, 'T9-B'),
+    isiPortal.teks.replace(/\s+/g, ' ').trim().slice(0, 130),
   )
   lapor(
     'lencana status berwarna, bukan putih di atas putih',
@@ -229,113 +158,55 @@ async function jalan() {
       await new Promise(r => setTimeout(r, 1600))
       const panel = document.querySelector('.rincian')
       if (!panel) return { galat: 'rincian tidak terbuka' }
-      return { teks: panel.textContent.replace(/\\s+/g, ' ').trim() }
+      return { teks: panel.textContent }
     })()
   `)
   lapor(
     'rincian menampilkan denda dan riwayat pembayaran',
-    !rincian.galat && /Denda/i.test(rincian.teks) && /Riwayat pembayaran/i.test(rincian.teks),
-    rincian.galat || rincian.teks.slice(0, 140),
+    !rincian.galat && teksMemuat(rincian.teks, 'Denda') && teksMemuat(rincian.teks, 'Riwayat pembayaran'),
+    rincian.galat || rincian.teks.replace(/\s+/g, ' ').trim().slice(0, 140),
   )
-
-  // Denda 15.000 (hari ke-8, 1% dari 1.500.000) harus terlihat di rincian.
-  // Regex ditulis dengan satu backslash: skrip ini JavaScript biasa, bukan
-  // string yang di-escape. `\\d` di sini berarti "backslash literal", kesalahan
-  // yang sudah tercatat di T5 dan T6.
   lapor(
     'rincian menyebut angka denda yang benar',
-    !rincian.galat && /15\.000/.test(rincian.teks),
-    rincian.galat || rincian.teks.slice(0, 140),
+    !rincian.galat && teksMemuat(rincian.teks, DENDA_DIHARAPKAN.toLocaleString('id-ID')),
+    rincian.galat || `diharapkan ${rupiah(DENDA_DIHARAPKAN)}`,
   )
 
-  // --- Tangkapan layar portal ---------------------------------------------
-  const potretPortal = await kirim(ws, 'Page.captureScreenshot', { format: 'png' })
-  const { writeFileSync } = await import('node:fs')
-  writeFileSync('docs/uji/T9-portal-penghuni.png', Buffer.from(potretPortal.data, 'base64'))
+  await tangkapLayar(ws, 'T9-portal-penghuni')
   lapor('tangkapan layar portal tersimpan', true)
 
   // --- Pintu samping: tagihan penghuni lain harus 404 ----------------------
-  const silang = await evaluasi(ws, `
-    (async () => {
-      const h = {
-        Accept: 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('kos.token'),
-        'X-Simulasi-Tanggal': '${SIMULASI}',
-      }
-      const a = await fetch('${API}/tagihan/${siap.tagihanA}', { headers: h })
-      const b = await fetch('${API}/tagihan/${siap.tagihanB}', { headers: h })
-      const bDenda = await fetch('${API}/tagihan/${siap.tagihanB}/denda', { headers: h })
-      const tidakAda = await fetch('${API}/tagihan/999999', { headers: h })
-      const daftar = await fetch('${API}/penghuni/tagihan', { headers: h })
-      const isi = await daftar.json()
-      return {
-        milikSendiri: a.status,
-        milikOrangLain: b.status,
-        dendaOrangLain: bDenda.status,
-        tidakAda: tidakAda.status,
-        jumlahDiDaftar: (isi.data || []).length,
-      }
-    })()
-  `)
-  lapor(
-    'penghuni A boleh membaca tagihannya sendiri',
-    silang.milikSendiri === 200,
-    String(silang.milikSendiri),
-  )
-  lapor(
-    'tagihan penghuni B dijawab 404, bukan 403',
-    silang.milikOrangLain === 404,
-    String(silang.milikOrangLain),
-  )
-  lapor(
-    'pintu samping /denda juga menutup tagihan orang lain',
-    silang.dendaOrangLain === 404,
-    String(silang.dendaOrangLain),
-  )
-  lapor(
-    'id yang tidak ada menghasilkan jawaban yang sama persis',
-    silang.tidakAda === 404,
-    String(silang.tidakAda),
-  )
+  const milikSendiri = await panggilApi(ws, `/tagihan/${siap.tagihanA}`)
+  const milikOrangLain = await panggilApi(ws, `/tagihan/${siap.tagihanB}`)
+  const dendaOrangLain = await panggilApi(ws, `/tagihan/${siap.tagihanB}/denda`)
+  const tidakAda = await panggilApi(ws, `/tagihan/999999`)
+  const daftar = await panggilApi(ws, '/penghuni/tagihan')
+
+  lapor('penghuni A boleh membaca tagihannya sendiri', milikSendiri.status === 200, String(milikSendiri.status))
+  lapor('tagihan penghuni B dijawab 404, bukan 403', milikOrangLain.status === 404, String(milikOrangLain.status))
+  lapor('pintu samping /denda juga menutup tagihan orang lain', dendaOrangLain.status === 404, String(dendaOrangLain.status))
+  lapor('id yang tidak ada menghasilkan jawaban yang sama persis', tidakAda.status === 404, String(tidakAda.status))
   lapor(
     'daftar portal hanya berisi satu tagihan',
-    silang.jumlahDiDaftar === 1,
-    `${silang.jumlahDiDaftar} baris`,
+    (daftar.data?.data || []).length === 1,
+    `${(daftar.data?.data || []).length} baris`,
   )
 
   // --- Penghuni ditolak di endpoint pemilik -------------------------------
-  const ditolak = await evaluasi(ws, `
-    (async () => {
-      const h = {
-        Accept: 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('kos.token'),
-      }
-      const panggil = async (jalur, metode, isi) => {
-        const opsi = { method: metode, headers: { ...h, 'Content-Type': 'application/json' } }
-        if (isi) opsi.body = JSON.stringify(isi)
-        const res = await fetch('${API}' + jalur, opsi)
-        return res.status
-      }
-      return {
-        tagihanPemilik: await panggil('/tagihan', 'GET'),
-        audit: await panggil('/audit-log', 'GET'),
-        kamar: await panggil('/kamar', 'GET'),
-        bayar: await panggil('/tagihan/${siap.tagihanA}/pembayaran', 'POST', {
-          jumlah: 1000, tanggal_pembayaran: '${SIMULASI}',
-        }),
-      }
-    })()
-  `)
+  const tagihanPemilik = await panggilApi(ws, '/tagihan')
+  const audit = await panggilApi(ws, '/audit-log')
+  const kamar = await panggilApi(ws, '/kamar')
+  const bayar = await panggilApi(ws, `/tagihan/${siap.tagihanA}/pembayaran`, 'POST', {
+    jumlah: 1000,
+    tanggal_pembayaran: SIMULASI,
+  })
+
   lapor(
     'penghuni ditolak 403 di seluruh endpoint pemilik',
-    ditolak.tagihanPemilik === 403 && ditolak.audit === 403 && ditolak.kamar === 403,
-    `tagihan=${ditolak.tagihanPemilik} audit=${ditolak.audit} kamar=${ditolak.kamar}`,
+    tagihanPemilik.status === 403 && audit.status === 403 && kamar.status === 403,
+    `tagihan=${tagihanPemilik.status} audit=${audit.status} kamar=${kamar.status}`,
   )
-  lapor(
-    'penghuni tidak bisa mencatat pembayaran',
-    ditolak.bayar === 403,
-    String(ditolak.bayar),
-  )
+  lapor('penghuni tidak bisa mencatat pembayaran', bayar.status === 403, String(bayar.status))
 
   // --- Log audit: pemilik membaca, tidak ada tombol mengubah --------------
   const masukLagi = await masukSebagai(ws, 'pemilik@kos.test')
@@ -362,14 +233,14 @@ async function jalan() {
   await tungguSampai(ws, `document.querySelector('h1')?.textContent.includes('Jejak audit')`)
   const adaLog = await tungguSampai(ws, `document.querySelector('.tabel-audit tbody tr')`)
 
-  const audit = await evaluasi(ws, `
+  const isiAudit = await evaluasi(ws, `
     (() => {
       const baris = [...document.querySelectorAll('.tabel-audit tbody tr')]
         .filter(tr => tr.querySelector('.lencana-aksi'))
       const tombol = [...document.querySelectorAll('.tabel-audit button, .tabel-audit form')]
       return {
         jumlah: baris.length,
-        teks: document.querySelector('.tabel-audit')?.textContent.replace(/\\s+/g, ' ').trim() || '',
+        teks: document.querySelector('.tabel-audit')?.textContent || '',
         adaTombolUbah: tombol.length,
         adaAksi: baris.map(tr => tr.querySelector('.lencana-aksi')?.textContent.trim()),
         aktor: baris.map(tr => tr.querySelector('td:nth-child(2) strong')?.textContent.trim()),
@@ -379,43 +250,22 @@ async function jalan() {
   lapor('halaman jejak audit terbuka untuk pemilik', Boolean(adaLog))
   lapor(
     'log berisi kejadian penerbitan tagihan',
-    audit.adaAksi.some((a) => /Tagihan diterbitkan/i.test(a || '')),
-    audit.adaAksi.join(', '),
+    isiAudit.adaAksi.some((a) => teksMemuat(a || '', 'Tagihan diterbitkan')),
+    isiAudit.adaAksi.join(', '),
   )
   lapor(
     'log menyebut aktor yang melakukannya',
-    Boolean(namaPemilik) && audit.aktor.every((a) => a === namaPemilik),
-    `aktor: ${[...new Set(audit.aktor)].join(', ') || '(kosong)'} · diharapkan ${namaPemilik}`,
+    Boolean(namaPemilik) && isiAudit.aktor.every((a) => a === namaPemilik),
+    `aktor: ${[...new Set(isiAudit.aktor)].join(', ') || '(kosong)'} · diharapkan ${namaPemilik}`,
   )
   lapor(
     'tidak ada tombol untuk mengubah atau menghapus log',
-    audit.adaTombolUbah === 0,
-    `${audit.adaTombolUbah} tombol/form`,
+    isiAudit.adaTombolUbah === 0,
+    `${isiAudit.adaTombolUbah} tombol/form`,
   )
 
-  const potretAudit = await kirim(ws, 'Page.captureScreenshot', { format: 'png' })
-  writeFileSync('docs/uji/T9-log-audit.png', Buffer.from(potretAudit.data, 'base64'))
+  await tangkapLayar(ws, 'T9-log-audit')
   lapor('tangkapan layar log audit tersimpan', true)
 
-  await kirim(ws, 'Page.close').catch(() => {})
-  ws.close()
-
-  const gagal = langkah.filter((l) => !l.lulus)
-  console.log(`\n${langkah.length - gagal.length}/${langkah.length} langkah lulus`)
-  if (gagal.length) process.exitCode = 1
-}
-
-jalan().catch(async (e) => {
-  console.error('E2E gagal:', e.message)
-  try {
-    const daftar = await fetch(`${CDP_BASE}/json/list`).then((r) => r.json())
-    await Promise.all(
-      daftar
-        .filter((t) => t.type === 'page')
-        .map((t) => fetch(`${CDP_BASE}/json/close/${t.id}`).catch(() => {})),
-    )
-  } catch {
-    // Mengabaikan kegagalan pembersihan: galat aslinya yang perlu terlihat.
-  }
-  process.exitCode = 1
+  await uji.selesai()
 })

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter, useRoute, RouterLink, RouterView } from 'vue-router'
 import { sesi } from '../sesi.js'
 
 const router = useRouter()

@@ -9,6 +9,7 @@ import TagihanView from './views/pemilik/TagihanView.vue'
 import TunggakanView from './views/pemilik/TunggakanView.vue'
 import AuditLogView from './views/pemilik/AuditLogView.vue'
 import DashboardPenghuni from './views/DashboardPenghuni.vue'
+import TidakDitemukanView from './views/TidakDitemukanView.vue'
 
 const routes = [
   { path: '/', redirect: '/masuk' },
@@ -32,6 +33,15 @@ const routes = [
     name: 'penghuni',
     component: DashboardPenghuni,
     meta: { peran: 'penghuni' },
+  },
+  // Penangkap terakhir. Didaftarkan paling akhir supaya tidak menyerobot rute
+  // mana pun; `meta.publik` membuat alamat yang salah ketik tidak dilempar ke
+  // halaman masuk lebih dulu — halaman 404 justru yang menjelaskan masalahnya.
+  {
+    path: '/:sisa(.*)*',
+    name: 'tidak-ditemukan',
+    component: TidakDitemukanView,
+    meta: { publik: true },
   },
 ]
 

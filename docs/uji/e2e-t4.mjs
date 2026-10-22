@@ -10,9 +10,16 @@
 //
 // Skrip ini MENGUBAH database demo.
 
-const CDP_BASE = process.env.CDP_BASE || 'http://127.0.0.1:9222'
-const APP = process.env.APP_URL || 'http://localhost:3000'
-const API = process.env.API_URL || 'http://localhost:8081/api'
+import {
+  APP,
+  API,
+  CDP_BASE,
+  targetBaru,
+  hubungkan,
+  kirim,
+  evaluasi,
+  tungguSampai,
+} from './_cdp.mjs'
 
 const PERIODE = '2026-11-01'
 
@@ -20,62 +27,6 @@ const langkah = []
 function lapor(nama, lulus, detail = '') {
   langkah.push({ nama, lulus, detail })
   console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' — ' + detail : ''}`)
-}
-
-async function targetBaru() {
-  const res = await fetch(`${CDP_BASE}/json/new?about:blank`, { method: 'PUT' })
-  if (!res.ok) throw new Error(`gagal membuat tab: ${res.status}`)
-  return res.json()
-}
-
-function hubungkan(wsUrl) {
-  return new Promise((resolve, reject) => {
-    const ws = new WebSocket(wsUrl)
-    ws.onopen = () => resolve(ws)
-    ws.onerror = (e) => reject(new Error('websocket gagal: ' + e.message))
-  })
-}
-
-let idPesan = 0
-function kirim(ws, method, params = {}) {
-  return new Promise((resolve, reject) => {
-    const id = ++idPesan
-    const onMsg = (ev) => {
-      let msg
-      try {
-        msg = JSON.parse(ev.data)
-      } catch {
-        return
-      }
-      if (msg.id !== id) return
-      ws.removeEventListener('message', onMsg)
-      if (msg.error) reject(new Error(`${method}: ${msg.error.message}`))
-      else resolve(msg.result)
-    }
-    ws.addEventListener('message', onMsg)
-    ws.send(JSON.stringify({ id, method, params }))
-  })
-}
-
-async function evaluasi(ws, ekspresi) {
-  const r = await kirim(ws, 'Runtime.evaluate', {
-    expression: ekspresi,
-    awaitPromise: true,
-    returnByValue: true,
-  })
-  if (r.exceptionDetails) {
-    throw new Error(r.exceptionDetails.exception?.description || 'evaluasi gagal')
-  }
-  return r.result.value
-}
-
-async function tungguSampai(ws, ekspresi, batasMs = 10000) {
-  const mulai = Date.now()
-  while (Date.now() - mulai < batasMs) {
-    if (await evaluasi(ws, `Boolean(${ekspresi})`)) return true
-    await new Promise((r) => setTimeout(r, 150))
-  }
-  return false
 }
 
 async function jalan() {
