@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
- * Data induk penghuni. Pada T1 hanya dipakai untuk menautkan akun login
- * ke seorang penghuni; atribut lengkapnya baru diisi di T2.
+ * Data induk penghuni (D2 pada DFD).
  */
 class Penghuni extends Model
 {
@@ -21,11 +21,22 @@ class Penghuni extends Model
      */
     protected $fillable = [
         'nama',
+        'email',
         'no_hp',
     ];
 
     public function user(): HasOne
     {
         return $this->hasOne(User::class, 'penghuni_id');
+    }
+
+    public function kontrak(): HasMany
+    {
+        return $this->hasMany(Kontrak::class);
+    }
+
+    public function kontrakAktif(): HasOne
+    {
+        return $this->hasOne(Kontrak::class)->where('status', 'aktif');
     }
 }

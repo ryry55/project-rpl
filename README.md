@@ -30,6 +30,18 @@ Tunggu sampai `db` berstatus sehat dan container `api` menulis `[entrypoint] sia
 
 Dari keadaan bersih (tanpa volume), migrasi dan seeder berjalan otomatis. Tidak ada langkah manual.
 
+**Data demo setelah T2.** Seeder hanya membuat akun, satu penghuni, dan parameter denda awal
+(1%/hari, plafon 30%, tenggang 7 hari). Kamar dan kontrak belum diisi otomatis — isi lewat menu
+**Kamar → Tambah kamar**, **Penghuni → Tambah penghuni**, lalu **Kontrak → Buat kontrak**.
+`node docs/uji/e2e-t2.mjs` melakukan persis alur itu (8 kamar, 6 penghuni, 1 kontrak) bila ingin
+data contoh tanpa mengetik.
+
+Untuk kembali ke keadaan bersih:
+
+```bash
+docker compose exec api php artisan migrate:fresh --seed
+```
+
 ## Menghentikan
 
 ```bash
@@ -54,14 +66,19 @@ dari database demo supaya data sidang tidak pernah terhapus oleh tes.
 ```
 .
 ├── api/                  Laravel 12 (API-only)
+│   ├── app/Domain/Tarif/ PencariTarif — tarif efektif per periode (R-06 lapis 1)
 │   ├── app/Http/         Controller, Request, Resource, Middleware
-│   ├── app/Models/       User, Penghuni
+│   ├── app/Models/       User, Kamar, Penghuni, Kontrak, TarifSewa, KomponenBiaya, ParameterDenda
+│   ├── database/migrations/  Termasuk trigger append-only untuk tabel riwayat
 │   ├── docker/php/       php.ini, opcache.ini, entrypoint.sh
 │   └── docker/nginx/     Konfigurasi nginx untuk API
 ├── web/                  Vue 3 + Vite
-│   ├── src/views/        LoginView, DashboardPemilik, DashboardPenghuni
+│   ├── src/views/pemilik/    KamarView, PenghuniView, KontrakView
+│   ├── src/komponen/         TataLetakPemilik (sidebar + navigasi)
+│   ├── src/format.js         Rupiah, tanggal, dan ringkasan galat validasi
 │   └── docker/nginx/     Konfigurasi nginx untuk SPA
 ├── docker/postgres/      Init database pengujian
+├── docs/uji/             Skrip E2E browser + screenshot bukti
 ├── docker-compose.yml
 └── SPEC.md
 ```

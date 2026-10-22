@@ -1,7 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { sesi } from './sesi.js'
 import LoginView from './views/LoginView.vue'
-import DashboardPemilik from './views/DashboardPemilik.vue'
+import TataLetakPemilik from './komponen/TataLetakPemilik.vue'
+import KamarView from './views/pemilik/KamarView.vue'
+import PenghuniView from './views/pemilik/PenghuniView.vue'
+import KontrakView from './views/pemilik/KontrakView.vue'
 import DashboardPenghuni from './views/DashboardPenghuni.vue'
 
 const routes = [
@@ -9,9 +12,14 @@ const routes = [
   { path: '/masuk', name: 'masuk', component: LoginView, meta: { publik: true } },
   {
     path: '/pemilik',
-    name: 'pemilik',
-    component: DashboardPemilik,
+    component: TataLetakPemilik,
     meta: { peran: 'pemilik' },
+    children: [
+      { path: '', redirect: { name: 'pemilik-kamar' } },
+      { path: 'kamar', name: 'pemilik-kamar', component: KamarView },
+      { path: 'penghuni', name: 'pemilik-penghuni', component: PenghuniView },
+      { path: 'kontrak', name: 'pemilik-kontrak', component: KontrakView },
+    ],
   },
   {
     path: '/penghuni',
@@ -40,7 +48,11 @@ router.beforeEach(async (to) => {
     return { name: 'masuk', query: { lanjut: to.fullPath } }
   }
 
-  if (to.meta.peran && sesi.user.value.peran !== to.meta.peran) {
+  // `meta.peran` hanya terbaca di rute induk, jadi diperiksa pada rute yang
+  // cocok beserta seluruh induknya.
+  const peranDibutuhkan = to.matched.map((r) => r.meta?.peran).filter(Boolean)[0]
+
+  if (peranDibutuhkan && sesi.user.value.peran !== peranDibutuhkan) {
     return { name: sesi.user.value.peran === 'pemilik' ? 'pemilik' : 'penghuni' }
   }
 

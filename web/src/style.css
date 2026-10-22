@@ -2,11 +2,15 @@
   --bg: #f6f7f9;
   --permukaan: #ffffff;
   --garis: #e2e5ea;
+  --garis-lemah: #eef0f3;
   --teks: #16181d;
   --teks-lemah: #5c636e;
   --aksen: #2f6feb;
   --aksen-lemah: #eaf0fd;
+  --sukses: #17795e;
+  --sukses-lemah: #e7f5f0;
   --bahaya: #c0392b;
+  --bahaya-lemah: #fdeceb;
   --radius: 10px;
   --bayang: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 12px rgba(16, 24, 40, 0.06);
 }
@@ -57,7 +61,9 @@ label {
   margin-bottom: 6px;
 }
 
-input {
+input,
+select,
+textarea {
   width: 100%;
   padding: 10px 12px;
   font: inherit;
@@ -70,13 +76,41 @@ input {
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
-input:focus {
+select {
+  appearance: none;
+  padding-right: 34px;
+  /* Panah digambar sendiri: panah bawaan berbeda-beda antar peramban dan
+     membuat tinggi select tidak seragam dengan input di sebelahnya. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%235c636e' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+
+textarea {
+  min-height: 76px;
+  resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
   border-color: var(--aksen);
   box-shadow: 0 0 0 3px var(--aksen-lemah);
 }
 
-input[aria-invalid="true"] {
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
   border-color: var(--bahaya);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  color: var(--teks-lemah);
+  background: #f7f8fa;
+  cursor: not-allowed;
 }
 
 button {
@@ -112,6 +146,11 @@ button.halus:hover:not(:disabled) {
   filter: none;
 }
 
+button.mungil {
+  padding: 6px 11px;
+  font-size: 13px;
+}
+
 .kartu {
   background: var(--permukaan);
   border: 1px solid var(--garis);
@@ -123,8 +162,17 @@ button.halus:hover:not(:disabled) {
   padding: 10px 12px;
   font-size: 13.5px;
   color: #8c2b20;
-  background: #fdeceb;
+  background: var(--bahaya-lemah);
   border: 1px solid #f6cfcb;
+  border-radius: 8px;
+}
+
+.pesan-sukses {
+  padding: 10px 12px;
+  font-size: 13.5px;
+  color: var(--sukses);
+  background: var(--sukses-lemah);
+  border: 1px solid #c7e8dd;
   border-radius: 8px;
 }
 
@@ -134,4 +182,107 @@ button.halus:hover:not(:disabled) {
 
 .mungil {
   font-size: 13px;
+}
+
+/* --- Formulir ---------------------------------------------------------- */
+
+.bidang {
+  display: grid;
+  gap: 14px;
+}
+
+.baris-bidang {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 620px) {
+  .baris-bidang {
+    grid-template-columns: 1fr;
+  }
+}
+
+.galat-bidang {
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  color: var(--bahaya);
+}
+
+.bantuan {
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  color: var(--teks-lemah);
+}
+
+/* --- Tabel ------------------------------------------------------------- */
+
+.tabel-bungkus {
+  overflow-x: auto;
+}
+
+table.tabel {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.tabel th {
+  padding: 10px 14px;
+  font-size: 11.5px;
+  font-weight: 620;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--teks-lemah);
+  background: #fafbfc;
+  border-bottom: 1px solid var(--garis);
+  white-space: nowrap;
+}
+
+.tabel td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--garis-lemah);
+  vertical-align: middle;
+}
+
+.tabel tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabel tbody tr:hover {
+  background: #fafbfc;
+}
+
+.tabel .kanan {
+  text-align: right;
+}
+
+.tabel .sel-kosong {
+  padding: 34px 14px;
+  text-align: center;
+  color: var(--teks-lemah);
+}
+
+/* --- Lencana ----------------------------------------------------------- */
+
+.lencana-status {
+  display: inline-block;
+  padding: 2px 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.lencana-status.status-terisi,
+.lencana-status.status-aktif {
+  color: var(--sukses);
+  background: var(--sukses-lemah);
+}
+
+.lencana-status.status-kosong,
+.lencana-status.status-selesai {
+  color: var(--teks-lemah);
+  background: #eef0f3;
 }

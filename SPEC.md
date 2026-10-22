@@ -244,6 +244,27 @@ berikutnya jatuh tempo pada tanggal yang sama di bulan itu.
 ke `tarif_sewa` di D3, karena riwayat tarif butuh tabel sendiri. DFD bersifat logis, bukan
 fisik — `tarif_dasar` di D1 dibaca sebagai "tarif kamar", bukan sebagai kolom yang harus ada.
 
+**Deviasi sadar dari SPEC awal, dicatat saat T2.** Empat hal di bawah ini berbeda dari rumusan
+awal §6. Semuanya karena rumusan awal bertentangan dengan aturan bisnis yang sudah disepakati,
+bukan karena lebih mudah dikerjakan:
+
+| Hal | SPEC awal | Implementasi | Alasan |
+|---|---|---|---|
+| `komponen_biaya.aktif` | ada kolom `aktif (bool)` | **kolom tidak dibuat** | Kolom yang bisa di-UPDATE bertentangan dengan append-only. Menghentikan komponen = baris baru bernilai 0 |
+| Email penghuni | tidak ada | `penghuni.email` unik | Setiap penghuni harus bisa login (R-07), dan login butuh email |
+| Relasi penghuni–user | `penghuni.user_id` | `users.penghuni_id` | Satu arah saja; kolom di `users` sudah ada sejak T1 dan dipakai `auth` |
+| Parameter denda | `GET/PUT /parameter-denda` | `GET`, `GET /berlaku`, `POST` | PUT yang menambah baris menyesatkan; `POST` menyatakan "berlakukan parameter baru" dengan jujur |
+
+**Append-only ditegakkan basis data, bukan hanya aplikasi.** `tarif_sewa`, `komponen_biaya`, dan
+`parameter_denda` punya trigger yang menolak `UPDATE` dan `DELETE`. Endpoint yang tidak ada hanya
+menahan lewat aplikasi; trigger menahan lewat `psql` juga — termasuk bagi superuser, yang tidak
+tertahan oleh `REVOKE`.
+
+**Tarif kontrak berasal dari satu sumber.** `kontrak.tarif_awal` hanya keterangan; tagihan selalu
+membaca `tarif_sewa`. Bila pemilik mengisi tarif di formulir kontrak padahal kamar sudah punya
+tarif yang berlaku, permintaan **ditolak 422** dengan pesan yang menyebut tarif mana yang berlaku
+— bukan diterima lalu salah satu angka diabaikan diam-diam.
+
 **Simulasi tanggal untuk demo.** Karena denda bergantung pada "hari ini", sediakan override
 `X-Simulasi-Tanggal: 2026-12-01` yang **hanya aktif** bila `APP_DEMO_MODE=true`. Tanpa ini,
 mendemokan "hari ke-37" berarti menunggu 37 hari. Endpoint dan header ini tidak ada di produksi.
@@ -259,21 +280,31 @@ users            id, name, email, password, peran (pemilik|penghuni), penghuni_i
 
 kamar            id, nomor (unique), tipe, status_huni (kosong|terisi), catatan
 
-penghuni         id, nama, no_hp, user_id (nullable)
+penghuni         id, nama, email (unique), no_hp
+                 -- email ditambahkan: akun login penghuni butuh email, dan SPEC
+                 -- semula hanya menyebut user_id. Relasi 1:1 diwujudkan sebagai
+                 -- users.penghuni_id (lihat catatan deviasi di bawah).
 
 kontrak          id, kamar_id, penghuni_id, tgl_masuk (date), tgl_keluar (date|null),
-                 deposit (numeric), status (aktif|selesai)
+                 tarif_awal (numeric 14,0), deposit (numeric), status (aktif|selesai)
                  -- satu kontrak aktif per kamar (partial unique index)
+                 -- tarif_awal = salinan tarif saat kontrak dibuat, untuk keterangan.
+                 -- Sumber kebenaran tarif tetap tarif_sewa (R-06).
 
 tarif_sewa       id, kamar_id, nilai (numeric 14,0), berlaku_dari (date)
+                 UNIQUE (kamar_id, berlaku_dari)
                  -- append-only: tidak pernah UPDATE
 
-komponen_biaya   id, nama, nilai (numeric 14,0), satuan (rupiah/bulan), berlaku_dari (date),
-                 aktif (bool)
-                 -- append-only
+komponen_biaya   id, nama, nilai (numeric 14,0), satuan (rupiah/bulan), berlaku_dari (date)
+                 UNIQUE (nama, berlaku_dari)
+                 -- append-only. Kolom `aktif` TIDAK dibuat: menonaktifkan lewat
+                 -- UPDATE akan merusak riwayat R-06. Menghentikan komponen =
+                 -- baris baru bernilai 0 dengan berlaku_dari baru.
 
 parameter_denda  id, tarif_persen (numeric 5,2), plafon_persen (numeric 5,2),
                  masa_tenggang (int), berlaku_dari (date)
+                 UNIQUE (berlaku_dari)
+                 -- append-only: mengubah parameter = baris baru
 
 tagihan          id, kontrak_id, periode (date, tanggal 1), pokok (numeric 14,0),
                  jatuh_tempo (date), status (belum_bayar|sebagian|lunas|dibatalkan),
@@ -305,12 +336,20 @@ Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
 | POST | `/logout` | semua | T1 |
 | GET | `/me` | semua | T1 |
 | GET/POST | `/kamar` | pemilik | T2 |
+| GET | `/kamar/{id}` | pemilik | T2 |
 | PUT | `/kamar/{id}` | pemilik | T2 |
 | GET/POST | `/penghuni` | pemilik | T2 |
+| GET | `/penghuni/{id}` | pemilik | T2 |
+| PUT | `/penghuni/{id}` | pemilik | T2 |
 | GET/POST | `/kontrak` | pemilik | T2 |
+| GET | `/kontrak/{id}` | pemilik | T2 |
+| POST | `/kontrak/{id}/akhiri` | pemilik | T2 |
 | GET/POST | `/tarif` | pemilik | T2 |
+| GET | `/kamar/{id}/tarif-berlaku?periode=` | pemilik | T2 |
 | GET/POST | `/komponen-biaya` | pemilik | T2 |
-| GET/PUT | `/parameter-denda` | pemilik | T2 |
+| GET | `/parameter-denda` | pemilik | T2 |
+| GET | `/parameter-denda/berlaku` | pemilik | T2 |
+| POST | `/parameter-denda` | pemilik | T2 |
 | GET | `/tagihan` | pemilik (semua), penghuni (miliknya) | T3 |
 | GET | `/tagihan/{id}` | pemilik (semua), penghuni (miliknya) | T3 |
 | POST | `/tagihan` | pemilik | T3 |
