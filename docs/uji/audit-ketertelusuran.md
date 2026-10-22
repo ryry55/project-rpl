@@ -16,7 +16,7 @@ Status: ✅ selesai · ⚠ sebagian · ⏳ belum · ⏸ ditunda
 | **R-05** deposit hanya untuk kerusakan | kolom `kontrak.deposit` sudah ada dan terisi | — | ⏸ ditunda (T8) |
 | **R-06** tarif tidak berlaku surut — **lapis 1** (riwayat) | `tarif_sewa`, `komponen_biaya`, `parameter_denda` append-only + trigger `BEFORE UPDATE OR DELETE`; `App\Domain\Tarif\PencariTarif` memilih baris dengan `berlaku_dari` terbesar ≤ awal periode | `RiwayatTarifTest` (16 tes): `test_mengubah_tarif_menambah_baris_dan_baris_lama_tetap`, `test_tarif_efektif_adalah_baris_terakhir_…`, `test_update_langsung_ke_tarif_sewa_ditolak_database`, `test_delete_langsung_ke_tarif_sewa_ditolak_database`, `test_update_langsung_ke_parameter_denda_ditolak_database`, `test_update_langsung_ke_komponen_biaya_ditolak_database` | ✅ lapis 1 |
 | **R-06** tarif tidak berlaku surut — **lapis 2** (snapshot di tagihan) | `tagihan.pokok` dibekukan + `tagihan.tarif_terpakai` (JSON: tarif, komponen, parameter denda) + kolom `tarif_denda_persen`/`plafon_persen`/`masa_tenggang` | `test_tagihan_menyimpan_snapshot_tarif_dan_komponen`, `test_menaikkan_tarif_tidak_mengubah_tagihan_yang_sudah_terbit`, `test_menaikkan_tarif_berlaku_untuk_tagihan_berikutnya`, `test_parameter_denda_dibekukan_di_tagihan` | ✅ lapis 2 |
-| **R-07** isolasi penghuni + log audit | **log audit sudah ada dan append-only** (tabel `log_audit` + trigger `BEFORE UPDATE OR DELETE`, `PencatatAudit` menulis di dalam transaksi yang sama dengan perubahannya); diisi untuk penerbitan tagihan, penambahan tarif, dan penambahan parameter denda. Isolasi penghuni belum — itu T9 | `test_setiap_tagihan_yang_terbit_tercatat_di_log_audit`, `test_log_audit_menolak_perubahan_dan_penghapusan`, `test_perubahan_tarif_tercatat_di_log_audit`, `test_perubahan_parameter_denda_tercatat_di_log_audit`, `test_tagihan_yang_dilewati_tidak_menghasilkan_jejak_audit`; `test_penghuni_tidak_boleh_menyentuh_data_induk`, `test_penghuni_tidak_boleh_menerbitkan_tagihan` | ⚠ log audit ✅, isolasi belum (T9) |
+| **R-07** isolasi penghuni + log audit | **log audit sudah ada dan append-only** (tabel `log_audit` + trigger `BEFORE UPDATE OR DELETE`, `PencatatAudit` menulis di dalam transaksi yang sama dengan perubahannya); diisi untuk penerbitan tagihan, **pencatatan pembayaran**, penambahan tarif, dan penambahan parameter denda. Isolasi penghuni belum — itu T9 | `test_setiap_tagihan_yang_terbit_tercatat_di_log_audit`, `test_setiap_pembayaran_tercatat_di_log_audit`, `test_pembayaran_ditolak_tidak_menulis_jejak_audit`, `test_log_audit_menolak_perubahan_dan_penghapusan`, `test_pembayaran_menolak_perubahan_dan_penghapusan`, `test_perubahan_tarif_tercatat_di_log_audit`, `test_perubahan_parameter_denda_tercatat_di_log_audit`, `test_tagihan_yang_dilewati_tidak_menghasilkan_jejak_audit`; `test_penghuni_tidak_boleh_menyentuh_data_induk`, `test_penghuni_tidak_boleh_menerbitkan_tagihan`, `test_penghuni_tidak_boleh_mencatat_pembayaran` | ⚠ log audit ✅, isolasi belum (T9) |
 
 ## Aturan data induk (T2)
 
@@ -69,6 +69,28 @@ Kriteria penerimaan T2 yang bukan turunan langsung R-01..R-07.
 | Tanggal simulasi tidak bocor antar-permintaan | `SimulasiTanggal` me-reset `WaktuSistem` di awal setiap permintaan | `test_tanggal_simulasi_tidak_bocor_ke_permintaan_berikutnya` | ✅ |
 | Persentase dibaca sebagai teks, bukan float | `Kalkulator::persenKeRatusan` mengurai string | `test_persentase_dibaca_sebagai_teks_bukan_float` | ✅ |
 
+## Aturan pembayaran (T5)
+
+| Kontrak | Implementasi | Tes | Status |
+|---|---|---|---|
+| Pembayaran sebagian → `sebagian`, sisa benar | `PencatatPembayaran` menurunkan status dari `SUM(pembayaran.jumlah)` | `test_pembayaran_sebagian_mengubah_status_menjadi_sebagian` | ✅ |
+| Pembayaran pas sisa → `lunas` | perbandingan `dibayar >= total`, bukan `==` | `test_pembayaran_pas_sisa_mengubah_status_menjadi_lunas`, `test_dua_pembayaran_sebagian_berturut_turut_menjadi_lunas` | ✅ |
+| Status tidak pernah turun | status adalah fungsi dari jumlah, bukan riwayat transisi | `test_status_tidak_pernah_turun_walau_pembayaran_diulang_habis` | ✅ |
+| Melebihi sisa → 422, bukan saldo negatif | `PembayaranDitolak::melebihiSisa`, pesan menyebut angka | `test_pembayaran_melebihi_sisa_ditolak_422`, `test_pembayaran_melebihi_sisa_setelah_sebagian_ditolak` | ✅ |
+| Jumlah 0 / negatif / desimal → 422 | `jumlah` → `required, integer, min:1` | `test_jumlah_nol_ditolak_422`, `test_jumlah_negatif_ditolak_422`, `test_jumlah_desimal_ditolak_bukan_dibulatkan_diam_diam` | ✅ |
+| Tagihan `dibatalkan` → 422 | diperiksa di dalam transaksi | `test_pembayaran_pada_tagihan_dibatalkan_ditolak_422` | ✅ |
+| Tanggal pembayaran tidak boleh masa depan | `CatatPembayaranRequest` memakai `WaktuSistem`, bukan `now()` | `test_tanggal_pembayaran_masa_depan_ditolak_422`, `test_tanggal_pembayaran_hari_ini_diterima`, `test_tanggal_pembayaran_mundur_diterima` | ✅ |
+| Sisa = `pokok + denda − pembayaran` | `HasilDenda::total()` sebagai satu-satunya tempat rumus itu | `test_sisa_tagihan_adalah_pokok_tambah_denda_kurang_pembayaran`, `test_denda_masuk_ke_sisa_tagihan`, `test_sisa_tidak_pernah_negatif` | ✅ |
+| Dasar denda tetap pokok penuh setelah pembayaran | `PenghitungDenda` membaca `tagihan.pokok` yang dibekukan | `test_pembayaran_sebagian_tidak_menurunkan_dasar_denda` | ✅ |
+| `total`/`dibayar`/`sisa` tidak saling bertentangan saat lunas | `total_final` dibekukan sekali saat status menjadi lunas | `test_total_dibekukan_saat_lunas_sehingga_tidak_bertentangan` | ✅ |
+| Setiap pembayaran tercatat di `log_audit` | `PencatatAudit::AKSI_TAGIHAN_BAYAR` dengan nilai lama & baru | `test_setiap_pembayaran_tercatat_di_log_audit` | ✅ |
+| Penolakan tidak menulis jejak audit | audit ditulis setelah insert berhasil, di transaksi yang sama | `test_pembayaran_ditolak_tidak_menulis_jejak_audit` | ✅ |
+| `pembayaran` append-only | trigger `BEFORE UPDATE OR DELETE` | `test_pembayaran_menolak_perubahan_dan_penghapusan` | ✅ |
+| Riwayat ikut di detail tagihan, urut tanggal | relasi `Tagihan::pembayaran()` dengan `orderBy` | `test_riwayat_pembayaran_ikut_di_detail_tagihan` | ✅ |
+| Daftar membawa `dibayar`/`sisa` tanpa N+1 | `withSum('pembayaran as total_dibayar')` | `test_daftar_tagihan_membawa_dibayar_dan_sisa_tanpa_n_plus_satu` | ✅ |
+| Dua pembayaran serentak tidak melebihi tagihan | `SELECT ... FOR UPDATE` pada baris `tagihan` sebelum memeriksa sisa | `docs/uji/uji-balapan-t5.mjs` (11/11): satu 201, satu 422, pesan menyebut sisa Rp 500.000 | ✅ |
+| Penghuni tidak boleh mencatat pembayaran | `PastikanPeran` | `test_penghuni_tidak_boleh_mencatat_pembayaran`, `test_tanpa_login_ditolak`, `test_tagihan_tidak_ada_menghasilkan_404` | ✅ |
+
 ## Konvensi HTTP (seam 2)
 
 Bukan aturan bisnis, tapi kontrak yang harus berlaku sejak tiket pertama.
@@ -96,12 +118,13 @@ Bukan aturan bisnis, tapi kontrak yang harus berlaku sejak tiket pertama.
 | T6 Denda + simulasi tanggal | #7 | 136 tes hijau (992 asersi) - 46 tes murni tanpa DB; 23/23 langkah E2E browser; 2 screenshot (`T6-denda.png`, `T6-tanpa-simulasi.png`) |
 | T7 Umur tunggakan | #8 | 164 tes hijau (1421 asersi) - 60 tes murni tanpa DB; 31/31 langkah E2E browser; 1 screenshot (`T7-tunggakan.png`) |
 | T4 Terbit massal | #5 | 186 tes hijau (1517 asersi) - 60 tes murni tanpa DB; 15/15 langkah E2E browser; 9/9 langkah uji balapan HTTP; 1 screenshot (`T4-terbit-massal.png`) |
+| T5 Catat pembayaran | #6 | 214 tes hijau (1638 asersi); 21/21 langkah E2E browser; 11/11 langkah uji balapan HTTP; 1 screenshot (`T5-pembayaran.png`) |
 
 ## Cara menjalankan ulang bukti
 
 ```bash
 docker compose up -d
-docker compose exec api php artisan test          # 186 tes
+docker compose exec api php artisan test          # 214 tes
 docker compose exec api php artisan test --testsuite=Unit   # 60 tes murni, tanpa DB
 node docs/uji/e2e-t1.mjs                          # perlu Chrome --remote-debugging-port=9222
 node docs/uji/e2e-t2.mjs                          # 8 kamar + 6 penghuni + kontrak lewat UI
@@ -109,11 +132,13 @@ node docs/uji/e2e-t3.mjs                          # terbit tagihan + rincian + p
 node docs/uji/e2e-t6.mjs                          # denda 0 → 15.000 → 450.000 lewat simulasi tanggal
 node docs/uji/e2e-t7.mjs                          # empat kelompok umur tunggakan + konsistensi denda
 node docs/uji/e2e-t4.mjs                          # terbit massal + penolakan duplikat lewat UI
+node docs/uji/e2e-t5.mjs                          # catat pembayaran sebagian lalu lunas lewat UI
 node docs/uji/uji-balapan-t4.mjs                  # dua permintaan HTTP serentak → satu 201, satu 409
+node docs/uji/uji-balapan-t5.mjs                  # dua pembayaran serentak → satu 201, satu 422
 ```
 
-`e2e-t2.mjs`, `e2e-t3.mjs`, `e2e-t4.mjs`, `e2e-t6.mjs`, `e2e-t7.mjs`, dan `uji-balapan-t4.mjs`
-mengubah database demo. Untuk mengulang dari
+`e2e-t2.mjs`, `e2e-t3.mjs`, `e2e-t4.mjs`, `e2e-t5.mjs`, `e2e-t6.mjs`, `e2e-t7.mjs`,
+`uji-balapan-t4.mjs`, dan `uji-balapan-t5.mjs` mengubah database demo. Untuk mengulang dari
 keadaan bersih: `docker compose exec api php artisan migrate:fresh --seed`.
 
 **Tutup tab Chrome yatim sebelum menjalankan E2E lagi.** Skrip membuka tab baru tiap kali
@@ -287,3 +312,49 @@ perlu dicatat: `aktor_id` sengaja **tanpa foreign key** (karena `ON DELETE SET N
 yang akan ditolak trigger, sementara `RESTRICT` membuat user yang pernah tercatat tidak bisa
 dihapus selamanya), dan `aktor_nama` **disalin** alih-alih di-join (kalau di-join, mengganti nama
 user akan menulis ulang sejarah log).
+
+**T5: angka yang bertentangan di satu layar, ditemukan saat memikirkan denda yang berhenti.**
+Denda berhenti berjalan begitu tagihan lunas — itu benar, dan itu keputusan T6. Tetapi
+konsekuensinya baru terlihat saat pembayaran ditambahkan: tagihan Rp 1.500.000 yang dibayar
+Rp 1.515.000 (pokok + denda 15.000) akan menampilkan **total Rp 1.500.000** dan
+**dibayar Rp 1.515.000** pada saat yang sama, karena `total` dihitung dari denda yang kini nol
+sementara `dibayar` adalah jumlah uang yang benar-benar masuk. Tidak ada tes yang gagal — kedua
+angka dihitung dengan benar menurut rumusnya masing-masing. Yang salah adalah rumusnya tidak lagi
+menjelaskan hal yang sama. Diperbaiki dengan kolom `total_final` yang dibekukan **sekali** saat
+status berubah menjadi lunas. Ini contoh kedua (setelah penjepitan jatuh tempo) bahwa keputusan
+yang benar di satu tiket bisa menciptakan ketidakcocokan di tiket berikutnya, dan yang menangkapnya
+adalah memeriksa tampilan, bukan menjalankan tes.
+
+**T5: penguncian baris dibuktikan dari pesan yang kalah, bukan dari kode.** `FOR UPDATE` mudah
+ditulis dan mustahil dibuktikan lewat satu proses PHP. Buktinya datang dari uji balapan HTTP
+paralel: dua pembayaran Rp 1.000.000 pada tagihan Rp 1.500.000, dan respons yang ditolak berbunyi
+*"Pembayaran Rp 1.000.000 melebihi sisa tagihan Rp **500.000**"*. Angka 500.000 itu hanya bisa
+muncul kalau permintaan kedua **menunggu** transaksi pertama commit lalu membaca ulang — kalau
+kunci tidak bekerja, ia akan membaca 1.500.000 dan lolos. Percobaan empat pembayaran serentak
+Rp 500.000 juga berakhir tepat di Rp 1.500.000, tidak lebih.
+
+**T5: E2E menemukan bug yang tidak mungkin ditemukan tes fitur.** Setelah pembayaran tercatat,
+tombol "Catat pembayaran" semula disembunyikan karena panel sudah punya hasil untuk ditampilkan.
+Akibatnya pemilik yang ingin mencatat cicilan kedua harus **menutup dan membuka ulang panel** —
+dan tidak ada tes HTTP yang bisa melihat itu, karena API-nya baik-baik saja. Ketahuan karena E2E
+T5 mencoba membayar dua kali berturut-turut dan langkah kedua tidak menemukan tombolnya. Syarat
+tampil tombol dipisahkan dari syarat tampil pesan hasil.
+
+**T5: tiga kegagalan E2E yang semuanya salah di skrip, bukan di aplikasi.** Dicatat karena
+polanya berulang: (a) `/1\\.000\\.000/` di JavaScript biasa berarti "backslash literal", bukan
+titik — asersi selalu gagal walau teksnya benar, persis kesalahan yang sudah tercatat di T6;
+(b) satu asersi ditulis `!lebih.galat && lebih.galat.length > 0`, dua syarat yang mustahil benar
+bersamaan karena `galat` sekaligus dipakai sebagai nama objek hasil dan nama bidang pesan;
+(c) asersi "tagihan lunas" masih mengharapkan pesan netral *"sudah lunas"*, padahal pesan itu
+sekarang sengaja ditekan ketika ada hasil pembayaran yang baru — yang benar-benar penting adalah
+**tidak ada lagi tombol pembayaran**, dan asersinya diubah ke situ. Pola yang sama muncul tiga
+kali: asersi yang menguji **kalimat** alih-alih **keadaan**. Kalimat boleh berubah karena alasan
+tampilan; keadaan tidak.
+
+**T5: batasan yang dicatat, bukan disembunyikan.** `pembayaran` bersifat append-only (trigger
+menolak UPDATE dan DELETE), tetapi **belum ada baris pembalik**. Artinya salah input jumlah tidak
+bisa diperbaiki lewat aplikasi. Ini konsekuensi langsung dari keputusan yang benar — catatan uang
+yang bisa diedit diam-diam tidak layak dipercaya — dan jalan keluarnya sudah jelas bentuknya
+(entri balik bertanda dengan rujukan ke baris yang dikoreksi), tetapi membangunnya butuh alur
+tersendiri. Dicatat di SPEC §5 dan §11, di README, dan di komentar migrasi, supaya tidak menjadi
+temuan yang tidak terjawab saat sidang.

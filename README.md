@@ -43,12 +43,14 @@ node docs/uji/e2e-t3.mjs   # 2 kontrak + tagihan prorata & penuh
 node docs/uji/e2e-t6.mjs   # tagihan + demo denda lewat simulasi tanggal
 node docs/uji/e2e-t7.mjs   # empat kelompok umur tunggakan
 node docs/uji/e2e-t4.mjs   # terbit massal + penolakan duplikat
+node docs/uji/e2e-t5.mjs   # catat pembayaran sebagian lalu lunas
 ```
 
-Uji balapan R-02 (bukan browser, jadi tidak butuh Chrome):
+Uji balapan (bukan browser, jadi tidak butuh Chrome):
 
 ```bash
 node docs/uji/uji-balapan-t4.mjs   # dua permintaan HTTP serentak → satu 201, satu 409
+node docs/uji/uji-balapan-t5.mjs   # dua pembayaran serentak → satu 201, satu 422
 ```
 
 Untuk kembali ke keadaan bersih:
@@ -145,12 +147,41 @@ Atau lewat perintah, untuk penerbitan terjadwal:
 docker compose exec api php artisan tagihan:terbitkan 2026-11-01
 ```
 
+## Mencatat pembayaran
+
+Buka **Rincian** pada salah satu tagihan, lalu **Catat pembayaran**. Status tagihan diturunkan dari
+jumlah uang yang benar-benar tercatat: `belum bayar` → `sebagian` → `lunas`.
+
+| Yang dilakukan | Hasil |
+|---|---|
+| Bayar kurang dari sisa | Status `sebagian`, sisa berkurang |
+| Bayar pas sisa | Status `lunas`, sisa nol |
+| Bayar melebihi sisa | **422** dengan pesan yang menyebut sisa — tidak disimpan sebagai saldo |
+| Bayar tagihan yang dibatalkan | **422** |
+| Tanggal pembayaran di masa depan | **422** |
+
+Sisa tagihan = `pokok + denda − total pembayaran`. Dendanya tetap dihitung dari pokok penuh, jadi
+membayar Rp 1 tidak menurunkan denda.
+
+Dua pembayaran yang tiba bersamaan tidak bisa membuat total melebihi tagihan: baris `tagihan`
+dikunci `FOR UPDATE` sebelum sisa diperiksa.
+
+```bash
+curl -X POST -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
+     -d '{"jumlah":500000,"tanggal_pembayaran":"2026-11-10","catatan":"transfer BCA"}' \
+     http://localhost:8081/api/tagihan/1/pembayaran
+```
+
+Catatan penting: tabel `pembayaran` bersifat **append-only** (trigger menolak UPDATE dan DELETE),
+dan baris pembalik belum ada. Salah input jumlah karena itu **tidak bisa diperbaiki dari
+aplikasi** — lihat batasan yang dicatat di `SPEC.md` §5.
+
 ## Jejak audit
 
-Setiap tagihan yang terbit, setiap tarif baru, dan setiap parameter denda baru dicatat di tabel
-`log_audit` — aktor, aksi, entitas, id, waktu, nilai lama, dan nilai baru. Tabel itu **append-only**:
-trigger basis data menolak UPDATE dan DELETE, jadi riwayatnya tidak bisa diubah lewat SQL langsung
-sekalipun.
+Setiap tagihan yang terbit, setiap pembayaran yang tercatat, setiap tarif baru, dan setiap parameter
+denda baru dicatat di tabel `log_audit` — aktor, aksi, entitas, id, waktu, nilai lama, dan nilai
+baru. Tabel itu **append-only**: trigger basis data menolak UPDATE dan DELETE, jadi riwayatnya tidak
+bisa diubah lewat SQL langsung sekalipun.
 
 Jejak ditulis di dalam transaksi yang sama dengan perubahannya. Kalau ditulis setelah commit, ada
 jendela waktu di mana data sudah berubah tetapi jejaknya belum ada.
@@ -189,8 +220,12 @@ dari database demo supaya data sidang tidak pernah terhapus oleh tes.
 .
 ├── api/                  Laravel 12 (API-only)
 │   ├── app/Domain/Tarif/ PencariTarif — tarif efektif per periode (R-06 lapis 1)
+│   ├── app/Domain/Billing/ Kalkulator (murni), PenerbitTagihan, PenerbitanMassal,
+│   │                       PenghitungDenda, PencatatPembayaran
+│   ├── app/Domain/Audit/ PencatatAudit — penulis log_audit
 │   ├── app/Http/         Controller, Request, Resource, Middleware
-│   ├── app/Models/       User, Kamar, Penghuni, Kontrak, TarifSewa, KomponenBiaya, ParameterDenda
+│   ├── app/Models/       User, Kamar, Penghuni, Kontrak, TarifSewa, KomponenBiaya,
+│   │                     ParameterDenda, Tagihan, TagihanRincian, Pembayaran, LogAudit
 │   ├── database/migrations/  Termasuk trigger append-only untuk tabel riwayat
 │   ├── docker/php/       php.ini, opcache.ini, entrypoint.sh
 │   └── docker/nginx/     Konfigurasi nginx untuk API
@@ -215,7 +250,7 @@ Semua respons sukses: `{ "data": ... }`. Semua error: `{ "message": "...", "erro
 | 403 | Peran tidak berhak |
 | 404 | Tidak ada, **atau** bukan miliknya (R-07) |
 | 409 | Duplikat periode tagihan (R-02) |
-| 422 | Validasi gagal |
+| 422 | Validasi gagal; juga pembayaran melebihi sisa atau pada tagihan yang dibatalkan |
 
 Semua `/api/*` selalu dijawab JSON, termasuk untuk klien yang tidak mengirim
 `Accept: application/json`. Dijamin oleh middleware `PaksaJson`.

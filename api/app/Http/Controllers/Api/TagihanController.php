@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Billing\PembayaranDitolak;
+use App\Domain\Billing\PencatatPembayaran;
 use App\Domain\Billing\PenerbitanMassal;
 use App\Domain\Billing\PenerbitTagihan;
 use App\Domain\Billing\TagihanTidakDapatDiterbitkan;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\CatatPembayaranRequest;
 use App\Http\Requests\Api\TerbitkanMassalRequest;
 use App\Http\Requests\Api\TerbitkanTagihanRequest;
+use App\Http\Resources\PembayaranResource;
 use App\Http\Resources\TagihanResource;
 use App\Models\Kontrak;
 use App\Models\Tagihan;
@@ -22,12 +26,18 @@ class TagihanController extends Controller
     public function __construct(
         private readonly PenerbitTagihan $penerbit,
         private readonly PenerbitanMassal $penerbitanMassal,
+        private readonly PencatatPembayaran $pencatatPembayaran,
         private readonly WaktuSistem $waktu,
     ) {}
 
     public function index(Request $request): JsonResponse
     {
-        $query = Tagihan::query()->with(['rincian', 'kontrak.kamar', 'kontrak.penghuni']);
+        $query = Tagihan::query()
+            ->with(['rincian', 'kontrak.kamar', 'kontrak.penghuni'])
+            // Satu query penjumlahan untuk seluruh halaman, bukan satu per
+            // tagihan. Tanpa ini, layar daftar menjalankan N+1 query hanya untuk
+            // menghitung "dibayar" dan "sisa".
+            ->withSum('pembayaran as total_dibayar', 'jumlah');
 
         if ($request->filled('kontrak_id')) {
             $query->where('kontrak_id', $request->integer('kontrak_id'));
@@ -87,9 +97,55 @@ class TagihanController extends Controller
 
     public function show(Tagihan $tagihan): JsonResponse
     {
-        $tagihan->load(['rincian', 'kontrak.kamar', 'kontrak.penghuni']);
+        $tagihan->load(['rincian', 'pembayaran', 'kontrak.kamar', 'kontrak.penghuni']);
 
         return response()->json(['data' => new TagihanResource($tagihan)]);
+    }
+
+    /**
+     * Catat uang yang benar-benar diterima (proses 4.0).
+     *
+     * Seluruh keputusan yang butuh data tagihan — melebihi sisa, sudah lunas,
+     * dibatalkan — berada di {@see PencatatPembayaran}, di dalam transaksi dan di
+     * bawah kunci baris. Controller hanya menerjemahkan penolakan menjadi 422
+     * dengan pesan yang menyebut angka konkret.
+     */
+    public function bayar(CatatPembayaranRequest $request, Tagihan $tagihan): JsonResponse
+    {
+        try {
+            $hasil = $this->pencatatPembayaran->catat(
+                tagihan: $tagihan,
+                jumlah: $request->integer('jumlah'),
+                tanggalPembayaran: Carbon::parse($request->string('tanggal_pembayaran')->value()),
+                catatan: $request->filled('catatan') ? $request->string('catatan')->value() : null,
+            );
+        } catch (PembayaranDitolak $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                // Bidang yang disalahkan dipilih sesuai pesannya: kelebihan
+                // bayar adalah soal `jumlah`, bukan soal tanggal.
+                'errors' => ['jumlah' => [$e->getMessage()]],
+            ], 422);
+        }
+
+        $tagihan->refresh()->load(['rincian', 'pembayaran', 'kontrak.kamar', 'kontrak.penghuni']);
+
+        return response()->json([
+            'data' => [
+                'pembayaran' => new PembayaranResource($hasil->pembayaran),
+                'status_sebelum' => $hasil->statusSebelum,
+                'status_sesudah' => $hasil->statusSesudah,
+                'total' => $hasil->total,
+                'dibayar' => $hasil->dibayar,
+                'sisa' => $hasil->sisa,
+                'tagihan' => new TagihanResource($tagihan),
+            ],
+            'meta' => [
+                'tanggal_acuan' => $this->waktu->hariIni()->toDateString(),
+                'simulasi' => $this->waktu->sedangSimulasi(),
+                'demo_mode' => (bool) config('app.demo_mode'),
+            ],
+        ], 201);
     }
 
     /**

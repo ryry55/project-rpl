@@ -311,6 +311,23 @@ mendemokan "hari ke-37" berarti menunggu 37 hari. Endpoint dan header ini tidak 
 | Perintah `tagihan:terbitkan` | ada, memanggil layanan yang sama dengan endpoint | Penerbitan bulanan adalah pekerjaan terjadwal, bukan sesuatu yang bergantung pada ada orang membuka halaman |
 | Audit tarif & parameter denda | dikerjakan di T4, bukan menunggu T9 | Endpoint-nya sudah ada; menunda berarti perubahan tarif tanpa jejak selama beberapa tiket |
 
+**Keputusan T5, dicatat saat implementasi.**
+
+| Hal | Keputusan | Alasan |
+|---|---|---|
+| Sumber status tagihan | **`SUM(pembayaran.jumlah)`**, bukan penambahan status lama | Status yang ditambah sedikit-sedikit salah begitu ada satu jalur yang lupa memperbaruinya, dan tidak ada cara mendeteksinya. Kolom `status` hanya simpanan untuk query |
+| Pemeriksaan sisa | di dalam transaksi, setelah `SELECT ... FOR UPDATE` pada baris `tagihan` | Pemeriksaan sisa adalah baca-lalu-tulis. Tanpa kunci, dua pembayaran bersamaan sama-sama membaca sisa Rp 1.500.000 dan sama-sama menulis — Rp 2.000.000 untuk tagihan Rp 1.500.000 |
+| Aturan yang butuh data tagihan | di `PencatatPembayaran`, **bukan** di `FormRequest` | Kalau diperiksa di `FormRequest`, pemeriksaan berjalan di luar kunci baris dan hasilnya bisa basi sebelum sempat menulis |
+| Denda saat memutuskan sisa | dihitung pada **tanggal acuan sistem**, bukan `tanggal_pembayaran` | Denda adalah fungsi "sudah berapa hari terlambat sekarang". Memakai tanggal pembayaran berarti denda bisa dihapus dengan menulis tanggal mundur |
+| Kelebihan bayar | **ditolak 422**, tidak disimpan sebagai saldo negatif | Saldo negatif membuat `SUM(jumlah)` berhenti bermakna sebagai "uang yang diterima", dan status yang diturunkan dari situ bisa dibuat apa saja |
+| `pembayaran.jumlah` | selalu **positif**; `integer` di validasi menolak `1500000.5` | Uang disimpan sebagai rupiah bulat. Menerima desimal berarti membulatkannya diam-diam di suatu tempat nanti |
+| `total_final` di `tagihan` | dibekukan **sekali** saat status menjadi `lunas` | Denda berhenti berjalan saat lunas. Tanpa pembekuan, tagihan lunas menampilkan "total Rp 1.500.000" dan "dibayar Rp 1.950.000" sekaligus — dua angka yang bertentangan di satu layar |
+| `sisa` di respons | `max(0, total − dibayar)` | Kelebihan bayar sudah ditolak, jadi negatif hanya mungkin karena bug; menampilkannya sebagai nol lebih jujur daripada sebagai utang terbalik |
+| Tabel `pembayaran` | **append-only** lewat trigger `BEFORE UPDATE OR DELETE` | Catatan uang yang bisa diedit diam-diam tidak berguna untuk mempertanggungjawabkan saldo. Koreksi salah input butuh baris pembalik, dan fitur itu **belum ada** — dicatat sebagai batasan |
+| `tanggal_pembayaran` vs `created_at` | dua kolom terpisah | Yang pertama tanggal uang diterima menurut pemilik, yang kedua kapan baris dicatat. Selisihnya sendiri informasi yang berguna |
+| Penjumlahan `dibayar` di daftar | `withSum('pembayaran as total_dibayar')`, satu query untuk satu halaman | Tanpa ini, daftar 30 tagihan menjalankan 30 query penjumlahan; halaman daftar jadi lambat justru karena fitur pembayaran |
+| Rumus `pokok + denda` | satu tempat: `HasilDenda::total()` | Tiga salinan rumus yang sama pasti akan menyimpang |
+
 ---
 
 ## 6. Model data
@@ -349,22 +366,38 @@ parameter_denda  id, tarif_persen (numeric 5,2), plafon_persen (numeric 5,2),
                  -- append-only: mengubah parameter = baris baru
 
 tagihan          id, kontrak_id, periode (date, tanggal 1), pokok (numeric 14,0),
-                 jatuh_tempo (date), status (belum_bayar|sebagian|lunas|dibatalkan),
+                 total_final (numeric 14,0|null), jatuh_tempo (date),
+                 status (belum_bayar|sebagian|lunas|dibatalkan),
                  tarif_terpakai (json), tarif_denda_persen, plafon_persen, masa_tenggang,
                  terbit_pada (timestamp)
                  UNIQUE (kontrak_id, periode)
+                 -- total_final: diisi sekali saat status menjadi lunas. Null selama
+                 -- tagihan belum lunas karena angkanya masih bergerak.
 
 tagihan_rincian  id, tagihan_id, nama, nilai (numeric 14,0), urutan
 
-pembayaran       id, tagihan_id, tanggal (date), jumlah (numeric 14,0), metode, bukti (path|null),
-                 dicatat_oleh (user_id)
+pembayaran       id, tagihan_id, jumlah (numeric 14,0), tanggal_pembayaran (date),
+                 catatan (string|null), created_at
+                 -- append-only lewat trigger BEFORE UPDATE OR DELETE
+                 -- jumlah selalu > 0; kelebihan bayar ditolak sebelum tersimpan
 
-log_audit        id, aktor_id, aksi, entitas, entitas_id, waktu, nilai_lama (json), nilai_baru (json)
-                 -- append-only
+log_audit        id, aktor_id, aktor_nama, aksi, entitas, entitas_id, waktu,
+                 nilai_lama (json), nilai_baru (json)
+                 -- append-only; aktor_id sengaja tanpa foreign key
 ```
 
-`tagihan.denda` dan `tagihan.total` **tidak ada sebagai kolom** — keduanya turunan, dihitung dari
-`pokok`, `jatuh_tempo`, dan parameter yang dibekukan.
+`tagihan.denda` dan `tagihan.sisa` **tidak ada sebagai kolom** — keduanya turunan, dihitung dari
+`pokok`, `jatuh_tempo`, parameter yang dibekukan, dan `SUM(pembayaran.jumlah)`.
+
+**Deviasi sadar dari SPEC awal, dicatat saat T5.** `pembayaran` dirumuskan di §6 sebagai
+`tanggal, jumlah, metode, bukti, dicatat_oleh`. Implementasi memakai `tanggal_pembayaran`,
+`catatan`, dan `created_at`:
+
+| Hal | SPEC awal | Implementasi | Alasan |
+|---|---|---|---|
+| Tanggal | `tanggal` | `tanggal_pembayaran` | Nama kolom yang menyebut apa tanggalnya; `tanggal` sendirian ambigu di tabel yang punya `created_at` |
+| Metode & bukti | dua kolom | **tidak dibuat** | Tidak ada tiket yang memakainya, dan kolom yang tidak dipakai akan diisi asal-asalan. Metode pembayaran masuk `catatan` bila perlu |
+| Pencatat | `dicatat_oleh` (user_id) | **tidak dibuat** | Sudah dicatat `log_audit` beserta nama penyalinnya. Menyimpannya dua kali berarti dua sumber yang bisa berbeda |
 
 ---
 
@@ -393,10 +426,8 @@ Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
 | GET | `/parameter-denda/berlaku` | pemilik | T2 |
 | POST | `/parameter-denda` | pemilik | T2 |
 | GET/POST | `/tagihan` | pemilik | T3 |
-| GET | `/tagihan/{id}` | pemilik (semua), penghuni (miliknya) | T3 |
-| GET | `/tagihan/{id}/denda` | pemilik | T6 |
-| GET | `/tunggakan` | pemilik | T7 |
 | POST | `/tagihan/terbitkan` | pemilik | T4 |
+| GET | `/tagihan/{id}` | pemilik (semua), penghuni (miliknya) | T3 |
 | POST | `/tagihan/{id}/pembayaran` | pemilik | T5 |
 | GET | `/tagihan/{id}/denda` | pemilik, penghuni (miliknya) | T6 |
 | GET | `/tunggakan` | pemilik | T7 |
@@ -411,7 +442,7 @@ Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
 | 403 | Peran tidak berhak (penghuni memanggil endpoint pemilik) |
 | 404 | Resource tidak ada **atau** bukan miliknya (R-07) |
 | 409 | Duplikat periode (R-02) |
-| 422 | Validasi gagal, dengan `errors` per field |
+| 422 | Validasi gagal, dengan `errors` per field; juga pembayaran yang melebihi sisa, berjumlah ≤ 0, atau pada tagihan yang dibatalkan |
 
 Bentuk respons sukses: `{ "data": ... }`. Error: `{ "message": "...", "errors": {...} }`.
 
@@ -482,6 +513,20 @@ Sebagai pemilik, saya ingin mencatat uang yang saya terima, supaya status tagiha
 - [ ] Jumlah 0 atau negatif → 422
 - [ ] Setiap pembayaran tercatat di `log_audit`
 
+**Selesai di T5.** `PencatatPembayaran` + `POST /tagihan/{id}/pembayaran` + tabel `pembayaran`
+append-only; `PembayaranTest` (26 tes, 113 asersi). Dua pembayaran serentak diuji lewat permintaan
+HTTP paralel di `docs/uji/uji-balapan-t5.mjs` (11/11): yang kalah menerima 422 dengan pesan
+*"sisa tagihan Rp 500.000"* — angka itu hanya bisa muncul kalau ia menunggu transaksi pertama
+commit lalu membaca ulang, yang membuktikan `FOR UPDATE` benar-benar bekerja. Kolom `total_final`
+ditambahkan supaya angka `total`, `dibayar`, dan `sisa` tidak saling bertentangan pada tagihan
+yang sudah lunas.
+
+**Batasan yang dicatat jujur.** `pembayaran` bersifat append-only dan belum ada fitur baris
+pembalik. Salah input jumlah karena itu **tidak bisa diperbaiki lewat aplikasi**; satu-satunya
+jalan adalah intervensi langsung ke basis data, yang meninggalkan jejak di `log_audit` bila
+dilakukan lewat aplikasi. Koreksi pembayaran dirancang sebagai entri balik bertanda, bukan
+penyuntingan baris lama — dan itu pekerjaan tersendiri, di luar cakupan T5.
+
 ### US-6 — Melihat denda yang benar (T6)
 
 Sebagai pemilik, saya ingin sistem menghitung denda, supaya saya tidak perlu memutuskan angka
@@ -548,13 +593,13 @@ Lokasi: `docs/uji/audit-ketertelusuran.md`.
 
 | Aturan | Implementasi | Tes | Status |
 |---|---|---|---|
-| R-01 prorata | `Kalkulator::hitungSewaBulanPertama` | `test_prorata_*` | ⏳ |
-| R-02 satu tagihan per periode | unique index + `TerbitkanTagihan` | `test_terbit_dua_kali_ditolak` | ⏳ |
-| R-03 denda 1%/hari plafon 30% | `Kalkulator::hitungDenda` | `test_batas_7_8`, `test_plafon_37` | ⏳ |
-| R-04 umur tunggakan | `Kalkulator::kelompokUmur` | `test_batas_30_31`, `test_batas_60_61` | ⏳ |
+| R-01 prorata | `Kalkulator::hitungSewaBulanPertama` | `test_prorata_*` | ✅ |
+| R-02 satu tagihan per periode | unique index + `PenerbitanMassal` | `test_menekan_dua_kali_menghasilkan_409_bukan_tagihan_kedua`, `uji-balapan-t4.mjs` | ✅ |
+| R-03 denda 1%/hari plafon 30% | `Kalkulator::hitungDenda` + `PenghitungDenda` | `test_batas_7_8`, `test_plafon_37`, `test_pembayaran_sebagian_tidak_menurunkan_dasar_denda` | ✅ |
+| R-04 umur tunggakan | `Kalkulator::kelompokUmur` | `test_batas_30_31`, `test_batas_60_61` | ✅ |
 | R-05 deposit | — | — | ⏸ ditunda (T8) |
-| R-06 tarif tidak surut | `tarif_sewa` append-only + snapshot | `test_tagihan_lama_tidak_berubah` | ⏳ |
-| R-07 isolasi + audit | filter query + `log_audit` append-only | `test_akses_silang_404` | ⏳ |
+| R-06 tarif tidak surut | `tarif_sewa` append-only + snapshot `tarif_terpakai` | `test_tagihan_lama_tidak_berubah` | ✅ |
+| R-07 isolasi + audit | filter query + `log_audit` append-only | `test_akses_silang_404`, `test_pembayaran_menolak_perubahan_dan_penghapusan` | ⚠ audit (tulis) selesai; baca + portal penghuni di T9 |
 
 Status: ⏳ belum, ✅ selesai, ⚠ sebagian, ⏸ ditunda.
 
@@ -569,6 +614,7 @@ Ditunda dengan sadar, bukan terlupa.
 | Deposit & kerusakan (R-05) | Butuh alur foto kerusakan dan negosiasi; kolom sudah disiapkan | T8, tabel manual di laporan |
 | Laporan & rekap lengkap (proses 5.0) | Bisa dihitung manual dari data yang ada | T10, tabel manual di laporan |
 | Pembatalan tagihan | Tidak dibutuhkan untuk demo | enum ada, UI tidak |
+| Koreksi pembayaran | Butuh baris pembalik bertanda dan alur persetujuan; bukan sekadar hapus baris | Di luar cakupan demo; `pembayaran` append-only dan batasannya dicatat di §5 |
 | Notifikasi WhatsApp/email | Di luar kendali anggaran | — |
 | Multi-kos / multi-pemilik | Satu kos, satu pemilik | — |
 | Impor data historis | Kos baru, tidak ada data lama | — |

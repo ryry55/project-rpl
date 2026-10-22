@@ -35,6 +35,7 @@ class Tagihan extends Model
         'kontrak_id',
         'periode',
         'pokok',
+        'total_final',
         'jatuh_tempo',
         'status',
         'tarif_terpakai',
@@ -53,6 +54,7 @@ class Tagihan extends Model
             'periode' => 'date',
             'jatuh_tempo' => 'date',
             'pokok' => 'decimal:0',
+            'total_final' => 'decimal:0',
             'tarif_terpakai' => 'array',
             'tarif_denda_persen' => 'decimal:2',
             'plafon_persen' => 'decimal:2',
@@ -69,5 +71,27 @@ class Tagihan extends Model
     public function rincian(): HasMany
     {
         return $this->hasMany(TagihanRincian::class)->orderBy('urutan');
+    }
+
+    public function pembayaran(): HasMany
+    {
+        return $this->hasMany(Pembayaran::class)->orderBy('tanggal_pembayaran')->orderBy('id');
+    }
+
+    /** Total uang yang sudah diterima untuk tagihan ini. */
+    public function totalDibayar(): int
+    {
+        // Kalau pemanggil sudah memuat `withSum('pembayaran as total_dibayar')`,
+        // pakai itu. Tanpa jalur ini, daftar 30 tagihan menjalankan 30 query
+        // penjumlahan — dan halaman daftar jadi lambat justru karena fitur
+        // pembayaran.
+        if (array_key_exists('total_dibayar', $this->attributes)) {
+            return (int) ($this->attributes['total_dibayar'] ?? 0);
+        }
+
+        // Dijumlahkan di basis data, bukan di PHP: daftar pembayaran bisa
+        // panjang, dan menjumlahkan seluruh baris hanya untuk satu angka
+        // membuat layar memuat puluhan ribu baris.
+        return (int) $this->pembayaran()->sum('jumlah');
     }
 }

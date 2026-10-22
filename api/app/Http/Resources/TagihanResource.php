@@ -21,6 +21,20 @@ class TagihanResource extends JsonResource
         // memang diminta — daftar tagihan tetap ringan.
         $hasilDenda = app(\App\Domain\Billing\PenghitungDenda::class)->hitung($this->resource);
 
+        $dibayar = $this->totalDibayar();
+
+        // Tagihan yang sudah lunas memakai `total_final` yang dibekukan saat
+        // pelunasan. Tanpa itu, denda yang berhenti berjalan akan membuat
+        // "total" turun menjadi sebesar pokok saja sementara "dibayar" tetap
+        // sebesar pokok + denda — dua angka yang bertentangan di satu layar.
+        $total = $this->total_final !== null
+            ? (int) $this->total_final
+            : $hasilDenda->total();
+
+        $denda = $this->total_final !== null
+            ? max(0, $total - $hasilDenda->pokok)
+            : $hasilDenda->denda;
+
         return [
             'id' => $this->id,
             'kontrak_id' => $this->kontrak_id,
@@ -30,8 +44,16 @@ class TagihanResource extends JsonResource
             'status' => $this->status,
             'terbit_pada' => $this->terbit_pada?->toIso8601String(),
 
-            'denda' => $hasilDenda->denda,
-            'total' => $hasilDenda->pokok + $hasilDenda->denda,
+            'denda' => $denda,
+            'total' => $total,
+
+            // Sisa tidak pernah negatif. Kelebihan bayar ditolak sebelum
+            // tersimpan, jadi angka negatif di sini hanya akan berarti ada bug —
+            // dan `max(0, ...)` membuatnya terlihat sebagai nol, bukan sebagai
+            // utang terbalik yang membingungkan.
+            'dibayar' => $dibayar,
+            'sisa' => max(0, $total - $dibayar),
+            'lunas_pada_total' => $this->total_final !== null ? (int) $this->total_final : null,
 
             // Ringkasan denda ikut dikirim supaya layar tidak perlu memanggil
             // endpoint /denda hanya untuk menampilkan "terlambat 12 hari".
@@ -51,6 +73,16 @@ class TagihanResource extends JsonResource
                 'nilai' => (int) $baris->nilai,
                 'urutan' => $baris->urutan,
             ])->values()),
+
+            'pembayaran' => $this->whenLoaded('pembayaran', fn () => $this->pembayaran
+                ->map(fn ($baris) => [
+                    'id' => $baris->id,
+                    'jumlah' => (int) $baris->jumlah,
+                    'tanggal_pembayaran' => $baris->tanggal_pembayaran?->toDateString(),
+                    'catatan' => $baris->catatan,
+                    'dicatat_pada' => $baris->created_at?->toIso8601String(),
+                ])
+                ->values()),
 
             'kontrak' => $this->whenLoaded('kontrak', fn () => $this->kontrak
                 ? [

@@ -80,6 +80,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/tagihan/{tagihan}', [TagihanController::class, 'show'])->name('tagihan.show');
 
+        // Pembayaran (T5). Proses 4.0 di DFD: uang masuk, status berubah.
+        Route::post('/tagihan/{tagihan}/pembayaran', [TagihanController::class, 'bayar'])
+            ->name('tagihan.bayar');
+
         // --- Denda (T6) ---------------------------------------------------
         Route::get('/tagihan/{tagihan}/denda', [DendaController::class, 'show'])
             ->name('tagihan.denda');

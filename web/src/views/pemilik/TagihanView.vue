@@ -19,6 +19,17 @@ const form = ref({ kontrak_id: '', periode: '' })
 const detail = ref(null)
 const memuatDetail = ref(false)
 
+// --- Pembayaran (T5) --------------------------------------------------------
+// Form pembayaran hidup di dalam panel detail, bukan sebagai panel sendiri:
+// mencatat pembayaran selalu tentang satu tagihan tertentu, dan memaksa pemilik
+// memilih ulang tagihan dari daftar hanya menambah satu langkah yang bisa salah.
+const bayarTerbuka = ref(false)
+const bayarProses = ref(false)
+const bayarGalat = ref('')
+const bayarBidang = ref({})
+const bayarForm = ref({ jumlah: '', tanggal_pembayaran: '', catatan: '' })
+const bayarHasil = ref(null)
+
 // --- Terbit massal (T4) -----------------------------------------------------
 // Hasil batch ditampilkan sebagai ringkasan yang bisa dibaca, bukan sekadar
 // "berhasil": pemilik harus tahu berapa yang terbit, berapa yang dilewati, dan
@@ -42,10 +53,33 @@ const headerSimulasi = simulasiTanggal.header
 const totalPokok = computed(() => daftar.value.reduce((j, t) => j + t.pokok, 0))
 const totalDenda = computed(() => daftar.value.reduce((j, t) => j + (t.denda || 0), 0))
 
+/**
+ * Total yang belum masuk.
+ *
+ * Dihitung di frontend dari `sisa` tiap baris, bukan dari `total - dibayar`
+ * seluruhan: tagihan yang dibatalkan tidak boleh ikut dihitung sebagai piutang,
+ * dan `sisa` sudah memperhitungkan itu per baris.
+ */
+const totalSisa = computed(() =>
+  daftar.value.reduce((j, t) => j + (t.status === 'dibatalkan' ? 0 : t.sisa || 0), 0),
+)
+
 function periodeHariIni() {
   const sekarang = new Date()
   const bulan = String(sekarang.getMonth() + 1).padStart(2, '0')
   return `${sekarang.getFullYear()}-${bulan}-01`
+}
+
+/**
+ * Tanggal untuk mengisi formulir pembayaran.
+ *
+ * Memakai tanggal acuan dari server bila ada, bukan jam dinding browser.
+ * Selama simulasi aktif, server menganggap "hari ini" adalah tanggal simulasi —
+ * mengisi formulir dengan tanggal nyata akan langsung ditolak 422 sebagai
+ * "masa depan", dan pemilik akan mengira sistemnya rusak.
+ */
+function tanggalUntukFormulir() {
+  return tanggalAcuan.value || tanggalHariIni()
 }
 
 async function muat() {
@@ -131,6 +165,66 @@ async function bukaDetail(tagihan) {
 
 function tutupDetail() {
   detail.value = null
+  bayarTerbuka.value = false
+  bayarHasil.value = null
+}
+
+/**
+ * Label status yang bisa dibaca.
+ *
+ * `belum_bayar` diganti spasi menjadi "belum bayar" di templat; `lunas` dan
+ * `sebagian` tidak butuh apa-apa. Fungsi ini dipakai di tempat yang menyebut
+ * status di tengah kalimat, supaya tidak ada tiga cara berbeda menuliskannya.
+ */
+function labelStatus(status) {
+  return String(status || '').replace(/_/g, ' ')
+}
+
+function bukaBayar() {
+  bayarForm.value = {
+    // Sisa diisikan sebagai nilai awal: itulah jumlah yang paling sering
+    // dibayar, dan membiarkannya kosong memaksa pemilik menyalin angka dari
+    // tabel di atasnya.
+    jumlah: detail.value?.sisa > 0 ? String(detail.value.sisa) : '',
+    tanggal_pembayaran: tanggalUntukFormulir(),
+    catatan: '',
+  }
+  bayarGalat.value = ''
+  bayarBidang.value = {}
+  bayarHasil.value = null
+  bayarTerbuka.value = true
+}
+
+async function catatPembayaran() {
+  bayarProses.value = true
+  bayarGalat.value = ''
+  bayarBidang.value = {}
+  try {
+    const hasil = await sesi.panggil(`/tagihan/${detail.value.id}/pembayaran`, {
+      method: 'POST',
+      headers: headerSimulasi(),
+      body: JSON.stringify({
+        jumlah: Number(bayarForm.value.jumlah),
+        tanggal_pembayaran: bayarForm.value.tanggal_pembayaran,
+        catatan: bayarForm.value.catatan || null,
+      }),
+    })
+
+    bayarHasil.value = hasil.data
+    bayarTerbuka.value = false
+
+    // Detail dan daftar sama-sama disegarkan: panel harus menampilkan sisa baru,
+    // dan baris di daftar harus menampilkan status baru. Menyegarkan hanya salah
+    // satunya menghasilkan dua angka berbeda untuk tagihan yang sama di satu
+    // layar.
+    await bukaDetail({ id: detail.value.id })
+    await muat()
+  } catch (e) {
+    bayarGalat.value = pesanGalat(e)
+    bayarBidang.value = galatPerBidang(e)
+  } finally {
+    bayarProses.value = false
+  }
 }
 
 function bukaMassal() {
@@ -196,6 +290,7 @@ onMounted(muat)
         <p class="lemah mungil">
           {{ daftar.length }} tagihan · pokok {{ rupiah(totalPokok) }}
           <template v-if="totalDenda > 0">· denda {{ rupiah(totalDenda) }}</template>
+          <template v-if="totalSisa > 0">· belum masuk {{ rupiah(totalSisa) }}</template>
         </p>
       </div>
       <div class="aksi-kepala">
@@ -375,6 +470,14 @@ onMounted(muat)
               <td><strong>Total</strong></td>
               <td class="kanan"><strong>{{ rupiah(detail.total) }}</strong></td>
             </tr>
+            <tr v-if="detail.dibayar > 0">
+              <td class="lemah">Sudah dibayar</td>
+              <td class="kanan lemah">− {{ rupiah(detail.dibayar) }}</td>
+            </tr>
+            <tr v-if="detail.dibayar > 0" class="baris-total">
+              <td><strong>Sisa</strong></td>
+              <td class="kanan"><strong>{{ rupiah(detail.sisa) }}</strong></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -413,6 +516,113 @@ onMounted(muat)
         </template>
       </div>
 
+      <!-- Pembayaran (T5). Diletakkan sebelum snapshot karena inilah aksi yang
+           paling sering dipakai di panel ini. -->
+      <div class="blok-bayar">
+        <!-- Hasil pencatatan: yang penting bukan "berhasil", melainkan status
+             berubah dari apa ke apa. -->
+        <p v-if="bayarHasil" class="pesan-sukses mungil">
+          Pembayaran {{ rupiah(bayarHasil.pembayaran.jumlah) }} tercatat.
+          Status berubah dari <strong>{{ labelStatus(bayarHasil.status_sebelum) }}</strong>
+          menjadi <strong>{{ labelStatus(bayarHasil.status_sesudah) }}</strong>.
+          <template v-if="bayarHasil.sisa > 0">Sisa {{ rupiah(bayarHasil.sisa) }}.</template>
+          <template v-else>Tagihan lunas.</template>
+        </p>
+
+        <!-- Pesan keadaan hanya muncul bila tidak ada hasil yang baru dicatat.
+             Kalau keduanya tampil, "sudah lunas" muncul dua kali berturut-turut
+             dan pemilik membaca kalimat yang sama dua kali. -->
+        <p v-if="!bayarHasil && detail.status === 'lunas'" class="pesan-netral mungil">
+          Tagihan ini sudah lunas. Tidak ada sisa yang bisa dibayar.
+        </p>
+        <p v-else-if="!bayarHasil && detail.status === 'dibatalkan'" class="pesan-netral mungil">
+          Tagihan ini dibatalkan. Pembayaran tidak dapat dicatat.
+        </p>
+
+        <!-- Tombol tetap tersedia setelah pembayaran tercatat selama masih ada
+             sisa. Menyembunyikannya karena "sudah ada hasil" akan memaksa
+             pemilik menutup dan membuka ulang panel hanya untuk mencicil lagi. -->
+        <div
+          v-if="detail.status !== 'lunas' && detail.status !== 'dibatalkan' && !bayarTerbuka"
+          class="aksi"
+        >
+          <button class="halus mungil" @click="bukaBayar">
+            Catat pembayaran{{ detail.sisa > 0 ? ' — sisa ' + rupiah(detail.sisa) : '' }}
+          </button>
+        </div>
+
+        <form v-if="bayarTerbuka" class="bidang form-bayar" @submit.prevent="catatPembayaran">
+          <div class="baris-bidang">
+            <div>
+              <label for="bayar-jumlah">Jumlah dibayar</label>
+              <input
+                id="bayar-jumlah"
+                v-model="bayarForm.jumlah"
+                type="number"
+                min="1"
+                step="1"
+                required
+                :aria-invalid="Boolean(bayarBidang.jumlah)"
+              />
+              <p v-if="bayarBidang.jumlah" class="galat-bidang">{{ bayarBidang.jumlah }}</p>
+              <p v-else class="bantuan">Rupiah bulat. Kelebihan bayar ditolak, tidak jadi saldo.</p>
+            </div>
+            <div>
+              <label for="bayar-tanggal">Tanggal pembayaran</label>
+              <input
+                id="bayar-tanggal"
+                v-model="bayarForm.tanggal_pembayaran"
+                type="date"
+                required
+                :aria-invalid="Boolean(bayarBidang.tanggal_pembayaran)"
+              />
+              <p v-if="bayarBidang.tanggal_pembayaran" class="galat-bidang">
+                {{ bayarBidang.tanggal_pembayaran }}
+              </p>
+              <p v-else class="bantuan">Tidak boleh melewati hari ini ({{ tanggal(tanggalUntukFormulir()) }}).</p>
+            </div>
+          </div>
+
+          <div>
+            <label for="bayar-catatan">Catatan <span class="lemah">(opsional)</span></label>
+            <input id="bayar-catatan" v-model="bayarForm.catatan" type="text" maxlength="255" />
+          </div>
+
+          <p v-if="bayarGalat" class="pesan-galat">{{ bayarGalat }}</p>
+
+          <div class="aksi">
+            <button type="submit" :disabled="bayarProses">
+              {{ bayarProses ? 'Menyimpan…' : 'Simpan pembayaran' }}
+            </button>
+            <button type="button" class="halus" @click="bayarTerbuka = false">Batal</button>
+          </div>
+        </form>
+
+        <!-- Riwayat: uang yang diterima harus bisa diperiksa ulang, bukan hanya
+             dijumlahkan menjadi satu angka. -->
+        <div v-if="detail.pembayaran?.length" class="riwayat-bayar">
+          <p class="mungil lemah">Riwayat pembayaran</p>
+          <div class="tabel-bungkus">
+            <table class="tabel tabel-riwayat">
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th class="kanan">Jumlah</th>
+                  <th>Catatan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="p in detail.pembayaran" :key="p.id">
+                  <td>{{ tanggal(p.tanggal_pembayaran) }}</td>
+                  <td class="kanan">{{ rupiah(p.jumlah) }}</td>
+                  <td class="mungil lemah">{{ p.catatan || '—' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <details class="snapshot">
         <summary class="mungil lemah">Tarif yang dibekukan saat terbit</summary>
         <pre class="mungil">{{ JSON.stringify(detail.tarif_terpakai, null, 2) }}</pre>
@@ -430,6 +640,8 @@ onMounted(muat)
               <th class="kanan">Pokok</th>
               <th class="kanan">Denda</th>
               <th class="kanan">Total</th>
+              <th class="kanan">Dibayar</th>
+              <th class="kanan">Sisa</th>
               <th>Jatuh tempo</th>
               <th>Status</th>
               <th></th>
@@ -445,16 +657,22 @@ onMounted(muat)
                 {{ t.denda > 0 ? rupiah(t.denda) : '—' }}
               </td>
               <td class="kanan"><strong>{{ rupiah(t.total) }}</strong></td>
+              <td class="kanan lemah">
+                {{ t.dibayar > 0 ? rupiah(t.dibayar) : '—' }}
+              </td>
+              <td class="kanan" :class="{ 'sel-sisa': t.sisa > 0 && t.status !== 'dibatalkan' }">
+                {{ rupiah(t.sisa) }}
+              </td>
               <td>{{ tanggal(t.jatuh_tempo) }}</td>
               <td>
-                <span class="lencana-status" :class="`status-${t.status}`">{{ t.status.replace('_', ' ') }}</span>
+                <span class="lencana-status" :class="`status-${t.status}`">{{ labelStatus(t.status) }}</span>
               </td>
               <td class="kanan">
                 <button class="halus mungil" @click="bukaDetail(t)">Rincian</button>
               </td>
             </tr>
             <tr v-if="!memuat && daftar.length === 0">
-              <td colspan="9" class="sel-kosong">
+              <td colspan="11" class="sel-kosong">
                 Belum ada tagihan. Terbitkan tagihan pertama lewat tombol di atas.
               </td>
             </tr>
@@ -591,5 +809,48 @@ onMounted(muat)
 .sel-denda {
   color: #8a5a00;
   font-weight: 600;
+}
+
+/* Sisa yang masih harus masuk. Ditebalkan karena inilah angka yang dicari
+   pemilik saat membuka halaman ini; pokok dan total hanya konteks. */
+.sel-sisa {
+  font-weight: 600;
+}
+
+.blok-bayar {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--garis);
+  display: grid;
+  gap: 10px;
+}
+
+/* Paragraf di dalam blok ini memakai `gap` sebagai jarak, bukan margin
+   bawaan browser. Tanpa ini jaraknya menjadi dua kali lipat — 10px dari gap
+   ditambah 1em margin, dan blok terlihat renggang tanpa alasan. */
+.blok-bayar p {
+  margin: 0;
+}
+
+.form-bayar {
+  padding: 14px;
+  background: #fbfcfe;
+  border: 1px solid var(--garis);
+  border-radius: 10px;
+}
+
+.riwayat-bayar {
+  display: grid;
+  gap: 6px;
+}
+
+.riwayat-bayar p {
+  margin: 0;
+}
+
+.tabel-riwayat th,
+.tabel-riwayat td {
+  padding-top: 7px;
+  padding-bottom: 7px;
 }
 </style>

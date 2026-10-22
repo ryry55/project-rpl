@@ -10,10 +10,10 @@ dikerjakan akan tampil terkunci di UI.
 | T2 Data induk + tarif append-only | **#3** | R-06 (lapis 1) | #2 | ✅ selesai |
 | T3 Tagihan + prorata | **#4** | R-01, R-06 | #3 | ✅ selesai |
 | T4 Terbit massal + tolak duplikat | **#5** | R-02 | #4 | ✅ selesai |
-| T5 Catat pembayaran | **#6** | — | #4 | siap |
+| T5 Catat pembayaran | **#6** | — | #4 | ✅ selesai |
 | T6 Denda + simulasi tanggal | **#7** | R-03 | #4 | ✅ selesai |
 | T7 Umur tunggakan | **#8** | R-04 | #7 | ✅ selesai |
-| T9 Portal penghuni + log audit | **#9** | R-07 | #5, #6 | terkunci |
+| T9 Portal penghuni + log audit | **#9** | R-07 | #5, #6 | siap |
 
 ```
 #2 T1 ✅
@@ -69,6 +69,16 @@ foreign key, `aktor_nama` disalin, jejak audit di dalam transaksi perubahan, bat
 dilewati tidak menulis jejak. Fondasi `log_audit` (tabel + trigger + `PencatatAudit`) dibangun di
 sini karena kriteria T4 menuntutnya, sementara T9 justru diblokir T4; T9 tinggal portal penghuni dan
 endpoint baca.
+
+**T5 (#6)** — 214 tes hijau (1638 asersi); 21/21 langkah E2E browser, 11/11 langkah uji balapan HTTP,
+1 screenshot. Keputusan yang dicatat di SPEC §5: status diturunkan dari `SUM(pembayaran.jumlah)`
+bukan ditambah inkremental, pemeriksaan sisa di dalam transaksi setelah `SELECT ... FOR UPDATE`,
+aturan yang butuh data tagihan di layanan bukan di `FormRequest`, denda dihitung pada tanggal acuan
+sistem bukan tanggal pembayaran, kelebihan bayar ditolak 422, `jumlah` selalu positif, `total_final`
+dibekukan sekali saat lunas, `sisa` dijepit `max(0, ...)`, `pembayaran` append-only, `dibayar`
+dijumlahkan dengan `withSum` untuk menghindari N+1, dan rumus `pokok + denda` hanya ada di
+`HasilDenda::total()`. Batasan dicatat jujur: belum ada baris pembalik, jadi salah input jumlah
+tidak bisa diperbaiki dari aplikasi.
 
 ## Ditunda (tidak punya issue)
 

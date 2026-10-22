@@ -28,6 +28,18 @@ final class HasilDenda
     ) {}
 
     /**
+     * Yang harus dibayar penghuni: pokok plus denda berjalan.
+     *
+     * Ditulis sebagai method dan dipakai juga oleh `toArray()` supaya rumusnya
+     * hanya ada di satu tempat. Pemanggil lain — termasuk `PencatatPembayaran` —
+     * memakai ini alih-alih menuliskan `pokok + denda` sendiri.
+     */
+    public function total(): int
+    {
+        return $this->pokok + $this->denda;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function toArray(): array
@@ -42,7 +54,7 @@ final class HasilDenda
             'denda' => $this->denda,
             'plafon' => $this->plafon,
             'sisa_hari_ke_plafon' => $this->sisaHariKePlafon,
-            'total' => $this->pokok + $this->denda,
+            'total' => $this->total(),
             'status' => $this->status,
             'berhenti' => $this->berhenti,
             'alasan_berhenti' => $this->alasanBerhenti,
