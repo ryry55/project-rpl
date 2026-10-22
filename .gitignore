@@ -1,0 +1,25 @@
+# Dependensi & artefak build
+node_modules/
+vendor/
+dist/
+build/
+*.log
+
+# Environment & rahasia
+.env
+.env.*
+!.env.example
+
+# Hasil ekspor & berkas sementara
+*.tmp
+~$*
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Scratch lokal (issue tracker ada di GitHub, bukan di sini)
+.scratch/
+
+# Berkas Office sementara yang dibuat Word/Excel saat membuka dokumen
+*.docx~
+*.xlsx~

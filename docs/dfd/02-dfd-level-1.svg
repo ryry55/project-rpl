@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1450" viewBox="0 0 2000 1450" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9.2" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 Z" fill="#334155"/>
+</marker>
+</defs>
+<rect width="2000" height="1450" fill="#ffffff"/>
+<title>DFD Level 1 — Sistem Informasi Operasional Kos-Kosan</title>
+<text x="60" y="60" font-size="26" font-weight="700" fill="#0f172a">DFD LEVEL 1</text>
+<text x="60" y="88" font-size="14" font-weight="400" fill="#475569">Sistem Informasi Operasional Kos-Kosan  ·  5 proses  ·  6 penyimpanan data  ·  notasi Gane-Sarson</text>
+<rect x="147" y="157" width="240" height="100" fill="#c7d2fe"/>
+<rect x="140" y="150" width="240" height="100" fill="#eef2ff" stroke="#3730a3" stroke-width="2"/>
+<text x="260" y="200" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">PEMILIK KOS</text>
+<rect x="1587" y="157" width="240" height="100" fill="#c7d2fe"/>
+<rect x="1580" y="150" width="240" height="100" fill="#eef2ff" stroke="#3730a3" stroke-width="2"/>
+<text x="1700" y="200" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">PENGHUNI</text>
+<rect x="140" y="560" width="240" height="150" rx="14" ry="14" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+<path d="M154 560 H366 A14 14 0 0 1 380 574 V594 H140 V574 A14 14 0 0 1 154 560 Z" fill="#e2e8f0"/>
+<path d="M140 594 H380" stroke="#1e293b" stroke-width="1.2"/>
+<text x="260" y="577" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">1.0</text>
+<text x="260" y="642.76" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#0f172a">Kelola Kamar</text>
+<text x="260" y="661.24" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#0f172a">&amp; Penghuni</text>
+<rect x="470" y="560" width="240" height="150" rx="14" ry="14" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+<path d="M484 560 H696 A14 14 0 0 1 710 574 V594 H470 V574 A14 14 0 0 1 484 560 Z" fill="#e2e8f0"/>
+<path d="M470 594 H710" stroke="#1e293b" stroke-width="1.2"/>
+<text x="590" y="577" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">2.0</text>
+<text x="590" y="633.52" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#0f172a">Kelola Tarif, Biaya</text>
+<text x="590" y="652" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#0f172a">Tambahan &amp;</text>
+<text x="590" y="670.48" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#0f172a">Parameter Denda</text>
+<rect x="800" y="560" width="240" height="150" rx="14" ry="14" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+<path d="M814 560 H1026 A14 14 0 0 1 1040 574 V594 H800 V574 A14 14 0 0 1 814 560 Z" fill="#e2e8f0"/>
+<path d="M800 594 H1040" stroke="#1e293b" stroke-width="1.2"/>
+<text x="920" y="577" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">3.0</text>
+<text x="920" y="642.76" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#0f172a">Terbitkan Tagihan</text>
+<text x="920" y="661.24" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#0f172a">Bulanan</text>
+<rect x="1160" y="560" width="240" height="150" rx="14" ry="14" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+<path d="M1174 560 H1386 A14 14 0 0 1 1400 574 V594 H1160 V574 A14 14 0 0 1 1174 560 Z" fill="#e2e8f0"/>
+<path d="M1160 594 H1400" stroke="#1e293b" stroke-width="1.2"/>
+<text x="1280" y="577" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">4.0</text>
+<text x="1280" y="642.76" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#0f172a">Catat Pembayaran,</text>
+<text x="1280" y="661.24" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#0f172a">Denda &amp; Tunggakan</text>
+<rect x="720" y="1180" width="560" height="120" rx="14" ry="14" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+<path d="M734 1180 H1266 A14 14 0 0 1 1280 1194 V1214 H720 V1194 A14 14 0 0 1 734 1180 Z" fill="#e2e8f0"/>
+<path d="M720 1214 H1280" stroke="#1e293b" stroke-width="1.2"/>
+<text x="1000" y="1197" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">5.0</text>
+<text x="1000" y="1257" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#0f172a">Laporan &amp; Rekap</text>
+<rect x="120" y="880" width="56" height="84" fill="#e2e8f0" opacity="0.8"/>
+<rect x="180" y="881" width="169" height="82" fill="#f8fafc"/>
+<path d="M120 880 H350 M120 880 V964 M120 964 H350" fill="none" stroke="#475569" stroke-width="2"/>
+<line x1="176" y1="880" x2="176" y2="964" stroke="#475569" stroke-width="1.4"/>
+<text x="148" y="922" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="700" fill="#0f172a">D1</text>
+<text x="188" y="922" text-anchor="start" dominant-baseline="central" font-size="13" font-weight="500" fill="#0f172a">Kamar</text>
+<rect x="400" y="880" width="56" height="84" fill="#e2e8f0" opacity="0.8"/>
+<rect x="460" y="881" width="169" height="82" fill="#f8fafc"/>
+<path d="M400 880 H630 M400 880 V964 M400 964 H630" fill="none" stroke="#475569" stroke-width="2"/>
+<line x1="456" y1="880" x2="456" y2="964" stroke="#475569" stroke-width="1.4"/>
+<text x="428" y="922" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="700" fill="#0f172a">D2</text>
+<text x="468" y="922" text-anchor="start" dominant-baseline="central" font-size="13" font-weight="500" fill="#0f172a">Penghuni &amp; Kontrak</text>
+<rect x="680" y="880" width="56" height="84" fill="#e2e8f0" opacity="0.8"/>
+<rect x="740" y="881" width="169" height="82" fill="#f8fafc"/>
+<path d="M680 880 H910 M680 880 V964 M680 964 H910" fill="none" stroke="#475569" stroke-width="2"/>
+<line x1="736" y1="880" x2="736" y2="964" stroke="#475569" stroke-width="1.4"/>
+<text x="708" y="922" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="700" fill="#0f172a">D3</text>
+<text x="748" y="922" text-anchor="start" dominant-baseline="central" font-size="13" font-weight="500" fill="#0f172a">Tarif &amp; Komponen</text>
+<rect x="960" y="880" width="56" height="84" fill="#e2e8f0" opacity="0.8"/>
+<rect x="1020" y="881" width="169" height="82" fill="#f8fafc"/>
+<path d="M960 880 H1190 M960 880 V964 M960 964 H1190" fill="none" stroke="#475569" stroke-width="2"/>
+<line x1="1016" y1="880" x2="1016" y2="964" stroke="#475569" stroke-width="1.4"/>
+<text x="988" y="922" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="700" fill="#0f172a">D4</text>
+<text x="1028" y="922" text-anchor="start" dominant-baseline="central" font-size="13" font-weight="500" fill="#0f172a">Tagihan</text>
+<rect x="1240" y="880" width="56" height="84" fill="#e2e8f0" opacity="0.8"/>
+<rect x="1300" y="881" width="169" height="82" fill="#f8fafc"/>
+<path d="M1240 880 H1470 M1240 880 V964 M1240 964 H1470" fill="none" stroke="#475569" stroke-width="2"/>
+<line x1="1296" y1="880" x2="1296" y2="964" stroke="#475569" stroke-width="1.4"/>
+<text x="1268" y="922" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="700" fill="#0f172a">D5</text>
+<text x="1308" y="922" text-anchor="start" dominant-baseline="central" font-size="13" font-weight="500" fill="#0f172a">Pembayaran</text>
+<rect x="1560" y="880" width="56" height="84" fill="#e2e8f0" opacity="0.8"/>
+<rect x="1620" y="881" width="169" height="82" fill="#f8fafc"/>
+<path d="M1560 880 H1790 M1560 880 V964 M1560 964 H1790" fill="none" stroke="#475569" stroke-width="2"/>
+<line x1="1616" y1="880" x2="1616" y2="964" stroke="#475569" stroke-width="1.4"/>
+<text x="1588" y="922" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="700" fill="#0f172a">D6</text>
+<text x="1628" y="922" text-anchor="start" dominant-baseline="central" font-size="13" font-weight="500" fill="#0f172a">Log Audit</text>
+<path d="M240 250 L240 560" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M340 250 L340 310 L590 310 L590 560" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M380 190 L1280 190 L1280 560" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1600 250 L1600 360 L320 360 L320 560" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1660 250 L1660 420 L1330 420 L1330 560" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M140 580 L110 580 L110 120 L1700 120 L1700 150" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M880 560 L880 330 L1780 330 L1780 250" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1400 640 L1840 640 L1840 210 L1820 210" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M720 1240 L80 1240 L80 200 L140 200" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M230 710 L230 880" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M350 710 L350 800 L500 800 L500 880" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M640 710 L640 800 L780 800 L780 880" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1000 710 L1000 880" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1280 710 L1280 880" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1400 680 L1620 680 L1620 880" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M560 880 L560 760 L860 760 L860 710" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M840 880 L840 740 L960 740 L960 710" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1100 880 L1100 760 L1240 760 L1240 710" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M200 964 L200 1100 L800 1100 L800 1180" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M450 964 L450 1060 L880 1060 L880 1180" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1050 964 L1050 1180" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1330 964 L1330 1080 L1240 1080 L1240 1180" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="192.125" y="379.75" width="95.75" height="40.5" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="240" y="391.75" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">data kamar &amp;</text>
+<text x="240" y="408.25" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">tarif sewa</text>
+<rect x="403.5" y="289.75" width="123.00000000000001" height="40.5" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="465" y="301.75" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">komponen biaya &amp;</text>
+<text x="465" y="318.25" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">parameter denda</text>
+<rect x="744.65625" y="178.125" width="170.6875" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="830" y="190" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">konfirmasi setoran uang</text>
+<rect x="898.5" y="348.125" width="123.00000000000001" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="960" y="360" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">pendaftaran sewa</text>
+<rect x="1433.5" y="408.125" width="123.00000000000001" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1495" y="420" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">bukti pembayaran</text>
+<rect x="807.84375" y="108.125" width="184.3125" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="900" y="120" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">konfirmasi sewa &amp; kontrak</text>
+<rect x="1281.90625" y="309.75" width="116.18750000000001" height="40.5" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1340" y="321.75" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">tagihan bulanan</text>
+<text x="1340" y="338.25" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">+ denda</text>
+<rect x="1778.5" y="449.75" width="123.00000000000001" height="40.5" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1840" y="461.75" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">kuitansi &amp;</text>
+<text x="1840" y="478.25" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">status pelunasan</text>
+<rect x="311.25" y="1219.75" width="177.5" height="40.5" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="400" y="1231.75" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">rekap pendapatan, hunian</text>
+<text x="400" y="1248.25" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">&amp; daftar tunggakan</text>
+<rect x="188.9375" y="783.125" width="82.125" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="230" y="795" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">data kamar</text>
+<rect x="377.125" y="788.125" width="95.75" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="425" y="800" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">kontrak sewa</text>
+<rect x="648.5" y="788.125" width="123.00000000000001" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="710" y="800" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">tarif &amp; komponen</text>
+<rect x="969.15625" y="783.125" width="61.6875" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1000" y="795" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">tagihan</text>
+<rect x="1238.9375" y="783.125" width="82.125" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1280" y="795" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">pembayaran</text>
+<rect x="1582.34375" y="768.125" width="75.3125" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1620" y="780" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">log audit</text>
+<rect x="658.71875" y="748.125" width="102.5625" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="710" y="760" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">kontrak aktif</text>
+<rect x="848.71875" y="728.125" width="102.5625" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="900" y="740" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">tarif berlaku</text>
+<rect x="1098.28125" y="748.125" width="143.4375" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1170" y="760" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">tagihan belum lunas</text>
+<rect x="458.9375" y="1088.125" width="82.125" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="500" y="1100" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">data kamar</text>
+<rect x="634.15625" y="1048.125" width="61.6875" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="665" y="1060" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">kontrak</text>
+<rect x="1019.15625" y="1060.125" width="61.6875" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1050" y="1072" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">tagihan</text>
+<rect x="1245.9375" y="1068.125" width="82.125" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1287" y="1080" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">pembayaran</text>
+<rect x="1440" y="1250" width="520" height="118" rx="10" fill="#fafafa" stroke="#94a3b8" stroke-width="1"/>
+<text x="1458" y="1276" font-size="12.5" font-weight="700" fill="#0f172a">KETERANGAN SIMBOL</text>
+<rect x="1458" y="1290" width="72" height="26" fill="#eef2ff" stroke="#3730a3" stroke-width="2"/>
+<text x="1542" y="1303" font-size="12" fill="#475569" dominant-baseline="central">Entitas eksternal</text>
+<rect x="1458" y="1324" width="72" height="26" rx="8" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+<path d="M1458 1335 H1530" stroke="#1e293b" stroke-width="1.2"/>
+<text x="1542" y="1337" font-size="12" fill="#475569" dominant-baseline="central">Proses</text>
+<path d="M1720 1290 H1792 M1720 1290 V1316 M1720 1316 H1792" fill="none" stroke="#475569" stroke-width="2"/>
+<line x1="1746" y1="1290" x2="1746" y2="1316" stroke="#475569" stroke-width="1.4"/>
+<text x="1804" y="1303" font-size="12" fill="#475569" dominant-baseline="central">Penyimpanan data</text>
+<path d="M1720 1337 H1784" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="1804" y="1337" font-size="12" fill="#475569" dominant-baseline="central">Aliran data</text>
+<text x="60" y="1300" font-size="12.5" fill="#475569">5 proses level 1  ·  6 penyimpanan data  ·  2 entitas eksternal  ·  23 aliran data</text>
+<text x="60" y="1326" font-size="12.5" fill="#475569">Rincian tiap aliran (asal, tujuan, struktur data): docs/dfd/README.md</text>
+<text x="60" y="1352" font-size="12.5" fill="#475569">Dekomposisi proses 3.0 dan 4.0 ke level 2: docs/dfd/03-dfd-level-2.md</text>
+</svg>

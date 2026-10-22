@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9.2" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 Z" fill="#334155"/>
+</marker>
+</defs>
+<rect width="1600" height="900" fill="#ffffff"/>
+<title>DFD Konteks (DFD Nol) — Sistem Informasi Operasional Kos-Kosan</title>
+<text x="60" y="60" font-size="26" font-weight="700" fill="#0f172a">DFD KONTEKS (DFD NOL / LEVEL 0)</text>
+<text x="60" y="88" font-size="14" font-weight="400" fill="#475569">Sistem Informasi Operasional Kos-Kosan  ·  notasi Gane-Sarson</text>
+<rect x="67" y="257" width="250" height="400" fill="#c7d2fe"/>
+<rect x="60" y="250" width="250" height="400" fill="#eef2ff" stroke="#3730a3" stroke-width="2"/>
+<text x="185" y="440.1" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">PEMILIK</text>
+<text x="185" y="459.90000000000003" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">KOS</text>
+<rect x="1297" y="257" width="250" height="400" fill="#c7d2fe"/>
+<rect x="1290" y="250" width="250" height="400" fill="#eef2ff" stroke="#3730a3" stroke-width="2"/>
+<text x="1415" y="450" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">PENGHUNI</text>
+<rect x="600" y="210" width="400" height="480" rx="14" ry="14" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+<path d="M614 210 H986 A14 14 0 0 1 1000 224 V256 H600 V224 A14 14 0 0 1 614 210 Z" fill="#e2e8f0"/>
+<path d="M600 256 H1000" stroke="#1e293b" stroke-width="1.2"/>
+<text x="800" y="233" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">0.0</text>
+<text x="800" y="454.52" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#0f172a">SISTEM INFORMASI</text>
+<text x="800" y="473" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#0f172a">OPERASIONAL</text>
+<text x="800" y="491.47999999999996" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#0f172a">KOS-KOSAN</text>
+<path d="M310 290 L600 290" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M310 370 L600 370" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M310 450 L600 450" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M600 530 L310 530" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M600 610 L310 610" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1290 290 L1000 290" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1290 370 L1000 370" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1000 450 L1290 450" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1000 530 L1290 530" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1000 610 L1290 610" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="407.125" y="269.75" width="95.75" height="40.5" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="455" y="281.75" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">data kamar &amp;</text>
+<text x="455" y="298.25" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">tarif sewa</text>
+<rect x="393.5" y="349.75" width="123.00000000000001" height="40.5" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="455" y="361.75" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">komponen biaya &amp;</text>
+<text x="455" y="378.25" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">parameter denda</text>
+<rect x="407.125" y="429.75" width="95.75" height="40.5" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="455" y="441.75" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">konfirmasi</text>
+<text x="455" y="458.25" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">setoran uang</text>
+<rect x="393.5" y="509.75" width="123.00000000000001" height="40.5" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="455" y="521.75" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">rekap pendapatan</text>
+<text x="455" y="538.25" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">&amp; hunian</text>
+<rect x="393.5" y="589.75" width="123.00000000000001" height="40.5" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="455" y="601.75" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">daftar tunggakan</text>
+<text x="455" y="618.25" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">&amp; peringatan</text>
+<rect x="1083.5" y="278.125" width="123.00000000000001" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1145" y="290" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">pendaftaran sewa</text>
+<rect x="1083.5" y="358.125" width="123.00000000000001" height="23.75" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1145" y="370" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">bukti pembayaran</text>
+<rect x="1086.90625" y="429.75" width="116.18750000000001" height="40.5" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1145" y="441.75" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">konfirmasi sewa</text>
+<text x="1145" y="458.25" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">&amp; kontrak</text>
+<rect x="1086.90625" y="509.75" width="116.18750000000001" height="40.5" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1145" y="521.75" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">tagihan bulanan</text>
+<text x="1145" y="538.25" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">+ denda</text>
+<rect x="1083.5" y="589.75" width="123.00000000000001" height="40.5" rx="4" fill="#ffffff" opacity="0.96"/>
+<text x="1145" y="601.75" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">kuitansi &amp;</text>
+<text x="1145" y="618.25" text-anchor="middle" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#475569">status pelunasan</text>
+<text x="60" y="812" font-size="12.5" fill="#475569">Notasi Gane-Sarson — entitas eksternal (kotak), proses (persegi sudut tumpul), aliran data (panah berlabel).</text>
+<text x="60" y="836" font-size="12.5" fill="#475569">Proses 0.0 mewakili seluruh sistem sebagai satu simpul. Rincian aliran data: docs/dfd/README.md</text>
+<text x="60" y="860" font-size="12.5" fill="#475569">2 entitas eksternal  ·  10 aliran data utama (5 masuk, 5 keluar)  ·  belum ada penyimpanan data pada level ini.</text>
+</svg>
