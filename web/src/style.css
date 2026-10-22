@@ -282,7 +282,25 @@ table.tabel {
 }
 
 .lencana-status.status-kosong,
-.lencana-status.status-selesai {
+.lencana-status.status-selesai,
+.lencana-status.status-dibatalkan {
   color: var(--teks-lemah);
   background: #eef0f3;
+}
+
+/* Tagihan yang belum dibayar adalah keadaan yang perlu ditindak, bukan sekadar
+   keterangan — jadi diberi warna peringatan, bukan abu-abu. */
+.lencana-status.status-belum_bayar {
+  color: #8a5a00;
+  background: #fdf3e0;
+}
+
+.lencana-status.status-sebagian {
+  color: var(--aksen);
+  background: var(--aksen-lemah);
+}
+
+.lencana-status.status-lunas {
+  color: var(--sukses);
+  background: var(--sukses-lemah);
 }

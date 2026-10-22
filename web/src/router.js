@@ -5,6 +5,7 @@ import TataLetakPemilik from './komponen/TataLetakPemilik.vue'
 import KamarView from './views/pemilik/KamarView.vue'
 import PenghuniView from './views/pemilik/PenghuniView.vue'
 import KontrakView from './views/pemilik/KontrakView.vue'
+import TagihanView from './views/pemilik/TagihanView.vue'
 import DashboardPenghuni from './views/DashboardPenghuni.vue'
 
 const routes = [
@@ -19,6 +20,7 @@ const routes = [
       { path: 'kamar', name: 'pemilik-kamar', component: KamarView },
       { path: 'penghuni', name: 'pemilik-penghuni', component: PenghuniView },
       { path: 'kontrak', name: 'pemilik-kontrak', component: KontrakView },
+      { path: 'tagihan', name: 'pemilik-tagihan', component: TagihanView },
     ],
   },
   {

@@ -30,11 +30,17 @@ Tunggu sampai `db` berstatus sehat dan container `api` menulis `[entrypoint] sia
 
 Dari keadaan bersih (tanpa volume), migrasi dan seeder berjalan otomatis. Tidak ada langkah manual.
 
-**Data demo setelah T2.** Seeder hanya membuat akun, satu penghuni, dan parameter denda awal
-(1%/hari, plafon 30%, tenggang 7 hari). Kamar dan kontrak belum diisi otomatis — isi lewat menu
-**Kamar → Tambah kamar**, **Penghuni → Tambah penghuni**, lalu **Kontrak → Buat kontrak**.
-`node docs/uji/e2e-t2.mjs` melakukan persis alur itu (8 kamar, 6 penghuni, 1 kontrak) bila ingin
-data contoh tanpa mengetik.
+**Data demo.** Seeder hanya membuat akun, satu penghuni, dan parameter denda awal (1%/hari, plafon
+30%, tenggang 7 hari). Kamar, kontrak, dan tagihan belum diisi otomatis — isi lewat menu **Kamar →
+Tambah kamar**, **Penghuni → Tambah penghuni**, **Kontrak → Buat kontrak**, lalu **Tagihan →
+Terbitkan tagihan**.
+
+Untuk data contoh tanpa mengetik, jalankan skrip E2E yang melakukan persis alur itu:
+
+```bash
+node docs/uji/e2e-t2.mjs   # 8 kamar, 6 penghuni, 1 kontrak
+node docs/uji/e2e-t3.mjs   # 2 kontrak + tagihan prorata & penuh
+```
 
 Untuk kembali ke keadaan bersih:
 

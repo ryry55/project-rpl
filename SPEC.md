@@ -350,9 +350,8 @@ Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
 | GET | `/parameter-denda` | pemilik | T2 |
 | GET | `/parameter-denda/berlaku` | pemilik | T2 |
 | POST | `/parameter-denda` | pemilik | T2 |
-| GET | `/tagihan` | pemilik (semua), penghuni (miliknya) | T3 |
+| GET/POST | `/tagihan` | pemilik | T3 |
 | GET | `/tagihan/{id}` | pemilik (semua), penghuni (miliknya) | T3 |
-| POST | `/tagihan` | pemilik | T3 |
 | POST | `/tagihan/terbitkan` | pemilik | T4 |
 | POST | `/tagihan/{id}/pembayaran` | pemilik | T5 |
 | GET | `/tagihan/{id}/denda` | pemilik, penghuni (miliknya) | T6 |

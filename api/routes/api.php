@@ -4,8 +4,9 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\KamarController;
 use App\Http\Controllers\Api\KomponenBiayaController;
 use App\Http\Controllers\Api\KontrakController;
-use App\Http\Controllers\Api\ParameterDendaController;
 use App\Http\Controllers\Api\PenghuniController;
+use App\Http\Controllers\Api\ParameterDendaController;
+use App\Http\Controllers\Api\TagihanController;
 use App\Http\Controllers\Api\TarifController;
 use App\Http\Middleware\PastikanPeran;
 use Illuminate\Support\Facades\Route;
@@ -64,5 +65,10 @@ Route::middleware('auth:sanctum')->group(function () {
             ->name('parameter-denda.berlaku');
         Route::post('/parameter-denda', [ParameterDendaController::class, 'store'])
             ->name('parameter-denda.store');
+
+        // --- Tagihan (T3) -------------------------------------------------
+        Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
+        Route::post('/tagihan', [TagihanController::class, 'store'])->name('tagihan.store');
+        Route::get('/tagihan/{tagihan}', [TagihanController::class, 'show'])->name('tagihan.show');
     });
 });
