@@ -24,6 +24,9 @@ desktop.ini
 Slide Materi/
 Template Laporan/
 
+# Rakitan dokumen lama (charter kasus Smart Campus Asset) — sudah digantikan
+docs/rakitan/
+
 # Berkas Office sementara yang dibuat Word/Excel saat membuka dokumen
 *.docx~
 *.xlsx~
