@@ -140,7 +140,7 @@ $kpi = @(
     'Jumlah tagihan bulanan yang terbit tepat waktu setiap periode',
     'Persentase tagihan yang lunas sebelum jatuh tempo',
     'Ketepatan perhitungan prorata sewa bulan pertama terhadap rumus yang ditetapkan',
-    'Ketepatan perhitungan denda dan pengelompokan umur tunggakan pada batas hari ke-7 dan ke-8, hari ke-30 dan ke-31, serta hari ke-60 dan ke-61',
+    'Ketepatan perhitungan denda 1% per hari dengan plafon 30% dari pokok, mencakup batas hari ke-7 dan ke-8, titik plafon pada hari ke-37, serta pengelompokan umur tunggakan pada batas hari ke-30 dan ke-31 dan hari ke-60 dan ke-61',
     'Jumlah pembayaran yang tercatat lengkap dengan bukti dan kuitansi',
     'Tingkat kesesuaian sistem dengan aturan bisnis R-01 sampai R-07 pada pengujian black-box'
 )
@@ -163,7 +163,7 @@ $inserts = @(
     'Aturan bisnis yang wajib dipenuhi sistem adalah sebagai berikut:',
     'R-01  Sewa bulan pertama dihitung prorata, yaitu tarif dikali jumlah hari tinggal dibagi jumlah hari dalam bulan tersebut',
     'R-02  Satu kontrak hanya boleh memiliki satu tagihan per periode, dan penerbitan ulang untuk periode yang sama ditolak',
-    'R-03  Denda keterlambatan mulai berlaku pada hari ke-8 setelah jatuh tempo, bernominal tetap per hari, dan dibatasi maksimal 30% dari pokok tagihan',
+    'R-03  Denda keterlambatan mulai berlaku pada hari ke-8 setelah jatuh tempo, sebesar 1% dari pokok tagihan per hari, dan dibatasi maksimal 30% dari pokok sehingga denda berhenti bertambah pada hari terlambat ke-37',
     'R-04  Tunggakan dikelompokkan menurut umur, yaitu 0 sampai 30 hari, 31 sampai 60 hari, dan lebih dari 60 hari',
     'R-05  Deposit hanya dipotong bila ada kerusakan yang tercatat, dan sisanya wajib dikembalikan kepada penghuni',
     'R-06  Perubahan tarif tidak berlaku surut, hanya untuk periode berikutnya',

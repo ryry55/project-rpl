@@ -147,20 +147,27 @@ Contoh yang wajib benar: tarif Rp 1.500.000, masuk 17 Februari 2026 (28 hari).
 | Masukan | tagihan (pokok, jatuh_tempo), parameter denda dari D3, tanggal hari ini |
 | Keluaran | denda |
 | Aturan | **R-03** |
-| Rumus | lihat kamus data pada `README.md` |
+| Rumus | `denda = min(bulat(pokok × hari_denda × tarif_harian / 100), bulat(pokok × plafon / 100))` dengan `hari_denda = max(0, selisih_hari - tenggang)` |
 | Titik uji | selisih hari 7 → denda 0; hari 8 → denda 1 hari; hari saat plafon tercapai; hari setelah plafon tetap di plafon |
 
-Contoh dengan pokok Rp 1.500.000, tarif denda Rp 10.000/hari, tenggang 7 hari, plafon 30%:
+Contoh dengan pokok Rp 1.500.000, tarif denda **1% per hari**, tenggang 7 hari, plafon 30%:
 
 | Selisih (hari) | Hari kena denda | Denda |
 |---|---|---|
 | 5 | 0 | Rp 0 |
 | 7 | 0 | Rp 0 |
-| **8** | 1 | **Rp 10.000** |
-| 30 | 23 | Rp 230.000 |
-| 45 | 38 | Rp 380.000 |
-| **46** | 39 | **Rp 450.000** (plafon) |
-| 90 | 83 | Rp 450.000 |
+| **8** | 1 | **Rp 15.000** |
+| 15 | 8 | Rp 120.000 |
+| 30 | 23 | Rp 345.000 |
+| **37** | **30** | **Rp 450.000** (plafon tercapai) |
+| 90 | 83 | Rp 450.000 (tetap) |
+
+Karena tarif 1% per hari dan plafon 30%, plafon selalu tercapai tepat pada **hari denda ke-30**,
+yaitu **hari terlambat ke-37**. Denda dihitung sekali jalan, bukan diakumulasi per hari, supaya
+pembulatan tidak menumpuk dan hasilnya konsisten dengan plafon.
+
+**Penting:** pokok yang dipakai adalah pokok yang dibekukan saat tagihan terbit. Pembayaran
+sebagian tidak mengubah dasar plafon, dan denda tetap berjalan sampai tagihan lunas penuh.
 
 ### 4.3 Perbarui Status Tagihan
 

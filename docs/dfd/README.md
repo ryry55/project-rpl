@@ -52,7 +52,7 @@ Proses tunggal **0.0 Sistem Informasi Operasional Kos-Kosan** menghubungkan
 | Kode | Arah | Aliran | Struktur data |
 |---|---|---|---|
 | I-1 | Pemilik → Sistem | data kamar & tarif sewa | nomor_kamar, tipe, tarif_dasar, status_huni |
-| I-2 | Pemilik → Sistem | komponen biaya & parameter denda | jenis_biaya, nominal, tarif_denda_harian, plafon_persen, masa_tenggang |
+| I-2 | Pemilik → Sistem | komponen biaya & parameter denda | jenis_biaya, nominal, tarif_denda_persen, plafon_persen, masa_tenggang |
 | I-3 | Pemilik → Sistem | konfirmasi setoran uang | tagihan_id, tanggal, jumlah, metode |
 | I-4 | Penghuni → Sistem | pendaftaran sewa | nama, no_hp, kamar_id, tgl_masuk, durasi |
 | I-5 | Penghuni → Sistem | bukti pembayaran | tagihan_id, tanggal, jumlah, metode, bukti |
@@ -98,7 +98,7 @@ Pada level ini belum ada penyimpanan data — itu muncul di level 1.
 | # | Asal | Tujuan | Aliran | Struktur |
 |---|---|---|---|---|
 | 1 | Pemilik | 1.0 | data kamar & tarif sewa | nomor_kamar, tipe, tarif_dasar |
-| 2 | Pemilik | 2.0 | komponen biaya & parameter denda | jenis, nominal, tarif_denda, plafon, tenggang |
+| 2 | Pemilik | 2.0 | komponen biaya & parameter denda | jenis, nominal, tarif_denda_persen, plafon, tenggang |
 | 3 | Pemilik | 4.0 | konfirmasi setoran uang | tagihan_id, tanggal, jumlah |
 | 4 | Penghuni | 1.0 | pendaftaran sewa | nama, no_hp, kamar_id, tgl_masuk |
 | 5 | Penghuni | 4.0 | bukti pembayaran | tagihan_id, tanggal, jumlah, bukti |
@@ -161,8 +161,8 @@ komponen_biaya  = jenis + nilai + satuan + berlaku_mulai
 jenis           = "sewa" | "kebersihan" | "parkir" | "ac" | "laundry"
 satuan          = "rupiah/bulan" | "rupiah/orang"
 
-parameter_denda = tarif_denda_harian + plafon_persen + masa_tenggang
-tarif_denda_harian = rupiah
+parameter_denda = tarif_denda_persen + plafon_persen + masa_tenggang
+tarif_denda_persen = persen per hari (1..100), dihitung dari pokok
 plafon_persen   = 1..100
 masa_tenggang   = jumlah_hari
 
@@ -171,11 +171,12 @@ tagihan         = tagihan_id + kontrak_id + periode + rincian + pokok + denda
 periode         = bulan + tahun
 rincian         = { nama_komponen + nilai } +
 pokok           = jumlah(rincian.nilai) + sewa_prorata
-sewa_prorata    = tarif_dasar * hari_tinggal / hari_dalam_bulan
+sewa_prorata    = bulat(tarif_dasar * hari_tinggal / hari_dalam_bulan)
+hari_denda      = max(0, selisih - masa_tenggang)
 denda           = 0                                   jika selisih <= masa_tenggang
-                = min((selisih - masa_tenggang) * tarif_denda_harian,
-                      plafon_persen/100 * pokok)        jika selisih > masa_tenggang
-selisih         = hari_ini - jatuh_tempo
+                = min(bulat(pokok * hari_denda * tarif_denda_persen / 100),
+                      bulat(pokok * plafon_persen / 100))  jika selisih > masa_tenggang
+selisih         = hari_ini - jatuh_tempo (selisih tanggal kalender, zona Asia/Jakarta)
 total           = pokok + denda
 status_tagihan  = "belum_bayar" | "sebagian" | "lunas" | "dibatalkan"
 
@@ -195,7 +196,7 @@ kategori_umur   = "0-30" | "31-60" | ">60"
 |---|---|---|---|
 | **R-01** | Sewa bulan pertama dihitung prorata: `tarif × hari_tinggal / hari_dalam_bulan` | 3.0 | hari 1, 15, 28 (Feb), 29 (kabisat), 31 |
 | **R-02** | Satu kontrak hanya boleh punya satu tagihan per periode; terbit ulang ditolak | 3.0 | periode sama / berbeda |
-| **R-03** | Denda mulai hari ke-8 setelah jatuh tempo, nominal tetap per hari, plafon 30% dari pokok | 4.0 | selisih hari 7 / 8, dan saat plafon tercapai |
+| **R-03** | Denda mulai hari ke-8 setelah jatuh tempo, **1% dari pokok per hari**, plafon 30% dari pokok | 4.0 | selisih hari 7 / 8, hari ke-37 (plafon tercapai), hari setelah plafon |
 | **R-04** | Tunggakan dikelompokkan 0–30 / 31–60 / >60 hari | 4.0 | hari 30 / 31, dan 60 / 61 |
 | **R-05** | Deposit dipotong hanya bila kerusakan tercatat; sisanya wajib dikembalikan | 4.0 | ada / tanpa catatan kerusakan |
 | **R-06** | Tarif tidak berlaku surut — perubahan hanya untuk periode berikutnya | 2.0 | transaksi sebelum / sesudah perubahan |
