@@ -23,22 +23,26 @@ bersih dan idempoten. Semua teks ada di dalam skrip; tidak ada yang perlu diedit
 
 ## PDF
 
-Ekspor PDF **tidak** dilakukan oleh skrip. `ExportAsFixedFormat`, `SaveAs2` ke PDF, dan
-`PrintOut` ke "Microsoft Print to PDF" semuanya menggantung di mesin ini — termasuk untuk
-dokumen kosong, jadi penyebabnya bukan dokumen ini. Kalau perlu PDF:
+Skrip **mengekspor PDF sendiri** lewat `ExportAsFixedFormat`, menghasilkan
+`Project_Charter_Kos-Kosan.pdf` di samping DOCX.
 
-1. Buka `Project_Charter_Kos-Kosan.docx` di Word.
-2. **File → Save As → PDF**, atau **File → Print → Microsoft Print to PDF**.
-
-Alternatif lain: unggah ke Google Docs lalu **File → Download → PDF**.
+Catatan lama di berkas ini menyebut ekspor selalu menggantung. Itu keliru: yang
+menggantung adalah pemanggilan dari skrip PowerShell satu baris. Setelah diuji
+ulang, `ExportAsFixedFormat` berhasil untuk dokumen kosong maupun untuk charter
+ini (4 halaman, 875 kata). Kegagalan sebelumnya kemungkinan besar karena proses
+`WINWORD` yatim dari percobaan terdahulu, bukan karena API-nya.
 
 ## Format
 
 Template asli memakai **Courier New 9,5 pt**, margin 72 pt (kiri/kanan) dan 61,2 pt
-(atas/bawah), ukuran Letter. Ini terlihat tidak lazim untuk laporan, tapi dipertahankan
-apa adanya karena dosen membandingkan dengan contoh. Kalau Anda ingin mengganti ke Times New
-Roman 12 pt, ubah `Styles("Normal")` di skrip — jangan mengubah per paragraf, karena akan
-memakan waktu dan mudah terlewat.
+(atas/bawah), ukuran Letter. Font dan ukuran hurufnya dipertahankan apa adanya
+karena dosen membandingkan dengan contoh. Kalau Anda ingin mengganti ke Times New
+Roman 12 pt, ubah `Styles("Normal")` di skrip — jangan mengubah per paragraf,
+karena akan memakan waktu dan mudah terlewat.
+
+Yang diubah hanya kertas dan margin: **A4** dengan margin **kiri 4 cm,
+kanan/atas/bawah 3 cm** — ukuran laporan kuliah di Indonesia. Tanpa langkah ini
+setiap regenerasi mengembalikan Letter.
 
 ## Catatan isi
 

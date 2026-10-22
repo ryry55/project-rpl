@@ -179,12 +179,31 @@ for ($k = 0; $k -lt $inserts.Count; $k++) {
     $r.Text = $inserts[$k]
 }
 
+# ---------- ukuran halaman ----------
+#
+# Template memakai kertas US Letter (21,59 x 27,94 cm). Laporan kuliah di
+# Indonesia memakai A4, jadi ukuran dan margin disetel ulang di sini, bukan
+# dibiarkan mengikuti template. Tanpa langkah ini setiap regenerasi akan
+# mengembalikan Letter.
+#
+# Margin standar laporan: kiri 4 cm, kanan 3 cm, atas 3 cm, bawah 3 cm.
+$doc.PageSetup.PaperSize = 7          # 7 = wdPaperA4
+$doc.PageSetup.TopMargin = 85.05      # poin; 1 cm = 28,35 poin
+$doc.PageSetup.BottomMargin = 85.05
+$doc.PageSetup.LeftMargin = 113.4
+$doc.PageSetup.RightMargin = 85.05
+
 $doc.Save()
 
 $doc.Repaginate()
 $end = $doc.Content.End
 $pages = $doc.Range($end - 1, $end).Information(3)   # 3 = wdActiveEndPageNumber
 $words = $doc.ComputeStatistics(0)
+
+# Ekspor PDF dijalankan di sini karena ExportAsFixedFormat terbukti bekerja pada
+# dokumen Word sungguhan; yang dulu menggantung adalah cara pemanggilannya.
+$pdf = [System.IO.Path]::ChangeExtension($target, '.pdf')
+$doc.ExportAsFixedFormat($pdf, 17)    # 17 = wdExportFormatPDF
 
 $doc.Close($false)
 $word.Quit()
@@ -194,4 +213,4 @@ $word.Quit()
 [GC]::WaitForPendingFinalizers()
 
 Write-Host "charter selesai ditulis: $pages halaman, $words kata"
-Write-Host "PDF: buka DOCX di Word, lalu File > Save As > PDF (ekspor otomatis menggantung di mesin ini)"
+Write-Host "PDF: $pdf"
