@@ -1,0 +1,21 @@
+# Normalisasi line ending: simpan LF di repo, checkout sesuai OS.
+* text=auto eol=lf
+
+# Berkas Windows yang memang butuh CRLF
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Biner — jangan pernah diubah isinya
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.docx binary
+*.xlsx binary
+*.pptx binary
+*.zip binary
+
+# SVG adalah teks; biar diff-nya terbaca
+*.svg text eol=lf

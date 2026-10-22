@@ -20,6 +20,10 @@ desktop.ini
 # Scratch lokal (issue tracker ada di GitHub, bukan di sini)
 .scratch/
 
+# Materi kuliah & template jurusan — referensi pribadi, bukan bagian deliverable
+Slide Materi/
+Template Laporan/
+
 # Berkas Office sementara yang dibuat Word/Excel saat membuka dokumen
 *.docx~
 *.xlsx~
