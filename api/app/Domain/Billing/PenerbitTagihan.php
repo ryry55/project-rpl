@@ -98,8 +98,12 @@ class PenerbitTagihan
 
         // Komponen biaya tetap selalu tarif penuh, tidak diprorata: kebersihan
         // dan parkir tidak berkurang hanya karena penghuni masuk di tengah bulan.
+        //
+        // T11: komponen dicari untuk kamar kontrak ini, sehingga biaya yang
+        // hanya berlaku sebagian kamar tidak bocor ke penghuni lain. Snapshot
+        // mencatat `kamar_id` supaya bisa dibedakan mana yang global.
         $komponenTerpakai = [];
-        foreach ($this->pencari->komponenUntuk($awalPeriode) as $komponen) {
+        foreach ($this->pencari->komponenUntuk($awalPeriode, $kontrak->kamar) as $komponen) {
             $nilai = (int) $komponen->nilai;
 
             // Baris bernilai 0 adalah cara komponen dihentikan, bukan komponen
@@ -117,6 +121,7 @@ class PenerbitTagihan
                 'nama' => $komponen->nama,
                 'nilai' => $nilai,
                 'berlaku_dari' => $komponen->berlaku_dari->toDateString(),
+                'kamar_id' => $komponen->kamar_id,
             ];
         }
 

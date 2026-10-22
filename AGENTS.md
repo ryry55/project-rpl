@@ -25,7 +25,7 @@ Ia menjalankan build image, tes PHP, pint, lalu seluruh uji browser dan uji bala
 urutan langkahnya menentukan, dan salah urutan menghasilkan hijau yang menyesatkan
 (lihat di bawah).
 
-### Lima jebakan yang sudah menggigit
+### Enam jebakan yang sudah menggigit
 
 - **Kode dibakar ke image, bukan di-mount.** `php artisan test` tanpa
   `docker compose build api` menguji kode LAMA dan memberi hasil hijau padahal
@@ -47,8 +47,21 @@ urutan langkahnya menentukan, dan salah urutan menghasilkan hijau yang menyesatk
   Pasang lewat `Page.addScriptToEvaluateOnNewDocument` (lihat `pasangPerekam` di
   `asap-semua-halaman.mjs`), dan sertakan kontrol negatif yang sengaja melempar
   galat untuk membuktikan perekam masih hidup.
+- **Asersi yang bergantung pada tanggal sistem akan gagal sendiri.** Dua skrip E2E
+  memeriksa tagihan yang jatuh tempo 15 Okt. Asersi "denda masih 0 saat terbit"
+  benar selama hari ini <= 22 Okt (hari terlambat 7, masih tenggang) dan gagal
+  mulai 23 Okt tanpa satu baris kode pun berubah. Perbaikannya bukan menunggu,
+  tetapi menyematkan tanggal lewat header `X-Simulasi-Tanggal`, atau
+  membandingkan dengan nilai dari API alih-alih angka hardcoded. Kalau sebuah
+  asersi menyebut "hari ini", "Denda Rp 0", atau tanggal tertentu, curigai ia.
 
 ### Menulis skrip uji
+
+Skrip browser menulis ulang tangkapan layar di `docs/uji/`. Berkas itu ikut
+di-track, jadi setiap kali E2E dijalankan, working tree jadi kotor walau tidak
+ada kode yang berubah. Sebelum commit, kembalikan yang tidak relevan:
+`git checkout -- docs/uji/*.png`. Kalau sebuah screenshot memang perlu
+diperbarui, sebutkan di pesan commit bahwa perubahannya disengaja.
 
 Skrip browser memakai `docs/uji/_cdp.mjs` — jangan menyalin helper CDP ke berkas
 baru. Untuk memeriksa teks di layar pakai `teksMemuat(teks, '15.000')`, bukan

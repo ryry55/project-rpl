@@ -315,6 +315,16 @@ async function jalan() {
   // Perhatikan: plafon SELALU Rp 450.000 (30% dari pokok), jadi tidak boleh
   // diperiksa dari adanya teks "450.000". Yang berubah adalah nilai dendanya
   // dan tanggal acuannya.
+  //
+  // Nilai "hari ini" TIDAK boleh di-hardcode. Asersi lama mengharapkan
+  // "Denda Rp 0", yang hanya benar selama tanggal sistem <= 22 Okt 2026
+  // (hari terlambat 7, masih tenggang). Mulai 23 Okt dendanya Rp 15.000 dan
+  // tes gagal sendiri tanpa ada kode yang berubah. Jadi pembandingnya diambil
+  // dari API pada tanggal sebenarnya.
+  const hariIni = await evaluasi(ws, panggilApi(`/tagihan/${siap.tagihanId}/denda`, 'GET', null, null))
+  const dendaHariIni = hariIni.data?.data?.denda
+  const teksDendaHariIni = `Denda Rp ${Number(dendaHariIni ?? -1).toLocaleString('id-ID')} dari maksimum`
+
   const panelIkut = await evaluasi(ws, `
     (() => {
       const panel = [...document.querySelectorAll('section.kartu')]
@@ -325,9 +335,10 @@ async function jalan() {
   `)
   lapor('panel rincian ikut disegarkan saat simulasi dibersihkan',
     !panelIkut.galat &&
-      /Denda Rp 0 dari maksimum/.test(panelIkut.teks) &&
+      dendaHariIni !== undefined &&
+      panelIkut.teks.includes(teksDendaHariIni) &&
       !/21 Nov 2026/.test(panelIkut.teks),
-    panelIkut.galat || panelIkut.teks)
+    panelIkut.galat || `diharap "${teksDendaHariIni}" di: ${panelIkut.teks}`)
 
   tangkapan = await kirim(ws, 'Page.captureScreenshot', { format: 'png' })
   writeFileSync('docs/uji/T6-tanpa-simulasi.png', Buffer.from(tangkapan.data, 'base64'))

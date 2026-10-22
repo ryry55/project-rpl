@@ -6,6 +6,7 @@ use App\Domain\Tarif\PencariTarif;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SimpanKomponenBiayaRequest;
 use App\Http\Resources\KomponenBiayaResource;
+use App\Models\Kamar;
 use App\Models\KomponenBiaya;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
@@ -24,18 +25,35 @@ class KomponenBiayaController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = KomponenBiaya::query();
+        $request->validate([
+            'berlaku_pada' => ['nullable', 'date_format:Y-m-d'],
+            'kamar_id' => ['nullable', 'integer', 'exists:kamar,id'],
+        ]);
+
+        // T11: `kamar_id` mempersempit hasil ke komponen yang benar-benar
+        // berlaku bagi kamar itu (global + khusus kamar). Tanpa `kamar_id`,
+        // hanya komponen global yang tampil, supaya daftar di UI tidak
+        // mencampur komponen milik kamar lain.
+        $kamar = $request->filled('kamar_id')
+            ? Kamar::find($request->integer('kamar_id'))
+            : null;
 
         if ($request->filled('berlaku_pada')) {
-            $request->validate(['berlaku_pada' => ['date_format:Y-m-d']]);
             $periode = Carbon::parse($request->string('berlaku_pada')->value());
 
             return response()->json([
-                'data' => KomponenBiayaResource::collection($this->pencari->komponenUntuk($periode)),
+                'data' => KomponenBiayaResource::collection(
+                    $this->pencari->komponenUntuk($periode, $kamar)
+                ),
             ]);
         }
 
-        $daftar = $query->orderBy('nama')->orderByDesc('berlaku_dari')->get();
+        $daftar = KomponenBiaya::query()
+            ->when($kamar !== null, fn ($q) => $q->where('kamar_id', $kamar->id))
+            ->when($kamar === null, fn ($q) => $q->whereNull('kamar_id'))
+            ->orderBy('nama')
+            ->orderByDesc('berlaku_dari')
+            ->get();
 
         return response()->json(['data' => KomponenBiayaResource::collection($daftar)]);
     }

@@ -18,6 +18,8 @@ class KomponenBiayaResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            // T11: null berarti komponen berlaku untuk semua kamar.
+            'kamar_id' => $this->kamar_id,
             'nama' => $this->nama,
             'nilai' => (int) $this->nilai,
             'satuan' => $this->satuan,

@@ -241,11 +241,16 @@ async function jalan() {
   }
 
   // --- Jumlah rincian harus sama dengan pokok (lewat API) -----------------
+  // Tanggal disematkan ke 20 Okt 2026 (hari terlambat 5, masih dalam tenggang)
+  // supaya asersi "denda masih 0 saat terbit" tidak bergantung pada jam nyata.
+  // Tanpa ini, tes lulus selama hari ini <= 22 Okt dan gagal sendiri mulai
+  // 23 Okt — kelas kesalahan yang sudah pernah menggigit repo ini.
   const konsisten = await evaluasi(ws, `
     (async () => {
       const headers = {
         Accept: 'application/json',
         Authorization: 'Bearer ' + localStorage.getItem('kos.token'),
+        'X-Simulasi-Tanggal': '2026-10-20',
       }
       const daftar = await fetch('${API}/tagihan', { headers }).then(r => r.json())
       const tagihan = daftar.data.find(t => t.kontrak?.penghuni?.nama === 'Uji Prorata')

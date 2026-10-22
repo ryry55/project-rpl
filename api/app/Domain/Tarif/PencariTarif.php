@@ -41,21 +41,44 @@ class PencariTarif
      * dihentikan — tetap dikembalikan supaya pemanggil bisa membedakan
      * "tidak pernah ada" dari "dihentikan".
      *
+     * Bila `$kamar` diberikan, komponen khusus kamar itu ikut dipertimbangkan
+     * dan **menimpa** komponen global dengan nama yang sama. Itu yang membuat
+     * "air hanya kamar 3" bisa dinyatakan tanpa mengubah tagihan kamar lain.
+     *
+     * Tanpa `$kamar`, hanya komponen global yang dikembalikan. Pemanggil lama
+     * (mis. daftar komponen di UI) tetap mendapat perilaku yang sama seperti
+     * sebelum T11.
+     *
      * @return list<KomponenBiaya>
      */
-    public function komponenUntuk(CarbonInterface $periode): array
+    public function komponenUntuk(CarbonInterface $periode, ?Kamar $kamar = null): array
     {
         $awal = $periode->copy()->startOfMonth();
 
-        $semua = KomponenBiaya::whereDate('berlaku_dari', '<=', $awal)
+        $semua = KomponenBiaya::query()
+            ->whereDate('berlaku_dari', '<=', $awal)
+            ->when(
+                $kamar !== null,
+                // Global (kamar_id NULL) + khusus kamar ini.
+                fn ($q) => $q->where(fn ($q2) => $q2
+                    ->whereNull('kamar_id')
+                    ->orWhere('kamar_id', $kamar->id)),
+                // Tanpa kamar: hanya global, supaya daftar di UI tidak
+                // menampilkan komponen milik kamar lain.
+                fn ($q) => $q->whereNull('kamar_id'),
+            )
             ->orderBy('nama')
+            // Baris khusus kamar menang atas baris global. Diurutkan naik
+            // supaya NULL (global) datang lebih dulu, lalu ditimpa.
+            ->orderByRaw('kamar_id IS NULL ASC')
             ->orderByDesc('berlaku_dari')
             ->orderByDesc('id')
             ->get();
 
         $terakhir = [];
         foreach ($semua as $baris) {
-            // Karena sudah diurutkan, kemunculan pertama per nama adalah yang terbaru.
+            // Karena sudah diurutkan, kemunculan pertama per nama adalah yang
+            // berlaku: khusus kamar lebih dulu, lalu yang paling baru.
             if (! isset($terakhir[$baris->nama])) {
                 $terakhir[$baris->nama] = $baris;
             }
