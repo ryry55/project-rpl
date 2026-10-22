@@ -6,6 +6,11 @@
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
+# Shell script di dalam image Linux harus tetap LF, kalau tidak container gagal
+# menjalankannya dengan pesan "no such file or directory".
+*.sh text eol=lf
+Dockerfile text eol=lf
+
 # Biner — jangan pernah diubah isinya
 *.png binary
 *.jpg binary

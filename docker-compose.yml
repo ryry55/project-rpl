@@ -1,0 +1,92 @@
+# ---------------------------------------------------------------------------
+# Sistem Informasi Operasional Kos-Kosan — lingkungan demo
+#
+# Tiga layanan: db (PostgreSQL), api (Laravel), web (nginx + SPA Vue).
+# `docker compose up --build` dari keadaan bersih harus langsung jalan tanpa
+# langkah manual — itu kriteria penerimaan T1.
+# ---------------------------------------------------------------------------
+
+name: kos-kosan
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-kos}
+      POSTGRES_USER: ${DB_USERNAME:-kos}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kos}
+      # Zona waktu database disamakan dengan aplikasi, supaya NOW() dan
+      # perbandingan tanggal tidak berbeda sehari.
+      TZ: Asia/Jakarta
+      PGTZ: Asia/Jakarta
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./docker/postgres/init-test-db.sql:/docker-entrypoint-initdb.d/10-init-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-kos} -d ${DB_DATABASE:-kos}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      APP_NAME: "Kos-Kosan"
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      # APP_KEY sengaja TIDAK dioper dari sini. Variabel environment kosong akan
+      # menimpa isi .env, dan Laravel lalu menganggap kuncinya tidak diset.
+      # Entrypoint yang membuatkan kunci ke dalam .env bila masih kosong.
+      APP_URL: ${APP_URL:-http://localhost:8081}
+      APP_TIMEZONE: Asia/Jakarta
+      APP_DEMO_MODE: ${APP_DEMO_MODE:-true}
+      APP_LOCALE: id
+      APP_FALLBACK_LOCALE: id
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-kos}
+      DB_USERNAME: ${DB_USERNAME:-kos}
+      DB_PASSWORD: ${DB_PASSWORD:-kos}
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+      LOG_CHANNEL: stderr
+      RUN_MIGRATIONS: "true"
+      RUN_SEEDER: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  api-web:
+    image: nginx:1.27-alpine
+    volumes:
+      # Hanya direktori public yang dipasang. Kode PHP tetap berasal dari image
+      # `api`, supaya container benar-benar menjalankan apa yang dibangun —
+      # kalau seluruh ./api dipasang, image menjadi tidak bermakna dan versi
+      # dependensi di host bisa berbeda dari yang diuji.
+      - ./api/public:/var/www/html/public:ro
+      - ./api/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "${API_PORT:-8080}:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "${WEB_PORT:-3000}:80"
+    depends_on:
+      - api-web
+    restart: unless-stopped
+
+volumes:
+  db-data:

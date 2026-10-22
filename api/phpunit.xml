@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+
+        <!--
+            Variabel di bawah ditulis sebagai <server>, bukan <env>.
+
+            Di dalam container, DB_DATABASE dan APP_ENV sudah ada di $_SERVER
+            karena dioper sebagai environment Docker. Laravel membaca $_SERVER
+            lebih dulu daripada $_ENV, sehingga <env> saja tidak cukup: nilai
+            dari Docker tetap menang dan tes akan menghapus database demo.
+            <server> menulis ke $_SERVER, jadi benar-benar menimpa.
+
+            Tes memakai PostgreSQL, bukan SQLite: tiket berikutnya bergantung
+            pada unique index parsial, SQLSTATE 23505, dan trigger append-only,
+            yang perilakunya berbeda di SQLite. Tes yang hijau di SQLite bisa
+            gagal di produksi.
+        -->
+        <server name="APP_ENV" value="testing"/>
+        <server name="DB_CONNECTION" value="pgsql"/>
+        <server name="DB_HOST" value="db"/>
+        <server name="DB_PORT" value="5432"/>
+        <server name="DB_DATABASE" value="kos_test"/>
+        <server name="DB_USERNAME" value="kos"/>
+        <server name="DB_PASSWORD" value="kos"/>
+    </php>
+</phpunit>
