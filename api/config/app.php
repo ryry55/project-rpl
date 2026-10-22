@@ -69,6 +69,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Mode Demo
+    |--------------------------------------------------------------------------
+    |
+    | Bila aktif, header `X-Simulasi-Tanggal` boleh menggeser "hari ini" supaya
+    | denda 37 hari bisa didemokan tanpa menunggu 37 hari. Bila mati, header
+    | itu diabaikan sepenuhnya — klien tidak bisa memundurkan tanggal untuk
+    | menghapus denda.
+    |
+    | Sengaja default-nya mati: fitur yang melemahkan perhitungan uang harus
+    | dinyalakan secara sadar, bukan kebetulan ikut menyala di produksi.
+    |
+    */
+
+    'demo_mode' => env('APP_DEMO_MODE', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

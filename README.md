@@ -40,6 +40,7 @@ Untuk data contoh tanpa mengetik, jalankan skrip E2E yang melakukan persis alur 
 ```bash
 node docs/uji/e2e-t2.mjs   # 8 kamar, 6 penghuni, 1 kontrak
 node docs/uji/e2e-t3.mjs   # 2 kontrak + tagihan prorata & penuh
+node docs/uji/e2e-t6.mjs   # tagihan + demo denda lewat simulasi tanggal
 ```
 
 Untuk kembali ke keadaan bersih:
@@ -47,6 +48,34 @@ Untuk kembali ke keadaan bersih:
 ```bash
 docker compose exec api php artisan migrate:fresh --seed
 ```
+
+## Mendemokan denda tanpa menunggu 37 hari
+
+Denda bergantung pada "hari ini", jadi menunggu plafon 30% berarti menunggu lebih dari sebulan.
+Karena itu ada kendali **Simulasi tanggal** di halaman **Tagihan**: isi tanggal, klik Terapkan,
+dan seluruh angka denda dihitung ulang terhadap tanggal itu.
+
+Lewat API, sama halnya:
+
+```bash
+curl -H "X-Simulasi-Tanggal: 2026-11-21" \
+     -H "Authorization: Bearer <token>" \
+     http://localhost:8081/api/tagihan/1/denda
+```
+
+Header ini **hanya berlaku bila `APP_DEMO_MODE=true`** (default di `docker-compose.yml`).
+Di mode normal header diabaikan sepenuhnya, dan respons mengumumkannya lewat
+`X-Simulasi-Dipakai: false` serta `meta.simulasi` di badan respons.
+
+Urutan yang cocok untuk sidang, untuk tagihan pokok Rp 1.500.000 yang jatuh tempo 15 Okt:
+
+| Tanggal simulasi | Hari terlambat | Denda |
+|---|---|---|
+| 2026-10-22 | 7 | Rp 0 (masih tenggang) |
+| 2026-10-23 | 8 | Rp 15.000 |
+| 2026-11-14 | 30 | Rp 345.000 |
+| 2026-11-21 | 37 | Rp 450.000 (plafon) |
+| 2027-10-15 | 365 | Rp 450.000 (tetap plafon) |
 
 ## Menghentikan
 

@@ -25,7 +25,17 @@ return [
 
     'allowed_headers' => ['*'],
 
-    'exposed_headers' => [],
+    /*
+     * Header yang boleh dibaca JavaScript. Default kosong, jadi `fetch()` di
+     * browser tidak bisa membaca header respons apa pun selain yang
+     * disederhanakan CORS — termasuk X-Simulasi-Dipakai, yang justru dipakai
+     * layar untuk memberi tahu apakah tanggal simulasi berlaku. Tanpa ini,
+     * demonya berjalan tetapi UI-nya tidak bisa menjelaskan apa yang terjadi.
+     */
+    'exposed_headers' => [
+        'X-Simulasi-Dipakai',
+        'X-Tanggal-Sistem',
+    ],
 
     'max_age' => 0,
 

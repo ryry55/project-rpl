@@ -15,6 +15,12 @@ class TagihanResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Denda dihitung saat dibaca, bukan disimpan sebagai kolom: nilainya
+        // bergantung pada "hari ini", jadi kolom akan selalu basi dan butuh job
+        // penyegar. Perhatikan bahwa ini hanya dihitung bila relasi/tagihan
+        // memang diminta — daftar tagihan tetap ringan.
+        $hasilDenda = app(\App\Domain\Billing\PenghitungDenda::class)->hitung($this->resource);
+
         return [
             'id' => $this->id,
             'kontrak_id' => $this->kontrak_id,
@@ -24,11 +30,20 @@ class TagihanResource extends JsonResource
             'status' => $this->status,
             'terbit_pada' => $this->terbit_pada?->toIso8601String(),
 
-            // Denda belum dihitung di T3 — endpoint /denda baru ada di T6.
-            // Dikirim sebagai 0 sekarang supaya bentuk respons tidak berubah
-            // bentuk antara T3 dan T6; yang berubah hanya nilainya.
-            'denda' => 0,
-            'total' => (int) $this->pokok,
+            'denda' => $hasilDenda->denda,
+            'total' => $hasilDenda->pokok + $hasilDenda->denda,
+
+            // Ringkasan denda ikut dikirim supaya layar tidak perlu memanggil
+            // endpoint /denda hanya untuk menampilkan "terlambat 12 hari".
+            'denda_ringkas' => [
+                'hari_terlambat' => $hasilDenda->hariTerlambat,
+                'masa_tenggang' => $hasilDenda->masaTenggang,
+                'hari_denda' => $hasilDenda->hariDenda,
+                'plafon' => $hasilDenda->plafon,
+                'sisa_hari_ke_plafon' => $hasilDenda->sisaHariKePlafon,
+                'berhenti' => $hasilDenda->berhenti,
+                'alasan_berhenti' => $hasilDenda->alasanBerhenti,
+            ],
 
             'rincian' => $this->whenLoaded('rincian', fn () => $this->rincian->map(fn ($baris) => [
                 'id' => $baris->id,

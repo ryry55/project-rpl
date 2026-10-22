@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DendaController;
 use App\Http\Controllers\Api\KamarController;
 use App\Http\Controllers\Api\KomponenBiayaController;
 use App\Http\Controllers\Api\KontrakController;
@@ -70,5 +71,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
         Route::post('/tagihan', [TagihanController::class, 'store'])->name('tagihan.store');
         Route::get('/tagihan/{tagihan}', [TagihanController::class, 'show'])->name('tagihan.show');
+
+        // --- Denda (T6) ---------------------------------------------------
+        Route::get('/tagihan/{tagihan}/denda', [DendaController::class, 'show'])
+            ->name('tagihan.denda');
     });
 });

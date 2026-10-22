@@ -8,11 +8,11 @@ dikerjakan akan tampil terkunci di UI.
 |---|---|---|---|---|
 | T1 Walking skeleton | **#2** | — | — | ✅ selesai |
 | T2 Data induk + tarif append-only | **#3** | R-06 (lapis 1) | #2 | ✅ selesai |
-| T3 Tagihan + prorata | **#4** | R-01, R-06 | #3 | terbuka, siap |
-| T4 Terbit massal + tolak duplikat | **#5** | R-02 | #4 | terkunci |
-| T5 Catat pembayaran | **#6** | — | #4 | terkunci |
-| T6 Denda + simulasi tanggal | **#7** | R-03 | #4 | terkunci |
-| T7 Umur tunggakan | **#8** | R-04 | #7 | terkunci |
+| T3 Tagihan + prorata | **#4** | R-01, R-06 | #3 | ✅ selesai |
+| T4 Terbit massal + tolak duplikat | **#5** | R-02 | #4 | siap (R-02 sudah aktif di T3) |
+| T5 Catat pembayaran | **#6** | — | #4 | siap |
+| T6 Denda + simulasi tanggal | **#7** | R-03 | #4 | ✅ selesai |
+| T7 Umur tunggakan | **#8** | R-04 | #7 | siap |
 | T9 Portal penghuni + log audit | **#9** | R-07 | #5, #6 | terkunci |
 
 ```
@@ -42,6 +42,17 @@ baru — hanya menegakkan isolasi dan audit atas apa yang sudah ada.
 3 screenshot. R-06 lapis 1 (riwayat tarif + trigger append-only di basis data) selesai.
 Empat deviasi dari SPEC §6 dicatat di SPEC §5: `komponen_biaya.aktif` tidak dibuat, email
 penghuni ditambahkan, relasi lewat `users.penghuni_id`, `parameter_denda` memakai `POST`.
+
+**T3 (#4)** — commit `1406b45`. 91 tes hijau (387 asersi), termasuk 22 tes kalkulator murni tanpa
+DB; 18/18 langkah E2E browser, 2 screenshot. R-01 dan R-06 lapis 2 selesai. R-02 ikut aktif lebih
+awal: unique index `tagihan(kontrak_id, periode)` dan `23505` → 409 sudah dibuat di T3, jadi T4
+tinggal menambahkan penerbitan massal.
+
+**T6 (#7)** — 136 tes hijau (992 asersi), 46 di antaranya tes murni tanpa DB; 23/23 langkah E2E
+browser, 2 screenshot. R-03 selesai. Keputusan yang dicatat di SPEC §5: satu sumber "hari ini"
+(`WaktuSistem`), header simulasi diabaikan bila tidak sah, status simulasi diumumkan di `meta`
+badan respons, denda tidak disimpan, dasar denda adalah pokok beku, parameter dibaca dari snapshot
+baris `tagihan`, tarif 0% sah, persentase diurai dari teks.
 
 ## Ditunda (tidak punya issue)
 

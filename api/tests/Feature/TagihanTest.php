@@ -252,15 +252,24 @@ class TagihanTest extends TestCase
         $this->assertSame(1_500_000, $respons->json('data.pokok'));
     }
 
-    public function test_total_sama_dengan_pokok_karena_denda_belum_ada(): void
+    public function test_total_selalu_sama_dengan_pokok_tambah_denda(): void
     {
+        // Sejak T6 denda dihitung sungguhan, jadi nilainya bergantung pada
+        // tanggal hari ini dan tidak bisa dipatok ke 0. Yang bisa dipatok
+        // adalah invariannya: total selalu pokok + denda, apa pun dendanya.
         $kontrak = $this->siapkanKontrak('2026-10-01');
 
-        $this->sebagaiPemilik()
+        $respons = $this->sebagaiPemilik()
             ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-10-01'])
-            ->assertCreated()
-            ->assertJsonPath('data.denda', 0)
-            ->assertJsonPath('data.total', 1_500_000);
+            ->assertCreated();
+
+        $this->assertSame(
+            $respons->json('data.pokok') + $respons->json('data.denda'),
+            $respons->json('data.total'),
+        );
+
+        // Dan denda tidak pernah negatif, bahkan untuk tagihan yang baru terbit.
+        $this->assertGreaterThanOrEqual(0, $respons->json('data.denda'));
     }
 
     // --- Jatuh tempo -------------------------------------------------------

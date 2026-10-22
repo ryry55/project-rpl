@@ -9,6 +9,7 @@ use App\Http\Requests\Api\TerbitkanTagihanRequest;
 use App\Http\Resources\TagihanResource;
 use App\Models\Kontrak;
 use App\Models\Tagihan;
+use App\Support\WaktuSistem;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +17,10 @@ use Illuminate\Http\Request;
 
 class TagihanController extends Controller
 {
-    public function __construct(private readonly PenerbitTagihan $penerbit) {}
+    public function __construct(
+        private readonly PenerbitTagihan $penerbit,
+        private readonly WaktuSistem $waktu,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -33,7 +37,18 @@ class TagihanController extends Controller
 
         $daftar = $query->orderByDesc('periode')->orderByDesc('id')->get();
 
-        return response()->json(['data' => TagihanResource::collection($daftar)]);
+        return response()->json([
+            'data' => TagihanResource::collection($daftar),
+            // Diumumkan di badan respons, bukan hanya lewat header: header
+            // lintas-origin tidak terbaca JavaScript tanpa exposed_headers,
+            // dan bergantung pada itu membuat UI tidak bisa menjelaskan
+            // apakah tanggal simulasi benar-benar berlaku.
+            'meta' => [
+                'tanggal_acuan' => $this->waktu->hariIni()->toDateString(),
+                'simulasi' => $this->waktu->sedangSimulasi(),
+                'demo_mode' => (bool) config('app.demo_mode'),
+            ],
+        ]);
     }
 
     public function store(TerbitkanTagihanRequest $request): JsonResponse

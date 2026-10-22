@@ -269,6 +269,19 @@ tarif yang berlaku, permintaan **ditolak 422** dengan pesan yang menyebut tarif 
 `X-Simulasi-Tanggal: 2026-12-01` yang **hanya aktif** bila `APP_DEMO_MODE=true`. Tanpa ini,
 mendemokan "hari ke-37" berarti menunggu 37 hari. Endpoint dan header ini tidak ada di produksi.
 
+**Keputusan T6, dicatat saat implementasi.**
+
+| Hal | Keputusan | Alasan |
+|---|---|---|
+| Sumber "hari ini" | satu kelas `App\Support\WaktuSistem`, singleton, di-reset middleware `SimulasiTanggal` di awal setiap permintaan | Denda dan umur tunggakan harus memakai tanggal acuan yang sama. Tanpa satu sumber, dua layar bisa menampilkan umur tunggakan berbeda untuk tagihan yang sama. Tanpa reset, tanggal simulasi bocor ke permintaan berikutnya |
+| Header tidak sah | **diabaikan**, bukan 400 | Demo tidak boleh gagal karena salah ketik tanggal. Respons tetap mengumumkan `X-Simulasi-Dipakai: false` supaya tidak ada tebakan |
+| Pengumuman status simulasi | di **`meta` badan respons**, bukan hanya header | `exposed_headers` CORS default kosong, jadi `fetch()` tidak bisa membaca header lintas-origin. Header tetap dikirim dan didaftarkan di `exposed_headers` |
+| Denda disimpan? | **tidak**, dihitung saat dibaca | Nilainya bergantung pada "hari ini"; kolom akan selalu basi dan butuh job penyegar |
+| Dasar denda | `tagihan.pokok` yang dibekukan, bukan sisa tagihan | Bila dasarnya sisa, penghuni bisa menurunkan denda dengan membayar Rp 1 |
+| Parameter denda | dibaca dari **kolom snapshot di baris `tagihan`**, bukan `parameter_denda` terkini | Itu inti R-06 lapis 2. Membaca parameter terkini membuat denda tagihan lama berubah saat parameter diubah |
+| Tarif 0% | sah, berarti tanpa denda | Cara mematikan denda tanpa mengubah skema; tidak boleh menjadi pembagian dengan nol |
+| Persentase | diurai dari **teks**, bukan di-cast ke float | 1,15% tidak bisa direpresentasikan eksak sebagai float; pembulatan denda bisa meleset Rp 1 |
+
 ---
 
 ## 6. Model data
@@ -352,6 +365,7 @@ Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
 | POST | `/parameter-denda` | pemilik | T2 |
 | GET/POST | `/tagihan` | pemilik | T3 |
 | GET | `/tagihan/{id}` | pemilik (semua), penghuni (miliknya) | T3 |
+| GET | `/tagihan/{id}/denda` | pemilik | T6 |
 | POST | `/tagihan/terbitkan` | pemilik | T4 |
 | POST | `/tagihan/{id}/pembayaran` | pemilik | T5 |
 | GET | `/tagihan/{id}/denda` | pemilik, penghuni (miliknya) | T6 |

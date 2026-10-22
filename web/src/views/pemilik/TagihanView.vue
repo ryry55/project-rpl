@@ -17,7 +17,37 @@ const form = ref({ kontrak_id: '', periode: '' })
 const detail = ref(null)
 const memuatDetail = ref(false)
 
+// --- Simulasi tanggal (mode demo) ------------------------------------------
+// Disimpan di localStorage supaya bertahan saat berpindah halaman. Header ini
+// hanya berlaku bila backend berjalan dengan APP_DEMO_MODE=true; bila tidak,
+// server mengabaikannya dan mengirim X-Simulasi-Dipakai: false.
+const KUNCI_SIMULASI = 'kos.simulasiTanggal'
+const simulasi = ref(localStorage.getItem(KUNCI_SIMULASI) || '')
+const simulasiDipakai = ref(false)
+const tanggalAcuan = ref('')
+
+function terapkanSimulasi() {
+  if (simulasi.value) {
+    localStorage.setItem(KUNCI_SIMULASI, simulasi.value)
+  } else {
+    localStorage.removeItem(KUNCI_SIMULASI)
+  }
+  muat()
+}
+
+function bersihkanSimulasi() {
+  simulasi.value = ''
+  localStorage.removeItem(KUNCI_SIMULASI)
+  muat()
+}
+
+/** Header tambahan untuk setiap permintaan selama simulasi aktif. */
+function headerSimulasi() {
+  return simulasi.value ? { 'X-Simulasi-Tanggal': simulasi.value } : {}
+}
+
 const totalPokok = computed(() => daftar.value.reduce((j, t) => j + t.pokok, 0))
+const totalDenda = computed(() => daftar.value.reduce((j, t) => j + (t.denda || 0), 0))
 
 function periodeHariIni() {
   const sekarang = new Date()
@@ -30,11 +60,26 @@ async function muat() {
   galatMuat.value = ''
   try {
     const [hasilTagihan, hasilKontrak] = await Promise.all([
-      sesi.panggil('/tagihan'),
+      sesi.panggil('/tagihan', { headers: headerSimulasi() }),
       sesi.panggil('/kontrak'),
     ])
     daftar.value = hasilTagihan.data
     kontrak.value = hasilKontrak.data.filter((k) => k.status === 'aktif')
+
+    // Status simulasi dibaca dari server, bukan ditebak dari ada/tidaknya
+    // header. Server yang tahu apakah mode demo aktif; menganggap "ada tanggal
+    // berarti berlaku" akan salah saat APP_DEMO_MODE=false.
+    simulasiDipakai.value = Boolean(hasilTagihan.meta?.simulasi)
+    tanggalAcuan.value = hasilTagihan.meta?.tanggal_acuan || ''
+
+    // Panel rincian harus ikut disegarkan saat tanggal acuan berubah. Tanpa ini,
+    // setelah simulasi dibersihkan daftar menampilkan denda "—" sementara panel
+    // di atasnya masih menampilkan Rp 450.000 — dua angka berbeda untuk tagihan
+    // yang sama di satu layar, dan tidak ada cara tahu mana yang benar.
+    if (detail.value) {
+      const id = detail.value.id
+      await bukaDetail({ id })
+    }
   } catch (e) {
     galatMuat.value = pesanGalat(e)
   } finally {
@@ -75,8 +120,15 @@ async function bukaDetail(tagihan) {
   memuatDetail.value = true
   detail.value = null
   try {
-    const hasil = await sesi.panggil(`/tagihan/${tagihan.id}`)
-    detail.value = hasil.data
+    // Dua panggilan, sengaja: /tagihan/{id} memberi rincian pokok yang dibekukan,
+    // /tagihan/{id}/denda memberi uraian denda (hari terlambat, plafon, sisa hari).
+    // Menggabungkannya di sini membuat layar bisa menjelaskan angka, bukan hanya
+    // menampilkannya.
+    const [hasilTagihan, hasilDenda] = await Promise.all([
+      sesi.panggil(`/tagihan/${tagihan.id}`, { headers: headerSimulasi() }),
+      sesi.panggil(`/tagihan/${tagihan.id}/denda`, { headers: headerSimulasi() }),
+    ])
+    detail.value = { ...hasilTagihan.data, dendaDetail: hasilDenda.data }
   } catch (e) {
     galatMuat.value = pesanGalat(e)
   } finally {
@@ -97,11 +149,38 @@ onMounted(muat)
       <div>
         <h1>Tagihan</h1>
         <p class="lemah mungil">
-          {{ daftar.length }} tagihan · total pokok {{ rupiah(totalPokok) }}
+          {{ daftar.length }} tagihan · pokok {{ rupiah(totalPokok) }}
+          <template v-if="totalDenda > 0">· denda {{ rupiah(totalDenda) }}</template>
         </p>
       </div>
       <button v-if="!formTerbuka" @click="bukaForm">Terbitkan tagihan</button>
     </header>
+
+    <!-- Kendali simulasi tanggal. Hanya berguna saat APP_DEMO_MODE=true; bila
+         backend tidak dalam mode demo, header diabaikan dan nilai ini tidak
+         berpengaruh — karena itu ada keterangan eksplisit di bawahnya. -->
+    <section class="kartu panel simulasi-panel">
+      <div class="simulasi-baris">
+        <div>
+          <h2 class="mungil">Simulasi tanggal</h2>
+          <p class="bantuan">
+            Menggeser "hari ini" untuk melihat denda berjalan tanpa menunggu.
+            Hanya berlaku bila backend berjalan dengan <code>APP_DEMO_MODE=true</code>.
+          </p>
+        </div>
+        <div class="simulasi-kendali">
+          <input v-model="simulasi" type="date" aria-label="Tanggal simulasi" />
+          <button class="halus mungil" @click="terapkanSimulasi">Terapkan</button>
+          <button v-if="simulasi" class="halus mungil" @click="bersihkanSimulasi">Hari ini</button>
+        </div>
+      </div>
+      <p v-if="simulasi && !simulasiDipakai" class="pesan-galat mungil">
+        Tanggal simulasi tidak dipakai server — mode demo tidak aktif.
+      </p>
+      <p v-else-if="tanggalAcuan" class="bantuan mungil">
+        Denda dihitung pada {{ tanggal(tanggalAcuan) }}.
+      </p>
+    </section>
 
     <p v-if="galatMuat" class="pesan-galat">{{ galatMuat }}</p>
 
@@ -183,6 +262,40 @@ onMounted(muat)
         </table>
       </div>
 
+      <!-- Uraian denda: angka tanpa penjelasan selalu jadi pertanyaan. -->
+      <div v-if="detail.dendaDetail" class="denda-uraian">
+        <p v-if="detail.dendaDetail.berhenti" class="mungil lemah">
+          {{ detail.dendaDetail.alasan_berhenti }} Denda tidak berjalan lagi.
+        </p>
+        <template v-else>
+          <p class="mungil">
+            <template v-if="detail.dendaDetail.hari_terlambat <= 0">
+              Belum jatuh tempo — tidak ada denda.
+            </template>
+            <template v-else-if="detail.dendaDetail.hari_terlambat <= detail.dendaDetail.masa_tenggang">
+              Terlambat {{ detail.dendaDetail.hari_terlambat }} hari, masih dalam masa tenggang
+              {{ detail.dendaDetail.masa_tenggang }} hari — belum ada denda.
+            </template>
+            <template v-else>
+              Terlambat <strong>{{ detail.dendaDetail.hari_terlambat }} hari</strong>,
+              lewat tenggang {{ detail.dendaDetail.masa_tenggang }} hari, jadi
+              <strong>{{ detail.dendaDetail.hari_denda }} hari</strong> kena denda.
+            </template>
+          </p>
+          <p class="mungil lemah">
+            Denda {{ rupiah(detail.dendaDetail.denda) }} dari maksimum
+            {{ rupiah(detail.dendaDetail.plafon) }}.
+            <template v-if="detail.dendaDetail.sisa_hari_ke_plafon > 0">
+              Mencapai plafon dalam {{ detail.dendaDetail.sisa_hari_ke_plafon }} hari lagi.
+            </template>
+            <template v-else>Plafon sudah tercapai.</template>
+          </p>
+          <p class="mungil lemah">
+            Dihitung pada {{ tanggal(detail.dendaDetail.tanggal_acuan) }}.
+          </p>
+        </template>
+      </div>
+
       <details class="snapshot">
         <summary class="mungil lemah">Tarif yang dibekukan saat terbit</summary>
         <pre class="mungil">{{ JSON.stringify(detail.tarif_terpakai, null, 2) }}</pre>
@@ -198,6 +311,8 @@ onMounted(muat)
               <th>Penghuni</th>
               <th>Kamar</th>
               <th class="kanan">Pokok</th>
+              <th class="kanan">Denda</th>
+              <th class="kanan">Total</th>
               <th>Jatuh tempo</th>
               <th>Status</th>
               <th></th>
@@ -209,6 +324,10 @@ onMounted(muat)
               <td>{{ t.kontrak?.penghuni?.nama || '—' }}</td>
               <td>{{ t.kontrak?.kamar?.nomor || '—' }}</td>
               <td class="kanan">{{ rupiah(t.pokok) }}</td>
+              <td class="kanan" :class="{ 'sel-denda': t.denda > 0 }">
+                {{ t.denda > 0 ? rupiah(t.denda) : '—' }}
+              </td>
+              <td class="kanan"><strong>{{ rupiah(t.total) }}</strong></td>
               <td>{{ tanggal(t.jatuh_tempo) }}</td>
               <td>
                 <span class="lencana-status" :class="`status-${t.status}`">{{ t.status.replace('_', ' ') }}</span>
@@ -218,15 +337,15 @@ onMounted(muat)
               </td>
             </tr>
             <tr v-if="!memuat && daftar.length === 0">
-              <td colspan="7" class="sel-kosong">
+              <td colspan="9" class="sel-kosong">
                 Belum ada tagihan. Terbitkan tagihan pertama lewat tombol di atas.
               </td>
             </tr>
             <tr v-if="memuat">
-              <td colspan="7" class="sel-kosong">Memuat…</td>
+              <td colspan="9" class="sel-kosong">Memuat…</td>
             </tr>
             <tr v-if="memuatDetail">
-              <td colspan="7" class="sel-kosong">Memuat rincian…</td>
+              <td colspan="9" class="sel-kosong">Memuat rincian…</td>
             </tr>
           </tbody>
         </table>
@@ -305,5 +424,51 @@ onMounted(muat)
   background: #f6f7f9;
   border: 1px solid var(--garis);
   border-radius: 8px;
+}
+
+/* Panel simulasi dibuat menonjol tapi tenang: ia alat demo, bukan bagian
+   alur kerja sehari-hari. Latar berbeda menandainya sebagai kendali, bukan data. */
+.simulasi-panel {
+  background: #f8f9fb;
+  border-style: dashed;
+}
+
+.simulasi-baris {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.simulasi-baris h2 {
+  margin: 0 0 3px;
+}
+
+.simulasi-kendali {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.simulasi-kendali input {
+  width: auto;
+}
+
+.denda-uraian {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--garis);
+}
+
+.denda-uraian p {
+  margin: 0 0 4px;
+}
+
+/* Denda bukan angka biasa — ia satu-satunya nilai yang bertambah sendiri, jadi
+   diberi warna peringatan supaya tidak terlewat saat memindai daftar. */
+.sel-denda {
+  color: #8a5a00;
+  font-weight: 600;
 }
 </style>
