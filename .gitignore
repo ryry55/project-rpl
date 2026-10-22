@@ -54,4 +54,13 @@ Template Laporan/
 
 # Rakitan dokumen lama (charter kasus Smart Campus Asset) — sudah digantikan
 docs/rakitan/
-docs/uji/pesan-t6.txt
+
+# Berkas pesan commit dan berkas periksa sementara. Ditulis ke disk karena
+# `git commit -m` memotong pesan panjang di PowerShell, lalu dihapus setelah
+# dipakai. Pola, bukan satu nama berkas: berkasnya dibuat per tiket.
+# Sengaja tidak memakai `docs/uji/_*` — awalan garis bawah juga dipakai untuk
+# berkas bersama seperti `_cdp.mjs`, dan pola seluas itu akan menyembunyikannya.
+docs/uji/pesan-*.txt
+docs/uji/komentar-*.md
+docs/uji/_cek.*
+docs/uji/_open.json
