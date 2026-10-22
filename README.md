@@ -58,6 +58,13 @@ SQLSTATE `23505`, dan trigger append-only, yang perilakunya berbeda di SQLite.
 docker compose exec api php artisan test
 ```
 
+**Kode dibakar ke image, bukan di-mount.** `docker-compose.yml` sengaja tidak memasang `./api`
+sebagai volume — container harus menjalankan apa yang benar-benar dibangun, bukan apa yang ada di
+host. Konsekuensinya: setelah mengubah kode PHP, **jalankan `docker compose build api && docker
+compose up -d api`** sebelum menguji. Tanpa itu, `php artisan test` akan menguji kode lama dan
+hasilnya hijau padahal perubahan belum masuk — pernah terjadi, dan gejalanya menyesatkan (tes baru
+tidak muncul di daftar sama sekali). Hal yang sama berlaku untuk `web`.
+
 Database pengujian `kos_test` dibuat otomatis oleh `docker/postgres/init-test-db.sql`, terpisah
 dari database demo supaya data sidang tidak pernah terhapus oleh tes.
 
