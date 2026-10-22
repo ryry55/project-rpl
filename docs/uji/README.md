@@ -7,6 +7,10 @@ berkas bersama yang dipakai semuanya.
 Semuanya memakai **database demo** (`kos`), bukan `kos_test`. Kecuali dinyatakan
 lain, tiap skrip **mengubah** isinya.
 
+`asap-semua-halaman.mjs` adalah pengecualian: ia mencari dulu sebelum membuat,
+jadi boleh dijalankan berulang tanpa `migrate:fresh` dan tidak menambah baris
+saat dijalankan dua kali.
+
 ## Menjalankan semuanya
 
 ```powershell
@@ -35,7 +39,7 @@ dulu:
 
 | Berkas | Yang dibuktikan | Butuh |
 |---|---|---|
-| `asap-semua-halaman.mjs` | Setiap halaman terbuka sebagai pemilik dan penghuni tanpa galat konsol dan tanpa HTTP 5xx; alamat tak dikenal menampilkan halaman 404, bukan layar kosong | Chrome, seed |
+| `asap-semua-halaman.mjs` | Setiap halaman terbuka sebagai pemilik dan penghuni tanpa galat konsol dan tanpa HTTP 5xx; alamat tak dikenal menampilkan halaman 404, bukan layar kosong | Chrome |
 
 Jalankan ini lebih dulu setelah perubahan besar. Ia menangkap halaman yang rusak
 diam-diam — kelas kesalahan yang tidak terlihat oleh tes per tiket, karena tes

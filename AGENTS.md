@@ -25,7 +25,7 @@ Ia menjalankan build image, tes PHP, pint, lalu seluruh uji browser dan uji bala
 urutan langkahnya menentukan, dan salah urutan menghasilkan hijau yang menyesatkan
 (lihat di bawah).
 
-### Empat jebakan yang sudah menggigit
+### Lima jebakan yang sudah menggigit
 
 - **Kode dibakar ke image, bukan di-mount.** `php artisan test` tanpa
   `docker compose build api` menguji kode LAMA dan memberi hasil hijau padahal
@@ -39,6 +39,14 @@ urutan langkahnya menentukan, dan salah urutan menghasilkan hijau yang menyesatk
   untuk tiap entri `page`. `periksa.ps1` melakukannya otomatis.
 - **Database demo diubah oleh uji browser.** Jalankan
   `docker compose exec api php artisan migrate:fresh --seed` sebelum tiap skrip.
+  Skrip asap adalah pengecualian: ia idempoten, jadi boleh dijalankan berulang
+  tanpa menyegarkan database.
+- **Perekam galat yang dipasang lewat `evaluasi` mati saat navigasi.** `Page.navigate`
+  memuat ulang dokumen, sehingga `window.__rekam` hilang dan setiap halaman
+  lulus dengan "tidak ada galat konsol" padahal tidak ada yang diperiksa.
+  Pasang lewat `Page.addScriptToEvaluateOnNewDocument` (lihat `pasangPerekam` di
+  `asap-semua-halaman.mjs`), dan sertakan kontrol negatif yang sengaja melempar
+  galat untuk membuktikan perekam masih hidup.
 
 ### Menulis skrip uji
 

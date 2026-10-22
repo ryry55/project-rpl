@@ -9,100 +9,44 @@
 // Prasyarat: docker compose up, Chrome --remote-debugging-port=9222,
 // database sudah di-seed (migrate:fresh --seed).
 //
-// Skrip ini TIDAK mengubah database selain membuat satu kontrak lewat API
-// supaya halaman Tagihan punya isi.
+// Skrip ini MENGUBAH database demo: ia membuat satu kamar, satu penghuni, satu
+// kontrak, dan satu tagihan supaya halaman Tagihan, Tunggakan, dan audit tidak
+// kosong.
 
-const CDP_BASE = process.env.CDP_BASE || 'http://127.0.0.1:9222'
-const APP = process.env.APP_URL || 'http://localhost:3000'
-const API = process.env.API_URL || 'http://localhost:8081/api'
+import {
+  APP,
+  API,
+  kirim,
+  evaluasi,
+  tungguSampai,
+  masukSebagai,
+  mulaiUji,
+  jalankan,
+} from './_cdp.mjs'
 
-const langkah = []
-function lapor(nama, lulus, detail = '') {
-  langkah.push({ nama, lulus, detail })
-  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' — ' + detail : ''}`)
-}
+// --- Perkakas khusus berkas ini --------------------------------------------
+//
+// Perekam galat dan pengukur halaman hanya dipakai di sini, jadi tinggal di
+// berkas ini. Yang dipakai bersama (koneksi CDP, login, pelapor, pembersihan
+// tab) datang dari `_cdp.mjs`.
 
-async function targetBaru() {
-  const res = await fetch(`${CDP_BASE}/json/new?about:blank`, { method: 'PUT' })
-  if (!res.ok) throw new Error(`gagal membuat tab: ${res.status}`)
-  return res.json()
-}
-
-function hubungkan(wsUrl) {
-  return new Promise((resolve, reject) => {
-    const ws = new WebSocket(wsUrl)
-    ws.onopen = () => resolve(ws)
-    ws.onerror = (e) => reject(new Error('websocket gagal: ' + e.message))
-  })
-}
-
-let idPesan = 0
-function kirim(ws, method, params = {}) {
-  return new Promise((resolve, reject) => {
-    const id = ++idPesan
-    const onMsg = (ev) => {
-      let msg
-      try {
-        msg = JSON.parse(ev.data)
-      } catch {
-        return
-      }
-      if (msg.id !== id) return
-      ws.removeEventListener('message', onMsg)
-      if (msg.error) reject(new Error(`${method}: ${msg.error.message}`))
-      else resolve(msg.result)
-    }
-    ws.addEventListener('message', onMsg)
-    ws.send(JSON.stringify({ id, method, params }))
-  })
-}
-
-async function evaluasi(ws, ekspresi) {
-  const r = await kirim(ws, 'Runtime.evaluate', {
-    expression: ekspresi,
-    awaitPromise: true,
-    returnByValue: true,
-  })
-  if (r.exceptionDetails) {
-    throw new Error(r.exceptionDetails.exception?.description || 'evaluasi gagal')
-  }
-  return r.result.value
-}
-
-async function tungguSampai(ws, ekspresi, batasMs = 12000) {
-  const mulai = Date.now()
-  while (Date.now() - mulai < batasMs) {
-    if (await evaluasi(ws, `Boolean(${ekspresi})`)) return true
-    await new Promise((r) => setTimeout(r, 150))
-  }
-  return false
-}
-
-async function masukSebagai(ws, email) {
-  await kirim(ws, 'Page.navigate', { url: `${APP}/masuk` })
-  await tungguSampai(ws, `document.querySelector('#email')`)
-  await evaluasi(ws, `
-    (() => {
-      const set = (sel, v) => {
-        const el = document.querySelector(sel)
-        el.value = v
-        el.dispatchEvent(new Event('input', { bubbles: true }))
-      }
-      set('#email', '${email}')
-      set('#password', 'password')
-      document.querySelector('form').dispatchEvent(
-        new Event('submit', { bubbles: true, cancelable: true }))
-      return true
-    })()
-  `)
-  return tungguSampai(ws, `!location.pathname.startsWith('/masuk')`, 15000)
-}
-
-/** Galat konsol dan permintaan gagal dikumpulkan per halaman. */
+/**
+ * Memasang perekam galat yang BERTAHAN melewati navigasi.
+ *
+ * Perekam tidak boleh dipasang lewat `evaluasi`: `Page.navigate` memuat ulang
+ * dokumen, sehingga `window.__rekam` yang ditanam sesudah halaman terbuka ikut
+ * hilang, dan pembacaan berikutnya selalu melihat objek kosong. Akibatnya
+ * "tidak ada galat konsol" lulus tanpa pernah memeriksa apa pun.
+ *
+ * `Page.addScriptToEvaluateOnNewDocument` menyuntikkan skrip sebelum skrip
+ * aplikasi berjalan di setiap dokumen baru, jadi galat saat Vue memuat ikut
+ * tercatat. Ini sudah diuji: perekam bertahan pada navigasi kedua dan
+ * menangkap galat yang dilempar dari `setTimeout`.
+ */
 async function pasangPerekam(ws) {
-  await evaluasi(ws, `
-    (() => {
-      if (window.__rekam) return true
+  await kirim(ws, 'Page.enable')
+  await kirim(ws, 'Page.addScriptToEvaluateOnNewDocument', {
+    source: `
       window.__rekam = { galat: [], gagal: [] }
       window.addEventListener('error', (e) => {
         window.__rekam.galat.push(String(e.message || e.error || 'error'))
@@ -118,9 +62,8 @@ async function pasangPerekam(ws) {
         }
         return res
       }
-      return true
-    })()
-  `)
+    `,
+  })
 }
 
 async function bersihkanRekaman(ws) {
@@ -140,58 +83,39 @@ async function ukurHalaman(ws) {
         judul: document.querySelector('h1')?.textContent?.trim() || '',
         panjangTeks: teks.length,
         jumlahBarisTabel: document.querySelectorAll('tbody tr').length,
-        jumlahKartu: document.querySelectorAll('.kartu').length,
         jumlahTombol: document.querySelectorAll('button').length,
       }
     })()
   `)
 }
 
-async function kunjungi(ws, jalur, nama) {
-  await bersihkanRekaman(ws)
-  await kirim(ws, 'Page.navigate', { url: `${APP}${jalur}` })
-  // Tunggu sampai Vue benar-benar menggambar sesuatu. Jeda tetap tidak cukup:
-  // build baru dengan cache dingin butuh waktu lebih lama, dan halaman yang
-  // belum sempat dirender terlihat sama persis dengan halaman yang rusak.
-  await tungguSampai(ws, `document.querySelector('#app')?.children.length > 0`, 15000)
-  const ukuran = await ukurHalaman(ws)
-  const rekam = await bacaRekaman(ws)
+jalankan(async () => {
+  const uji = await mulaiUji()
+  const { ws, lapor } = uji
 
-  const galatNyata = rekam.galat.filter((g) => !/ResizeObserver/.test(g))
-  // 401/403/404 sah untuk halaman yang memang memfilternya; yang tidak sah
-  // adalah 500 dan permintaan yang gagal karena galat JavaScript.
-  const gagalNyata = rekam.gagal.filter((g) => /^5\d\d/.test(g))
+  await pasangPerekam(ws)
 
-  const lulus = galatNyata.length === 0 && gagalNyata.length === 0 && ukuran.panjangTeks > 60
-  lapor(
-    `${nama} (${jalur})`,
-    lulus,
-    [
-      ukuran.judul ? `"${ukuran.judul}"` : 'tanpa h1',
-      `${ukuran.panjangTeks} huruf`,
-      `${ukuran.jumlahBarisTabel} baris tabel`,
-      galatNyata.length ? `galat konsol: ${galatNyata.join(' | ')}` : '',
-      gagalNyata.length ? `HTTP 5xx: ${gagalNyata.join(' | ')}` : '',
-    ]
-      .filter(Boolean)
-      .join(' · '),
-  )
-}
-
-async function jalan() {
-  const tab = await targetBaru()
-  const ws = await hubungkan(tab.webSocketDebuggerUrl)
-  await kirim(ws, 'Page.enable')
-  await kirim(ws, 'Runtime.enable')
+  // Kontrol negatif: buktikan perekam memang menangkap galat. Tanpa langkah
+  // ini, perekam yang mati diam-diam akan membuat setiap halaman lulus dengan
+  // "tidak ada galat konsol" padahal tidak ada yang diperiksa.
+  await kirim(ws, 'Page.navigate', { url: `${APP}/masuk` })
+  await tungguSampai(ws, `document.querySelector('#email')`)
+  await evaluasi(ws, `(() => { setTimeout(() => { throw new Error('kontrol-negatif') }, 0); return true })()`)
+  await new Promise((r) => setTimeout(r, 600))
+  const kontrol = await evaluasi(ws, `(() => (window.__rekam?.galat || []).join(' | '))()`)
+  lapor('perekam galat menangkap galat sengaja', /kontrol-negatif/.test(kontrol), kontrol || '(tidak menangkap apa pun)')
 
   // --- Pemilik -------------------------------------------------------------
   const masuk = await masukSebagai(ws, 'pemilik@kos.test')
   lapor('login pemilik', masuk, await evaluasi(ws, 'location.pathname'))
   if (!masuk) throw new Error('login pemilik gagal')
 
-  await pasangPerekam(ws)
-
   // Satu kontrak supaya halaman Tagihan, Tunggakan, dan audit tidak kosong.
+  //
+  // Skrip ini harus bisa dijalankan berulang tanpa `migrate:fresh` lebih dulu:
+  // setiap sumber daya dicari dulu, baru dibuat kalau belum ada. Run kedua yang
+  // menabrak "nomor kamar sudah dipakai" adalah kegagalan yang membingungkan
+  // dan tidak ada hubungannya dengan aplikasi.
   const siap = await evaluasi(ws, `
     (async () => {
       const h = {
@@ -208,29 +132,101 @@ async function jalan() {
         try { d = t ? JSON.parse(t) : null } catch { d = null }
         return { status: r.status, data: d }
       }
-      const kamar = await p('/kamar', 'POST', { nomor: 'ASAP-01', tipe: 'Uji asap' })
-      if (kamar.status !== 201) return 'kamar: ' + JSON.stringify(kamar.data)
-      const tarif = await p('/tarif', 'POST', {
-        kamar_id: kamar.data.data.id, nilai: 1500000, berlaku_dari: '2026-01-01',
+      const daftar = async (jalur) => {
+        const r = await p(jalur, 'GET')
+        return Array.isArray(r.data?.data) ? r.data.data : []
+      }
+
+      // Kamar: cari berdasarkan nomor, buat kalau tidak ada.
+      let kamar = (await daftar('/kamar')).find((k) => k.nomor === 'ASAP-01')
+      if (!kamar) {
+        const buat = await p('/kamar', 'POST', { nomor: 'ASAP-01', tipe: 'Uji asap' })
+        if (buat.status !== 201) return 'kamar: ' + JSON.stringify(buat.data)
+        kamar = buat.data.data
+      }
+
+      // Tarif: hanya kalau kamar belum punya tarif.
+      const tarifAda = await daftar('/tarif?kamar_id=' + kamar.id)
+      if (tarifAda.length === 0) {
+        const buat = await p('/tarif', 'POST', {
+          kamar_id: kamar.id, nilai: 1500000, berlaku_dari: '2026-01-01',
+        })
+        if (buat.status !== 201) return 'tarif: ' + JSON.stringify(buat.data)
+      }
+
+      // Penghuni: cari berdasarkan email, buat kalau tidak ada.
+      const semuaPenghuni = await daftar('/penghuni')
+      let penghuni = semuaPenghuni.find((x) => x.email === 'asap@kos.test')
+      if (!penghuni) {
+        const buat = await p('/penghuni', 'POST', {
+          nama: 'Asap Satu', email: 'asap@kos.test', password: 'password',
+        })
+        if (buat.status !== 201) return 'penghuni: ' + JSON.stringify(buat.data)
+        penghuni = buat.data.data
+      }
+
+      // Kontrak: '/kontrak' tidak menerima filter 'kamar_id', jadi disaring di
+      // sisi klien memakai 'kamar_id' dari resource.
+      const semuaKontrak = await daftar('/kontrak')
+      const kontrakKamar = semuaKontrak.filter((x) => x.kamar_id === kamar.id)
+      if (kontrakKamar.length === 0) {
+        const buat = await p('/kontrak', 'POST', {
+          kamar_id: kamar.id, penghuni_id: penghuni.id,
+          tgl_masuk: '2026-01-15', deposit: 0,
+        })
+        if (buat.status !== 201) return 'kontrak: ' + JSON.stringify(buat.data)
+      }
+
+      // Tagihan: terbitkan untuk periode uji, dan terima 409 sebagai "sudah ada".
+      const kontrak = (await daftar('/kontrak')).filter((x) => x.kamar_id === kamar.id)[0]
+      if (!kontrak) return 'kontrak tidak ditemukan setelah dibuat'
+      const buat = await p('/tagihan', 'POST', {
+        kontrak_id: kontrak.id, periode: '2026-11-01',
       })
-      if (tarif.status !== 201) return 'tarif: ' + JSON.stringify(tarif.data)
-      const penghuni = await p('/penghuni', 'POST', {
-        nama: 'Asap Satu', email: 'asap@kos.test', password: 'password',
-      })
-      if (penghuni.status !== 201) return 'penghuni: ' + JSON.stringify(penghuni.data)
-      const kontrak = await p('/kontrak', 'POST', {
-        kamar_id: kamar.data.data.id, penghuni_id: penghuni.data.data.id,
-        tgl_masuk: '2026-01-15', deposit: 0,
-      })
-      if (kontrak.status !== 201) return 'kontrak: ' + JSON.stringify(kontrak.data)
-      const tagihan = await p('/tagihan', 'POST', {
-        kontrak_id: kontrak.data.data.id, periode: '2026-11-01',
-      })
-      if (tagihan.status !== 201) return 'tagihan: ' + JSON.stringify(tagihan.data)
+      if (buat.status !== 201 && buat.status !== 409) {
+        return 'tagihan: ' + JSON.stringify(buat.data)
+      }
       return 'ok'
     })()
   `)
   lapor('data uji disiapkan', siap === 'ok', siap)
+  if (siap !== 'ok') throw new Error('data uji gagal disiapkan: ' + siap)
+
+  /**
+   * Membuka satu halaman dan menilai keadaannya.
+   *
+   * Menunggu sampai `#app` punya anak, bukan menunggu jeda tetap: build baru
+   * dengan cache dingin butuh waktu lebih lama, dan halaman yang belum sempat
+   * dirender terlihat sama persis dengan halaman yang rusak. Jeda tetap di
+   * sini sempat menghasilkan kegagalan palsu pada halaman 404.
+   */
+  async function kunjungi(jalur, nama) {
+    await bersihkanRekaman(ws)
+    await kirim(ws, 'Page.navigate', { url: `${APP}${jalur}` })
+    await tungguSampai(ws, `document.querySelector('#app')?.children.length > 0`, 15000)
+
+    const ukuran = await ukurHalaman(ws)
+    const rekam = await bacaRekaman(ws)
+
+    const galatNyata = rekam.galat.filter((g) => !/ResizeObserver/.test(g))
+    // 401/403/404 sah untuk halaman yang memang memfilternya; yang tidak sah
+    // adalah 500 dan permintaan yang gagal karena galat JavaScript.
+    const gagalNyata = rekam.gagal.filter((g) => /^5\d\d/.test(g))
+
+    lapor(
+      `${nama} (${jalur})`,
+      galatNyata.length === 0 && gagalNyata.length === 0 && ukuran.panjangTeks > 60,
+      [
+        ukuran.judul ? `"${ukuran.judul}"` : 'tanpa h1',
+        `${ukuran.panjangTeks} huruf`,
+        `${ukuran.jumlahBarisTabel} baris tabel`,
+        galatNyata.length ? `galat konsol: ${galatNyata.join(' | ')}` : '',
+        gagalNyata.length ? `HTTP 5xx: ${gagalNyata.join(' | ')}` : '',
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    )
+  }
 
   const halamanPemilik = [
     ['/pemilik/kamar', 'Kamar'],
@@ -241,7 +237,7 @@ async function jalan() {
     ['/pemilik/audit', 'Jejak audit'],
   ]
   for (const [jalur, nama] of halamanPemilik) {
-    await kunjungi(ws, jalur, nama)
+    await kunjungi(jalur, nama)
   }
 
   // --- Penghuni ------------------------------------------------------------
@@ -249,39 +245,25 @@ async function jalan() {
   lapor('login penghuni', masukP, await evaluasi(ws, 'location.pathname'))
   if (!masukP) throw new Error('login penghuni gagal')
 
-  await pasangPerekam(ws)
-  await kunjungi(ws, '/penghuni', 'Portal penghuni')
+  // Perekam sudah terpasang sekali di awal dan bertahan melewati navigasi,
+  // jadi tidak dipasang lagi di sini.
+  await kunjungi('/penghuni', 'Portal penghuni')
 
   // --- Rute yang tidak ada -------------------------------------------------
-  await bersihkanRekaman(ws)
-  await kirim(ws, 'Page.navigate', { url: `${APP}/tidak-ada-halaman-ini` })
-  await tungguSampai(ws, `document.querySelector('#app')?.children.length > 0`, 15000)
-  const nyasar = await ukurHalaman(ws)
+  await kunjungi('/tidak-ada-halaman-ini', 'Halaman 404')
+  // Ambangnya lebih longgar: halaman 404 memang pendek, tetapi tetap harus
+  // menjelaskan sesuatu dan menyediakan jalan pulang.
+  const nyasar = await evaluasi(ws, `
+    ({
+      panjangTeks: (document.body?.innerText || '').trim().length,
+      adaTautanPulang: Boolean(document.querySelector('a[href]')),
+    })
+  `)
   lapor(
-    'rute tak dikenal tidak menampilkan halaman kosong',
-    nyasar.panjangTeks > 20,
-    `${nyasar.panjangTeks} huruf · "${nyasar.judul}"`,
+    'halaman 404 menjelaskan dan menyediakan jalan pulang',
+    nyasar.panjangTeks > 20 && nyasar.adaTautanPulang,
+    `${nyasar.panjangTeks} huruf · tautan pulang: ${nyasar.adaTautanPulang}`,
   )
 
-  await kirim(ws, 'Page.close').catch(() => {})
-  ws.close()
-
-  const gagal = langkah.filter((l) => !l.lulus)
-  console.log(`\n${langkah.length - gagal.length}/${langkah.length} langkah lulus`)
-  if (gagal.length) process.exitCode = 1
-}
-
-jalan().catch(async (e) => {
-  console.error('Asap gagal:', e.message)
-  try {
-    const daftar = await fetch(`${CDP_BASE}/json/list`).then((r) => r.json())
-    await Promise.all(
-      daftar
-        .filter((t) => t.type === 'page')
-        .map((t) => fetch(`${CDP_BASE}/json/close/${t.id}`).catch(() => {})),
-    )
-  } catch {
-    // Mengabaikan kegagalan pembersihan: galat aslinya yang perlu terlihat.
-  }
-  process.exitCode = 1
+  await uji.selesai()
 })
