@@ -31,6 +31,16 @@ class PencatatAudit
 
     public const AKSI_KEBIJAKAN_TAMBAH = 'kebijakan.tambah';
 
+    /**
+     * Satu pemeriksaan atas satu pembayaran (T20).
+     *
+     * Entitasnya `pembayaran`, bukan `tagihan`: yang diperiksa adalah baris uang
+     * tertentu, dan dua pembayaran pada tagihan yang sama bisa punya hasil
+     * pemeriksaan berbeda. Menyebutnya `tagihan.verifikasi` akan membuat jejak
+     * tidak bisa menunjuk baris mana yang ditolak.
+     */
+    public const AKSI_PEMBAYARAN_VERIFIKASI = 'pembayaran.verifikasi';
+
     public function catat(
         string $aksi,
         string $entitas,

@@ -103,12 +103,34 @@ class PembayaranTest extends TestCase
         ]);
     }
 
-    /** Bayar pada tanggal acuan yang belum jatuh tempo, jadi denda nol. */
-    private function bayar(Tagihan $tagihan, int $jumlah, string $tanggal = '2026-11-10', ?string $catatan = null)
-    {
-        $isi = ['jumlah' => $jumlah, 'tanggal_pembayaran' => $tanggal];
+    /**
+     * Bayar pada tanggal acuan yang belum jatuh tempo, jadi denda nol.
+     *
+     * Metode bawaannya `tunai` karena itulah yang paling sering dipakai kos
+     * kecil. `diterima_oleh` sengaja tidak ikut dikirim: sejak T20 domain
+     * mengisinya dengan akun yang mencatat, dan tes ini menguji jalur bawaan
+     * itu - bukan jalur yang selalu mengirim kolomnya sendiri.
+     */
+    private function bayar(
+        Tagihan $tagihan,
+        int $jumlah,
+        string $tanggal = '2026-11-10',
+        ?string $catatan = null,
+        string $metode = 'tunai',
+        ?string $referensi = null,
+    ) {
+        $isi = [
+            'jumlah' => $jumlah,
+            'tanggal_pembayaran' => $tanggal,
+            'metode' => $metode,
+        ];
+
         if ($catatan !== null) {
             $isi['catatan'] = $catatan;
+        }
+
+        if ($referensi !== null) {
+            $isi['referensi'] = $referensi;
         }
 
         return $this->sebagaiPemilik()
@@ -235,6 +257,7 @@ class PembayaranTest extends TestCase
             ->postJson("/api/tagihan/{$tagihan->id}/pembayaran", [
                 'jumlah' => 500_000.75,
                 'tanggal_pembayaran' => '2026-11-10',
+                'metode' => 'tunai',
             ])
             ->assertStatus(422)
             ->assertJsonValidationErrors('jumlah');
@@ -261,6 +284,7 @@ class PembayaranTest extends TestCase
             ->postJson("/api/tagihan/{$tagihan->id}/pembayaran", [
                 'jumlah' => 100_000,
                 'tanggal_pembayaran' => '2026-11-11',
+                'metode' => 'tunai',
             ])
             ->assertStatus(422)
             ->assertJsonValidationErrors('tanggal_pembayaran');
@@ -302,6 +326,7 @@ class PembayaranTest extends TestCase
             ->postJson("/api/tagihan/{$tagihan->id}/pembayaran", [
                 'jumlah' => 500_000,
                 'tanggal_pembayaran' => '2026-11-21',
+                'metode' => 'tunai',
             ])
             ->assertCreated()
             ->assertJsonPath('data.total', 1_500_000)
@@ -319,6 +344,7 @@ class PembayaranTest extends TestCase
             ->postJson("/api/tagihan/{$tagihan->id}/pembayaran", [
                 'jumlah' => 500_000,
                 'tanggal_pembayaran' => '2026-11-23',
+                'metode' => 'tunai',
             ])
             ->assertCreated()
             ->assertJsonPath('data.total', 1_515_000)
@@ -336,6 +362,7 @@ class PembayaranTest extends TestCase
             ->postJson("/api/tagihan/{$tagihan->id}/pembayaran", [
                 'jumlah' => 1_000_000,
                 'tanggal_pembayaran' => '2026-11-21',
+                'metode' => 'tunai',
             ])
             ->assertCreated();
 
@@ -359,6 +386,7 @@ class PembayaranTest extends TestCase
             ->postJson("/api/tagihan/{$tagihan->id}/pembayaran", [
                 'jumlah' => 1_515_000,
                 'tanggal_pembayaran' => '2026-11-23',
+                'metode' => 'tunai',
             ])
             ->assertCreated()
             ->assertJsonPath('data.status_sesudah', 'lunas');
@@ -434,7 +462,7 @@ class PembayaranTest extends TestCase
     {
         $tagihan = $this->buatTagihan();
 
-        $this->bayar($tagihan, 500_000, '2026-11-10', 'tunai')->assertCreated();
+        $this->bayar($tagihan, 500_000)->assertCreated();
 
         $log = LogAudit::where('aksi', PencatatAudit::AKSI_TAGIHAN_BAYAR)->firstOrFail();
 
@@ -522,6 +550,7 @@ class PembayaranTest extends TestCase
             ->postJson("/api/tagihan/{$tagihan->id}/pembayaran", [
                 'jumlah' => 100_000,
                 'tanggal_pembayaran' => '2026-11-10',
+                'metode' => 'tunai',
             ])
             ->assertStatus(403);
 
@@ -535,6 +564,7 @@ class PembayaranTest extends TestCase
         $this->postJson("/api/tagihan/{$tagihan->id}/pembayaran", [
             'jumlah' => 100_000,
             'tanggal_pembayaran' => '2026-11-10',
+            'metode' => 'tunai',
         ])->assertStatus(401);
     }
 
@@ -544,6 +574,7 @@ class PembayaranTest extends TestCase
             ->postJson('/api/tagihan/999999/pembayaran', [
                 'jumlah' => 100_000,
                 'tanggal_pembayaran' => '2026-11-10',
+                'metode' => 'tunai',
             ])
             ->assertStatus(404);
     }

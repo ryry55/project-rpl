@@ -50,4 +50,28 @@ class PembayaranDitolak extends \RuntimeException
             $hariIni,
         ));
     }
+
+    public static function metodeTidakDikenal(string $metode): self
+    {
+        return new self(sprintf(
+            'Metode pembayaran "%s" tidak dikenal. Pilih salah satu: tunai, transfer, qris, gateway.',
+            $metode,
+        ));
+    }
+
+    /**
+     * Tunai wajib menyebut pemegang uangnya.
+     *
+     * Pesan ini sengaja menyebut alasannya, bukan hanya aturannya. Pemilik yang
+     * membacanya perlu tahu bahwa kolom itu ada untuk menjawab "setoran siapa
+     * yang belum disetor" - kalau tidak, ia akan menganggapnya kolom
+     * birokratis dan mengisinya asal-asalan.
+     */
+    public static function tunaiTanpaPemegang(): self
+    {
+        return new self(
+            'Pembayaran tunai harus menyebut siapa yang menerima uangnya, '
+            .'supaya setoran yang masih di tangan pengelola bisa dilacak.',
+        );
+    }
 }

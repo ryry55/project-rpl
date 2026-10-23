@@ -26,6 +26,11 @@ const semuaMenu = [
   { nama: 'penghuni', label: 'Penghuni', ket: 'Data penghuni dan akun masuk' },
   { nama: 'kontrak', label: 'Kontrak', ket: 'Penghuni menempati kamar' },
   { nama: 'tagihan', label: 'Tagihan', ket: 'Terbitkan dan periksa tagihan' },
+  // Rekap setelah Tagihan dan sebelum Tunggakan: ia menjawab "berapa yang
+  // benar-benar masuk", pertanyaan yang muncul tepat setelah tagihan terbit.
+  // Tunggakan menjawab pertanyaan yang berlawanan arah (siapa yang belum
+  // membayar), jadi keduanya sengaja tidak berdampingan.
+  { nama: 'rekap', label: 'Rekap', ket: 'Uang masuk per metode bayar' },
   { nama: 'tunggakan', label: 'Tunggakan', ket: 'Siapa menunggak dan sudah separah apa' },
   // Diletakkan setelah Tunggakan, bukan di paling atas: pemilik membuka menu
   // ini sekali di awal lalu jarang lagi, sementara Tagihan dibuka setiap bulan.

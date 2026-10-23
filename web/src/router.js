@@ -7,6 +7,7 @@ import PenghuniView from './views/pemilik/PenghuniView.vue'
 import KontrakView from './views/pemilik/KontrakView.vue'
 import TagihanView from './views/pemilik/TagihanView.vue'
 import TunggakanView from './views/pemilik/TunggakanView.vue'
+import RekapView from './views/pemilik/RekapView.vue'
 import AuditLogView from './views/pemilik/AuditLogView.vue'
 import KebijakanView from './views/pemilik/KebijakanView.vue'
 import FasilitasView from './views/pemilik/FasilitasView.vue'
@@ -45,6 +46,10 @@ const routes = [
       { path: 'penghuni', name: 'pemilik-penghuni', component: PenghuniView },
       { path: 'kontrak', name: 'pemilik-kontrak', component: KontrakView },
       { path: 'tagihan', name: 'pemilik-tagihan', component: TagihanView },
+      // Rekap diletakkan tepat setelah Tagihan: keduanya dibuka setiap bulan,
+      // dan rekap adalah pertanyaan lanjutan yang wajar setelah tagihan terbit -
+      // "berapa yang benar-benar masuk".
+      { path: 'rekap', name: 'pemilik-rekap', component: RekapView },
       { path: 'tunggakan', name: 'pemilik-tunggakan', component: TunggakanView },
       { path: 'kebijakan', name: 'pemilik-kebijakan', component: KebijakanView },
       { path: 'fasilitas', name: 'pemilik-fasilitas', component: FasilitasView },

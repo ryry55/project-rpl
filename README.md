@@ -53,6 +53,7 @@ node docs/uji/e2e-t7.mjs   # empat kelompok umur tunggakan
 node docs/uji/e2e-t4.mjs   # terbit massal + penolakan duplikat
 node docs/uji/e2e-t5.mjs   # catat pembayaran sebagian lalu lunas
 node docs/uji/e2e-t9.mjs   # isolasi portal penghuni + log audit pemilik
+node docs/uji/e2e-t20.mjs  # metode bayar, verifikasi pembayaran, rekap pendapatan
 node docs/uji/e2e-t24.mjs  # akun pengelola berwewenang terbatas + penolakan 403 di server
 ```
 
@@ -273,6 +274,7 @@ jumlah uang yang benar-benar tercatat: `belum bayar` → `sebagian` → `lunas`.
 | Bayar melebihi sisa | **422** dengan pesan yang menyebut sisa — tidak disimpan sebagai saldo |
 | Bayar tagihan yang dibatalkan | **422** |
 | Tanggal pembayaran di masa depan | **422** |
+| Tidak memilih metode bayar | **422** — formulir menahan tombol simpan |
 
 Sisa tagihan = `pokok + denda − total pembayaran`. Dendanya tetap dihitung dari pokok penuh, jadi
 membayar Rp 1 tidak menurunkan denda.
@@ -282,13 +284,81 @@ dikunci `FOR UPDATE` sebelum sisa diperiksa.
 
 ```bash
 curl -X POST -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
-     -d '{"jumlah":500000,"tanggal_pembayaran":"2026-11-10","catatan":"transfer BCA"}' \
+     -d '{"jumlah":500000,"tanggal_pembayaran":"2026-11-10","metode":"transfer","referensi":"TRX-001"}' \
      http://localhost:8081/api/tagihan/1/pembayaran
 ```
 
 Catatan penting: tabel `pembayaran` bersifat **append-only** (trigger menolak UPDATE dan DELETE),
 dan baris pembalik belum ada. Salah input jumlah karena itu **tidak bisa diperbaiki dari
 aplikasi** — lihat batasan yang dicatat di `SPEC.md` §5.
+
+## Metode bayar, pemegang uang, dan pemeriksaan
+
+Sejak T20 setiap baris pembayaran menjawab tiga hal yang dulu hanya bisa ditulis di kolom catatan
+bebas — dan catatan teks tidak bisa dijumlahkan.
+
+**Metode wajib dan tidak punya nilai bawaan.** Pilihannya `tunai`, `transfer`, `qris`, `gateway`.
+Daftarnya sengaja tertutup: kalau pemilik menulis "tf", "transfer", "Transfer BCA" sebagai tiga
+nilai berbeda, rekapnya pecah menjadi tiga baris yang masing-masing terlihat kecil. Nilai bawaan
+`tunai` juga sengaja tidak ada — pemilik yang mengetik jumlah lalu langsung menyimpan akan mencatat
+transfer sebagai uang tunai, dan rekap tunai per pemegang akan menghitung uang yang tidak pernah
+lewat tangan siapa pun.
+
+**Pemegang uang hanya ditanyakan untuk tunai.** Untuk transfer, QRIS, dan gateway medannya tidak
+muncul, karena jawabannya memang tidak ada: uangnya sudah di rekening sejak awal. Untuk tunai,
+kolomnya diisi otomatis dengan orang yang mencatat bila dikosongkan.
+
+**Pemeriksaan pembayaran terpisah dari pencatatannya.** Tombol **Verifikasi** ada di riwayat
+pembayaran. Yang berlaku adalah pemeriksaan **terakhir**, bukan "apakah pernah ada baris terima" —
+pembayaran yang pernah diterima lalu ditolak pada pemeriksaan ulang harus berakhir ditolak.
+Penolakan wajib menyebutkan alasannya, dan aturan itu ditegakkan dua lapis (validasi HTTP dan CHECK
+di basis data).
+
+Pemeriksaan **tidak mengubah** jumlah uang maupun status tagihan. Ia hanya menyatakan uang ini
+sudah diperiksa. Pemeriksaan yang menemukan angka salah menandainya; koreksi tetap menuntut baris
+pembalik yang belum ada.
+
+`verifikasi_pembayaran` juga append-only lewat trigger: satu baris = satu pemeriksaan.
+
+## Rekap pendapatan
+
+Halaman **Rekap** menjawab pertanyaan yang berbeda dari Tagihan. Tagihan menjawab "berapa yang
+seharusnya masuk"; rekap menjawab "berapa yang benar-benar masuk".
+
+Satu aturan menentukan seluruh halaman itu benar atau tidak: **pendapatan = `SUM(pembayaran.jumlah)`,
+dan denda yang masih tertera di tagihan BUKAN pendapatan — ia piutang.** Halaman itu menampilkan
+keduanya sebagai dua angka terpisah, dan piutang tidak pernah ikut dijumlahkan ke total.
+
+Kenapa dipisahkan sekeras itu. Tampilan yang wajar untuk pemilik kos adalah menjumlahkan kolom
+`total` tiap tagihan lalu menyebutnya "pendapatan bulan ini". Angka itu terlalu besar: ia mencampur
+uang yang sudah masuk dengan denda yang belum dibayar siapa pun. Pemilik yang mengira sudah menerima
+Rp 4 juta padahal rekeningnya bertambah Rp 3,2 juta akan menyalahkan aplikasinya — dan ia benar.
+
+| Yang ditampilkan | Artinya |
+|---|---|
+| Kartu per metode | Uang masuk per `tunai` / `transfer` / `qris` / `gateway` |
+| Piutang | Denda yang belum dibayar + jumlah tagihan terbuka — **bukan** pendapatan |
+| Asal baris | Dicatat manual atau dari webhook gateway |
+| Uang tunai di tangan | Tunai per pemegang — setoran siapa yang belum disetor |
+| Daftar pembayaran | Uang mana saja yang membentuk angka di atas |
+
+**Periode memakai `tanggal_pembayaran`, bukan `tagihan.periode`.** Rekap ini menjawab "uang masuk
+bulan ini" (basis kas). Penghuni yang membayar tunggakan Oktober pada November menambah kas
+November — itu yang terlihat di rekening, dan itulah yang harus cocok dengan rekap.
+
+Baris lama yang tidak punya metode (dibuat sebelum T20) dilaporkan sebagai kelompok **tanpa metode**,
+bukan dilebur ke tunai. Menganggapnya tunai berarti mengarang fakta tentang uang; membiarkannya
+terlihat membuat lubangnya kelihatan.
+
+```bash
+curl -H "Authorization: Bearer <token>" \
+     "http://localhost:8081/api/rekap?dari=2026-11-01&sampai=2026-11-30"
+```
+
+`dari`/`sampai` opsional di `/rekap` (bawaannya awal bulan berjalan sampai hari ini), tetapi wajib
+di `/pembayaran`. Rekap yang diam-diam memilih rentang sendiri adalah rekap yang menipu saat
+dipertanyakan; layar tetap boleh menyebut rentang lain.
+
 
 ## Portal penghuni
 
@@ -379,18 +449,20 @@ dari database demo supaya data sidang tidak pernah terhapus oleh tes.
 │   ├── app/Domain/Tarif/ PencariTarif — tarif efektif per periode (R-06 lapis 1)
 │   ├── app/Domain/Billing/ Kalkulator (murni), PenerbitTagihan, PenerbitanMassal,
 │   │                       PenghitungDenda, PencatatPembayaran
+│   ├── app/Domain/Pembayaran/ MetodePembayaran (daftar tertutup), RekapPendapatan,
+│   │                       PencatatVerifikasi — pemeriksaan append-only
 │   ├── app/Domain/Akses/ Wewenang — daftar tertutup wewenang pengelola + mana yang sensitif
 │   ├── app/Domain/Audit/ PencatatAudit — penulis log_audit, NilaiLama — pembanding sebelum/sesudah
 │   ├── app/Http/         Controller, Request, Resource, Middleware (termasuk PastikanWewenang)
 │   ├── app/Models/       User, Kamar, Penghuni, Kontrak, TarifSewa, KomponenBiaya,
-│   │                     Fasilitas, AturanKos, Tagihan, TagihanRincian, Pembayaran, LogAudit,
-│   │                     PengelolaKewenangan
+│   │                     Fasilitas, AturanKos, Tagihan, TagihanRincian, Pembayaran,
+│   │                     VerifikasiPembayaran, LogAudit, PengelolaKewenangan
 │   ├── database/migrations/  Termasuk trigger append-only untuk tabel riwayat
 │   ├── docker/php/       php.ini, opcache.ini, entrypoint.sh
 │   └── docker/nginx/     Konfigurasi nginx untuk API
 ├── web/                  Vue 3 + Vite
-│   ├── src/views/pemilik/    Kamar, Penghuni, Kontrak, Tagihan, Tunggakan, Kebijakan, Fasilitas,
-│   │                         Aturan, AuditLog, Pengelola
+│   ├── src/views/pemilik/    Kamar, Penghuni, Kontrak, Tagihan, Rekap, Tunggakan, Kebijakan,
+│   │                         Fasilitas, Aturan, AuditLog, Pengelola
 │   ├── src/views/DashboardPenghuni.vue  Portal penghuni (T9)
 │   ├── src/komponen/         TataLetakPemilik (sidebar + navigasi sadar wewenang)
 │   ├── src/sesi.js           Sesi, panggilan API, dan `boleh(wewenang)`

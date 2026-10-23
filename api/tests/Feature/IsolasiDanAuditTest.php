@@ -196,6 +196,7 @@ class IsolasiDanAuditTest extends TestCase
             ->postJson("/api/tagihan/{$a['tagihan']->id}/pembayaran", [
                 'jumlah' => 100_000,
                 'tanggal_pembayaran' => '2026-11-10',
+                'metode' => 'tunai',
             ])
             ->assertStatus(403);
 
@@ -282,6 +283,7 @@ class IsolasiDanAuditTest extends TestCase
             ->postJson("/api/tagihan/{$a['tagihan']->id}/pembayaran", [
                 'jumlah' => 500_000,
                 'tanggal_pembayaran' => '2026-11-10',
+                'metode' => 'tunai',
             ])
             ->assertCreated();
 
@@ -309,6 +311,7 @@ class IsolasiDanAuditTest extends TestCase
             ->postJson("/api/tagihan/{$a['tagihan']->id}/pembayaran", [
                 'jumlah' => 500_000,
                 'tanggal_pembayaran' => '2026-11-10',
+                'metode' => 'tunai',
             ])->assertCreated();
 
         $this->sebagai($this->pemilik)
@@ -344,6 +347,7 @@ class IsolasiDanAuditTest extends TestCase
             ->postJson("/api/tagihan/{$a['tagihan']->id}/pembayaran", [
                 'jumlah' => 400_000,
                 'tanggal_pembayaran' => '2026-11-05',
+                'metode' => 'tunai',
             ])->assertCreated();
 
         $this->sebagai($this->pemilik)
@@ -351,6 +355,7 @@ class IsolasiDanAuditTest extends TestCase
             ->postJson("/api/tagihan/{$a['tagihan']->id}/pembayaran", [
                 'jumlah' => 600_000,
                 'tanggal_pembayaran' => '2026-11-08',
+                'metode' => 'tunai',
             ])->assertCreated();
 
         $log = $this->sebagai($this->pemilik)->getJson('/api/audit-log')->json('data');
@@ -371,6 +376,7 @@ class IsolasiDanAuditTest extends TestCase
                 ->postJson("/api/tagihan/{$a['tagihan']->id}/pembayaran", [
                     'jumlah' => $jumlah,
                     'tanggal_pembayaran' => '2026-11-10',
+                    'metode' => 'tunai',
                 ])->assertCreated();
         }
 

@@ -271,6 +271,9 @@ jalankan(async () => {
     ['/pemilik/penghuni', 'Penghuni'],
     ['/pemilik/kontrak', 'Kontrak'],
     ['/pemilik/tagihan', 'Tagihan'],
+    // Rekap (T21) ikut disapu: ia halaman baru, dan halaman baru adalah tempat
+    // kesalahan yang paling sering lolos.
+    ['/pemilik/rekap', 'Rekap pendapatan'],
     ['/pemilik/tunggakan', 'Tunggakan'],
     ['/pemilik/kebijakan', 'Kebijakan'],
     ['/pemilik/fasilitas', 'Fasilitas'],

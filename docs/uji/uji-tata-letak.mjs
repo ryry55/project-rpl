@@ -68,6 +68,7 @@ const HALAMAN_PEMILIK = [
   ['/pemilik/penghuni', 'Penghuni'],
   ['/pemilik/kontrak', 'Kontrak'],
   ['/pemilik/tagihan', 'Tagihan'],
+  ['/pemilik/rekap', 'Rekap pendapatan'],
   ['/pemilik/tunggakan', 'Tunggakan'],
   ['/pemilik/kebijakan', 'Kebijakan kos'],
   ['/pemilik/fasilitas', 'Fasilitas'],

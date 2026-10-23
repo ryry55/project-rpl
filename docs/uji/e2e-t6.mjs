@@ -288,6 +288,16 @@ async function jalan() {
     })()
   `)
 
+  // Panel dibuka lewat klik, lalu ditunggu sampai benar-benar muncul. Jeda
+  // tetap 1200ms cukup saat dijalankan sendiri, tetapi tidak saat seluruh
+  // guardrail berjalan berurutan di mesin yang sama: permintaan detail tagihan
+  // bisa lebih lambat, dan asersinya gagal karena alasan yang tidak ada
+  // hubungannya dengan denda.
+  const panelSiap = await tungguSampai(ws, `
+    [...document.querySelectorAll('section.kartu')]
+      .some(s => /Uji Denda/.test(s.textContent) && s.querySelector('.denda-uraian'))
+  `, 15000)
+
   const uraian = await evaluasi(ws, `
     (() => {
       const panel = [...document.querySelectorAll('section.kartu')]
@@ -297,7 +307,7 @@ async function jalan() {
     })()
   `)
   lapor('panel rincian menjelaskan jumlah hari terlambat dan plafon',
-    !uraian.galat && /37 hari/.test(uraian.teks) && /450\.000/.test(uraian.teks),
+    Boolean(panelSiap) && !uraian.galat && /37 hari/.test(uraian.teks) && /450\.000/.test(uraian.teks),
     uraian.galat || uraian.teks)
 
   // --- Tangkapan layar ----------------------------------------------------
@@ -332,6 +342,16 @@ async function jalan() {
   const dendaHariIni = hariIni.data?.data?.denda
   const teksDendaHariIni = `Denda Rp ${Number(dendaHariIni ?? -1).toLocaleString('id-ID')} dari maksimum`
 
+  const panelIkutSiap = await tungguSampai(ws, `
+    (() => {
+      const panel = [...document.querySelectorAll('section.kartu')]
+        .find(s => /Uji Denda/.test(s.textContent) && s.querySelector('.denda-uraian'))
+      if (!panel) return false
+      const teks = panel.querySelector('.denda-uraian').textContent.replace(/\\s+/g, ' ')
+      return teks.includes(${JSON.stringify(teksDendaHariIni)}) && !/21 Nov 2026/.test(teks)
+    })()
+  `, 15000)
+
   const panelIkut = await evaluasi(ws, `
     (() => {
       const panel = [...document.querySelectorAll('section.kartu')]
@@ -341,7 +361,8 @@ async function jalan() {
     })()
   `)
   lapor('panel rincian ikut disegarkan saat simulasi dibersihkan',
-    !panelIkut.galat &&
+    Boolean(panelIkutSiap) &&
+      !panelIkut.galat &&
       dendaHariIni !== undefined &&
       panelIkut.teks.includes(teksDendaHariIni) &&
       !/21 Nov 2026/.test(panelIkut.teks),

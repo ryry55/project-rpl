@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Domain\Billing\PenghitungDenda;
+use App\Domain\Pembayaran\MetodePembayaran;
 use App\Models\Tagihan;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -96,6 +97,35 @@ class TagihanResource extends JsonResource
                     'tanggal_pembayaran' => $baris->tanggal_pembayaran?->toDateString(),
                     'catatan' => $baris->catatan,
                     'dicatat_pada' => $baris->created_at?->toIso8601String(),
+
+                    // Sejak T20 riwayat ini juga menjawab "bagaimana uangnya
+                    // masuk" dan "sudah diperiksa atau belum". Tanpa keduanya,
+                    // layar Tagihan menampilkan deretan angka yang tidak bisa
+                    // dicocokkan dengan rekening maupun dengan setoran tunai.
+                    //
+                    // `metode` sengaja dikirim mentah DAN berlabel: kode dipakai
+                    // untuk memilih ikon/warna, label untuk dibaca. Menyimpulkan
+                    // label di peramban berarti daftar kosakata kedua yang harus
+                    // dijaga sinkron dengan `MetodePembayaran`.
+                    'metode' => $baris->metode,
+                    'metode_label' => $baris->metode === null
+                        ? 'Tidak tercatat'
+                        : (MetodePembayaran::label()[$baris->metode] ?? $baris->metode),
+                    'referensi' => $baris->referensi,
+                    'diterima_oleh' => $baris->diterima_oleh,
+                    'diterima_oleh_nama' => $baris->relationLoaded('penerima')
+                        ? $baris->penerima?->name
+                        : null,
+                    // `null` berarti BELUM diperiksa - bukan ditolak. Layar yang
+                    // tidak bisa membedakan keduanya akan menandai uang yang
+                    // belum sempat diperiksa sebagai uang bermasalah.
+                    'verifikasi_terakhir' => $baris->relationLoaded('verifikasi')
+                        ? ($baris->verifikasi->last() === null ? null : [
+                            'keputusan' => $baris->verifikasi->last()->keputusan,
+                            'catatan' => $baris->verifikasi->last()->catatan,
+                            'diverifikasi_pada' => $baris->verifikasi->last()->created_at?->toIso8601String(),
+                        ])
+                        : null,
                 ])
                 ->values()),
 

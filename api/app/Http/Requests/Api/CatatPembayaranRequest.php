@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Domain\Pembayaran\MetodePembayaran;
 use App\Support\WaktuSistem;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 /**
@@ -33,6 +35,12 @@ class CatatPembayaranRequest extends FormRequest
             // membulatkannya diam-diam di suatu tempat nanti.
             'jumlah' => ['required', 'integer', 'min:1'],
             'tanggal_pembayaran' => ['required', 'date_format:Y-m-d'],
+            // Wajib sejak T20. Tanpa metode, baris pembayaran tidak bisa
+            // dimasukkan ke rekap mana pun, dan rekap yang mencampur tunai
+            // dengan transfer tidak berguna untuk rekonsiliasi bank.
+            'metode' => ['required', 'string', Rule::in(MetodePembayaran::SEMUA)],
+            'referensi' => ['nullable', 'string', 'max:100'],
+            'diterima_oleh' => ['nullable', 'integer', 'exists:users,id'],
             'catatan' => ['nullable', 'string', 'max:255'],
         ];
     }
@@ -48,6 +56,10 @@ class CatatPembayaranRequest extends FormRequest
             'jumlah.min' => 'Jumlah pembayaran harus lebih dari nol.',
             'tanggal_pembayaran.required' => 'Tanggal pembayaran wajib diisi.',
             'tanggal_pembayaran.date_format' => 'Format tanggal pembayaran harus YYYY-MM-DD.',
+            'metode.required' => 'Metode pembayaran wajib dipilih.',
+            'metode.in' => 'Metode pembayaran harus salah satu dari: tunai, transfer, qris, gateway.',
+            'referensi.max' => 'Nomor referensi terlalu panjang (maksimal 100 karakter).',
+            'diterima_oleh.exists' => 'Akun penerima uang tidak ditemukan.',
             'catatan.max' => 'Catatan terlalu panjang (maksimal 255 karakter).',
         ];
     }

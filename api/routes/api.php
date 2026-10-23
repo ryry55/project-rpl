@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\KamarController;
 use App\Http\Controllers\Api\KebijakanController;
 use App\Http\Controllers\Api\KomponenBiayaController;
 use App\Http\Controllers\Api\KontrakController;
+use App\Http\Controllers\Api\PembayaranController;
 use App\Http\Controllers\Api\PengelolaController;
 use App\Http\Controllers\Api\PenghuniController;
 use App\Http\Controllers\Api\PortalPenghuniController;
@@ -111,6 +112,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
         Route::get('/tunggakan', [TunggakanController::class, 'index'])
             ->name('tunggakan.index');
+
+        // Rekap dan daftar pembayaran (T20, T21). Terbuka untuk semua yang
+        // mengurus kos, sama seperti daftar tagihan: membaca uang yang sudah
+        // masuk bukan tindakan yang merugikan siapa pun, dan pengelola yang
+        // mencatat pembayaran memang perlu memeriksa catatannya sendiri.
+        Route::get('/pembayaran', [PembayaranController::class, 'index'])
+            ->name('pembayaran.index');
+        // Daftar pemegang uang tunai yang mungkin. Didaftarkan SEBELUM
+        // `/pembayaran/{pembayaran}/verifikasi` bukan karena bertabrakan - beda
+        // metode HTTP - melainkan supaya letaknya berdekatan dengan pemakainya.
+        Route::get('/pembayaran/penerima', [PembayaranController::class, 'penerima'])
+            ->name('pembayaran.penerima');
+        Route::get('/rekap', [PembayaranController::class, 'rekap'])
+            ->name('rekap.index');
     });
 
     // --- Mengubah data kos: wewenang ----------------------------------
@@ -180,6 +195,19 @@ Route::middleware('auth:sanctum')->group(function () {
         // Pembayaran (T5). Proses 4.0 di DFD: uang masuk, status berubah.
         Route::post('/tagihan/{tagihan}/pembayaran', [TagihanController::class, 'bayar'])
             ->name('tagihan.bayar');
+    });
+
+    // Verifikasi pembayaran (T20) dipisahkan dari pencatatannya.
+    //
+    // Itu bukan kerapian: orang yang menerima uang tunai dan orang yang
+    // memeriksa setorannya sebaiknya bukan satu akun, dan pemisahan wewenang
+    // inilah satu-satunya cara pemilik kos yang tidak tinggal di lokasi bisa
+    // memeriksa pekerjaan pengelolanya tanpa memeriksa catatan bank sendiri.
+    // Akun yang punya keduanya tetap bisa melakukan keduanya - yang dicegah
+    // adalah memberi satu wewenang lalu diam-diam mendapat yang lain.
+    Route::middleware(PastikanWewenang::class.':verifikasi_pembayaran')->group(function () {
+        Route::post('/pembayaran/{pembayaran}/verifikasi', [PembayaranController::class, 'verifikasi'])
+            ->name('pembayaran.verifikasi');
     });
 
     Route::middleware(PastikanWewenang::class.':baca_audit')->group(function () {

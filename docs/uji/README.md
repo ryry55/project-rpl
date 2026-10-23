@@ -87,6 +87,7 @@ halaman baru dimuat, jadi harus dipasang ulang setelah `Page.navigate`.
 | `e2e-t9.mjs` | Isolasi portal penghuni (404 bukan 403), log audit hanya-baca | Chrome, seed |
 | `e2e-t18.mjs` | Fasilitas: kelola katalog, centang per kamar, dan mencentang fasilitas **tidak** membuat komponen biaya maupun baris tagihan | Chrome, seed |
 | `e2e-t19.mjs` | Aturan kos: kelola, sembunyikan lewat sakelar, dan aturan nonaktif **tidak ada sama sekali** di HTML portal penghuni | Chrome, seed |
+| `e2e-t20.mjs` | Metode bayar wajib (tanpa nilai bawaan), pemegang uang hanya untuk tunai, verifikasi pembayaran yang berlaku adalah baris terakhir, dan rekap yang **memisahkan denda sebagai piutang** alih-alih menambahkannya ke pendapatan | Chrome, seed |
 | `e2e-t24.mjs` | Pengelola dan wewenang: pemilik membuat akun berwewenang terbatas, pengelola masuk dan bekerja sebatas itu, dan setiap penolakan diuji dengan **menembak API langsung** memakai token pengelola �?" bukan sekadar memeriksa tombolnya hilang | Chrome, seed |
 
 ### Balapan

@@ -10,7 +10,7 @@
  * `.snapshot` dipakai skrip E2E untuk menemukan panel ini. Jangan menggantinya
  * hanya karena namanya kurang enak dibaca.
  */
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { sesi } from '../../../sesi.js'
 import {
   rupiah,
@@ -39,7 +39,50 @@ const bayarProses = ref(false)
 const bayarGalat = ref('')
 const bayarBidang = ref({})
 const bayarHasil = ref(null)
-const bayarForm = ref({ jumlah: '', tanggal_pembayaran: '', catatan: '' })
+const bayarForm = ref({
+  jumlah: '',
+  tanggal_pembayaran: '',
+  metode: '',
+  referensi: '',
+  diterima_oleh: '',
+  catatan: '',
+})
+
+/**
+ * Pilihan metode bayar.
+ *
+ * Daftar tertutup ini **salinan** dari `MetodePembayaran::SEMUA` di server, dan
+ * itu disengaja hanya karena formulir butuh pilihannya sebelum permintaan apa
+ * pun dikirim. Kalau kelak metode baru ditambahkan di server, daftar ini yang
+ * harus ikut - dan server tetap menolak nilai yang tidak dikenalnya, jadi
+ * salinan yang tertinggal menghasilkan penolakan yang jelas, bukan data salah.
+ */
+const SEMUA_METODE = [
+  { nilai: 'tunai', label: 'Tunai' },
+  { nilai: 'transfer', label: 'Transfer bank' },
+  { nilai: 'qris', label: 'QRIS' },
+  { nilai: 'gateway', label: 'Payment gateway' },
+]
+
+/**
+ * Pemegang uang yang mungkin.
+ *
+ * Dimuat dari `/pembayaran/penerima` saat panel dibuka, bukan sekaligus di
+ * halaman Tagihan: daftar ini hanya dipakai formulir pembayaran, dan memuatnya
+ * untuk setiap kunjungan halaman berarti satu permintaan yang sia-sia pada
+ * setiap kunjungan yang tidak mencatat pembayaran.
+ */
+const daftarPenerima = ref([])
+const memuatPenerima = ref(false)
+
+/**
+ * Metode yang dipilih benar-benar menuntut pemegang uang.
+ *
+ * Hanya tunai. Transfer, QRIS, dan gateway masuk rekening, jadi menanyakan
+ * "siapa yang memegang uangnya" untuk ketiganya adalah pertanyaan yang tidak
+ * punya jawaban - dan medan yang tidak punya jawaban akan diisi asal-asalan.
+ */
+const butuhPemegang = computed(() => bayarForm.value.metode === 'tunai')
 
 /**
  * Tanggal untuk mengisi formulir pembayaran.
@@ -53,6 +96,25 @@ function tanggalUntukFormulir() {
   return props.tanggalAcuan || tanggalHariIni()
 }
 
+async function muatPenerima() {
+  if (daftarPenerima.value.length || memuatPenerima.value) {
+    return
+  }
+  memuatPenerima.value = true
+  try {
+    const hasil = await sesi.panggil('/pembayaran/penerima')
+    daftarPenerima.value = hasil.data || []
+  } catch {
+    // Kegagalan memuat daftar ini tidak boleh menutup formulir: server tetap
+    // mengisi pemegang uang dengan pencatat bila medannya kosong, jadi
+    // pembayaran masih bisa dicatat. Yang hilang hanya kemampuan menyebut
+    // orang lain - dan itu dijelaskan di teks bantuan medannya.
+    daftarPenerima.value = []
+  } finally {
+    memuatPenerima.value = false
+  }
+}
+
 function bukaBayar() {
   bayarForm.value = {
     // Sisa diisikan sebagai nilai awal: itulah jumlah yang paling sering
@@ -60,12 +122,21 @@ function bukaBayar() {
     // tabel di atasnya.
     jumlah: props.detail?.sisa > 0 ? String(props.detail.sisa) : '',
     tanggal_pembayaran: tanggalUntukFormulir(),
+    // Metode sengaja TIDAK diberi nilai awal. Membiarkannya "tunai" berarti
+    // pemilik yang mengetik jumlah lalu langsung menyimpan akan mencatat
+    // transfer sebagai uang tunai - dan rekap tunai per pemegang akan
+    // menghitung uang yang tidak pernah lewat tangan siapa pun. Satu pilihan
+    // sadar lebih baik daripada satu baris rekap yang salah.
+    metode: '',
+    referensi: '',
+    diterima_oleh: '',
     catatan: '',
   }
   bayarGalat.value = ''
   bayarBidang.value = {}
   bayarHasil.value = null
   bayarTerbuka.value = true
+  muatPenerima()
 }
 
 async function catatPembayaran() {
@@ -73,14 +144,24 @@ async function catatPembayaran() {
   bayarGalat.value = ''
   bayarBidang.value = {}
   try {
+    const isi = {
+      jumlah: Number(bayarForm.value.jumlah),
+      tanggal_pembayaran: bayarForm.value.tanggal_pembayaran,
+      metode: bayarForm.value.metode,
+      referensi: bayarForm.value.referensi || null,
+      catatan: bayarForm.value.catatan || null,
+    }
+
+    // `diterima_oleh` hanya dikirim untuk tunai. Mengirimnya untuk transfer
+    // akan tercatat sebagai "ada yang memegang uang" padahal uangnya di bank.
+    if (butuhPemegang.value && bayarForm.value.diterima_oleh) {
+      isi.diterima_oleh = Number(bayarForm.value.diterima_oleh)
+    }
+
     const hasil = await sesi.panggil(`/tagihan/${props.detail.id}/pembayaran`, {
       method: 'POST',
       headers: simulasiTanggal.header(),
-      body: JSON.stringify({
-        jumlah: Number(bayarForm.value.jumlah),
-        tanggal_pembayaran: bayarForm.value.tanggal_pembayaran,
-        catatan: bayarForm.value.catatan || null,
-      }),
+      body: JSON.stringify(isi),
     })
 
     bayarHasil.value = hasil.data
@@ -98,6 +179,81 @@ async function catatPembayaran() {
     bayarProses.value = false
   }
 }
+
+// --- Verifikasi pembayaran (T20) -------------------------------------------
+
+/** Pembayaran yang sedang diperiksa. `null` = tidak ada formulir terbuka. */
+const verifikasiUntuk = ref(null)
+const verifikasiProses = ref(false)
+const verifikasiGalat = ref('')
+const verifikasiBidang = ref({})
+const verifikasiForm = ref({ keputusan: 'terima', catatan: '' })
+
+function bukaVerifikasi(p) {
+  verifikasiUntuk.value = p.id
+  // Bawaannya "terima": pemeriksaan yang dilakukan memang untuk memastikan
+  // uangnya benar, dan kasus yang paling sering adalah cocok. Menolak tetap
+  // menuntut alasan, jadi pilihan ini tidak bisa dipakai untuk menolak
+  // tanpa berpikir.
+  verifikasiForm.value = { keputusan: 'terima', catatan: '' }
+  verifikasiGalat.value = ''
+  verifikasiBidang.value = {}
+}
+
+function tutupVerifikasi() {
+  verifikasiUntuk.value = null
+}
+
+async function kirimVerifikasi() {
+  verifikasiProses.value = true
+  verifikasiGalat.value = ''
+  verifikasiBidang.value = {}
+  try {
+    await sesi.panggil(`/pembayaran/${verifikasiUntuk.value}/verifikasi`, {
+      method: 'POST',
+      body: JSON.stringify({
+        keputusan: verifikasiForm.value.keputusan,
+        catatan: verifikasiForm.value.catatan || null,
+      }),
+    })
+    verifikasiUntuk.value = null
+    emit('berubah')
+  } catch (e) {
+    verifikasiGalat.value = pesanGalat(e)
+    verifikasiBidang.value = galatPerBidang(e)
+  } finally {
+    verifikasiProses.value = false
+  }
+}
+
+/**
+ * Label keadaan pemeriksaan satu baris pembayaran.
+ *
+ * Tiga keadaan, bukan dua: "belum diperiksa" berbeda dari "ditolak". Layar yang
+ * menyamakan keduanya akan menandai uang yang belum sempat diperiksa sebagai
+ * uang bermasalah, dan pemilik akan mengejar pengelolanya tanpa sebab.
+ */
+function labelVerifikasi(p) {
+  const v = p.verifikasi_terakhir
+  if (!v) {
+    return 'Belum diperiksa'
+  }
+  return v.keputusan === 'terima' ? 'Diterima' : 'Ditolak'
+}
+
+function kelasVerifikasi(p) {
+  const v = p.verifikasi_terakhir
+  if (!v) {
+    return 'verifikasi-belum'
+  }
+  return v.keputusan === 'terima' ? 'verifikasi-terima' : 'verifikasi-tolak'
+}
+
+onMounted(() => {
+  // Daftar pemegang dimuat saat panel dibuka, bukan saat formulir dibuka,
+  // supaya pilihannya sudah siap ketika pemilik menekan "Catat pembayaran".
+  muatPenerima()
+})
 </script>
 
 <template>
@@ -295,6 +451,63 @@ async function catatPembayaran() {
           </MedanForm>
         </div>
 
+        <!-- Metode wajib dan tanpa nilai bawaan. Lihat komentar di `bukaBayar`:
+             nilai bawaan "tunai" akan membuat setiap transfer yang dicatat
+             tergesa-gesa terhitung sebagai uang tunai di rekap. -->
+        <div class="baris-bidang">
+          <MedanForm
+            id="bayar-metode"
+            label="Metode"
+            :galat="bayarBidang.metode"
+            bantuan="Menentukan masuk kelompok mana di rekap pendapatan."
+          >
+            <select
+              id="bayar-metode"
+              v-model="bayarForm.metode"
+              required
+              :aria-invalid="Boolean(bayarBidang.metode)"
+            >
+              <option value="" disabled>Pilih metode…</option>
+              <option v-for="m in SEMUA_METODE" :key="m.nilai" :value="m.nilai">
+                {{ m.label }}
+              </option>
+            </select>
+          </MedanForm>
+          <MedanForm
+            id="bayar-referensi"
+            label="Nomor referensi"
+            :galat="bayarBidang.referensi"
+            bantuan="Nomor transfer atau ID transaksi. Boleh dikosongkan."
+          >
+            <template #label-ekstra> <span class="lemah">(opsional)</span></template>
+            <input
+              id="bayar-referensi"
+              v-model="bayarForm.referensi"
+              type="text"
+              maxlength="100"
+              placeholder="mis. TRX-2026-001"
+            />
+          </MedanForm>
+        </div>
+
+        <!-- Pemegang uang hanya ditanyakan untuk tunai. Menanyakannya untuk
+             transfer akan diisi asal-asalan, karena jawabannya memang tidak ada:
+             uangnya sudah di rekening sejak awal. -->
+        <MedanForm
+          v-if="butuhPemegang"
+          id="bayar-penerima"
+          label="Uang dipegang oleh"
+          :galat="bayarBidang.diterima_oleh"
+          bantuan="Kosongkan bila Anda sendiri yang menerimanya."
+        >
+          <select id="bayar-penerima" v-model="bayarForm.diterima_oleh">
+            <option value="">Saya sendiri</option>
+            <option v-for="p in daftarPenerima" :key="p.id" :value="String(p.id)">
+              {{ p.nama }}
+            </option>
+          </select>
+        </MedanForm>
+
         <MedanForm id="bayar-catatan" label="Catatan">
           <template #label-ekstra> <span class="lemah">(opsional)</span></template>
           <input id="bayar-catatan" v-model="bayarForm.catatan" type="text" maxlength="255" />
@@ -311,7 +524,8 @@ async function catatPembayaran() {
       </form>
 
       <!-- Riwayat: uang yang diterima harus bisa diperiksa ulang, bukan hanya
-           dijumlahkan menjadi satu angka. -->
+           dijumlahkan menjadi satu angka. Sejak T20 setiap baris juga menyebut
+           metode dan keadaan pemeriksaannya. -->
       <div v-if="detail.pembayaran?.length" class="riwayat-bayar">
         <p class="mungil lemah">Riwayat pembayaran</p>
         <div class="tabel-bungkus">
@@ -320,18 +534,104 @@ async function catatPembayaran() {
               <tr>
                 <th>Tanggal</th>
                 <th class="kanan">Jumlah</th>
+                <th>Metode</th>
+                <th>Pemeriksaan</th>
                 <th>Catatan</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="p in detail.pembayaran" :key="p.id">
                 <td>{{ tanggal(p.tanggal_pembayaran) }}</td>
                 <td class="kanan">{{ rupiah(p.jumlah) }}</td>
+                <td class="mungil">
+                  <!-- `metode` null hanya mungkin untuk baris sebelum T20.
+                       Menampilkannya sebagai "Tunai" berarti mengarang fakta
+                       tentang uang, jadi ia dibiarkan terlihat sebagai lubang. -->
+                  <span :class="{ lemah: !p.metode }">{{ p.metode_label || 'Tidak tercatat' }}</span>
+                  <template v-if="p.referensi">
+                    <br /><span class="lemah">{{ p.referensi }}</span>
+                  </template>
+                  <template v-if="p.diterima_oleh_nama">
+                    <br /><span class="lemah">dipegang {{ p.diterima_oleh_nama }}</span>
+                  </template>
+                </td>
+                <td class="mungil">
+                  <span class="lencana-verifikasi" :class="kelasVerifikasi(p)">
+                    {{ labelVerifikasi(p) }}
+                  </span>
+                  <template v-if="p.verifikasi_terakhir?.catatan">
+                    <br /><span class="lemah">{{ p.verifikasi_terakhir.catatan }}</span>
+                  </template>
+                </td>
                 <td class="mungil lemah">{{ p.catatan || '—' }}</td>
+                <td class="kanan">
+                  <button
+                    v-if="sesi.boleh('verifikasi_pembayaran') && verifikasiUntuk !== p.id"
+                    type="button"
+                    class="halus mungil tombol-verifikasi"
+                    @click="bukaVerifikasi(p)"
+                  >
+                    {{ p.verifikasi_terakhir ? 'Periksa ulang' : 'Verifikasi' }}
+                  </button>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
+
+        <!-- Formulir pemeriksaan. Diletakkan di luar tabel, bukan di dalam
+             baris: formulir yang dirender di dalam <td> membuat tinggi baris
+             melompat dan seluruh tabel bergeser setiap kali dibuka. -->
+        <form
+          v-if="verifikasiUntuk"
+          class="bidang verifikasi-form"
+          @submit.prevent="kirimVerifikasi"
+        >
+          <p class="mungil lemah">
+            Pemeriksaan tidak mengubah jumlah uang maupun status tagihan. Ia hanya
+            menyatakan uang ini sudah diperiksa, dan pemeriksaan terakhir yang berlaku.
+          </p>
+          <div class="baris-bidang">
+            <MedanForm
+              id="verifikasi-keputusan"
+              label="Keputusan"
+              :galat="verifikasiBidang.keputusan"
+            >
+              <select id="verifikasi-keputusan" v-model="verifikasiForm.keputusan">
+                <option value="terima">Terima — uangnya cocok</option>
+                <option value="tolak">Tolak — ada yang tidak cocok</option>
+              </select>
+            </MedanForm>
+            <MedanForm
+              id="verifikasi-catatan"
+              label="Catatan"
+              :galat="verifikasiBidang.catatan"
+              :bantuan="
+                verifikasiForm.keputusan === 'tolak'
+                  ? 'Wajib diisi: penolakan harus menyebutkan alasannya.'
+                  : 'Boleh dikosongkan.'
+              "
+            >
+              <input
+                id="verifikasi-catatan"
+                v-model="verifikasiForm.catatan"
+                type="text"
+                maxlength="255"
+                :required="verifikasiForm.keputusan === 'tolak'"
+              />
+            </MedanForm>
+          </div>
+
+          <PesanBaris v-if="verifikasiGalat" jenis="galat">{{ verifikasiGalat }}</PesanBaris>
+
+          <div class="aksi">
+            <button type="submit" :disabled="verifikasiProses">
+              {{ verifikasiProses ? 'Menyimpan…' : 'Simpan pemeriksaan' }}
+            </button>
+            <button type="button" class="halus" @click="tutupVerifikasi">Batal</button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -399,6 +699,14 @@ async function catatPembayaran() {
   border-radius: 10px;
 }
 
+.verifikasi-form {
+  margin-top: 4px;
+  padding: 14px;
+  background: #fbfcfe;
+  border: 1px solid var(--garis);
+  border-radius: 10px;
+}
+
 .riwayat-bayar {
   display: grid;
   gap: 6px;
@@ -412,5 +720,32 @@ async function catatPembayaran() {
 .tabel-riwayat td {
   padding-top: 7px;
   padding-bottom: 7px;
+  vertical-align: top;
+}
+
+/* Tiga keadaan pemeriksaan, tiga warna. "Belum diperiksa" sengaja abu-abu,
+   bukan merah: ia bukan masalah, hanya sesuatu yang belum dikerjakan. */
+.lencana-verifikasi {
+  display: inline-block;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  border-radius: 999px;
+}
+
+.verifikasi-belum {
+  color: var(--teks-lemah);
+  background: #eef0f3;
+}
+
+.verifikasi-terima {
+  color: var(--sukses);
+  background: var(--sukses-lemah);
+}
+
+.verifikasi-tolak {
+  color: var(--bahaya);
+  background: var(--bahaya-lemah);
 }
 </style>

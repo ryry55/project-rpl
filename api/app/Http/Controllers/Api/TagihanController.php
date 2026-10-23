@@ -114,7 +114,15 @@ class TagihanController extends Controller
     {
         $tagihan = Tagihan::query()
             ->terlihatOleh($request->user())
-            ->with(['rincian', 'pembayaran', 'kontrak.kamar', 'kontrak.penghuni'])
+            ->with([
+                'rincian',
+                // Pemeriksaan dan penerima ikut dimuat di sini supaya riwayat
+                // di panel tidak menjalankan dua query per baris pembayaran.
+                'pembayaran.verifikasi',
+                'pembayaran.penerima',
+                'kontrak.kamar',
+                'kontrak.penghuni',
+            ])
             ->withSum('pembayaran as total_dibayar', 'jumlah')
             ->findOrFail($tagihan->getKey());
 
@@ -136,18 +144,24 @@ class TagihanController extends Controller
                 tagihan: $tagihan,
                 jumlah: $request->integer('jumlah'),
                 tanggalPembayaran: Carbon::parse($request->string('tanggal_pembayaran')->value()),
+                metode: $request->string('metode')->value(),
+                diterimaOleh: $request->filled('diterima_oleh') ? $request->integer('diterima_oleh') : null,
+                referensi: $request->filled('referensi') ? $request->string('referensi')->value() : null,
                 catatan: $request->filled('catatan') ? $request->string('catatan')->value() : null,
             );
         } catch (PembayaranDitolak $e) {
             return response()->json([
                 'message' => $e->getMessage(),
                 // Bidang yang disalahkan dipilih sesuai pesannya: kelebihan
-                // bayar adalah soal `jumlah`, bukan soal tanggal.
-                'errors' => ['jumlah' => [$e->getMessage()]],
+                // bayar adalah soal `jumlah`, bukan soal tanggal. Metode yang
+                // tidak dikenal dan tunai tanpa pemegang masing-masing
+                // menunjuk bidangnya sendiri, supaya layar bisa menyorot medan
+                // yang benar alih-alih menampilkan galat di atas formulir.
+                'errors' => [$this->bidangGalat($e) => [$e->getMessage()]],
             ], 422);
         }
 
-        $tagihan->refresh()->load(['rincian', 'pembayaran', 'kontrak.kamar', 'kontrak.penghuni']);
+        $tagihan->refresh()->load(['rincian', 'pembayaran.verifikasi', 'pembayaran.pencatat', 'pembayaran.penerima', 'kontrak.kamar', 'kontrak.penghuni']);
 
         return response()->json([
             'data' => [
@@ -165,6 +179,30 @@ class TagihanController extends Controller
                 'demo_mode' => (bool) config('app.demo_mode'),
             ],
         ], 201);
+    }
+
+    /**
+     * Bidang formulir yang disalahkan sebuah penolakan.
+     *
+     * Ditentukan dari pesannya, bukan dari kode galat tersendiri. Penolakan
+     * datang sebagai exception berpesan Indonesia, dan menambahkan enum alasan
+     * hanya untuk keperluan pemetaan ini berarti dua daftar alasan yang harus
+     * dijaga sinkron. Tiga bidang yang ada sekarang sudah menutup semua
+     * penolakan yang mungkin terjadi di `PencatatPembayaran`.
+     */
+    private function bidangGalat(PembayaranDitolak $e): string
+    {
+        $pesan = $e->getMessage();
+
+        if (str_contains($pesan, 'Metode pembayaran')) {
+            return 'metode';
+        }
+
+        if (str_contains($pesan, 'tunai harus menyebut')) {
+            return 'diterima_oleh';
+        }
+
+        return 'jumlah';
     }
 
     /**

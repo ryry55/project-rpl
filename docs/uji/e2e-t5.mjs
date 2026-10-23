@@ -184,7 +184,14 @@ async function jalan() {
       const tanggal = document.querySelector('#bayar-tanggal')
       tanggal.value = '${SIMULASI}'
       tanggal.dispatchEvent(new Event('input', { bubbles: true }))
-      await new Promise(r => setTimeout(r, 150))
+      // Metode wajib sejak T20 dan sengaja tanpa nilai bawaan, jadi skrip ini
+      // harus memilihnya sendiri. Memilih 'tunai' menjaga langkah-langkah di
+      // bawah tetap menguji hal yang sama seperti sebelumnya: siklus tagihan ->
+      // uang masuk -> status berubah, bukan aturan metode.
+      const metode = document.querySelector('#bayar-metode')
+      metode.value = 'tunai'
+      metode.dispatchEvent(new Event('change', { bubbles: true }))
+      await new Promise(r => setTimeout(r, 250))
 
       document.querySelector('.form-bayar').dispatchEvent(
         new Event('submit', { bubbles: true, cancelable: true }))
@@ -259,7 +266,11 @@ async function jalan() {
       const tanggal = document.querySelector('#bayar-tanggal')
       tanggal.value = '${SIMULASI}'
       tanggal.dispatchEvent(new Event('input', { bubbles: true }))
-      await new Promise(r => setTimeout(r, 150))
+      // Metode wajib sejak T20; lihat komentar di langkah pembayaran sebagian.
+      const metode = document.querySelector('#bayar-metode')
+      metode.value = 'tunai'
+      metode.dispatchEvent(new Event('change', { bubbles: true }))
+      await new Promise(r => setTimeout(r, 250))
 
       document.querySelector('.form-bayar').dispatchEvent(
         new Event('submit', { bubbles: true, cancelable: true }))

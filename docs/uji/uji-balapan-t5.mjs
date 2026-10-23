@@ -165,6 +165,10 @@ async function jalan() {
     panggil(token, `/tagihan/${tagihanId}/pembayaran`, 'POST', {
       jumlah,
       tanggal_pembayaran: SIMULASI,
+      // Metode wajib sejak T20 dan sengaja tidak punya nilai bawaan di server.
+      // Tanpa baris ini setiap permintaan di bawah akan ditolak 422 karena
+      // alasan yang tidak ada hubungannya dengan balapan yang sedang diuji.
+      metode: 'tunai',
     })
 
   // Inilah intinya: keduanya dilepas tanpa saling menunggu.
@@ -219,19 +223,18 @@ async function jalan() {
 
   // --- Empat pembayaran serentak: tetap tidak melebihi --------------------
   const kedua = await siapkanTagihan(token)
+  const bayar2 = (jumlah) =>
+    panggil(token, `/tagihan/${kedua.tagihanId}/pembayaran`, 'POST', {
+      jumlah,
+      tanggal_pembayaran: SIMULASI,
+      metode: 'tunai',
+    })
+
   const empat = await Promise.all([
-    panggil(token, `/tagihan/${kedua.tagihanId}/pembayaran`, 'POST', {
-      jumlah: 500_000, tanggal_pembayaran: SIMULASI,
-    }),
-    panggil(token, `/tagihan/${kedua.tagihanId}/pembayaran`, 'POST', {
-      jumlah: 500_000, tanggal_pembayaran: SIMULASI,
-    }),
-    panggil(token, `/tagihan/${kedua.tagihanId}/pembayaran`, 'POST', {
-      jumlah: 500_000, tanggal_pembayaran: SIMULASI,
-    }),
-    panggil(token, `/tagihan/${kedua.tagihanId}/pembayaran`, 'POST', {
-      jumlah: 500_000, tanggal_pembayaran: SIMULASI,
-    }),
+    bayar2(500_000),
+    bayar2(500_000),
+    bayar2(500_000),
+    bayar2(500_000),
   ])
 
   const sukses = empat.filter((r) => r.status === 201).length
