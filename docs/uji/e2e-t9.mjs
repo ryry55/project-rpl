@@ -156,7 +156,16 @@ jalankan(async () => {
   `)
   await kirim(ws, 'Page.navigate', { url: `${APP}/penghuni` })
 
-  const portal = await tungguSampai(ws, `document.querySelector('.tabel tbody tr')`)
+  // Tunggu BARIS DATA, bukan sembarang baris. Saat tabel masih memuat,
+  // `BarisKosong` merender `<tr>` berisi "Memuat tagihan…" - dan `<tr>` itu
+  // cocok dengan `.tabel tbody tr`. Di laptop pemuatan selesai sebelum
+  // pemeriksaan sempat berjalan; di runner yang lebih lambat, yang tertangkap
+  // adalah baris "Memuat…", sehingga seluruh asersi di bawahnya menguji tabel
+  // kosong dan gagal dengan pesan yang menyesatkan ("0 baris").
+  //
+  // `.lencana-status` hanya ada pada baris tagihan sungguhan, jadi ia penanda
+  // yang tepat.
+  const portal = await tungguSampai(ws, `document.querySelector('.tabel tbody tr .lencana-status')`, 20000)
   lapor('portal penghuni menampilkan daftar tagihan', portal)
 
   const isiPortal = await evaluasi(ws, `

@@ -262,6 +262,13 @@ button.mungil {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  /* `wrap` wajib. Tanpa ini, judul + `.aksi-kepala` + tombol dipaksa satu
+     baris, dan pada layar 360px jumlah min-content-nya melebihi lebar layar -
+     seluruh dokumen lalu bergulir mendatar. Terukur di runner CI: 363px pada
+     viewport 360px, dengan `.tautan`, `.tautan-label`, dan `.aksi-kepala`
+     sebagai penyebabnya. `flex-shrink: 0` pada `.aksi-kepala` membuat tombol
+     tidak bisa mengecil, jadi membungkus baris adalah satu-satunya jalan. */
+  flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 2px;
 }

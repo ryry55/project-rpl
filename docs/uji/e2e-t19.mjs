@@ -208,22 +208,39 @@ jalankan(async () => {
 
     await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/aturan` })
     await tungguSampai(ws, `document.querySelector('h1')?.textContent.includes('Aturan')`)
+    // Judul muncul sebelum tabelnya terisi. Menunggu `h1` saja membuat
+    // pemeriksaan di bawah berlomba dengan pemuatan data, dan di runner yang
+    // lambat barisnya belum ada saat dicari ("baris tidak ada").
+    await tungguSampai(
+      ws,
+      `[...document.querySelectorAll('table.tabel tbody tr')].some(tr => tr.textContent.includes(${JSON.stringify(JUDUL_AKTIF)}))`,
+      20000,
+    )
 
     const disembunyikan = await evaluasi(
       ws,
       `
       (async () => {
-        const baris = [...document.querySelectorAll('table.tabel tbody tr')]
+        const cari = () => [...document.querySelectorAll('table.tabel tbody tr')]
           .find(tr => tr.textContent.includes(${JSON.stringify(JUDUL_AKTIF)}))
+        const baris = cari()
         if (!baris) return 'baris tidak ada'
         const tombol = [...baris.querySelectorAll('button')]
           .find(b => /sembunyikan/i.test(b.textContent))
         if (!tombol) return 'tombol sembunyikan tidak ada'
         tombol.click()
-        await new Promise(r => setTimeout(r, 1400))
-        const barisBaru = [...document.querySelectorAll('table.tabel tbody tr')]
-          .find(tr => tr.textContent.includes(${JSON.stringify(JUDUL_AKTIF)}))
-        return barisBaru ? barisBaru.textContent : ''
+        // Tunggu PERUBAHANNYA, bukan durasi tetap. Server butuh waktu
+        // menjawab lalu Vue merender ulang; di laptop 1400 ms cukup, di
+        // runner yang lebih lambat tidak - dan pemeriksaan di bawah lalu
+        // membaca baris yang belum berubah.
+        const batas = Date.now() + 15000
+        while (Date.now() < batas) {
+          const kini = cari()
+          if (kini && /nonaktif/i.test(kini.textContent)) return kini.textContent
+          await new Promise(r => setTimeout(r, 150))
+        }
+        const akhir = cari()
+        return akhir ? akhir.textContent : ''
       })()
     `,
     )

@@ -218,6 +218,11 @@ async function keluar() {
   padding: 20px 16px;
   background: var(--permukaan);
   border-right: 1px solid var(--garis);
+  /* `min-width: 0` wajib di sini juga. Grid item memakai `min-width: auto`,
+     jadi menu mendatar yang isinya `max-content` membuat `.sisi` melebar
+     melewati layar - dan luberannya keluar ke dokumen, bukan ke `.menu` yang
+     sudah punya `overflow-x: auto`. */
+  min-width: 0;
 }
 
 .merek {
