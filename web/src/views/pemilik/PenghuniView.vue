@@ -2,6 +2,10 @@
 import { computed, onMounted, ref } from 'vue'
 import { sesi } from '../../sesi.js'
 import { tanggal, pesanGalat, galatPerBidang } from '../../format.js'
+import KepalaHalaman from '../../komponen/ui/KepalaHalaman.vue'
+import PesanBaris from '../../komponen/ui/PesanBaris.vue'
+import MedanForm from '../../komponen/ui/MedanForm.vue'
+import BarisKosong from '../../komponen/ui/BarisKosong.vue'
 
 const daftar = ref([])
 const memuat = ref(true)
@@ -76,24 +80,22 @@ onMounted(muat)
 
 <template>
   <div class="halaman">
-    <header class="kepala">
-      <div>
-        <h1>Penghuni</h1>
-        <p class="lemah mungil">
-          {{ daftar.length }} penghuni terdaftar. Setiap penghuni otomatis mendapat akun masuk.
-        </p>
-      </div>
-      <button v-if="!formTerbuka" @click="bukaForm">Tambah penghuni</button>
-    </header>
+    <KepalaHalaman judul="Penghuni">
+      <template #keterangan>
+        {{ daftar.length }} penghuni terdaftar. Setiap penghuni otomatis mendapat akun masuk.
+      </template>
+      <template #aksi>
+        <button v-if="!formTerbuka" @click="bukaForm">Tambah penghuni</button>
+      </template>
+    </KepalaHalaman>
 
-    <p v-if="galatMuat" class="pesan-galat">{{ galatMuat }}</p>
+    <PesanBaris v-if="galatMuat" jenis="galat">{{ galatMuat }}</PesanBaris>
 
     <section v-if="formTerbuka" class="kartu panel">
       <h2>Tambah penghuni</h2>
       <form class="bidang" @submit.prevent="simpan">
         <div class="baris-bidang">
-          <div>
-            <label for="nama">Nama lengkap</label>
+          <MedanForm id="nama" label="Nama lengkap" :galat="galatBidang.nama">
             <input
               id="nama"
               v-model="form.nama"
@@ -101,18 +103,20 @@ onMounted(muat)
               :aria-invalid="Boolean(galatBidang.nama)"
               autocomplete="off"
             />
-            <p v-if="galatBidang.nama" class="galat-bidang">{{ galatBidang.nama }}</p>
-          </div>
-          <div>
-            <label for="no_hp">Nomor HP <span class="lemah">(opsional)</span></label>
+          </MedanForm>
+          <MedanForm id="no_hp" label="Nomor HP" :galat="galatBidang.no_hp">
+            <template #label-ekstra> <span class="lemah">(opsional)</span></template>
             <input id="no_hp" v-model="form.no_hp" placeholder="081200000001" autocomplete="off" />
-            <p v-if="galatBidang.no_hp" class="galat-bidang">{{ galatBidang.no_hp }}</p>
-          </div>
+          </MedanForm>
         </div>
 
         <div class="baris-bidang">
-          <div>
-            <label for="email">Email</label>
+          <MedanForm
+            id="email"
+            label="Email"
+            :galat="galatBidang.email"
+            bantuan="Dipakai penghuni untuk masuk dan melihat tagihannya."
+          >
             <input
               id="email"
               v-model="form.email"
@@ -121,11 +125,13 @@ onMounted(muat)
               :aria-invalid="Boolean(galatBidang.email)"
               autocomplete="off"
             />
-            <p v-if="galatBidang.email" class="galat-bidang">{{ galatBidang.email }}</p>
-            <p v-else class="bantuan">Dipakai penghuni untuk masuk dan melihat tagihannya.</p>
-          </div>
-          <div>
-            <label for="password">Kata sandi awal</label>
+          </MedanForm>
+          <MedanForm
+            id="password"
+            label="Kata sandi awal"
+            :galat="galatBidang.password"
+            bantuan="Sampaikan ke penghuni; bisa diubah nanti."
+          >
             <input
               id="password"
               v-model="form.password"
@@ -134,12 +140,10 @@ onMounted(muat)
               :aria-invalid="Boolean(galatBidang.password)"
               autocomplete="off"
             />
-            <p v-if="galatBidang.password" class="galat-bidang">{{ galatBidang.password }}</p>
-            <p v-else class="bantuan">Sampaikan ke penghuni; bisa diubah nanti.</p>
-          </div>
+          </MedanForm>
         </div>
 
-        <p v-if="galatForm" class="pesan-galat">{{ galatForm }}</p>
+        <PesanBaris v-if="galatForm" jenis="galat">{{ galatForm }}</PesanBaris>
 
         <div class="aksi">
           <button type="submit" :disabled="menyimpan">
@@ -178,14 +182,10 @@ onMounted(muat)
               </td>
               <td>{{ p.kontrak_aktif ? tanggal(p.kontrak_aktif.tgl_masuk) : '—' }}</td>
             </tr>
-            <tr v-if="!memuat && tersaring.length === 0">
-              <td colspan="5" class="sel-kosong">
-                {{ cari ? 'Tidak ada penghuni yang cocok dengan pencarian.' : 'Belum ada penghuni terdaftar.' }}
-              </td>
-            </tr>
-            <tr v-if="memuat">
-              <td colspan="5" class="sel-kosong">Memuat…</td>
-            </tr>
+            <BarisKosong v-if="!memuat && tersaring.length === 0" :kolom="5">
+              {{ cari ? 'Tidak ada penghuni yang cocok dengan pencarian.' : 'Belum ada penghuni terdaftar.' }}
+            </BarisKosong>
+            <BarisKosong v-if="memuat" :kolom="5">Memuat…</BarisKosong>
           </tbody>
         </table>
       </div>
@@ -194,32 +194,7 @@ onMounted(muat)
 </template>
 
 <style scoped>
-.halaman {
-  display: grid;
-  gap: 16px;
-  max-width: 1020px;
-}
-
-.kepala {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 2px;
-}
-
-.kepala p {
-  margin: 3px 0 0;
-}
-
-.panel {
-  padding: 20px 22px;
-}
-
-.panel h2 {
-  margin-bottom: 14px;
-}
-
+/* Tata letak halaman memakai kelas global. Hanya pencarian yang khas di sini. */
 .panel-cari {
   padding: 12px 14px;
   border-bottom: 1px solid var(--garis);
@@ -227,10 +202,5 @@ onMounted(muat)
 
 .panel-cari input {
   max-width: 320px;
-}
-
-.aksi {
-  display: flex;
-  gap: 9px;
 }
 </style>

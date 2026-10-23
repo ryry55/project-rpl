@@ -27,10 +27,10 @@ async function kirim() {
 </script>
 
 <template>
-  <div class="halaman">
+  <div class="halaman-masuk">
     <div class="kartu kotak">
-      <header class="kepala">
-        <div class="lencana">KOS</div>
+      <header class="kepala-masuk">
+        <div class="lencana-masuk">KOS</div>
         <h1>Masuk</h1>
         <p class="lemah mungil">Sistem Informasi Operasional Kos-Kosan</p>
       </header>
@@ -76,7 +76,10 @@ async function kirim() {
 </template>
 
 <style scoped>
-.halaman {
+/* Halaman masuk tidak memakai .halaman global: ia bukan tata letak bersusun
+   seperti halaman lain, melainkan satu kotak di tengah layar. Kelasnya diberi
+   akhiran -masuk supaya tidak bertabrakan dengan versi global. */
+.halaman-masuk {
   display: grid;
   place-items: center;
   min-height: 100%;
@@ -89,11 +92,11 @@ async function kirim() {
   padding: 28px;
 }
 
-.kepala {
+.kepala-masuk {
   margin-bottom: 22px;
 }
 
-.lencana {
+.lencana-masuk {
   display: inline-grid;
   place-items: center;
   width: 38px;
@@ -107,7 +110,7 @@ async function kirim() {
   border-radius: 9px;
 }
 
-.kepala h1 {
+.kepala-masuk h1 {
   margin-bottom: 4px;
 }
 

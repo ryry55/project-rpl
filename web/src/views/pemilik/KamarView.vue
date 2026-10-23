@@ -2,6 +2,10 @@
 import { computed, onMounted, ref } from 'vue'
 import { sesi } from '../../sesi.js'
 import { rupiah, tanggal, tanggalHariIni, pesanGalat, galatPerBidang } from '../../format.js'
+import KepalaHalaman from '../../komponen/ui/KepalaHalaman.vue'
+import PesanBaris from '../../komponen/ui/PesanBaris.vue'
+import LencanaStatus from '../../komponen/ui/LencanaStatus.vue'
+import BarisKosong from '../../komponen/ui/BarisKosong.vue'
 
 const daftar = ref([])
 const memuat = ref(true)
@@ -126,17 +130,16 @@ onMounted(muat)
 
 <template>
   <div class="halaman">
-    <header class="kepala">
-      <div>
-        <h1>Kamar</h1>
-        <p class="lemah mungil">
-          {{ daftar.length }} kamar · {{ jumlahTerisi }} terisi · {{ jumlahKosong }} kosong
-        </p>
-      </div>
-      <button v-if="!formTerbuka" @click="bukaForm">Tambah kamar</button>
-    </header>
+    <KepalaHalaman judul="Kamar">
+      <template #keterangan>
+        {{ daftar.length }} kamar · {{ jumlahTerisi }} terisi · {{ jumlahKosong }} kosong
+      </template>
+      <template #aksi>
+        <button v-if="!formTerbuka" @click="bukaForm">Tambah kamar</button>
+      </template>
+    </KepalaHalaman>
 
-    <p v-if="galatMuat" class="pesan-galat">{{ galatMuat }}</p>
+    <PesanBaris v-if="galatMuat" jenis="galat">{{ galatMuat }}</PesanBaris>
 
     <section v-if="formTerbuka" class="kartu panel">
       <h2>Tambah kamar</h2>
@@ -202,13 +205,13 @@ onMounted(muat)
               <td>{{ tanggal(t.berlaku_dari) }}</td>
               <td class="kanan">{{ rupiah(t.nilai) }}</td>
               <td>
-                <span v-if="i === 0" class="lencana-status status-aktif">Berlaku sekarang</span>
+                <LencanaStatus v-if="i === 0" status="aktif" label="Berlaku sekarang" />
                 <span v-else class="lemah mungil">Riwayat</span>
               </td>
             </tr>
-            <tr v-if="riwayat.length === 0">
-              <td colspan="3" class="sel-kosong">Belum ada tarif untuk kamar ini.</td>
-            </tr>
+            <BarisKosong v-if="riwayat.length === 0" :kolom="3">
+              Belum ada tarif untuk kamar ini.
+            </BarisKosong>
           </tbody>
         </table>
       </div>
@@ -269,7 +272,7 @@ onMounted(muat)
               <td><strong>{{ k.nomor }}</strong></td>
               <td>{{ k.tipe || '—' }}</td>
               <td>
-                <span class="lencana-status" :class="`status-${k.status_huni}`">{{ k.status_huni }}</span>
+                <LencanaStatus :status="k.status_huni" />
               </td>
               <td>{{ k.penghuni?.nama || '—' }}</td>
               <td class="kanan">
@@ -283,14 +286,10 @@ onMounted(muat)
                 <button class="halus mungil" @click="bukaTarif(k)">Atur tarif</button>
               </td>
             </tr>
-            <tr v-if="!memuat && daftar.length === 0">
-              <td colspan="6" class="sel-kosong">
-                Belum ada kamar. Tambahkan kamar pertama lewat tombol di atas.
-              </td>
-            </tr>
-            <tr v-if="memuat">
-              <td colspan="6" class="sel-kosong">Memuat…</td>
-            </tr>
+            <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="6">
+              Belum ada kamar. Tambahkan kamar pertama lewat tombol di atas.
+            </BarisKosong>
+            <BarisKosong v-if="memuat" :kolom="6">Memuat…</BarisKosong>
           </tbody>
         </table>
       </div>
@@ -299,53 +298,6 @@ onMounted(muat)
 </template>
 
 <style scoped>
-.halaman {
-  display: grid;
-  gap: 16px;
-  max-width: 1020px;
-}
-
-.kepala {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 2px;
-}
-
-.kepala p {
-  margin: 3px 0 0;
-}
-
-.panel {
-  padding: 20px 22px;
-}
-
-.panel h2 {
-  margin-bottom: 14px;
-}
-
-.panel-kepala {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 14px;
-}
-
-.panel-kepala h2 {
-  margin-bottom: 3px;
-}
-
-.panel-kepala p {
-  margin: 0;
-}
-
-.aksi {
-  display: flex;
-  gap: 9px;
-}
-
 .riwayat-form {
   margin-top: 16px;
   padding-top: 16px;

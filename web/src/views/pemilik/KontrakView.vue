@@ -2,6 +2,11 @@
 import { computed, onMounted, ref } from 'vue'
 import { sesi } from '../../sesi.js'
 import { rupiah, tanggal, tanggalHariIni, pesanGalat, galatPerBidang } from '../../format.js'
+import KepalaHalaman from '../../komponen/ui/KepalaHalaman.vue'
+import PesanBaris from '../../komponen/ui/PesanBaris.vue'
+import MedanForm from '../../komponen/ui/MedanForm.vue'
+import LencanaStatus from '../../komponen/ui/LencanaStatus.vue'
+import BarisKosong from '../../komponen/ui/BarisKosong.vue'
 
 const daftar = ref([])
 const kamar = ref([])
@@ -112,26 +117,28 @@ onMounted(muat)
 
 <template>
   <div class="halaman">
-    <header class="kepala">
-      <div>
-        <h1>Kontrak</h1>
-        <p class="lemah mungil">
-          {{ kamarKosong.length }} kamar kosong siap ditempati.
-        </p>
-      </div>
-      <button v-if="!formTerbuka" @click="bukaForm">Buat kontrak</button>
-    </header>
+    <KepalaHalaman judul="Kontrak">
+      <template #keterangan>
+        {{ kamarKosong.length }} kamar kosong siap ditempati.
+      </template>
+      <template #aksi>
+        <button v-if="!formTerbuka" @click="bukaForm">Buat kontrak</button>
+      </template>
+    </KepalaHalaman>
 
-    <p v-if="galatMuat" class="pesan-galat">{{ galatMuat }}</p>
-    <p v-if="galatAksi" class="pesan-galat">{{ galatAksi }}</p>
+    <PesanBaris v-if="galatMuat" jenis="galat">{{ galatMuat }}</PesanBaris>
+    <PesanBaris v-if="galatAksi" jenis="galat">{{ galatAksi }}</PesanBaris>
 
     <section v-if="formTerbuka" class="kartu panel">
       <h2>Kontrak baru</h2>
       <form class="bidang" @submit.prevent="simpan">
         <div class="baris-bidang">
-          <div>
-            <label for="kamar">Kamar</label>
-            <select id="kamar" v-model="form.kamar_id" :aria-invalid="Boolean(galatBidang.kamar_id)">
+          <MedanForm id="kamar" label="Kamar" :galat="galatBidang.kamar_id">
+            <select
+              id="kamar"
+              v-model="form.kamar_id"
+              :aria-invalid="Boolean(galatBidang.kamar_id)"
+            >
               <option value="" disabled>Pilih kamar</option>
               <option v-for="k in kamar" :key="k.id" :value="k.id">
                 {{ k.nomor }}{{ k.tipe ? ` — ${k.tipe}` : '' }}{{
@@ -139,10 +146,8 @@ onMounted(muat)
                 }}
               </option>
             </select>
-            <p v-if="galatBidang.kamar_id" class="galat-bidang">{{ galatBidang.kamar_id }}</p>
-          </div>
-          <div>
-            <label for="penghuni">Penghuni</label>
+          </MedanForm>
+          <MedanForm id="penghuni" label="Penghuni" :galat="galatBidang.penghuni_id">
             <select
               id="penghuni"
               v-model="form.penghuni_id"
@@ -151,13 +156,16 @@ onMounted(muat)
               <option value="" disabled>Pilih penghuni</option>
               <option v-for="p in penghuni" :key="p.id" :value="p.id">{{ p.nama }}</option>
             </select>
-            <p v-if="galatBidang.penghuni_id" class="galat-bidang">{{ galatBidang.penghuni_id }}</p>
-          </div>
+          </MedanForm>
         </div>
 
         <div class="baris-bidang">
-          <div>
-            <label for="tgl_masuk">Tanggal masuk</label>
+          <MedanForm
+            id="tgl_masuk"
+            label="Tanggal masuk"
+            :galat="galatBidang.tgl_masuk"
+            bantuan="Jatuh tempo tagihan mengikuti tanggal ini."
+          >
             <input
               id="tgl_masuk"
               v-model="form.tgl_masuk"
@@ -165,11 +173,9 @@ onMounted(muat)
               :max="tanggalHariIni()"
               :aria-invalid="Boolean(galatBidang.tgl_masuk)"
             />
-            <p v-if="galatBidang.tgl_masuk" class="galat-bidang">{{ galatBidang.tgl_masuk }}</p>
-            <p v-else class="bantuan">Jatuh tempo tagihan mengikuti tanggal ini.</p>
-          </div>
-          <div>
-            <label for="deposit">Deposit <span class="lemah">(opsional)</span></label>
+          </MedanForm>
+          <MedanForm id="deposit" label="Deposit" :galat="galatBidang.deposit">
+            <template #label-ekstra> <span class="lemah">(opsional)</span></template>
             <input
               id="deposit"
               v-model="form.deposit"
@@ -177,12 +183,10 @@ onMounted(muat)
               placeholder="0"
               :aria-invalid="Boolean(galatBidang.deposit)"
             />
-            <p v-if="galatBidang.deposit" class="galat-bidang">{{ galatBidang.deposit }}</p>
-          </div>
+          </MedanForm>
         </div>
 
-        <div>
-          <label for="tarif">Tarif bulanan</label>
+        <MedanForm id="tarif" label="Tarif bulanan" :galat="galatBidang.tarif">
           <input
             id="tarif"
             v-model="form.tarif"
@@ -190,19 +194,20 @@ onMounted(muat)
             :placeholder="tarifKamarTerpilih ? String(tarifKamarTerpilih.nilai) : '1500000'"
             :aria-invalid="Boolean(galatBidang.tarif)"
           />
-          <p v-if="galatBidang.tarif" class="galat-bidang">{{ galatBidang.tarif }}</p>
-          <p v-else-if="tarifKamarTerpilih" class="bantuan">
-            Kamar ini sudah bertarif {{ rupiah(tarifKamarTerpilih.nilai) }} sejak
-            {{ tanggal(tarifKamarTerpilih.berlaku_dari) }}. Kosongkan kolom ini untuk memakai tarif
-            tersebut.
-          </p>
-          <p v-else class="bantuan">
-            Kamar ini belum punya tarif, jadi tarif wajib diisi dan akan dicatat sebagai tarif
-            pertama kamar.
-          </p>
-        </div>
+          <template #bantuan>
+            <template v-if="tarifKamarTerpilih">
+              Kamar ini sudah bertarif {{ rupiah(tarifKamarTerpilih.nilai) }} sejak
+              {{ tanggal(tarifKamarTerpilih.berlaku_dari) }}. Kosongkan kolom ini untuk memakai
+              tarif tersebut.
+            </template>
+            <template v-else>
+              Kamar ini belum punya tarif, jadi tarif wajib diisi dan akan dicatat sebagai tarif
+              pertama kamar.
+            </template>
+          </template>
+        </MedanForm>
 
-        <p v-if="galatForm" class="pesan-galat">{{ galatForm }}</p>
+        <PesanBaris v-if="galatForm" jenis="galat">{{ galatForm }}</PesanBaris>
 
         <div class="aksi">
           <button type="submit" :disabled="menyimpan">
@@ -237,7 +242,7 @@ onMounted(muat)
               <td class="kanan">{{ rupiah(k.tarif_awal) }}</td>
               <td class="kanan">{{ rupiah(k.deposit) }}</td>
               <td>
-                <span class="lencana-status" :class="`status-${k.status}`">{{ k.status }}</span>
+                <LencanaStatus :status="k.status" />
               </td>
               <td class="kanan">
                 <button
@@ -250,14 +255,10 @@ onMounted(muat)
                 </button>
               </td>
             </tr>
-            <tr v-if="!memuat && daftar.length === 0">
-              <td colspan="8" class="sel-kosong">
-                Belum ada kontrak. Buat kontrak untuk menempatkan penghuni di kamar.
-              </td>
-            </tr>
-            <tr v-if="memuat">
-              <td colspan="8" class="sel-kosong">Memuat…</td>
-            </tr>
+            <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="8">
+              Belum ada kontrak. Buat kontrak untuk menempatkan penghuni di kamar.
+            </BarisKosong>
+            <BarisKosong v-if="memuat" :kolom="8">Memuat…</BarisKosong>
           </tbody>
         </table>
       </div>
@@ -266,34 +267,6 @@ onMounted(muat)
 </template>
 
 <style scoped>
-.halaman {
-  display: grid;
-  gap: 16px;
-  max-width: 1020px;
-}
-
-.kepala {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 2px;
-}
-
-.kepala p {
-  margin: 3px 0 0;
-}
-
-.panel {
-  padding: 20px 22px;
-}
-
-.panel h2 {
-  margin-bottom: 14px;
-}
-
-.aksi {
-  display: flex;
-  gap: 9px;
-}
+/* Seluruh tata letak halaman ini memakai kelas global di style.css:
+   .halaman, .kepala, .panel, .aksi. Tidak ada gaya khas di sini. */
 </style>

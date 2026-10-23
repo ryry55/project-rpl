@@ -14,6 +14,9 @@
 import { computed, onMounted, ref } from 'vue'
 import { sesi } from '../../sesi.js'
 import { pesanGalat } from '../../format.js'
+import KepalaHalaman from '../../komponen/ui/KepalaHalaman.vue'
+import PesanBaris from '../../komponen/ui/PesanBaris.vue'
+import BarisKosong from '../../komponen/ui/BarisKosong.vue'
 
 const daftar = ref([])
 const meta = ref({ jumlah: 0, batas: 200, dipotong: false })
@@ -133,15 +136,12 @@ onMounted(muat)
 
 <template>
   <div class="halaman">
-    <header class="kepala">
-      <div>
-        <h1>Jejak audit</h1>
-        <p class="lemah mungil">
-          {{ daftar.length }} kejadian terakhir · tidak bisa diubah maupun dihapus
-          <template v-if="meta.dipotong"> · menampilkan {{ meta.batas }} terbaru</template>
-        </p>
-      </div>
-    </header>
+    <KepalaHalaman judul="Jejak audit">
+      <template #keterangan>
+        {{ daftar.length }} kejadian terakhir · tidak bisa diubah maupun dihapus
+        <template v-if="meta.dipotong"> · menampilkan {{ meta.batas }} terbaru</template>
+      </template>
+    </KepalaHalaman>
 
     <section class="kartu saring">
       <div class="bidang-saring">
@@ -178,7 +178,7 @@ onMounted(muat)
       </div>
     </section>
 
-    <p v-if="galatMuat" class="pesan-galat">{{ galatMuat }}</p>
+    <PesanBaris v-if="galatMuat" jenis="galat">{{ galatMuat }}</PesanBaris>
 
     <section class="kartu">
       <div class="tabel-bungkus">
@@ -224,11 +224,9 @@ onMounted(muat)
                 </ul>
               </td>
             </tr>
-            <tr v-if="!memuat && daftar.length === 0">
-              <td colspan="5" class="sel-kosong">
-                {{ jumlahSaring > 0 ? 'Tidak ada kejadian yang cocok dengan saringan.' : 'Belum ada kejadian tercatat.' }}
-              </td>
-            </tr>
+            <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="5">
+              {{ jumlahSaring > 0 ? 'Tidak ada kejadian yang cocok dengan saringan.' : 'Belum ada kejadian tercatat.' }}
+            </BarisKosong>
           </tbody>
         </table>
       </div>

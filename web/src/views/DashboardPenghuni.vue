@@ -16,6 +16,8 @@ import { useRouter } from 'vue-router'
 import { sesi } from '../sesi.js'
 import { rupiah, tanggal, pesanGalat } from '../format.js'
 import { simulasiTanggal } from '../simulasi.js'
+import LencanaStatus from '../komponen/ui/LencanaStatus.vue'
+import BarisKosong from '../komponen/ui/BarisKosong.vue'
 
 const router = useRouter()
 
@@ -178,9 +180,7 @@ onMounted(muat)
                 </td>
                 <td class="mungil">{{ tanggal(t.jatuh_tempo) }}</td>
                 <td>
-                  <span class="lencana-status" :class="`status-${t.status}`">
-                    {{ labelStatus(t.status) }}
-                  </span>
+                  <LencanaStatus :status="t.status" :label="labelStatus(t.status)" />
                 </td>
                 <td class="kanan">
                   <button class="halus mungil" @click="buka(t.id)">
@@ -261,14 +261,10 @@ onMounted(muat)
               </tr>
             </template>
 
-            <tr v-if="!memuat && daftar.length === 0">
-              <td colspan="9" class="sel-kosong">
-                Belum ada tagihan untuk Anda. Tagihan muncul setelah pemilik menerbitkannya.
-              </td>
-            </tr>
-            <tr v-if="memuat">
-              <td colspan="9" class="sel-kosong">Memuat tagihan…</td>
-            </tr>
+            <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="9">
+              Belum ada tagihan untuk Anda. Tagihan muncul setelah pemilik menerbitkannya.
+            </BarisKosong>
+            <BarisKosong v-if="memuat" :kolom="9">Memuat tagihan…</BarisKosong>
           </tbody>
         </table>
       </div>

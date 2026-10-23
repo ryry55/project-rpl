@@ -195,6 +195,87 @@ button.mungil {
   font-size: 13px;
 }
 
+/* --- Tata letak halaman ------------------------------------------------
+ *
+ * Sebelumnya `.halaman`, `.kepala`, `.panel`, `.panel-kepala`, dan `.aksi`
+ * ditulis ulang di blok <style scoped> hampir setiap view. Lima definisi
+ * `.kepala` yang isinya identik berarti satu perubahan tata letak harus
+ * disalin ke lima berkas — dan cepat atau lambat satu terlewat.
+ *
+ * Semua kelas di sini GLOBAL, jadi jangan bergantung pada <style scoped> di
+ * view mana pun untuk kelas dengan nama ini. Gaya yang benar-benar khas satu
+ * halaman tetap tinggal di view-nya.
+ *
+ * Kelas ini juga dipakai E2E (`nav a`, `.tabel`, `.lencana-status`,
+ * `.aksi-kepala`). Mengganti namanya akan mematahkan skrip uji.
+ */
+
+.halaman {
+  display: grid;
+  gap: 16px;
+  /* Lebar baca. Halaman yang butuh lebih lebar (tabel tagihan punya 11 kolom)
+     menimpanya lewat kelas tambahan, bukan dengan mendefinisikan ulang. */
+  max-width: 1020px;
+}
+
+.halaman-lebar {
+  max-width: 1080px;
+}
+
+.halaman-penuh {
+  max-width: none;
+}
+
+.kepala {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 2px;
+}
+
+.kepala p {
+  margin: 3px 0 0;
+}
+
+/* Beberapa tombol di kepala halaman. Dikelompokkan supaya tetap rapat di layar
+   sempit, bukan tersebar oleh justify-content milik .kepala. */
+.aksi-kepala {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.panel {
+  padding: 20px 22px;
+}
+
+.panel h2 {
+  margin-bottom: 14px;
+}
+
+.panel-kepala {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.panel-kepala h2 {
+  margin-bottom: 3px;
+}
+
+.panel-kepala p {
+  margin: 0;
+}
+
+/* Deretan tombol aksi formulir. */
+.aksi {
+  display: flex;
+  gap: 9px;
+}
+
 /* --- Formulir ---------------------------------------------------------- */
 
 .bidang {

@@ -4,6 +4,7 @@ import { sesi } from '../../sesi.js'
 import { rupiah, tanggal, pesanGalat } from '../../format.js'
 import { simulasiTanggal } from '../../simulasi.js'
 import KendaliSimulasi from '../../komponen/KendaliSimulasi.vue'
+import KepalaHalaman from '../../komponen/ui/KepalaHalaman.vue'
 
 const data = ref(null)
 const memuat = ref(true)
@@ -83,14 +84,11 @@ onMounted(muat)
 
 <template>
   <div class="halaman">
-    <header class="kepala">
-      <div>
-        <h1>Tunggakan</h1>
-        <p class="lemah mungil">
-          {{ ringkasan.jumlah }} tagihan belum lunas · denda {{ rupiah(ringkasan.total_denda) }}
-        </p>
-      </div>
-    </header>
+    <KepalaHalaman judul="Tunggakan">
+      <template #keterangan>
+        {{ ringkasan.jumlah }} tagihan belum lunas · denda {{ rupiah(ringkasan.total_denda) }}
+      </template>
+    </KepalaHalaman>
 
     <KendaliSimulasi
       :dipakai="simulasiDipakai"
@@ -183,16 +181,17 @@ onMounted(muat)
 </template>
 
 <style scoped>
+/* Halaman ini sengaja memakai lebar penuh: empat kartu kelompok tunggakan
+   berjajar dan akan terpotong kalau dibatasi 1020px. */
 .halaman {
-  display: grid;
-  gap: 16px;
+  max-width: none;
 }
 
+/* Tanpa margin bawah: kartu kelompok di bawahnya sudah punya jarak sendiri dari
+   `gap` milik .halaman, dan menambah 2px membuatnya terlihat tidak rata
+   dibanding halaman lain. */
 .kepala {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+  margin-bottom: 0;
 }
 
 .kepala h1 {

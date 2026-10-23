@@ -32,7 +32,7 @@ const pulang = computed(() => {
 
 <template>
   <div class="bingkai">
-    <div class="kartu panel">
+    <div class="kartu panel-tidak-ditemukan">
       <p class="kode mungil">404</p>
       <h1>Halaman tidak ditemukan</h1>
       <p class="lemah">
@@ -54,7 +54,8 @@ const pulang = computed(() => {
   padding: 24px;
 }
 
-.panel {
+/* Bukan .panel global: ini satu kotak terpusat, bukan panel bersusun. */
+.panel-tidak-ditemukan {
   max-width: 440px;
   padding: 28px 30px;
 }
@@ -66,12 +67,12 @@ const pulang = computed(() => {
   color: var(--teks-lemah);
 }
 
-.panel h1 {
+.panel-tidak-ditemukan h1 {
   margin: 0 0 8px;
   font-size: 20px;
 }
 
-.panel p {
+.panel-tidak-ditemukan p {
   margin: 0 0 18px;
   line-height: 1.55;
 }

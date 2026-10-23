@@ -52,6 +52,18 @@ export function tanggalHariIni() {
   return `${sekarang.getFullYear()}-${bulan}-${hari}`
 }
 
+/**
+ * Label status yang bisa dibaca: `belum_bayar` → "belum bayar".
+ *
+ * Dipakai di layar pemilik, yang menampilkan status apa adanya dalam huruf kecil
+ * agar warnanya (dari `status-<nilai>`) dan teksnya berasal dari satu sumber.
+ * Portal penghuni punya label berhuruf besar ("Belum bayar") yang sengaja
+ * berbeda — jangan disatukan tanpa memutuskan ulang tampilannya.
+ */
+export function labelStatus(status) {
+  return String(status || '').replace(/_/g, ' ')
+}
+
 export function pesanGalat(e) {
   if (e?.errors && Object.keys(e.errors).length > 0) {
     return Object.values(e.errors).flat().join(' ')
