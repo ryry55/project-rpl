@@ -98,7 +98,7 @@ jobs:
       tag: ${{ steps.meta.outputs.tag }}
       digest_api: ${{ steps.build_api.outputs.digest }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Siapkan Buildx
         uses: docker/setup-buildx-action@v3

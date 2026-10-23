@@ -37,7 +37,12 @@ perkakasnya sendiri tidak membusuk:
 1. Bangun image dengan cache layer.
 2. `docker compose up -d`, lalu tunggu `/api/health` menjawab **200**.
 3. `php artisan test` di dalam container - 599 tes.
-4. Jalankan Chrome headless dengan `--remote-debugging-port=9222`.
+4. Jalankan Chrome headless dengan `--remote-debugging-port=9222`, lalu tunggu
+   port debug itu terbuka - sampai **120 detik**, dan berhenti lebih awal bila
+   prosesnya sudah mati. Chrome di runner dingin butuh puluhan detik; percobaan
+   pertama langkah ini menyerah pada detik ke-30 padahal log Chrome menunjukkan
+   `DevTools listening` tiga detik kemudian. Menunggu 30 detik bukan pagar, ia
+   hanya durasi yang kebetulan cukup di laptop.
 5. `./periksa.sh --hanya-e2e` - 18 skrip browser dan 2 uji balapan.
 
 ### Kenapa uji browser tidak ditulis ulang dengan Playwright

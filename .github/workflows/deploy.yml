@@ -45,7 +45,7 @@ jobs:
       name: ${{ inputs.lingkungan }}
       url: ${{ vars.APP_URL || '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Periksa kesiapan target deploy
         id: siap
