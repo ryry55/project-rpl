@@ -1,8 +1,9 @@
 # Skrip uji
 
-Dua belas skrip di folder ini menguji aplikasi dari luar: delapan lewat browser
-sungguhan, dua menguji balapan HTTP, satu menyapu seluruh halaman, dan satu
-berkas bersama yang dipakai semuanya.
+Lima belas berkas di folder ini menguji aplikasi dari luar: dua belas lewat
+browser sungguhan (termasuk satu yang menyapu seluruh halaman dan satu yang
+mengukur tata letak di lebar ponsel), dua menguji balapan HTTP, dan satu berkas
+bersama yang dipakai semuanya.
 
 Semuanya memakai **database demo** (`kos`), bukan `kos_test`. Kecuali dinyatakan
 lain, tiap skrip **mengubah** isinya.
@@ -49,6 +50,29 @@ Jalankan ini lebih dulu setelah perubahan besar. Ia menangkap halaman yang rusak
 diam-diam — kelas kesalahan yang tidak terlihat oleh tes per tiket, karena tes
 per tiket tidak pernah membuka halaman itu.
 
+### Tata letak di layar sempit
+
+| Berkas | Yang dibuktikan | Butuh |
+|---|---|---|
+| `uji-tata-letak.mjs` | Sembilan halaman pemilik dan portal penghuni tidak meluber mendatar pada 360px, 390px, dan 768px; emulasi lebarnya diperiksa lebih dulu supaya asersinya tidak lulus tanpa mengukur | Chrome, seed |
+
+Skrip ini ada karena seluruh uji lain memeriksa isi DOM dan jawaban HTTP, tidak
+pernah ukuran. Halaman yang benar isinya tetapi lebih lebar daripada layar lolos
+sepenuhnya: tidak ada galat konsol, tidak ada permintaan gagal, tidak ada teks
+hilang — hanya halaman yang bergulir ke samping, dan tombol paling kanan yang
+paling sering hilang dari pandangan.
+
+Cacat yang mendorongnya ditulis: `.tata-letak` dan `.halaman` memakai
+`grid-template-columns: 1fr`, yang berarti `minmax(auto, 1fr)`. Minimum `auto`
+mengambil lebar min-content, sehingga sidebar dengan menu mendatar memaksa
+halaman selebar 753px di layar 390px.
+
+**`mobile: false`, bukan `mobile: true`.** Dengan `mobile: true` Chrome memakai
+layout viewport bawaan ponsel (980px) alih-alih lebar yang diminta, lalu
+memperkecil hasilnya. `window.innerWidth` menjadi 980 dan pemeriksaan "tidak ada
+gulir mendatar" lulus tanpa menguji apa pun. Emulasi juga dilepas setiap kali
+halaman baru dimuat, jadi harus dipasang ulang setelah `Page.navigate`.
+
 ### Alur bisnis per tiket
 
 | Berkas | Yang dibuktikan | Butuh |
@@ -61,6 +85,8 @@ per tiket tidak pernah membuka halaman itu.
 | `e2e-t6.mjs` | Denda 0 → 15.000 → 450.000 lewat simulasi tanggal | Chrome, seed |
 | `e2e-t7.mjs` | Empat kelompok umur tunggakan, konsisten dengan denda | Chrome, seed |
 | `e2e-t9.mjs` | Isolasi portal penghuni (404 bukan 403), log audit hanya-baca | Chrome, seed |
+| `e2e-t18.mjs` | Fasilitas: kelola katalog, centang per kamar, dan mencentang fasilitas **tidak** membuat komponen biaya maupun baris tagihan | Chrome, seed |
+| `e2e-t19.mjs` | Aturan kos: kelola, sembunyikan lewat sakelar, dan aturan nonaktif **tidak ada sama sekali** di HTML portal penghuni | Chrome, seed |
 
 ### Balapan
 

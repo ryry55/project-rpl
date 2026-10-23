@@ -237,8 +237,16 @@ button.mungil {
 .halaman {
   display: grid;
   gap: 16px;
-  /* Lebar baca. Halaman yang butuh lebih lebar (tabel tagihan punya 11 kolom)
+  /* `minmax(0, 1fr)`, bukan `1fr` saja. `1fr` berarti `minmax(auto, 1fr)`,
+     dan `auto` sebagai minimum mengambil lebar min-content: tabel atau kepala
+     halaman yang tidak bisa menyusut memaksa kolom ini lebih lebar daripada
+     layar, lalu seluruh halaman bergulir mendatar di ponsel. `minmax(0, ...)`
+     mengizinkan kolom menyusut dan menyerahkan luberannya ke `.tabel-bungkus`
+     yang memang punya `overflow-x: auto`.
+
+     Lebar baca. Halaman yang butuh lebih lebar (tabel tagihan punya 11 kolom)
      menimpanya lewat kelas tambahan, bukan dengan mendefinisikan ulang. */
+  grid-template-columns: minmax(0, 1fr);
   max-width: 1020px;
 }
 
@@ -316,6 +324,26 @@ button.mungil {
 @media (max-width: 620px) {
   .baris-bidang {
     grid-template-columns: 1fr;
+  }
+
+  /* Kepala halaman membungkus di layar sempit. Tanpa ini, deretan tombol aksi
+     (mis. "Terbitkan semua" + "Terbitkan tagihan") yang `flex-shrink: 0`
+     memaksa halaman lebih lebar daripada layar, dan seluruh halaman bergulir
+     ke samping - tombol yang paling kanan justru yang paling sering hilang.
+
+     Dibungkus di media query, bukan diatur global: pada layar lebar keduanya
+     memang muat sebaris, dan membiarkan `wrap` aktif di sana berarti tata
+     letak desktop bisa berubah hanya karena satu keterangan menjadi panjang. */
+  .kepala {
+    flex-wrap: wrap;
+  }
+
+  .kepala > div:first-child {
+    min-width: 0;
+  }
+
+  .aksi-kepala {
+    flex-wrap: wrap;
   }
 }
 
@@ -399,7 +427,8 @@ table.tabel {
 
 .lencana-status.status-kosong,
 .lencana-status.status-selesai,
-.lencana-status.status-dibatalkan {
+.lencana-status.status-dibatalkan,
+.lencana-status.status-nonaktif {
   color: var(--teks-lemah);
   background: #eef0f3;
 }

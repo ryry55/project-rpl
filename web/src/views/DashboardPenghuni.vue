@@ -31,6 +31,13 @@ const terbuka = ref(null)
 const memuatDetail = ref(false)
 const galatDetail = ref('')
 
+// Aturan kos (T19). Dimuat terpisah dari tagihan: kos yang belum mengisi
+// aturan tetap harus menampilkan tagihannya, dan sebaliknya kegagalan memuat
+// aturan tidak boleh membuat daftar tagihan kosong.
+const aturan = ref([])
+const memuatAturan = ref(false)
+const galatAturan = ref('')
+
 const ringkasan = computed(() => {
   const belum = daftar.value.filter((t) => t.status !== 'lunas' && t.status !== 'dibatalkan')
   return {
@@ -107,7 +114,28 @@ async function keluar() {
   router.replace('/masuk')
 }
 
+/**
+ * Aturan kos, dimuat terpisah.
+ *
+ * Kegagalannya sengaja tidak ditampilkan sebagai galat halaman: aturan adalah
+ * bacaan tambahan, dan penghuni yang datang untuk melihat tagihan tidak boleh
+ * melihat layar merah hanya karena daftar aturan gagal dimuat.
+ */
+async function muatAturan() {
+  memuatAturan.value = true
+  galatAturan.value = ''
+  try {
+    const hasil = await sesi.panggil('/penghuni/aturan')
+    aturan.value = hasil.data || []
+  } catch (e) {
+    galatAturan.value = pesanGalat(e)
+  } finally {
+    memuatAturan.value = false
+  }
+}
+
 onMounted(muat)
+onMounted(muatAturan)
 </script>
 
 <template>
@@ -295,6 +323,33 @@ onMounted(muat)
       Anda hanya dapat melihat tagihan milik Anda sendiri. Membuka tagihan penghuni lain
       akan dijawab seolah tagihan itu tidak ada.
     </p>
+
+    <!-- Aturan kos (T19). Ditempatkan setelah tagihan, bukan sebelumnya:
+         penghuni membuka portal ini untuk melihat tagihan, dan aturan adalah
+         bacaan yang dibaca sekali di awal. Menaruhnya di atas akan mendorong
+         tagihan - isi halaman yang sebenarnya - ke bawah lipatan. -->
+    <section v-if="!memuatAturan && aturan.length > 0" class="kartu panel aturan" aria-labelledby="judul-aturan">
+      <h2 id="judul-aturan">Aturan kos</h2>
+      <p class="lemah mungil">Yang berlaku di kos ini. Hubungi pemilik bila ada yang kurang jelas.</p>
+
+      <div class="daftar-aturan">
+        <article v-for="a in aturan" :key="a.id" class="satu-aturan">
+          <div class="kepala-aturan">
+            <h3>{{ a.judul }}</h3>
+            <span class="lencana-kategori mungil">{{ a.kategori }}</span>
+          </div>
+          <p class="isi-aturan">{{ a.isi }}</p>
+          <p v-if="a.sanksi" class="mungil lemah">Bila dilanggar: {{ a.sanksi }}</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Kegagalan memuat aturan hanya muncul sebagai catatan kecil. Penghuni
+         tetap bisa melihat tagihannya; menyembunyikan seluruh halaman karena
+         satu bagian tambahan gagal dimuat akan jauh lebih mengganggu. -->
+    <p v-if="galatAturan" class="lemah mungil">
+      Aturan kos tidak dapat dimuat saat ini. Tagihan Anda tetap tampil seperti biasa.
+    </p>
   </div>
 </template>
 
@@ -452,6 +507,55 @@ onMounted(muat)
 .kaki {
   margin-top: 14px;
   text-align: center;
+}
+
+/* --- Aturan kos (T19) --------------------------------------------------- */
+
+.aturan {
+  margin-top: 22px;
+}
+
+.daftar-aturan {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* Satu aturan diberi garis kiri, bukan kotak penuh: daftar kotak bersarang di
+   dalam kartu membuat setiap aturan terlihat sama pentingnya dengan kartu
+   induknya, dan mata kehilangan batas antara "bagian" dan "butir". */
+.satu-aturan {
+  padding-left: 12px;
+  border-left: 2px solid var(--garis);
+}
+
+.kepala-aturan {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.kepala-aturan h3 {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 620;
+}
+
+.lencana-kategori {
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 550;
+  color: var(--teks-lemah);
+  background: #eef0f3;
+  border-radius: 999px;
+}
+
+.isi-aturan {
+  margin: 3px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--teks-lemah);
 }
 
 @media (max-width: 820px) {

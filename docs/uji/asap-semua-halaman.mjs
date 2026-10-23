@@ -273,6 +273,8 @@ jalankan(async () => {
     ['/pemilik/tagihan', 'Tagihan'],
     ['/pemilik/tunggakan', 'Tunggakan'],
     ['/pemilik/kebijakan', 'Kebijakan'],
+    ['/pemilik/fasilitas', 'Fasilitas'],
+    ['/pemilik/aturan', 'Aturan kos'],
     ['/pemilik/audit', 'Jejak audit'],
   ]
   for (const [jalur, nama] of halamanPemilik) {

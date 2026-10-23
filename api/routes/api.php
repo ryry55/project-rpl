@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\AturanController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DendaController;
+use App\Http\Controllers\Api\FasilitasController;
 use App\Http\Controllers\Api\KamarController;
 use App\Http\Controllers\Api\KebijakanController;
 use App\Http\Controllers\Api\KomponenBiayaController;
@@ -43,6 +45,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(PastikanPeran::class.':penghuni')->group(function () {
         Route::get('/penghuni/tagihan', [PortalPenghuniController::class, 'tagihan'])
             ->name('penghuni.tagihan');
+
+        // Aturan kos (T19). Disaring `aktif` di server: aturan yang
+        // dinonaktifkan pemilik tidak boleh pernah sampai ke peramban penghuni.
+        Route::get('/penghuni/aturan', [PortalPenghuniController::class, 'aturan'])
+            ->name('penghuni.aturan');
     });
 
     Route::middleware(PastikanPeran::class.':pemilik')->group(function () {
@@ -72,6 +79,31 @@ Route::middleware('auth:sanctum')->group(function () {
             ->name('komponen.index');
         Route::post('/komponen-biaya', [KomponenBiayaController::class, 'store'])
             ->name('komponen.store');
+
+        // --- Fasilitas (T18) ---------------------------------------------
+        // Tidak append-only: tidak ada angka uang yang bergantung padanya.
+        //
+        // `parameters()` wajib: pembentukan otomatis memakai bentuk tunggal
+        // bahasa Inggris, dan "fasilitas" menjadi `{fasilita}` - bukan
+        // `{fasilitas}`. Akibatnya `$request->route('fasilitas')` selalu null
+        // (sehingga nama sendiri dianggap duplikat saat update) dan model
+        // binding menyuntik model kosong (sehingga DELETE menjawab 200 tanpa
+        // menghapus apa pun). Dua kegagalan yang tidak menimbulkan galat.
+        Route::apiResource('fasilitas', FasilitasController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['fasilitas' => 'fasilitas']);
+        // Mengganti seluruh daftar fasilitas satu kamar sekaligus. Memakai PUT
+        // karena yang dikirim adalah keadaan akhir daftar centang, bukan satu
+        // tambahan. Didaftarkan sebelum `apiResource('kamar')` yang lebih
+        // spesifik supaya `{kamar}` tidak menangkap "fasilitas".
+        Route::put('/kamar/{kamar}/fasilitas', [FasilitasController::class, 'pasangUntukKamar'])
+            ->name('kamar.fasilitas');
+
+        // --- Aturan kos (T19) --------------------------------------------
+        // Bukan append-only: tidak ada uang yang bergantung padanya, jadi
+        // memperbaiki salah ketik tidak merusak dokumen mana pun.
+        Route::apiResource('aturan', AturanController::class)
+            ->only(['index', 'store', 'update', 'destroy']);
 
         // Kebijakan kos (T16). Append-only: hanya index dan store, tidak ada
         // update atau delete. Gerbangnya ada di POST /tagihan dan

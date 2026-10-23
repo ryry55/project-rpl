@@ -86,6 +86,43 @@ Kebijakan bersifat **append-only**: mengubahnya berarti menambah baris baru deng
 baru. Tagihan yang sudah terbit tetap memakai salinan yang dibekukan saat terbit, jadi menaikkan
 denda hari ini tidak mengubah tagihan bulan lalu.
 
+## Mencatat fasilitas kamar
+
+Halaman **Fasilitas** menyimpan katalog barang yang dimiliki kamar — AC, kamar mandi dalam, lemari,
+Wi-Fi, parkir. Katalognya diisi sekali, lalu tiap kamar dicentang di halaman **Kamar** lewat tombol
+**Fasilitas**; kolom Fasilitas di tabel kamar menunjukkan hasilnya sekilas.
+
+Fasilitas **hanya dicatat, tidak menagih**. Ini pemisahan yang disengaja, bukan kelalaian:
+
+| Pertanyaan | Dijawab oleh | Menagih? |
+|---|---|---|
+| Kamar ini **punya** apa? | `fasilitas` + `kamar_fasilitas` | Tidak |
+| Kamar ini **ditagih** apa? | `komponen_biaya` | Ya |
+
+Kamar ber-AC dicatat punya AC; kalau pemilik ingin menagih listrik AC Rp 100.000 per bulan, itu
+komponen biaya, bukan fasilitas. Mencentang fasilitas **tidak pernah** menambah satu rupiah pun pada
+tagihan — ada tes yang menjaganya (`FasilitasTest`, dan `e2e-t18.mjs` memeriksanya lewat layar).
+
+Centang dikirim sebagai satu daftar penuh (`PUT /kamar/{id}/fasilitas`), jadi menambah dan melepas
+dilakukan dengan cara yang sama.
+
+## Aturan kos
+
+Halaman **Aturan kos** menyimpan apa yang harus dipatuhi penghuni: jam malam, tamu, kebersihan,
+pembayaran. Aturannya muncul di portal penghuni, di bawah tagihan.
+
+Aturan **tidak** append-only dan **tidak** menyentuh uang sama sekali. Yang tidak berlaku lagi
+disembunyikan lewat sakelar **Tampil di portal**, bukan dihapus: menghapusnya ikut menghilangkan
+jawaban atas pertanyaan "memang ada aturan itu?" yang justru paling sering ditanyakan penghuni lama.
+
+Penyaringan dilakukan **di server**, bukan di peramban. Aturan nonaktif tidak dikirim ke portal sama
+sekali — bukan dikirim lalu disembunyikan dengan CSS. Bedanya bisa dibaca di jaringan, dan `e2e-t19.mjs`
+memeriksa HTML portal agar tidak memuat judulnya sedikit pun.
+
+Kategori adalah teks bebas dengan saran dari server (`umum`, `kebersihan`, `keamanan`, `tamu`,
+`pembayaran`, `lainnya`). Daftar tertutup sengaja dihindari: setiap kos berbeda, dan kategori yang
+tidak terpikirkan oleh pembuat aplikasi tetap harus bisa ditulis pemilik.
+
 ## Mendemokan denda tanpa menunggu 37 hari
 
 Denda bergantung pada "hari ini", jadi menunggu plafon 30% berarti menunggu lebih dari sebulan.
@@ -296,12 +333,12 @@ dari database demo supaya data sidang tidak pernah terhapus oleh tes.
 │   ├── app/Domain/Audit/ PencatatAudit — penulis log_audit
 │   ├── app/Http/         Controller, Request, Resource, Middleware
 │   ├── app/Models/       User, Kamar, Penghuni, Kontrak, TarifSewa, KomponenBiaya,
-│   │                     ParameterDenda, Tagihan, TagihanRincian, Pembayaran, LogAudit
+│   │                     Fasilitas, AturanKos, Tagihan, TagihanRincian, Pembayaran, LogAudit
 │   ├── database/migrations/  Termasuk trigger append-only untuk tabel riwayat
 │   ├── docker/php/       php.ini, opcache.ini, entrypoint.sh
 │   └── docker/nginx/     Konfigurasi nginx untuk API
 ├── web/                  Vue 3 + Vite
-│   ├── src/views/pemilik/    Kamar, Penghuni, Kontrak, Tagihan, Tunggakan, AuditLog
+│   ├── src/views/pemilik/    Kamar, Penghuni, Kontrak, Tagihan, Tunggakan, Kebijakan, Fasilitas, Aturan, AuditLog
 │   ├── src/views/DashboardPenghuni.vue  Portal penghuni (T9)
 │   ├── src/komponen/         TataLetakPemilik (sidebar + navigasi)
 │   ├── src/format.js         Rupiah, tanggal, dan ringkasan galat validasi

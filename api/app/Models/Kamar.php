@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -63,5 +64,22 @@ class Kamar extends Model
     public function kontrakAktif(): HasOne
     {
         return $this->hasOne(Kontrak::class)->where('status', 'aktif');
+    }
+
+    /**
+     * Fasilitas yang dimiliki kamar ini (T18).
+     *
+     * Diurutkan di sini, bukan di view: urutan fasilitas adalah keputusan data
+     * yang sama untuk semua layar, dan dua layar yang mengurutkan sendiri akan
+     * menampilkan urutan berbeda untuk kamar yang sama.
+     *
+     * @return BelongsToMany<Fasilitas, $this>
+     */
+    public function fasilitas(): BelongsToMany
+    {
+        return $this->belongsToMany(Fasilitas::class, 'kamar_fasilitas')
+            ->withTimestamps()
+            ->orderBy('fasilitas.urutan')
+            ->orderBy('fasilitas.nama');
     }
 }

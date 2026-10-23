@@ -26,6 +26,15 @@ const galatTarif = ref('')
 const galatTarifBidang = ref({})
 const menyimpanTarif = ref(false)
 
+// Kamar yang fasilitasnya sedang diatur (T18).
+const kamarFasilitas = ref(null)
+const semuaFasilitas = ref([])
+const dipilih = ref([])
+const memuatFasilitas = ref(false)
+const menyimpanFasilitas = ref(false)
+const galatFasilitas = ref('')
+const suksesFasilitas = ref('')
+
 const jumlahTerisi = computed(() => daftar.value.filter((k) => k.status_huni === 'terisi').length)
 const jumlahKosong = computed(() => daftar.value.length - jumlahTerisi.value)
 
@@ -46,6 +55,7 @@ function bukaForm() {
   form.value = { nomor: '', tipe: '', catatan: '' }
   galatForm.value = ''
   galatBidang.value = {}
+  suksesFasilitas.value = ''
   formTerbuka.value = true
 }
 
@@ -98,6 +108,76 @@ function tutupTarif() {
   riwayat.value = []
 }
 
+/**
+ * Membuka panel fasilitas satu kamar (T18).
+ *
+ * Daftar seluruh fasilitas diambil sekali di sini, bukan saat halaman dimuat:
+ * pemilik yang membuka halaman Kamar hanya untuk melihat nomor kamar tidak
+ * perlu ikut mengunduh katalog fasilitas.
+ *
+ * Centang yang sudah tersimpan dibaca dari `k.fasilitas` yang dikirim
+ * `GET /kamar`, bukan dari panggilan tambahan - dua sumber akan berbeda bila
+ * ada yang mengubah pivot di tab lain.
+ */
+async function bukaFasilitas(kamar) {
+  kamarFasilitas.value = kamar
+  galatFasilitas.value = ''
+  dipilih.value = (kamar.fasilitas || []).map((f) => f.id)
+
+  if (semuaFasilitas.value.length > 0) {
+    return
+  }
+
+  memuatFasilitas.value = true
+  try {
+    const hasil = await sesi.panggil('/fasilitas')
+    semuaFasilitas.value = hasil.data
+  } catch (e) {
+    galatFasilitas.value = pesanGalat(e)
+  } finally {
+    memuatFasilitas.value = false
+  }
+}
+
+function tutupFasilitas() {
+  kamarFasilitas.value = null
+  dipilih.value = []
+  galatFasilitas.value = ''
+}
+
+function gantiCentang(id, tercentang) {
+  // `filter` alih-alih `push`/`splice`: daftar centang selalu tanpa duplikat,
+  // dan `sync()` di server menolak daftar berganda dengan 422 yang akan
+  // terbaca seperti kerusakan layar padahal kesalahannya ada di sini.
+  if (tercentang) {
+    dipilih.value = [...dipilih.value, id]
+  } else {
+    dipilih.value = dipilih.value.filter((x) => x !== id)
+  }
+}
+
+async function simpanFasilitas() {
+  menyimpanFasilitas.value = true
+  galatFasilitas.value = ''
+  try {
+    await sesi.panggil(`/kamar/${kamarFasilitas.value.id}/fasilitas`, {
+      method: 'PUT',
+      body: JSON.stringify({ fasilitas: dipilih.value }),
+    })
+    const nomor = kamarFasilitas.value.nomor
+    tutupFasilitas()
+    await muat()
+    // Panel ditutup dan tabel disegarkan, jadi tidak ada lagi tempat
+    // menampilkan "tersimpan". Pesan sukses singkat di kepala halaman sudah
+    // cukup untuk memberi tahu bahwa centang benar-benar tersimpan.
+    suksesFasilitas.value = `Fasilitas kamar ${nomor} tersimpan.`
+  } catch (e) {
+    galatFasilitas.value = pesanGalat(e)
+  } finally {
+    menyimpanFasilitas.value = false
+  }
+}
+
 async function simpanTarif() {
   menyimpanTarif.value = true
   galatTarif.value = ''
@@ -140,6 +220,7 @@ onMounted(muat)
     </KepalaHalaman>
 
     <PesanBaris v-if="galatMuat" jenis="galat">{{ galatMuat }}</PesanBaris>
+    <PesanBaris v-if="suksesFasilitas" jenis="sukses">{{ suksesFasilitas }}</PesanBaris>
 
     <section v-if="formTerbuka" class="kartu panel">
       <h2>Tambah kamar</h2>
@@ -254,6 +335,47 @@ onMounted(muat)
       </form>
     </section>
 
+    <section v-if="kamarFasilitas" class="kartu panel">
+      <div class="panel-kepala">
+        <div>
+          <h2>Fasilitas kamar {{ kamarFasilitas.nomor }}</h2>
+          <p class="lemah mungil">
+            Fasilitas hanya dicatat, tidak menagih. Untuk menagih sesuatu, tambahkan komponen biaya
+            di halaman Tagihan.
+          </p>
+        </div>
+        <button class="halus mungil" @click="tutupFasilitas">Tutup</button>
+      </div>
+
+      <p v-if="memuatFasilitas" class="lemah mungil">Memuat fasilitas…</p>
+
+      <template v-else>
+        <PesanBaris v-if="semuaFasilitas.length === 0" jenis="netral" mungil>
+          Belum ada fasilitas terdaftar. Tambahkan dulu di halaman Fasilitas.
+        </PesanBaris>
+
+        <div v-else class="kisi-fasilitas">
+          <label v-for="f in semuaFasilitas" :key="f.id" class="pilihan-fasilitas">
+            <input
+              type="checkbox"
+              :value="f.id"
+              :checked="dipilih.includes(f.id)"
+              @change="gantiCentang(f.id, $event.target.checked)"
+            />
+            <span>{{ f.nama }}</span>
+          </label>
+        </div>
+
+        <PesanBaris v-if="galatFasilitas" jenis="galat">{{ galatFasilitas }}</PesanBaris>
+
+        <div class="aksi">
+          <button type="button" :disabled="menyimpanFasilitas" @click="simpanFasilitas">
+            {{ menyimpanFasilitas ? 'Menyimpan…' : 'Simpan fasilitas' }}
+          </button>
+        </div>
+      </template>
+    </section>
+
     <section class="kartu">
       <div class="tabel-bungkus">
         <table class="tabel">
@@ -261,16 +383,29 @@ onMounted(muat)
             <tr>
               <th>Nomor</th>
               <th>Tipe</th>
+              <th>Fasilitas</th>
               <th>Status</th>
               <th>Penghuni</th>
               <th class="kanan">Tarif terakhir</th>
-              <th></th>
+              <th class="kanan">Aksi</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="k in daftar" :key="k.id">
               <td><strong>{{ k.nomor }}</strong></td>
               <td>{{ k.tipe || '—' }}</td>
+              <!-- Fasilitas di kolomnya sendiri, bukan ditempel di bawah nomor:
+                   badge yang menumpuk di kolom sempit membuat tabel mengalokasikan
+                   lebar kolom nomor mengikuti badge terpanjang, dan seluruh kolom
+                   lain bergeser tanpa ada yang berubah pada datanya. -->
+              <td>
+                <span v-if="k.fasilitas?.length" class="label-fasilitas">
+                  <span v-for="f in k.fasilitas" :key="f.id" class="label-fasilitas-satu">
+                    {{ f.nama }}
+                  </span>
+                </span>
+                <span v-else class="lemah mungil">—</span>
+              </td>
               <td>
                 <LencanaStatus :status="k.status_huni" />
               </td>
@@ -282,14 +417,15 @@ onMounted(muat)
                 </template>
                 <span v-else class="lemah mungil">Belum ditetapkan</span>
               </td>
-              <td class="kanan">
+              <td class="kanan aksi-baris">
                 <button class="halus mungil" @click="bukaTarif(k)">Atur tarif</button>
+                <button class="halus mungil" @click="bukaFasilitas(k)">Fasilitas</button>
               </td>
             </tr>
-            <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="6">
+            <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="7">
               Belum ada kamar. Tambahkan kamar pertama lewat tombol di atas.
             </BarisKosong>
-            <BarisKosong v-if="memuat" :kolom="6">Memuat…</BarisKosong>
+            <BarisKosong v-if="memuat" :kolom="7">Memuat…</BarisKosong>
           </tbody>
         </table>
       </div>
@@ -302,5 +438,49 @@ onMounted(muat)
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid var(--garis);
+}
+
+/* Kisi, bukan satu kolom: daftar fasilitas biasanya 4-8 butir, dan satu kolom
+   membuat panel setinggi layar hanya untuk beberapa kotak centang. */
+.kisi-fasilitas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px 16px;
+  margin: 4px 0 16px;
+}
+
+.pilihan-fasilitas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.pilihan-fasilitas input {
+  width: auto;
+  margin: 0;
+}
+
+.label-fasilitas {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.label-fasilitas-satu {
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--teks-lemah);
+  background: #eef0f3;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Tombol aksi ditahan satu baris: "Fasilitas" yang terlipat ke bawah "Atur
+   tarif" membuat baris dua kali lebih tinggi tanpa ada asersi yang menangkapnya. */
+.aksi-baris {
+  white-space: nowrap;
 }
 </style>

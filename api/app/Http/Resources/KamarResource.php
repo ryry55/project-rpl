@@ -34,6 +34,15 @@ class KamarResource extends JsonResource
                     'berlaku_dari' => $this->tarifTerakhir->berlaku_dari?->toDateString(),
                 ]
                 : null),
+            // Fasilitas yang dimiliki kamar (T18). Dikirim sebagai daftar utuh,
+            // bukan jumlah, karena layar kamar menampilkannya sebagai label.
+            // Fasilitas tidak pernah muncul di tagihan - lihat `KomponenBiaya`.
+            'fasilitas' => $this->whenLoaded('fasilitas', fn () => $this->fasilitas
+                ->map(fn ($f) => [
+                    'id' => $f->id,
+                    'nama' => $f->nama,
+                    'ikon' => $f->ikon,
+                ])->values()),
         ];
     }
 }

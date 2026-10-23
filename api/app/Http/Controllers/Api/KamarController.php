@@ -13,7 +13,7 @@ class KamarController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Kamar::query()->with(['kontrakAktif.penghuni', 'tarifTerakhir']);
+        $query = Kamar::query()->with(['kontrakAktif.penghuni', 'tarifTerakhir', 'fasilitas']);
 
         if ($request->filled('status_huni')) {
             $query->where('status_huni', $request->string('status_huni')->value());
@@ -33,7 +33,7 @@ class KamarController extends Controller
 
     public function show(Kamar $kamar): JsonResponse
     {
-        $kamar->load(['kontrakAktif.penghuni', 'tarif', 'tarifTerakhir']);
+        $kamar->load(['kontrakAktif.penghuni', 'tarif', 'tarifTerakhir', 'fasilitas']);
 
         return response()->json(['data' => new KamarResource($kamar)]);
     }

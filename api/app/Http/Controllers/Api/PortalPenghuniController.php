@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\AturanResource;
 use App\Http\Resources\TagihanResource;
+use App\Models\AturanKos;
 use App\Models\Tagihan;
 use App\Support\WaktuSistem;
 use Illuminate\Http\JsonResponse;
@@ -51,5 +53,29 @@ class PortalPenghuniController extends Controller
                 'demo_mode' => (bool) config('app.demo_mode'),
             ],
         ]);
+    }
+
+    /**
+     * Aturan kos yang berlaku, untuk dibaca penghuni (T19).
+     *
+     * Disaring `aktif` di server, bukan di layar. Aturan yang dinonaktifkan
+     * pemilik tidak boleh pernah sampai ke peramban penghuni - menyaring di
+     * layar berarti datanya tetap terkirim dan tetap bisa dibaca lewat
+     * jaringan, meski tidak digambar.
+     *
+     * Endpoint terpisah dari `/aturan` milik pemilik karena `/aturan` mengirim
+     * juga yang tidak aktif beserta `meta.kategori` untuk layar pengelolaan.
+     * Menumpuk keduanya berarti satu respons harus berbentuk berbeda menurut
+     * peran, dan itu persis kelas kebocoran yang sulit terlihat.
+     */
+    public function aturan(): JsonResponse
+    {
+        $daftar = AturanKos::query()
+            ->where('aktif', true)
+            ->orderBy('urutan')
+            ->orderBy('id')
+            ->get();
+
+        return response()->json(['data' => AturanResource::collection($daftar)]);
     }
 }

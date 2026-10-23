@@ -14,7 +14,11 @@ const menu = [
   { nama: 'tunggakan', label: 'Tunggakan', ket: 'Siapa menunggak dan sudah separah apa' },
   // Diletakkan setelah Tunggakan, bukan di paling atas: pemilik membuka menu
   // ini sekali di awal lalu jarang lagi, sementara Tagihan dibuka setiap bulan.
+  // Fasilitas dan Aturan menyusul di sini karena alasan yang sama - keduanya
+  // diisi sekali saat kos dibuka, bukan setiap bulan.
   { nama: 'kebijakan', label: 'Kebijakan', ket: 'Satuan sewa dan jatuh tempo kos ini' },
+  { nama: 'fasilitas', label: 'Fasilitas', ket: 'Apa saja yang dimiliki tiap kamar' },
+  { nama: 'aturan', label: 'Aturan kos', ket: 'Yang dibaca penghuni di portalnya' },
   { nama: 'audit', label: 'Jejak audit', ket: 'Siapa mengubah apa, kapan' },
 ]
 
@@ -201,7 +205,11 @@ async function keluar() {
 
 @media (max-width: 860px) {
   .tata-letak {
-    grid-template-columns: 1fr;
+    /* `minmax(0, 1fr)`, bukan `1fr`: minimum `auto` membuat kolom selebar
+       min-content, dan menu mendatar yang tidak muat memaksa seluruh halaman
+       bergulir mendatar. Dengan 0, menu yang menggulir sendiri di dalam
+       `.menu` (yang memang `overflow-x: auto`), bukan halamannya. */
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .sisi {
