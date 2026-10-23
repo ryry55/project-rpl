@@ -303,7 +303,7 @@ onMounted(muat)
 
     <section class="kartu">
       <div class="tabel-bungkus">
-        <table class="tabel">
+        <table class="tabel" v-kartu-tabel>
           <thead>
             <tr>
               <th>Judul</th>

@@ -228,7 +228,7 @@ onMounted(muat)
           </div>
         </div>
         <div class="tabel-bungkus">
-          <table class="tabel tabel-tunai">
+          <table class="tabel tabel-tunai" v-kartu-tabel>
             <thead>
               <tr>
                 <th>Pemegang</th>
@@ -263,7 +263,7 @@ onMounted(muat)
           </p>
         </template>
         <div class="tabel-bungkus">
-          <table class="tabel tabel-pembayaran">
+          <table class="tabel tabel-pembayaran" v-kartu-tabel>
             <thead>
               <tr>
                 <th>Tanggal</th>

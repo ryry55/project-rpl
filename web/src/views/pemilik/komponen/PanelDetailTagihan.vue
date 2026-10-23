@@ -270,7 +270,7 @@ onMounted(() => {
     </template>
 
     <div class="tabel-bungkus">
-      <table class="tabel">
+      <table class="tabel" v-kartu-tabel>
         <thead>
           <tr>
             <th>Rincian</th>
@@ -529,7 +529,7 @@ onMounted(() => {
       <div v-if="detail.pembayaran?.length" class="riwayat-bayar">
         <p class="mungil lemah">Riwayat pembayaran</p>
         <div class="tabel-bungkus">
-          <table class="tabel tabel-riwayat">
+          <table class="tabel tabel-riwayat" v-kartu-tabel>
             <thead>
               <tr>
                 <th>Tanggal</th>

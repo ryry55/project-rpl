@@ -157,7 +157,7 @@ onMounted(muat)
 
       <PanelKartu judul="Kamar yang pernah Anda tempati">
         <div class="tabel-bungkus">
-          <table class="tabel">
+          <table class="tabel" v-kartu-tabel>
             <thead>
               <tr>
                 <th>Kamar</th>
@@ -185,7 +185,7 @@ onMounted(muat)
 
       <PanelKartu judul="Persetujuan yang pernah Anda berikan">
         <div class="tabel-bungkus">
-          <table class="tabel">
+          <table class="tabel" v-kartu-tabel>
             <thead>
               <tr>
                 <th>Versi teks</th>
@@ -213,7 +213,7 @@ onMounted(muat)
 
       <PanelKartu judul="Jejak tindakan Anda">
         <div class="tabel-bungkus">
-          <table class="tabel">
+          <table class="tabel" v-kartu-tabel>
             <thead>
               <tr>
                 <th>Tindakan</th>

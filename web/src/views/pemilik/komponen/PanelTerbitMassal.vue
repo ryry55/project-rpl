@@ -127,7 +127,7 @@ async function terbitkan() {
       <details v-if="hasil.rincian.length" class="rincian-massal">
         <summary class="mungil lemah">Rincian per kontrak</summary>
         <div class="tabel-bungkus">
-          <table class="tabel">
+          <table class="tabel" v-kartu-tabel>
             <thead>
               <tr>
                 <th>Penghuni</th>

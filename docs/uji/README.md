@@ -62,6 +62,20 @@ per tiket tidak pernah membuka halaman itu.
 | Berkas | Yang dibuktikan | Butuh |
 |---|---|---|
 | `uji-tata-letak.mjs` | Sepuluh halaman pemilik dan portal penghuni tidak meluber mendatar pada 360px, 390px, dan 768px; emulasi lebarnya diperiksa lebih dulu supaya asersinya tidak lulus tanpa mengukur | Chrome, seed |
+| `uji-kartu-tabel.mjs` | Tabel 4+ kolom berubah menjadi kartu di 360px dan 390px: setiap sel berlabel sesuai `<th>`-nya, `thead` tidak terlihat, dan kartunya tidak meluber. Di layar lebar tabelnya kembali normal | Chrome, seed |
+| `uji-pwa.mjs` | Manifest terbaca dan semua ikonnya tersaji; service worker terdaftar, aktif, dan mengendalikan halaman; **tidak ada respons `/api/` yang masuk cache** (R-07) | Chrome, build produksi, seed |
+
+`uji-kartu-tabel.mjs` menutup celah yang sengaja ditinggalkan
+`uji-tata-letak.mjs`. Uji itu melewati elemen di dalam `.tabel-bungkus`, karena
+bungkus itulah yang memang menggulir — sehingga tabel yang masih berupa tabel di
+layar 360px **selalu lolos**. Ia tidak meluber; ia hanya harus digeser ke
+samping. Dua asersi berbeda untuk dua cacat berbeda.
+
+`uji-pwa.mjs` memeriksa pagar R-07 secara langsung: cache dikosongkan, satu
+permintaan `/api` dibuat, lalu `caches.keys()` dibaca. Asersinya sudah
+dibuktikan menahan — dengan blok pagar `/api` di `sw.js` dicabut sementara, uji
+ini **gagal** dengan `bocor: /api/me`. Uji yang tidak pernah terbukti bisa gagal
+bukan uji.
 
 Skrip ini ada karena seluruh uji lain memeriksa isi DOM dan jawaban HTTP, tidak
 pernah ukuran. Halaman yang benar isinya tetapi lebih lebar daripada layar lolos

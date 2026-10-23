@@ -134,7 +134,7 @@ onMounted(muat)
         </template>
 
         <div class="tabel-bungkus">
-          <table class="tabel tabel-notifikasi">
+          <table class="tabel tabel-notifikasi" v-kartu-tabel>
             <thead>
               <tr>
                 <th>Peristiwa</th>

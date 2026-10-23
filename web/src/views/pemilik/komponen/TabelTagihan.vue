@@ -36,7 +36,7 @@ const KOLOM = 11
 <template>
   <section class="kartu">
     <div class="tabel-bungkus">
-      <table class="tabel">
+      <table class="tabel" v-kartu-tabel>
         <thead>
           <tr>
             <th>Periode</th>

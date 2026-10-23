@@ -210,7 +210,7 @@ onMounted(muat)
         <input v-model="cari" placeholder="Cari nama, email, atau nomor HP" autocomplete="off" />
       </div>
       <div class="tabel-bungkus">
-        <table class="tabel">
+        <table class="tabel" v-kartu-tabel>
           <thead>
             <tr>
               <th>Nama</th>

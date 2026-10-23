@@ -415,6 +415,129 @@ table.tabel {
   color: var(--teks-lemah);
 }
 
+/* --- Tabel menjadi kartu di layar sempit ---------------------------------
+ *
+ * Di bawah 620px tabel 4+ kolom tidak lagi bisa dibaca: menggeser tabel ke
+ * samping untuk melihat nominal itu melelahkan, dan kolom aksi yang paling
+ * kanan justru yang paling sering dibutuhkan. Karena itu setiap baris dilipat
+ * menjadi satu kartu, dan setiap sel mendapat label di kiri dari `data-label`
+ * yang dipasang direktif `v-kartu-tabel`.
+ *
+ * Yang berubah hanya tampilan. `<table>`, `<tbody>`, `<tr>`, dan `<td>` tetap
+ * ada, sehingga selektor uji dan pembaca layar tidak terpengaruh.
+ *
+ * Kelas `tabel-kartu` dipasang oleh direktif, bukan ditulis di template: hanya
+ * tabel yang kolomnya cukup banyak yang dilipat, dan keputusan itu mengikuti
+ * jumlah kolom yang sebenarnya.
+ */
+@media (max-width: 620px) {
+  .tabel-bungkus:has(> table.tabel-kartu) {
+    overflow-x: visible;
+  }
+
+  table.tabel-kartu thead {
+    /* Judul kolom pindah ke tiap sel; menyisakan thead akan menampilkan
+       deretan nama kolom kosong di atas kartu pertama. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  table.tabel-kartu,
+  table.tabel-kartu tbody,
+  table.tabel-kartu tr,
+  table.tabel-kartu td {
+    display: block;
+    width: auto;
+  }
+
+  table.tabel-kartu tbody tr {
+    margin-bottom: 10px;
+    padding: 4px 13px;
+    background: var(--permukaan);
+    border: 1px solid var(--garis);
+    border-radius: var(--radius);
+  }
+
+  table.tabel-kartu tbody tr:hover {
+    background: var(--permukaan);
+  }
+
+  table.tabel-kartu td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 8px 0;
+    text-align: left;
+    border-bottom: 1px solid var(--garis-lemah);
+  }
+
+  table.tabel-kartu td:last-child {
+    border-bottom: none;
+  }
+
+  /* Label di kiri, nilai di kanan. `flex-shrink: 0` menahan label agar tidak
+     terpotong saat nilainya panjang (mis. judul aturan). */
+  table.tabel-kartu td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    max-width: 45%;
+    font-size: 11.5px;
+    font-weight: 620;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--teks-lemah);
+  }
+
+  /* Kolom aksi tidak punya judul, jadi tidak punya `data-label`. Tanpa aturan
+     ini, `::before` yang kosong tetap memakan ruang `gap` dan tombolnya
+     terdorong ke kanan tanpa alasan yang terlihat. */
+  table.tabel-kartu td:not([data-label])::before {
+    content: none;
+  }
+
+  table.tabel-kartu td:not([data-label]) {
+    justify-content: flex-end;
+    padding-top: 4px;
+  }
+
+  /* Nilai rata kanan, dan boleh membungkus - nominal panjang atau judul
+     aturan harus terbaca utuh, bukan terpotong. */
+  table.tabel-kartu td > * {
+    text-align: right;
+    min-width: 0;
+  }
+
+  /* Email dan judul panjang tidak punya spasi untuk dipatahkan. Tanpa
+     `anywhere`, satu alamat email panjang mendorong kartu melewati layar dan
+     halaman bergulir mendatar lagi - persis cacat yang ingin dihilangkan. */
+  table.tabel-kartu td {
+    overflow-wrap: anywhere;
+  }
+
+  table.tabel-kartu .kanan {
+    text-align: right;
+  }
+
+  /* Baris kosong tetap satu blok, tanpa label dan tanpa garis pemisah. */
+  table.tabel-kartu td.sel-kosong {
+    display: block;
+    padding: 28px 4px;
+    text-align: center;
+    border-bottom: none;
+  }
+
+  table.tabel-kartu td.sel-kosong::before {
+    content: none;
+  }
+}
+
 /* --- Lencana ----------------------------------------------------------- */
 
 .lencana-status {
@@ -455,4 +578,53 @@ table.tabel {
 .lencana-status.status-lunas {
   color: var(--sukses);
   background: var(--sukses-lemah);
+}
+
+/* --- Target sentuh -------------------------------------------------------
+ *
+ * Di layar sentuh, sasaran minimal yang nyaman adalah 44x44 piksel. Tombol
+ * bawaan aplikasi ini 10px 16px dengan font 13-15px, jadi tingginya sekitar
+ * 36px - cukup untuk kursor, kurang untuk jari, terutama pada tombol kecil di
+ * kolom aksi tabel.
+ *
+ * Dibungkus `(pointer: coarse)` dan bukan lebar layar: ponsel berlayar lebar
+ * tetap butuh sasaran besar, dan jendela peramban sempit di desktop dengan
+ * tetikus tidak. Lebar layar bukan pengganti yang sah untuk jenis penunjuk.
+ */
+@media (pointer: coarse) {
+  button,
+  .tombol-tautan,
+  input[type='submit'],
+  select {
+    min-height: 44px;
+  }
+
+  /* Tombol mungil tetap mungil secara visual, tetapi area sentuhnya diperluas
+     dengan padding maya. `::after` bertumpuk di atasnya tanpa menggeser tata
+     letak, sehingga deretan tombol tidak berubah tinggi. */
+  button.mungil {
+    position: relative;
+    min-height: 0;
+  }
+
+  button.mungil::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+  }
+
+  /* Kotak centang dan tombol pilihan kecil juga perlu sasaran yang jujur. */
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Baris menu samping jadi sasaran penuh, bukan hanya teksnya. */
+  .menu a,
+  nav a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
 }

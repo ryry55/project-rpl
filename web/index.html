@@ -2,8 +2,23 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Kos-Kosan — Sistem Informasi Operasional</title>
+
+    <!-- Warna bilah peramban. Harus sama dengan `theme_color` di manifest,
+         kalau tidak ikon di layar utama dan jendela aplikasi berbeda warna. -->
+    <meta name="theme-color" content="#2f6feb" />
+    <meta name="description" content="Kelola kamar, penghuni, tagihan, dan pembayaran kos dari satu tempat." />
+
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- iOS tidak membaca ikon dari manifest; ia memakai tautan ini. -->
+    <link rel="apple-touch-icon" href="/ikon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Kos-Kosan" />
+
+    <link rel="icon" type="image/png" sizes="192x192" href="/ikon/ikon-192.png" />
   </head>
   <body>
     <div id="app"></div>

@@ -1,0 +1,48 @@
+{
+  "name": "Kos-Kosan — Sistem Informasi Operasional",
+  "short_name": "Kos-Kosan",
+  "description": "Kelola kamar, penghuni, tagihan, dan pembayaran kos dari satu tempat.",
+  "lang": "id",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f6f7f9",
+  "theme_color": "#2f6feb",
+  "categories": ["business", "productivity", "finance"],
+  "icons": [
+    {
+      "src": "/ikon/ikon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/ikon/ikon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/ikon/ikon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tagihan",
+      "short_name": "Tagihan",
+      "description": "Lihat dan terbitkan tagihan bulan ini",
+      "url": "/pemilik/tagihan"
+    },
+    {
+      "name": "Kamar",
+      "short_name": "Kamar",
+      "description": "Daftar kamar dan penghuninya",
+      "url": "/pemilik/kamar"
+    }
+  ]
+}

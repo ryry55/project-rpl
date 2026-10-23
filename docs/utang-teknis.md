@@ -119,13 +119,24 @@ Penanda memuat selalu lebih dulu ada.
 
 ---
 
-## 6. U2 — mobile dan PWA belum dikerjakan (LANGKAH 10)
+## 6. U2 — mobile dan PWA (LANGKAH 10) — SEBAGIAN BESAR SELESAI
 
-| Kurang | Dampak |
+| Kurang | Status |
 |---|---|
-| Hanya 6 media query untuk 18 view | LoginView, PenghuniView, KontrakView, KamarView, TagihanView, KebijakanView, FasilitasView, AturanView tidak punya satu pun |
-| Belum ada `manifest.webmanifest` + service worker | Tidak bisa dipasang ke layar utama |
-| Belum ada uji PWA | — |
+| Tabel 4+ kolom harus digeser ke samping di ponsel | **Selesai.** Direktif `v-kartu-tabel` melipat baris menjadi kartu di bawah 620px; dijaga `uji-kartu-tabel.mjs` 65 langkah |
+| Tidak ada manifest, service worker, theme-color | **Selesai.** `manifest.webmanifest`, `sw.js`, 4 ikon PNG, `theme-color`; dijaga `uji-pwa.mjs` 22 langkah |
+| Kepala pemilik memakan 360px dari 800px layar | **Selesai.** Terukur turun ke 203px |
+| Target sentuh di bawah 44px | **Selesai** untuk `(pointer: coarse)` |
+| Luberan mendatar di 360px | **Selesai** sejak commit `f2c73f0`, dijaga `uji-tata-letak.mjs` 88/88 |
+
+**Sisa yang belum dikerjakan:**
+
+| Kurang | Dampak | Catatan |
+|---|---|---|
+| Navigasi bawah (bottom bar) khusus ponsel | Menu masih berupa deret mendatar yang digeser | Bukan cacat, tetapi pola ponsel yang lazim |
+| Orientasi lanskap di ponsel | Belum diuji; `manifest` mengunci `portrait-primary` | Perlu uji tersendiri di 640x360 |
+| Uji luring sungguhan (matikan jaringan) | Kerangka ter-cache, tetapi belum pernah dibuktikan bisa dibuka tanpa jaringan | Bisa diuji dengan `Network.emulateNetworkConditions` |
+| `uji-pwa.mjs` memakai build produksi | Service worker tidak didaftarkan saat `npm run dev` | `periksa.sh` sudah memakai image, jadi aman di sana |
 
 **Catatan penting.** Luberan mendatar di 360px **sudah** diperbaiki (commit
 `f2c73f0`) dan dijaga `uji-tata-letak.mjs` 88/88. Jadi aplikasi sekarang *muat*

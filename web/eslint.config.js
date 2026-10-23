@@ -67,4 +67,16 @@ export default [
       globals: { ...globals.node },
     },
   },
+
+  {
+    // Skrip bantu (`skrip/`) berjalan di Node, bukan di peramban. Tanpa cakupan
+    // ini, `Buffer` dan `process` dilaporkan sebagai variabel tak dikenal -
+    // padahal keduanya memang ada di sana. Daftar `files` sengaja sempit:
+    // melonggarkan global untuk seluruh `src/` akan menyembunyikan pemakaian
+    // API Node di kode peramban, yang justru kesalahan nyata.
+    files: ['skrip/**/*.mjs', 'skrip/**/*.js'],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
 ]

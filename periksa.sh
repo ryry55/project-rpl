@@ -251,6 +251,12 @@ if [ "$CEPAT" -eq 0 ]; then
             e2e-t18.mjs e2e-t19.mjs e2e-t20.mjs e2e-t24.mjs
             e2e-t25.mjs e2e-t26.mjs e2e-t27.mjs e2e-t28.mjs
             asap-semua-halaman.mjs uji-tata-letak.mjs
+            # U2 (mobile/PWA). `uji-kartu-tabel` menutup celah yang sengaja
+            # ditinggalkan `uji-tata-letak`: uji itu melewati elemen di dalam
+            # `.tabel-bungkus`, sehingga tabel yang masih berupa tabel di layar
+            # 360px selalu lolos. `uji-pwa` memeriksa manifest, service worker,
+            # dan pagar R-07 (tidak ada respons `/api` yang masuk cache).
+            uji-kartu-tabel.mjs uji-pwa.mjs
         )
 
         tutup_tab() {

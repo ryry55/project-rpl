@@ -236,7 +236,7 @@ onMounted(muat)
         </template>
 
         <div class="tabel-bungkus">
-          <table class="tabel">
+          <table class="tabel" v-kartu-tabel>
             <thead>
               <tr>
                 <th>Berlaku dari</th>

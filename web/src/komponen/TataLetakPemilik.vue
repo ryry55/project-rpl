@@ -145,15 +145,20 @@ async function keluar() {
 <template>
   <div class="tata-letak">
     <aside class="sisi">
-      <div class="merek">
-        <span class="lencana">KOS</span>
-        <div>
-          <strong>Kos-Kosan</strong>
-          <p class="mungil lemah">{{ sebutanPeran }}</p>
+      <!-- Merek dan lonceng dibungkus satu baris. Di ponsel keduanya dulu
+           bertumpuk, dan bersama menu serta blok akun mereka menghabiskan
+           360px dari 800px layar sebelum konten pertama muncul. -->
+      <div class="kepala-sisi">
+        <div class="merek">
+          <span class="lencana">KOS</span>
+          <div>
+            <strong>Kos-Kosan</strong>
+            <p class="mungil lemah">{{ sebutanPeran }}</p>
+          </div>
         </div>
-      </div>
 
-      <LoncengNotifikasi />
+        <LoncengNotifikasi />
+      </div>
 
       <nav class="menu">
         <RouterLink
@@ -174,27 +179,33 @@ async function keluar() {
       </nav>
 
       <div class="kaki">
-        <div class="akun">
-          <span class="avatar">{{ inisial || 'P' }}</span>
-          <div class="akun-teks">
-            <strong class="mungil">{{ sesi.user.value?.nama }}</strong>
-            <span class="mungil lemah">{{ sesi.user.value?.email }}</span>
+        <div class="baris-akun">
+          <div class="akun">
+            <span class="avatar">{{ inisial || 'P' }}</span>
+            <div class="akun-teks">
+              <strong class="mungil">{{ sesi.user.value?.nama }}</strong>
+              <span class="mungil lemah">{{ sesi.user.value?.email }}</span>
+            </div>
           </div>
+          <button class="halus mungil" @click="keluar">Keluar</button>
         </div>
-        <button class="halus mungil" @click="keluar">Keluar</button>
 
         <!-- Data pribadi (T28) untuk pemilik dan pengelola. Diletakkan di kaki
              samping, bukan di menu: hak atas data sendiri bukan pekerjaan atas
-             kos, dan menu yang dibuka setiap hari tidak perlu memuatnya. -->
-        <RouterLink :to="{ name: 'pengaturan-pdp' }" class="tautan-data mungil">
-          Data pribadi saya
-        </RouterLink>
-        <RouterLink
-          :to="{ name: 'atur-sandi', query: { dari: 'sesi' } }"
-          class="tautan-data mungil"
-        >
-          Ganti kata sandi
-        </RouterLink>
+             kos, dan menu yang dibuka setiap hari tidak perlu memuatnya.
+             Keduanya disejajarkan satu baris di ponsel supaya tidak menambah
+             dua baris tinggi kepala. -->
+        <div class="tautan-akun">
+          <RouterLink :to="{ name: 'pengaturan-pdp' }" class="tautan-data mungil">
+            Data pribadi saya
+          </RouterLink>
+          <RouterLink
+            :to="{ name: 'atur-sandi', query: { dari: 'sesi' } }"
+            class="tautan-data mungil"
+          >
+            Ganti kata sandi
+          </RouterLink>
+        </div>
       </div>
     </aside>
 
@@ -234,6 +245,15 @@ async function keluar() {
 
 .merek p {
   margin: 0;
+}
+
+/* Merek di kiri, lonceng di kanan. Di ponsel keduanya harus sebaris: kalau
+   bertumpuk, kepala memakan lebih dari sepertiga layar sebelum konten mulai. */
+.kepala-sisi {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .lencana {
@@ -313,6 +333,26 @@ async function keluar() {
   border-top: 1px solid var(--garis);
 }
 
+/* Akun di kiri, tombol Keluar di kanan. `min-width: 0` pada teks akun
+   mengizinkan nama panjang terpotong elipsis alih-alih mendorong tombolnya
+   keluar dari layar. */
+.baris-akun {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Dua tautan akun dalam satu deret, dipisah titik tengah. */
+.tautan-akun {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  padding: 0 4px;
+}
+
 .akun {
   display: flex;
   align-items: center;
@@ -371,7 +411,7 @@ async function keluar() {
   }
 
   .sisi {
-    gap: 14px;
+    gap: 12px;
     border-right: none;
     border-bottom: 1px solid var(--garis);
   }
@@ -380,6 +420,14 @@ async function keluar() {
     grid-auto-flow: column;
     grid-auto-columns: max-content;
     overflow-x: auto;
+    /* Batang gulir disembunyikan: di ponsel ia memakan tinggi dan tampil
+       sebagai garis abu-abu yang tidak menjelaskan apa pun. Menu tetap bisa
+       digeser; yang hilang hanya penandanya. */
+    scrollbar-width: none;
+  }
+
+  .menu::-webkit-scrollbar {
+    display: none;
   }
 
   .tautan-ket {
@@ -392,6 +440,64 @@ async function keluar() {
 
   .utama {
     padding: 20px 16px 32px;
+  }
+}
+
+/* Ponsel: kepala dipadatkan.
+ *
+ * Terukur sebelum perbaikan ini: pada viewport 360x800, kepala menghabiskan
+ * 360px - hampir setengah layar - sebelum judul halaman pertama muncul. Yang
+ * memakan tempat: merek dan lonceng bertumpuk (77px), menu, lalu blok akun
+ * empat baris (160px).
+ *
+ * Pemadatan di sini bukan sekadar mengecilkan: email disembunyikan karena ia
+ * hanya perlu dibaca sekali saat mendaftar, tombol Keluar dinaikkan sebaris
+ * dengan avatar, dan dua tautan akun dijadikan satu baris kecil. Semuanya
+ * tetap ada dan tetap bisa ditekan.
+ */
+@media (max-width: 620px) {
+  .sisi {
+    padding: 14px 12px;
+    gap: 10px;
+  }
+
+  .kaki {
+    padding-top: 10px;
+    gap: 8px;
+  }
+
+  /* Avatar + nama + Keluar dalam satu baris. `min-width: 0` pada teks
+     mengizinkan nama panjang terpotong elipsis alih-alih mendorong tombol
+     keluar dari layar. */
+  .akun {
+    gap: 8px;
+    padding: 0;
+  }
+
+  .akun-teks strong {
+    font-size: 12.5px;
+  }
+
+  /* Email disembunyikan, bukan diperkecil: alamat surel milik sendiri tidak
+     membantu apa pun saat sedang bekerja, dan barisnya menambah tinggi kepala
+     di setiap halaman. */
+  .akun-teks .lemah {
+    display: none;
+  }
+
+  /* Dua tautan akun dijadikan satu deret mendatar yang rapat. */
+  .tautan-akun {
+    padding: 0;
+    gap: 2px 12px;
+  }
+
+  .tautan-data {
+    padding: 0;
+    font-size: 12px;
+  }
+
+  .sisi :deep(.lonceng) {
+    padding: 6px 10px;
   }
 }
 </style>

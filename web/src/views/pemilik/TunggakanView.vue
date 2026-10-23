@@ -139,7 +139,7 @@ onMounted(muat)
         </header>
 
         <div class="tabel-bungkus">
-          <table class="tabel">
+          <table class="tabel" v-kartu-tabel>
             <thead>
               <tr>
                 <th>Penghuni</th>

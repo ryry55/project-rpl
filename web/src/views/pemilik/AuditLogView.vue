@@ -219,7 +219,7 @@ onMounted(muat)
 
     <section class="kartu">
       <div class="tabel-bungkus">
-        <table class="tabel tabel-audit">
+        <table class="tabel tabel-audit" v-kartu-tabel>
           <thead>
             <tr>
               <th>Waktu</th>
