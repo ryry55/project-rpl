@@ -91,6 +91,24 @@ function keluarLokal() {
   localStorage.removeItem(KUNCI_TOKEN)
 }
 
+/**
+ * Apakah pengguna yang sedang masuk punya wewenang tertentu.
+ *
+ * `wewenang` dikirim server untuk semua peran - pemilik menerima seluruh
+ * daftar, penghuni menerima daftar kosong - sehingga layar cukup bertanya
+ * "apakah `ubah_tarif` ada di sini" tanpa cabang peran. Cabang "kalau pemilik
+ * semua boleh" adalah cabang yang mudah terlupa di satu tempat dan membuat
+ * tombol pemilik menghilang tanpa sebab.
+ *
+ * Ini hanya untuk menyembunyikan tombol yang pasti ditolak. Server tetap
+ * memeriksa setiap permintaan lewat middleware `wewenang:`; menyembunyikan
+ * tombol bukan pengamanan, dan memperlakukannya sebagai pengamanan adalah cara
+ * paling umum membuat aplikasi yang tampak aman tetapi tidak.
+ */
+function boleh(wewenang) {
+  return Boolean(user.value?.wewenang?.includes(wewenang))
+}
+
 export const sesi = {
   token,
   user,
@@ -101,5 +119,6 @@ export const sesi = {
   muatSaya,
   keluar,
   keluarLokal,
+  boleh,
   sudahMasuk: computed(() => Boolean(user.value)),
 }

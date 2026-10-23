@@ -126,6 +126,17 @@ onMounted(muat)
 
     <PesanBaris v-if="galatMuat" jenis="galat">{{ galatMuat }}</PesanBaris>
 
+    <!--
+      Pengelola tanpa wewenang `ubah_kebijakan` tetap boleh membuka halaman ini
+      untuk MEMBACA cara kos ini menagih, tetapi formulirnya tidak ditampilkan:
+      server akan menolaknya 403, dan formulir yang pasti ditolak membuat orang
+      mengira aplikasinya rusak. Halaman ini juga disembunyikan dari menu, tetapi
+      alamatnya bisa dibuka langsung - jadi keadaan ini tetap harus ditangani.
+    -->
+    <PesanBaris v-if="!sesi.boleh('ubah_kebijakan')" jenis="netral">
+      Akun Anda hanya dapat membaca kebijakan kos. Menetapkannya adalah wewenang pemilik.
+    </PesanBaris>
+
     <section v-if="belumLengkap" class="kartu panel gerbang-kebijakan">
       <div class="gerbang-isi">
         <div>
@@ -172,6 +183,7 @@ onMounted(muat)
         :kolom="kolom[tipe] || {}"
         :wajib="kurang.includes(tipe)"
         :menyimpan="menyimpanTipe === tipe"
+        :boleh-ubah="sesi.boleh('ubah_kebijakan')"
         @simpan="simpan"
       />
 

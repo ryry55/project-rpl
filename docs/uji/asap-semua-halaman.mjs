@@ -276,6 +276,10 @@ jalankan(async () => {
     ['/pemilik/fasilitas', 'Fasilitas'],
     ['/pemilik/aturan', 'Aturan kos'],
     ['/pemilik/audit', 'Jejak audit'],
+    // Halaman akun pengelola (T24). Ikut disapu karena ia halaman baru, dan
+    // halaman baru adalah tempat kesalahan yang paling sering lolos - tidak
+    // ada tes per tiket lain yang membukanya.
+    ['/pemilik/pengelola', 'Pengelola'],
   ]
   for (const [jalur, nama] of halamanPemilik) {
     await kunjungi(jalur, nama)

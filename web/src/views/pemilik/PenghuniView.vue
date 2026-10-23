@@ -85,7 +85,9 @@ onMounted(muat)
         {{ daftar.length }} penghuni terdaftar. Setiap penghuni otomatis mendapat akun masuk.
       </template>
       <template #aksi>
-        <button v-if="!formTerbuka" @click="bukaForm">Tambah penghuni</button>
+        <button v-if="!formTerbuka && sesi.boleh('kelola_penghuni')" @click="bukaForm">
+          Tambah penghuni
+        </button>
       </template>
     </KepalaHalaman>
 

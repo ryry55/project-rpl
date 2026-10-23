@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\PaksaJson;
 use App\Http\Middleware\PastikanPeran;
+use App\Http\Middleware\PastikanWewenang;
 use App\Http\Middleware\SimulasiTanggal;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'peran' => PastikanPeran::class,
+            'wewenang' => PastikanWewenang::class,
         ]);
 
         // Semua /api/* selalu dijawab JSON: 401, 403, 404, 422 — tidak pernah

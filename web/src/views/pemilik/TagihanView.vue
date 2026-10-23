@@ -69,12 +69,20 @@ const totalSisa = computed(() =>
  * Menyebut tombol hanya kalau tombolnya ada. Selama gerbang kebijakan menutup,
  * tombol terbit disembunyikan, dan petunjuk lama menunjuk sesuatu yang tidak
  * bisa dilihat - pemilik mencari tombol yang memang tidak dirender.
+ *
+ * Pengelola yang tidak berwenang menerbitkan mendapat kalimat yang berbeda:
+ * menyuruhnya menekan tombol yang tidak ada, atau menyuruhnya mengisi kebijakan
+ * yang juga bukan haknya, sama-sama menyesatkan.
  */
-const pesanKosong = computed(() =>
-  kebijakanKurang.value.length
+const pesanKosong = computed(() => {
+  if (!sesi.boleh('terbitkan_tagihan')) {
+    return 'Belum ada tagihan. Penerbitan tagihan bukan wewenang akun Anda - hubungi pemilik kos.'
+  }
+
+  return kebijakanKurang.value.length
     ? 'Belum ada tagihan. Tetapkan kebijakan kos lebih dulu sebelum menerbitkan.'
-    : 'Belum ada tagihan. Terbitkan tagihan pertama lewat tombol di atas.',
-)
+    : 'Belum ada tagihan. Terbitkan tagihan pertama lewat tombol di atas.'
+})
 
 async function muat() {
   memuat.value = true
@@ -179,13 +187,19 @@ onMounted(muat)
       </template>
       <template #aksi>
         <RouterLink
-          v-if="kebijakanKurang.length"
+          v-if="kebijakanKurang.length && sesi.boleh('ubah_kebijakan')"
           class="tombol-tautan"
           :to="{ name: 'pemilik-kebijakan' }"
         >
           Isi kebijakan dulu
         </RouterLink>
-        <template v-else>
+        <!--
+          Tombol terbit hanya muncul bila memang boleh dipakai. Pengelola yang
+          bertugas mencatat pembayaran tetap membuka halaman ini untuk membaca
+          tagihan, dan menampilkan tombol yang pasti ditolak 403 akan membuatnya
+          mengira aplikasinya rusak.
+        -->
+        <template v-else-if="sesi.boleh('terbitkan_tagihan')">
           <button v-if="!massalTerbuka" class="halus" @click="massalTerbuka = true">
             Terbitkan semua
           </button>
@@ -204,8 +218,16 @@ onMounted(muat)
           <strong>{{ kebijakanKurang.join(' dan ') }}</strong>
           ditetapkan. Sistem tidak menebak kebijakan kos.
         </p>
+        <p v-if="!sesi.boleh('ubah_kebijakan')" class="bantuan">
+          Menetapkan kebijakan adalah wewenang pemilik kos, jadi akun Anda tidak bisa
+          melengkapinya sendiri.
+        </p>
       </template>
-      <RouterLink class="tombol-tautan" :to="{ name: 'pemilik-kebijakan' }">
+      <RouterLink
+        v-if="sesi.boleh('ubah_kebijakan')"
+        class="tombol-tautan"
+        :to="{ name: 'pemilik-kebijakan' }"
+      >
         Buka Kebijakan
       </RouterLink>
     </PanelKartu>

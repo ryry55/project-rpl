@@ -1,6 +1,6 @@
 # Skrip uji
 
-Lima belas berkas di folder ini menguji aplikasi dari luar: dua belas lewat
+Enam belas berkas di folder ini menguji aplikasi dari luar: tiga belas lewat
 browser sungguhan (termasuk satu yang menyapu seluruh halaman dan satu yang
 mengukur tata letak di lebar ponsel), dua menguji balapan HTTP, dan satu berkas
 bersama yang dipakai semuanya.
@@ -54,7 +54,7 @@ per tiket tidak pernah membuka halaman itu.
 
 | Berkas | Yang dibuktikan | Butuh |
 |---|---|---|
-| `uji-tata-letak.mjs` | Sembilan halaman pemilik dan portal penghuni tidak meluber mendatar pada 360px, 390px, dan 768px; emulasi lebarnya diperiksa lebih dulu supaya asersinya tidak lulus tanpa mengukur | Chrome, seed |
+| `uji-tata-letak.mjs` | Sepuluh halaman pemilik dan portal penghuni tidak meluber mendatar pada 360px, 390px, dan 768px; emulasi lebarnya diperiksa lebih dulu supaya asersinya tidak lulus tanpa mengukur | Chrome, seed |
 
 Skrip ini ada karena seluruh uji lain memeriksa isi DOM dan jawaban HTTP, tidak
 pernah ukuran. Halaman yang benar isinya tetapi lebih lebar daripada layar lolos
@@ -87,6 +87,7 @@ halaman baru dimuat, jadi harus dipasang ulang setelah `Page.navigate`.
 | `e2e-t9.mjs` | Isolasi portal penghuni (404 bukan 403), log audit hanya-baca | Chrome, seed |
 | `e2e-t18.mjs` | Fasilitas: kelola katalog, centang per kamar, dan mencentang fasilitas **tidak** membuat komponen biaya maupun baris tagihan | Chrome, seed |
 | `e2e-t19.mjs` | Aturan kos: kelola, sembunyikan lewat sakelar, dan aturan nonaktif **tidak ada sama sekali** di HTML portal penghuni | Chrome, seed |
+| `e2e-t24.mjs` | Pengelola dan wewenang: pemilik membuat akun berwewenang terbatas, pengelola masuk dan bekerja sebatas itu, dan setiap penolakan diuji dengan **menembak API langsung** memakai token pengelola �?" bukan sekadar memeriksa tombolnya hilang | Chrome, seed |
 
 ### Balapan
 
@@ -110,6 +111,20 @@ justru di bagian yang dulu disalin ke delapan berkas: regex `/15\\.000/` yang
 berarti "backslash literal" (T5, T6, T9), dan nama pemilik dari seeder yang
 ditulis tetap lalu gagal setiap kali data contoh berubah. Pakai
 `teksMemuat(teks, '15.000')`.
+
+## Dua jebakan yang sudah memakan korban
+
+**Kotak centang `v-model` butuh satu putaran di antaranya.** Dua event `change`
+yang jatuh sebelum Vue sempat render ulang sama-sama membaca array nilai yang
+**lama**, sehingga centang kedua menimpa yang pertama. Gejalanya sunyi: formulir
+terkirim, tidak ada galat, dan hanya satu dari dua wewenang yang tersimpan.
+Klik satu per satu dengan jeda ~120ms �?" itu juga yang dilakukan manusia, jadi
+yang diuji tetap perilaku pemakaian sebenarnya.
+
+**Backtick di dalam komentar pun memutus template literal.** Seluruh pemeriksaan
+DOM dikirim sebagai template literal; satu backtick di komentar membuat
+`node --check` gagal dengan pesan yang menunjuk baris yang salah. Jalankan
+`node --check` pada setiap berkas `.mjs` baru sebelum menjalankannya.
 
 ## Variabel lingkungan
 

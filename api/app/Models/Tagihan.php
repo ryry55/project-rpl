@@ -103,10 +103,16 @@ class Tagihan extends Model
      * Penghuni tanpa `penghuni_id` (akun yatim) tidak melihat apa pun: id 0
      * tidak pernah cocok dengan kontrak mana pun. Itu lebih aman daripada
      * melempar exception, karena akun seperti itu tetap bisa login.
+     *
+     * Pengelola ikut lolos seluruhnya sejak T24. Itu bukan pelonggaran R-07:
+     * pengelola memang berhak melihat semua data **milik pemiliknya**, dan
+     * karena satu instalasi hanya melayani satu kos, "milik pemiliknya" adalah
+     * seluruh isi basis data ini. Yang tetap tidak boleh adalah penghuni
+     * melihat tagihan penghuni lain - dan jalur itu tidak berubah.
      */
     public function scopeTerlihatOleh(Builder $query, User $user): Builder
     {
-        if ($user->isPemilik()) {
+        if ($user->mengurusKos()) {
             return $query;
         }
 

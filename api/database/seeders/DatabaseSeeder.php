@@ -1,7 +1,9 @@
 <?php
 
+use App\Domain\Akses\Wewenang;
 use App\Models\AturanKos;
 use App\Models\Fasilitas;
+use App\Models\PengelolaKewenangan;
 use App\Models\Penghuni;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -46,6 +48,36 @@ class DatabaseSeeder extends Seeder
                 'penghuni_id' => $penghuni->id,
             ]
         );
+
+        // Akun pengelola contoh (T24).
+        //
+        // Diberi empat wewenang harian dan sengaja TIDAK diberi `ubah_tarif`
+        // maupun `ubah_kebijakan`. Itu bukan kelengkapan demo: kalau akun
+        // contoh ini punya semua wewenang, tidak ada yang bisa diperlihatkan
+        // saat menguji pembatasan - layar akan tampak sama saja untuk semua
+        // orang, dan dosen tidak punya cara melihat bahwa pembatasannya bekerja.
+        $pengelola = User::updateOrCreate(
+            ['email' => 'pengelola@kos.test'],
+            [
+                'name' => 'Sari Pengelola',
+                'password' => Hash::make('password'),
+                'peran' => User::PERAN_PENGELOLA,
+                'penghuni_id' => null,
+                'pemilik_id' => $pemilik->id,
+            ]
+        );
+
+        foreach ([
+            Wewenang::CATAT_PEMBAYARAN,
+            Wewenang::KELOLA_KAMAR,
+            Wewenang::KELOLA_PENGHUNI,
+            Wewenang::TERBITKAN_TAGIHAN,
+        ] as $w) {
+            PengelolaKewenangan::firstOrCreate([
+                'user_id' => $pengelola->id,
+                'wewenang' => $w,
+            ]);
+        }
 
         // Sengaja TIDAK menyemai kebijakan kos maupun parameter denda.
         //
@@ -111,7 +143,8 @@ class DatabaseSeeder extends Seeder
             AturanKos::firstOrCreate(['judul' => $a['judul']], $a);
         }
 
-        $this->command?->info("Pemilik  : {$pemilik->email} / password");
-        $this->command?->info("Penghuni : {$akunPenghuni->email} / password");
+        $this->command?->info("Pemilik    : {$pemilik->email} / password");
+        $this->command?->info("Pengelola  : {$pengelola->email} / password  (tanpa ubah tarif/kebijakan)");
+        $this->command?->info("Penghuni   : {$akunPenghuni->email} / password");
     }
 }

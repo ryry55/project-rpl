@@ -1,0 +1,66 @@
+LANGKAH 5: pengelola dan wewenang (T24)
+
+Satu akun tidak cukup untuk kos 5-30 kamar, tetapi "admin" yang bisa
+apa saja juga bukan jawabannya. T24 memberi pemilik cara membuat akun
+pengelola dengan wewenang yang dipilih satu per satu.
+
+Lima keputusan yang membentuk tiket ini:
+
+1. Wewenang membatasi TINDAKAN, bukan PENGETAHUAN. Membaca kamar,
+   penghuni, kontrak, dan tagihan terbuka untuk semua pengelola; hanya
+   log audit yang dijaga `baca_audit`. Orang yang mencatat pembayaran
+   memang harus melihat nama dan nomor kamar - menyembunyikan data itu
+   membuat pekerjaannya mustahil, bukan membuatnya aman. Rute baca
+   memakai `peran:pemilik,pengelola`, rute tulis memakai
+   `wewenang:<spesifik>`.
+
+2. Memberi wewenang tidak bisa didelegasikan. `/pengelola` dan
+   `/pemilik/saja` dijaga `peran:pemilik`, karena siapa pun yang boleh
+   memberi wewenang pada dasarnya boleh memberi dirinya wewenang apa
+   pun, termasuk `ubah_tarif`.
+
+3. Mencabut akses bukan menghapus akun: peran diturunkan jadi
+   `penghuni`, `pemilik_id` dilepas, token Sanctum dihapus. Barisnya
+   tetap ada supaya jejak audit masih bisa menyebut nama orang yang
+   dulu mencatat pembayaran tertentu.
+
+4. Wewenang adalah daftar tertutup yang diperiksa kode dan basis data
+   sekaligus. `Wewenang::SEMUA` menjadi sumber untuk validasi HTTP
+   maupun CHECK constraint `pengelola_kewenangan_dikenal`;
+   `users_pengelola_wajib_pemilik` menjaga pengelola tanpa pemilik.
+
+5. `nilai_lama` di jejak audit kini benar-benar terisi lewat
+   `NilaiLama::tarif()` dan `NilaiLama::kebijakan()` - nilai yang
+   berlaku TEPAT SEBELUM baris baru, `null` untuk baris pertama.
+   Perbandingan `kamar_id` memakai `whereNull`/`where` eksplisit,
+   karena `= null` tidak pernah cocok di SQL dan jejaknya akan
+   berbohong dengan cara yang paling sulit dilihat.
+
+Backend: migrasi `pengelola_kewenangan` + kolom `users.pemilik_id`,
+`PengelolaController`, `PastikanWewenang` (pemilik selalu lolos,
+variadic OR), `PengelolaResource`, dan `UserResource` yang kini
+menyertakan wewenang hasil gabungan. Seeder memberi akun pengelola
+empat wewenang harian dan SENGAJA tidak memberi `ubah_tarif` maupun
+`ubah_kebijakan` - akun itulah yang membuat pembatasan bisa didemokan.
+
+Frontend: `PengelolaView.vue` dengan dua kelompok kotak centang
+(harian dan "menyentuh uang" yang ditandai), `sesi.boleh()`, rute
+berbasis daftar peran dengan `meta.peranSaja` untuk halaman yang tetap
+hanya pemilik, menu yang menyaring halaman formulir, dan tombol aksi
+yang sadar wewenang di seluruh layar. Semua itu hanya kesopanan -
+pemeriksaan sebenarnya ada di server.
+
+Uji: 35 tes `PengelolaTest`, termasuk penolakan yang harus 404 (bukan
+403) dan pembuktian bahwa pengelola tanpa `ubah_tarif` ditolak. E2E
+`e2e-t24.mjs` (34 langkah) menembak API langsung memakai token
+pengelola - kalau hanya tombolnya yang disembunyikan, uji itu akan
+hijau pada aplikasi yang tidak memeriksa wewenang sama sekali.
+
+Dua jebakan yang memakan waktu dan kini tercatat di docs/uji/README.md:
+dua event `change` kotak centang dalam satu tick sama-sama membaca
+array `v-model` yang lama sehingga centang kedua menimpa yang pertama
+(sunyi, tanpa galat), dan backtick di dalam komentar memutus template
+literal pemeriksaan DOM.
+
+411 tes / 2220 asersi, 16 skrip uji, pint dan eslint bersih. Guardrail
+penuh hijau dari `docker compose down -v` dalam 188 detik.

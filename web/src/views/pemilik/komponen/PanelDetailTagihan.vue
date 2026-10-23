@@ -248,7 +248,12 @@ async function catatPembayaran() {
            sisa. Menyembunyikannya karena "sudah ada hasil" akan memaksa
            pemilik menutup dan membuka ulang panel hanya untuk mencicil lagi. -->
       <div
-        v-if="detail.status !== 'lunas' && detail.status !== 'dibatalkan' && !bayarTerbuka"
+        v-if="
+          detail.status !== 'lunas' &&
+          detail.status !== 'dibatalkan' &&
+          !bayarTerbuka &&
+          sesi.boleh('catat_pembayaran')
+        "
         class="aksi"
       >
         <button class="halus mungil" @click="bukaBayar">

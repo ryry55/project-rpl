@@ -26,7 +26,14 @@ Tunggu sampai `db` berstatus sehat dan container `api` menulis `[entrypoint] sia
 | Peran | Email | Kata sandi |
 |---|---|---|
 | Pemilik | `pemilik@kos.test` | `password` |
+| Pengelola | `pengelola@kos.test` | `password` |
 | Penghuni | `penghuni@kos.test` | `password` |
+
+**Akun pengelola** diberi empat wewenang harian (mencatat pembayaran, mengelola kamar, mengelola
+penghuni, menerbitkan tagihan) dan **sengaja tidak** diberi `ubah_tarif` maupun `ubah_kebijakan`.
+Itu bukan kelalaian: akun inilah yang membuat pembatasan bisa didemokan — masuk sebagai pengelola,
+lalu buka menu Kebijakan dan Jejak audit; keduanya tidak ada, dan formulir yang tidak boleh dipakai
+memang tidak dirender.
 
 Dari keadaan bersih (tanpa volume), migrasi dan seeder berjalan otomatis. Tidak ada langkah manual.
 
@@ -46,6 +53,7 @@ node docs/uji/e2e-t7.mjs   # empat kelompok umur tunggakan
 node docs/uji/e2e-t4.mjs   # terbit massal + penolakan duplikat
 node docs/uji/e2e-t5.mjs   # catat pembayaran sebagian lalu lunas
 node docs/uji/e2e-t9.mjs   # isolasi portal penghuni + log audit pemilik
+node docs/uji/e2e-t24.mjs  # akun pengelola berwewenang terbatas + penolakan 403 di server
 ```
 
 Uji balapan (bukan browser, jadi tidak butuh Chrome):
@@ -122,6 +130,47 @@ memeriksa HTML portal agar tidak memuat judulnya sedikit pun.
 Kategori adalah teks bebas dengan saran dari server (`umum`, `kebersihan`, `keamanan`, `tamu`,
 `pembayaran`, `lainnya`). Daftar tertutup sengaja dihindari: setiap kos berbeda, dan kategori yang
 tidak terpikirkan oleh pembuat aplikasi tetap harus bisa ditulis pemilik.
+
+## Pengelola dan wewenang
+
+Pemilik kos jarang mengerjakan semuanya sendiri. Halaman **Pengelola** membuat akun untuk orang yang
+membantu — dan memberi mereka wewenang satu per satu, bukan peran "admin" yang bisa apa saja.
+
+| Wewenang | Yang dibuka |
+|---|---|
+| `catat_pembayaran` | Mencatat pembayaran masuk |
+| `verifikasi_pembayaran` | Memverifikasi bukti transfer |
+| `terbitkan_tagihan` | Menerbitkan tagihan, satuan maupun massal |
+| `kelola_kamar` | Menambah/mengubah kamar, fasilitas, aturan kos |
+| `kelola_penghuni` | Menambah penghuni dan membuat kontrak |
+| `baca_audit` | Membaca jejak audit |
+| `ubah_tarif` | **Sensitif** — mengubah angka yang ditagih |
+| `ubah_kebijakan` | **Sensitif** — mengubah cara kos menagih |
+
+Tiga keputusan yang membentuk desain ini:
+
+**Wewenang membatasi tindakan, bukan pengetahuan.** Pengelola tanpa `kelola_kamar` tetap bisa
+membaca daftar kamar, dan pengelola tanpa `catat_pembayaran` tetap bisa membaca nama penghuni. Orang
+yang mencatat pembayaran memang harus melihat nama dan nomor kamar; menyembunyikan data itu membuat
+pekerjaannya mustahil, bukan membuatnya aman. Yang ditolak adalah **menulis**, bukan **melihat**.
+
+**Memberi wewenang tidak bisa didelegasikan.** Hanya pemilik yang membuka `/pengelola`, dan endpoint
+itu dijaga `peran:pemilik` di server. Alasannya satu baris: siapa pun yang boleh memberi wewenang pada
+dasarnya boleh memberi **dirinya sendiri** wewenang apa pun, termasuk `ubah_tarif`.
+
+**Mencabut akses bukan menghapus akun.** Penghapusan menurunkan perannya menjadi `penghuni`,
+melepas `pemilik_id`, dan mencabut seluruh token Sanctum-nya. Barisnya tetap ada, karena jejak audit
+harus tetap bisa menyebut nama orang yang dulu mencatat pembayaran tertentu. Akun yang hilang membuat
+riwayatnya tidak bisa dipertanggungjawabkan.
+
+Setiap tindakan pengelola dicatat di jejak audit **dengan namanya sendiri**, bukan atas nama pemilik.
+Kolom `aktor_nama` di `log_audit` menyimpan nama saat kejadian, sehingga mengganti nama akun di
+kemudian hari tidak menulis ulang masa lalu.
+
+Di layar, tombol yang pasti ditolak tidak dirender, dan halaman yang isinya hanya formulir
+disembunyikan dari menu. Tapi itu **hanya kesopanan**: seluruh pemeriksaan sebenarnya ada di server
+lewat middleware `wewenang:`, dan `e2e-t24.mjs` membuktikannya dengan menembak API langsung memakai
+token pengelola — bukan dengan memeriksa bahwa tombolnya hilang.
 
 ## Mendemokan denda tanpa menunggu 37 hari
 
@@ -330,17 +379,21 @@ dari database demo supaya data sidang tidak pernah terhapus oleh tes.
 │   ├── app/Domain/Tarif/ PencariTarif — tarif efektif per periode (R-06 lapis 1)
 │   ├── app/Domain/Billing/ Kalkulator (murni), PenerbitTagihan, PenerbitanMassal,
 │   │                       PenghitungDenda, PencatatPembayaran
-│   ├── app/Domain/Audit/ PencatatAudit — penulis log_audit
-│   ├── app/Http/         Controller, Request, Resource, Middleware
+│   ├── app/Domain/Akses/ Wewenang — daftar tertutup wewenang pengelola + mana yang sensitif
+│   ├── app/Domain/Audit/ PencatatAudit — penulis log_audit, NilaiLama — pembanding sebelum/sesudah
+│   ├── app/Http/         Controller, Request, Resource, Middleware (termasuk PastikanWewenang)
 │   ├── app/Models/       User, Kamar, Penghuni, Kontrak, TarifSewa, KomponenBiaya,
-│   │                     Fasilitas, AturanKos, Tagihan, TagihanRincian, Pembayaran, LogAudit
+│   │                     Fasilitas, AturanKos, Tagihan, TagihanRincian, Pembayaran, LogAudit,
+│   │                     PengelolaKewenangan
 │   ├── database/migrations/  Termasuk trigger append-only untuk tabel riwayat
 │   ├── docker/php/       php.ini, opcache.ini, entrypoint.sh
 │   └── docker/nginx/     Konfigurasi nginx untuk API
 ├── web/                  Vue 3 + Vite
-│   ├── src/views/pemilik/    Kamar, Penghuni, Kontrak, Tagihan, Tunggakan, Kebijakan, Fasilitas, Aturan, AuditLog
+│   ├── src/views/pemilik/    Kamar, Penghuni, Kontrak, Tagihan, Tunggakan, Kebijakan, Fasilitas,
+│   │                         Aturan, AuditLog, Pengelola
 │   ├── src/views/DashboardPenghuni.vue  Portal penghuni (T9)
-│   ├── src/komponen/         TataLetakPemilik (sidebar + navigasi)
+│   ├── src/komponen/         TataLetakPemilik (sidebar + navigasi sadar wewenang)
+│   ├── src/sesi.js           Sesi, panggilan API, dan `boleh(wewenang)`
 │   ├── src/format.js         Rupiah, tanggal, dan ringkasan galat validasi
 │   └── docker/nginx/     Konfigurasi nginx untuk SPA
 ├── docker/postgres/      Init database pengujian
@@ -356,7 +409,7 @@ Semua respons sukses: `{ "data": ... }`. Semua error: `{ "message": "...", "erro
 | Kode | Kapan |
 |---|---|
 | 401 | Belum login / token tidak valid |
-| 403 | Peran tidak berhak |
+| 403 | Peran atau wewenang tidak berhak |
 | 404 | Tidak ada, **atau** bukan miliknya (R-07) |
 | 409 | Duplikat periode tagihan (R-02) |
 | 422 | Validasi gagal; juga pembayaran melebihi sisa atau pada tagihan yang dibatalkan |

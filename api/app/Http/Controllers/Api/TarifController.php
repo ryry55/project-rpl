@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Audit\NilaiLama;
 use App\Domain\Audit\PencatatAudit;
 use App\Domain\Tarif\PencariTarif;
 use App\Http\Controllers\Controller;
@@ -44,17 +45,33 @@ class TarifController extends Controller
 
     public function store(SimpanTarifRequest $request): JsonResponse
     {
+        $data = $request->validated();
+
         try {
-            $tarif = DB::transaction(function () use ($request) {
-                $tarif = TarifSewa::create($request->validated());
+            $tarif = DB::transaction(function () use ($data) {
+                // Baris yang digantikan: tarif terakhir yang berlaku sebelum
+                // tanggal berlaku tarif baru ini. Dicari SEBELUM baris baru
+                // dibuat, karena setelahnya "terakhir sebelum tanggal itu"
+                // akan menunjuk ke baris baru itu sendiri.
+                $sebelumnya = TarifSewa::query()
+                    ->where('kamar_id', $data['kamar_id'])
+                    ->where('berlaku_dari', '<', $data['berlaku_dari'])
+                    ->orderByDesc('berlaku_dari')
+                    ->orderByDesc('id')
+                    ->first();
+
+                $tarif = TarifSewa::create($data);
 
                 // R-06 lapis 1: perubahan tarif adalah kejadian yang harus bisa
-                // ditelusuri. Yang dicatat nilai barunya saja — baris lama tidak
-                // diubah, jadi tidak ada nilai lama pada baris ini.
+                // ditelusuri. Sejak T24 nilai lama ikut disimpan, supaya
+                // pertanyaan "dari berapa menjadi berapa" bisa dijawab dari
+                // jejak - sebelumnya kolom itu selalu kosong dan laporan hanya
+                // bisa menyebut angka barunya.
                 $this->audit->catat(
                     aksi: PencatatAudit::AKSI_TARIF_TAMBAH,
                     entitas: 'tarif_sewa',
                     entitasId: $tarif->id,
+                    nilaiLama: NilaiLama::tarif($sebelumnya),
                     nilaiBaru: [
                         'kamar_id' => $tarif->kamar_id,
                         'nilai' => (int) $tarif->nilai,

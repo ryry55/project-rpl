@@ -73,6 +73,10 @@ const HALAMAN_PEMILIK = [
   ['/pemilik/fasilitas', 'Fasilitas'],
   ['/pemilik/aturan', 'Aturan kos'],
   ['/pemilik/audit', 'Jejak audit'],
+  // Halaman pengelola (T24). Formulir wewenangnya memakai kisi dua kolom yang
+  // paling mudah meluber: label seperti "Memverifikasi pembayaran" lebih lebar
+  // daripada setengah layar 360px.
+  ['/pemilik/pengelola', 'Pengelola'],
 ]
 
 jalankan(async () => {

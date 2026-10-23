@@ -44,6 +44,15 @@ const props = defineProps({
   wajib: { type: Boolean, default: true },
   /** Sedang menyimpan; menonaktifkan tombol. */
   menyimpan: { type: Boolean, default: false },
+  /**
+   * Apakah pengguna boleh menetapkan nilai baru.
+   *
+   * Pemilik selalu boleh; pengelola hanya bila punya `ubah_kebijakan`. Formulir
+   * disembunyikan, bukan dinonaktifkan: tombol abu-abu yang tidak bisa ditekan
+   * tetap terlihat seperti sesuatu yang rusak. Yang ditampilkan hanyalah nilai
+   * yang berlaku sekarang, dan itu memang berguna dibaca siapa pun.
+   */
+  bolehUbah: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['simpan'])
@@ -213,7 +222,7 @@ function kirim() {
       </p>
     </template>
 
-    <form class="bidang" @submit.prevent="kirim">
+    <form v-if="bolehUbah" class="bidang" @submit.prevent="kirim">
       <div class="baris-bidang">
         <MedanForm id="nilai-kebijakan" label="Pilihan">
           <select id="nilai-kebijakan" v-model="nilai">

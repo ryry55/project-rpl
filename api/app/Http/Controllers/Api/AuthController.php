@@ -26,6 +26,11 @@ class AuthController extends Controller
             ])->status(401);
         }
 
+        // Dimuat lebih dulu: UserResource membaca relasi ini untuk mengisi
+        // daftar wewenang, dan tanpa eager load setiap login menjalankan satu
+        // query tambahan setelah token dibuat.
+        $user->load('kewenangan');
+
         $token = $user->createToken('spa')->plainTextToken;
 
         return response()->json([
@@ -45,6 +50,9 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json(['data' => new UserResource($request->user())]);
+        $user = $request->user();
+        $user->load('kewenangan');
+
+        return response()->json(['data' => new UserResource($user)]);
     }
 }

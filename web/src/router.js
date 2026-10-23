@@ -11,16 +11,34 @@ import AuditLogView from './views/pemilik/AuditLogView.vue'
 import KebijakanView from './views/pemilik/KebijakanView.vue'
 import FasilitasView from './views/pemilik/FasilitasView.vue'
 import AturanView from './views/pemilik/AturanView.vue'
+import PengelolaView from './views/pemilik/PengelolaView.vue'
 import DashboardPenghuni from './views/DashboardPenghuni.vue'
 import TidakDitemukanView from './views/TidakDitemukanView.vue'
 
+/**
+ * Rute di bawah `/pemilik` dipakai pemilik DAN pengelola.
+ *
+ * Awalan `pemilik` dipertahankan walaupun sekarang juga dipakai pengelola,
+ * karena mengganti namanya menjadi `/kelola` berarti mengubah semua tautan
+ * yang sudah tercatat di dokumen, tangkapan layar, dan laporan. Nama rute
+ * (`pemilik-kamar`) juga tetap: itu kunci internal, bukan yang dibaca orang.
+ *
+ * Pembatasan per wewenang TIDAK dilakukan di sini, melainkan oleh server.
+ * Router hanya tahu peran; menyembunyikan menu dilakukan TataLetakPemilik
+ * berdasarkan `sesi.user.wewenang`. Menaruh pemeriksaan wewenang di router
+ * akan membuatnya tampak seperti pengamanan padahal seluruh data tetap
+ * terkirim ke peramban.
+ */
 const routes = [
   { path: '/', redirect: '/masuk' },
   { path: '/masuk', name: 'masuk', component: LoginView, meta: { publik: true } },
   {
     path: '/pemilik',
     component: TataLetakPemilik,
-    meta: { peran: 'pemilik' },
+    // `peran` boleh berupa daftar: pemilik dan pengelola sama-sama mengurus
+    // kos ini. `meta.peranSaja` menandai halaman yang tetap hanya untuk
+    // pemilik - yaitu akun dan izin, yang tidak bisa didelegasikan.
+    meta: { peran: ['pemilik', 'pengelola'] },
     children: [
       { path: '', redirect: { name: 'pemilik-kamar' } },
       { path: 'kamar', name: 'pemilik-kamar', component: KamarView },
@@ -32,17 +50,25 @@ const routes = [
       { path: 'fasilitas', name: 'pemilik-fasilitas', component: FasilitasView },
       { path: 'aturan', name: 'pemilik-aturan', component: AturanView },
       { path: 'audit', name: 'pemilik-audit', component: AuditLogView },
+      {
+        path: 'pengelola',
+        name: 'pemilik-pengelola',
+        component: PengelolaView,
+        // Hanya pemilik: siapa pun yang boleh memberi wewenang pada dasarnya
+        // boleh memberi dirinya wewenang apa pun, termasuk mengubah tarif.
+        meta: { peranSaja: 'pemilik' },
+      },
     ],
   },
   {
     path: '/penghuni',
     name: 'penghuni',
     component: DashboardPenghuni,
-    meta: { peran: 'penghuni' },
+    meta: { peran: ['penghuni'] },
   },
   // Penangkap terakhir. Didaftarkan paling akhir supaya tidak menyerobot rute
   // mana pun; `meta.publik` membuat alamat yang salah ketik tidak dilempar ke
-  // halaman masuk lebih dulu — halaman 404 justru yang menjelaskan masalahnya.
+  // halaman masuk lebih dulu - halaman 404 justru yang menjelaskan masalahnya.
   {
     path: '/:sisa(.*)*',
     name: 'tidak-ditemukan',
@@ -55,6 +81,26 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
 })
+
+/**
+ * Halaman muka untuk satu peran.
+ *
+ * Pengelola diarahkan ke Tagihan, bukan ke Kamar: pekerjaan hariannya mencatat
+ * pembayaran dan menerbitkan tagihan, sementara kamar ia buka sekali-sekali.
+ * Mengarahkannya ke halaman yang tidak boleh ia ubah hanya membuat kesan
+ * pertama terlihat seperti aplikasi yang rusak.
+ */
+function halamanMuka(peran) {
+  if (peran === 'pemilik') {
+    return { name: 'pemilik-kamar' }
+  }
+
+  if (peran === 'pengelola') {
+    return { name: 'pemilik-tagihan' }
+  }
+
+  return { name: 'penghuni' }
+}
 
 router.beforeEach(async (to) => {
   if (to.meta.publik) {
@@ -70,12 +116,29 @@ router.beforeEach(async (to) => {
     return { name: 'masuk', query: { lanjut: to.fullPath } }
   }
 
+  const peran = sesi.user.value.peran
+
   // `meta.peran` hanya terbaca di rute induk, jadi diperiksa pada rute yang
-  // cocok beserta seluruh induknya.
+  // cocok beserta seluruh induknya. Nilainya boleh satu peran atau daftar.
   const peranDibutuhkan = to.matched.map((r) => r.meta?.peran).filter(Boolean)[0]
 
-  if (peranDibutuhkan && sesi.user.value.peran !== peranDibutuhkan) {
-    return { name: sesi.user.value.peran === 'pemilik' ? 'pemilik' : 'penghuni' }
+  if (peranDibutuhkan) {
+    const diizinkan = Array.isArray(peranDibutuhkan)
+      ? peranDibutuhkan.includes(peran)
+      : peranDibutuhkan === peran
+
+    if (!diizinkan) {
+      return halamanMuka(peran)
+    }
+  }
+
+  // Pembatasan yang lebih sempit daripada peran induknya - mis. halaman
+  // pengelola di dalam `/pemilik`. Diperiksa terpisah karena rute induk sudah
+  // menerima dua peran, sehingga tanpa ini pengelola bisa membukanya.
+  const peranSaja = to.matched.map((r) => r.meta?.peranSaja).filter(Boolean)[0]
+
+  if (peranSaja && peran !== peranSaja) {
+    return halamanMuka(peran)
   }
 
   return true

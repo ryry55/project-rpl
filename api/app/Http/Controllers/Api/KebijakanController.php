@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Audit\NilaiLama;
 use App\Domain\Audit\PencatatAudit;
 use App\Domain\Kebijakan\PenyelesaiKebijakan;
 use App\Domain\Kebijakan\PilihanKebijakan;
@@ -145,16 +146,38 @@ class KebijakanController extends Controller
 
         try {
             $kebijakan = DB::transaction(function () use ($data) {
+                // Baris yang digantikan: kebijakan terakhir untuk tipe dan
+                // kamar yang sama, berlaku sebelum tanggal yang baru. Dicari
+                // sebelum insert supaya tidak menunjuk baris baru itu sendiri.
+                //
+                // `kamar_id` dibandingkan dengan `whereNull`/`where` eksplisit,
+                // bukan `where('kamar_id', ...)`: `= null` tidak pernah cocok di
+                // SQL, sehingga kebijakan default kos akan selalu tampak "belum
+                // pernah ada" dan nilai lamanya hilang dari jejak.
+                $sebelumnya = KebijakanKos::query()
+                    ->where('tipe', $data['tipe'])
+                    ->where('berlaku_dari', '<', $data['berlaku_dari'])
+                    ->when(
+                        ($data['kamar_id'] ?? null) === null,
+                        fn ($q) => $q->whereNull('kamar_id'),
+                        fn ($q) => $q->where('kamar_id', $data['kamar_id']),
+                    )
+                    ->orderByDesc('berlaku_dari')
+                    ->orderByDesc('id')
+                    ->first();
+
                 $kebijakan = KebijakanKos::create($data);
 
                 // Kebijakan menentukan angka uang (denda, deposit), sama
                 // seperti tarif. Karena itu penambahannya dicatat: pertanyaan
                 // "sejak kapan denda kos ini 2%/hari" harus bisa dijawab dari
-                // jejak, bukan dari ingatan pemilik.
+                // jejak, bukan dari ingatan pemilik. Sejak T24 nilai lama ikut
+                // disimpan, sehingga "dari 1% menjadi 2%" bisa dibaca langsung.
                 $this->audit->catat(
                     aksi: PencatatAudit::AKSI_KEBIJAKAN_TAMBAH,
                     entitas: 'kebijakan_kos',
                     entitasId: $kebijakan->id,
+                    nilaiLama: NilaiLama::kebijakan($sebelumnya),
                     nilaiBaru: [
                         'tipe' => $kebijakan->tipe,
                         'nilai' => $kebijakan->nilai,

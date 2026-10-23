@@ -131,7 +131,9 @@ onMounted(muat)
         {{ kamarKosong.length }} kamar kosong siap ditempati.
       </template>
       <template #aksi>
-        <button v-if="!formTerbuka" @click="bukaForm">Buat kontrak</button>
+        <button v-if="!formTerbuka && sesi.boleh('kelola_penghuni')" @click="bukaForm">
+          Buat kontrak
+        </button>
       </template>
     </KepalaHalaman>
 
@@ -260,7 +262,7 @@ onMounted(muat)
               </td>
               <td class="kanan">
                 <button
-                  v-if="k.status === 'aktif'"
+                  v-if="k.status === 'aktif' && sesi.boleh('kelola_penghuni')"
                   class="halus mungil"
                   :disabled="memproses === k.id"
                   @click="akhiri(k)"

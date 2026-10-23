@@ -132,7 +132,9 @@ onMounted(muat)
         apa pun.
       </template>
       <template #aksi>
-        <button v-if="!formTerbuka" @click="bukaTambah">Tambah fasilitas</button>
+        <button v-if="!formTerbuka && sesi.boleh('kelola_kamar')" @click="bukaTambah">
+          Tambah fasilitas
+        </button>
       </template>
     </KepalaHalaman>
 
@@ -231,8 +233,11 @@ onMounted(muat)
               </td>
               <td class="kanan lemah mungil">{{ f.urutan }}</td>
               <td class="kanan aksi-baris">
-                <button class="halus mungil" @click="bukaUbah(f)">Ubah</button>
-                <button class="halus mungil" @click="mintaHapus(f)">Hapus</button>
+                <template v-if="sesi.boleh('kelola_kamar')">
+                  <button class="halus mungil" @click="bukaUbah(f)">Ubah</button>
+                  <button class="halus mungil" @click="mintaHapus(f)">Hapus</button>
+                </template>
+                <span v-else class="lemah mungil">Hanya lihat</span>
               </td>
             </tr>
             <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="5">

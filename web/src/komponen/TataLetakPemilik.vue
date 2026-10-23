@@ -6,7 +6,22 @@ import { sesi } from '../sesi.js'
 const router = useRouter()
 const route = useRoute()
 
-const menu = [
+/**
+ * Menu sidebar.
+ *
+ * `wewenang` adalah izin yang dibutuhkan untuk MEMBUKA halaman itu, bukan izin
+ * untuk memakainya. Halaman yang hanya menampilkan data dibiarkan terbuka
+ * untuk semua pengelola, karena membaca daftar kamar bukan tindakan yang
+ * merugikan siapa pun - dan pengelola yang mencatat pembayaran memang harus
+ * melihat nama penghuni.
+ *
+ * Halaman yang isinya formulir selalu ditutup wewenang: menampilkan formulir
+ * yang pasti ditolak membuat pengelola mengira aplikasinya rusak.
+ *
+ * `hanyaPemilik` dipakai untuk halaman akun dan izin. Pemberian wewenang tidak
+ * bisa didelegasikan, jadi tidak ada wewenang yang bisa membukanya.
+ */
+const semuaMenu = [
   { nama: 'kamar', label: 'Kamar', ket: 'Daftar kamar dan tarifnya' },
   { nama: 'penghuni', label: 'Penghuni', ket: 'Data penghuni dan akun masuk' },
   { nama: 'kontrak', label: 'Kontrak', ket: 'Penghuni menempati kamar' },
@@ -16,11 +31,44 @@ const menu = [
   // ini sekali di awal lalu jarang lagi, sementara Tagihan dibuka setiap bulan.
   // Fasilitas dan Aturan menyusul di sini karena alasan yang sama - keduanya
   // diisi sekali saat kos dibuka, bukan setiap bulan.
-  { nama: 'kebijakan', label: 'Kebijakan', ket: 'Satuan sewa dan jatuh tempo kos ini' },
-  { nama: 'fasilitas', label: 'Fasilitas', ket: 'Apa saja yang dimiliki tiap kamar' },
-  { nama: 'aturan', label: 'Aturan kos', ket: 'Yang dibaca penghuni di portalnya' },
-  { nama: 'audit', label: 'Jejak audit', ket: 'Siapa mengubah apa, kapan' },
+  { nama: 'kebijakan', label: 'Kebijakan', ket: 'Satuan sewa dan jatuh tempo kos ini', wewenang: 'ubah_kebijakan' },
+  { nama: 'fasilitas', label: 'Fasilitas', ket: 'Apa saja yang dimiliki tiap kamar', wewenang: 'kelola_kamar' },
+  { nama: 'aturan', label: 'Aturan kos', ket: 'Yang dibaca penghuni di portalnya', wewenang: 'kelola_kamar' },
+  { nama: 'audit', label: 'Jejak audit', ket: 'Siapa mengubah apa, kapan', wewenang: 'baca_audit' },
+  // Paling bawah karena dibuka paling jarang: sekali saat menambah orang,
+  // lalu tidak lagi.
+  { nama: 'pengelola', label: 'Pengelola', ket: 'Siapa membantu dan boleh apa', hanyaPemilik: true },
 ]
+
+const menu = computed(() =>
+  semuaMenu.filter((m) => {
+    if (m.hanyaPemilik) {
+      return sesi.user.value?.peran === 'pemilik'
+    }
+
+    if (!m.wewenang) {
+      return true
+    }
+
+    return sesi.boleh(m.wewenang)
+  }),
+)
+
+/**
+ * Sebutan peran di bawah nama kos.
+ *
+ * Pengelola melihat "Pengelola", bukan "Pemilik": kalau layar menyebutnya
+ * pemilik, ia akan mengira boleh mengubah tarif - dan baru tahu tidak setelah
+ * menekan tombol yang tidak ada.
+ */
+const sebutanPeran = computed(() => {
+  const peran = sesi.user.value?.peran
+  if (peran === 'pengelola') {
+    return 'Pengelola'
+  }
+
+  return 'Pemilik'
+})
 
 const inisial = computed(() => {
   const nama = sesi.user.value?.nama || ''
@@ -45,7 +93,7 @@ async function keluar() {
         <span class="lencana">KOS</span>
         <div>
           <strong>Kos-Kosan</strong>
-          <p class="mungil lemah">Pemilik</p>
+          <p class="mungil lemah">{{ sebutanPeran }}</p>
         </div>
       </div>
 

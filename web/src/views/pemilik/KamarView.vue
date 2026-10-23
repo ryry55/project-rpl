@@ -215,7 +215,9 @@ onMounted(muat)
         {{ daftar.length }} kamar · {{ jumlahTerisi }} terisi · {{ jumlahKosong }} kosong
       </template>
       <template #aksi>
-        <button v-if="!formTerbuka" @click="bukaForm">Tambah kamar</button>
+        <button v-if="!formTerbuka && sesi.boleh('kelola_kamar')" @click="bukaForm">
+          Tambah kamar
+        </button>
       </template>
     </KepalaHalaman>
 
@@ -418,8 +420,29 @@ onMounted(muat)
                 <span v-else class="lemah mungil">Belum ditetapkan</span>
               </td>
               <td class="kanan aksi-baris">
-                <button class="halus mungil" @click="bukaTarif(k)">Atur tarif</button>
-                <button class="halus mungil" @click="bukaFasilitas(k)">Fasilitas</button>
+                <!-- Tombol tarif butuh wewenang tersendiri: mengubah angka uang
+                     bukan bagian dari mengelola kamar. Menyembunyikannya lebih
+                     jujur daripada menampilkannya lalu menolak dengan 403. -->
+                <button
+                  v-if="sesi.boleh('ubah_tarif')"
+                  class="halus mungil"
+                  @click="bukaTarif(k)"
+                >
+                  Atur tarif
+                </button>
+                <button
+                  v-if="sesi.boleh('kelola_kamar')"
+                  class="halus mungil"
+                  @click="bukaFasilitas(k)"
+                >
+                  Fasilitas
+                </button>
+                <span
+                  v-if="!sesi.boleh('ubah_tarif') && !sesi.boleh('kelola_kamar')"
+                  class="lemah mungil"
+                >
+                  Hanya lihat
+                </span>
               </td>
             </tr>
             <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="7">
