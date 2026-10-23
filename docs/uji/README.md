@@ -116,13 +116,32 @@ muncul kalau ia menunggu transaksi pertama commit lalu membaca ulang.
 
 | Berkas | Isi |
 |---|---|
-| `_cdp.mjs` | Helper CDP: `mulaiUji`, `masukSebagai`, `panggilApi`, `teksMemuat`, `tangkapLayar`, `bersihkanTab`, `aktifkanAkun`, `tautanAkunTerakhir`, `panggilApiPublik` |
+| `_cdp.mjs` | Helper CDP: `mulaiUji`, `masukSebagai`, `panggilApi`, `teksMemuat`, `tangkapLayar`, `bersihkanTab`, `aktifkanAkun`, `tautanAkunTerakhir`, `panggilApiPublik`, `lewatiPersetujuanPdp` |
 
 **Jangan menyalin helper CDP ke berkas baru.** Dua kesalahan berulang lahir
 justru di bagian yang dulu disalin ke delapan berkas: regex `/15\\.000/` yang
 berarti "backslash literal" (T5, T6, T9), dan nama pemilik dari seeder yang
 ditulis tetap lalu gagal setiap kali data contoh berubah. Pakai
 `teksMemuat(teks, '15.000')`.
+
+### Pemeriksa profil dan rilis
+
+Dua berkas shell, bukan `.mjs`, karena yang diperiksa bukan aplikasi yang
+sedang berjalan melainkan berkas dan lingkungannya.
+
+| Berkas | Yang diperiksa | Butuh |
+|---|---|---|
+| `periksa-profil-produksi.sh` | `docker-compose.prod.yml` benar-benar mematikan debug, mode demo, dan seeder; tidak ada `migrate:fresh`; tidak ada port tambahan; lapisan compose diterima dan menimpa nilai dasarnya | Docker (untuk memeriksa gabungan) |
+| `smoke-produksi.sh` | Dijalankan SESUDAH deploy: `/api/health` 200 dengan database `ok`, akun demo tidak bisa masuk, `X-Simulasi-Dipakai` menjawab `false`, CORS tidak menjawab `*` | aplikasi yang hidup di URL mana pun |
+
+Keduanya **dibuktikan bisa gagal**, bukan hanya bisa lulus. Dijalankan terhadap
+profil demo, `smoke-produksi.sh` gagal pada enam pemeriksaan; terhadap
+`docker-compose.prod.yml`, ia lulus. Pemeriksaan yang tidak pernah terbukti bisa
+gagal bukan pemeriksaan - ia hanya upacara.
+
+`periksa-profil-produksi.sh` tidak bisa menjadi tes PHPUnit: berkasnya berada di
+akar repo, sedangkan image api hanya berisi direktori `api/`. Tes yang berjalan
+di dalam container tidak akan pernah bisa membacanya.
 
 ## Tiga jebakan yang sudah memakan korban
 

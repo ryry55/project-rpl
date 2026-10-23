@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------------------
+# Yang TIDAK boleh ikut ke dalam build context web.
+#
+# Yang paling penting di sini adalah `node_modules/`. Build context dikirim ke
+# daemon Docker lebih dulu, baru kemudian `COPY . .` berjalan - jadi tanpa
+# berkas ini direktori node_modules milik HOST (puluhan ribu berkas, ratusan
+# megabita, dengan biner esbuild untuk Windows) tersalin ke dalam image dan
+# MENIMPA node_modules yang baru saja dipasang untuk Linux di dalam container.
+# `npm run build` lalu menjalankan biner yang salah.
+#
+# `dist/` juga dilewatkan: hasil build host adalah keluaran, bukan masukan.
+# Yang dibangun di dalam image harus berasal dari src/ yang ada di commit ini.
+# ---------------------------------------------------------------------------
+
+node_modules/
+dist/
+
+.env
+.env.*
+!.env.example
+
+.git/
+.gitignore
+.gitattributes
+
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/

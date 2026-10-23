@@ -1,0 +1,221 @@
+# ---------------------------------------------------------------------------
+# T31 - Build image dan deploy.
+#
+# Rangkaian ini dipisahkan dari `uji.yml` karena pertanyaannya berbeda:
+# `uji.yml` bertanya "apakah kode ini benar", sedangkan berkas ini bertanya
+# "apakah kode yang sudah benar ini bisa dikirim ke tempat orang memakainya".
+# Menggabungkannya membuat setiap push ke cabang memasang artefak.
+#
+# Empat aturan yang tidak boleh dilanggar, dan alasan masing-masing:
+#
+#   1. **Rilis hanya dari tag atau pemicu manual.** Push biasa ke main tidak
+#      menghasilkan artefak rilis. `uji.yml` sudah membangun image pada setiap
+#      push, jadi jalur build sudah dibuktikan; yang belum dibuktikan hanyalah
+#      "bisakah artefaknya didorong dan dipasang", dan itu hanya relevan saat
+#      rilis.
+#   2. **`migrate --force`, tidak pernah `migrate:fresh`.** Satu perintah
+#      `fresh` menghapus seluruh tagihan dan pembayaran. Tidak ada satu pun
+#      keadaan deploy yang membutuhkannya, dan kesalahan itu tidak bisa
+#      dibatalkan dari backup yang belum dibuat.
+#   3. **Staging lebih dulu, produksi sesudahnya.** Deploy langsung ke produksi
+#      berarti setiap kesalahan pertama kali ditemukan oleh pemilik kos, bukan
+#      oleh pipa ini.
+#   4. **Smoke test sesudah deploy.** Deploy yang "berhasil" tetapi aplikasinya
+#      menjawab 500 bukan deploy yang berhasil. Yang diperiksa adalah
+#      `/api/health` - endpoint yang menyentuh database, sehingga 200 berarti
+#      "aplikasi DAN migrasinya siap", bukan sekadar "prosesnya hidup".
+#
+# Endpoint produksi (Render + Neon) baru ada di LANGKAH 11. Sampai saat itu
+# job deploy IDLE, bukan gagal: ia memeriksa apakah rahasianya ada, dan bila
+# belum, ia berhenti dengan pesan yang menyebut apa yang harus diisi. Workflow
+# yang selalu merah karena rahasia yang memang belum ada akan diabaikan orang,
+# dan setelah diabaikan ia tidak lagi menjaga apa pun.
+# ---------------------------------------------------------------------------
+
+name: Rilis
+
+on:
+  # Hanya tag rilis dan pemicu manual. Push biasa ke main TIDAK membangun
+  # artefak rilis, karena dua alasan:
+  #
+  #   1. `uji.yml` sudah berjalan pada setiap push ke main, dan di dalamnya
+  #      image benar-benar dibangun lewat docker compose. Artinya jalur build
+  #      sudah dibuktikan pada setiap push - yang belum dibuktikan hanyalah
+  #      "bisakah artefaknya didorong dan dipasang", dan itu memang hanya
+  #      relevan saat rilis.
+  #   2. Kalau berkas ini juga berjalan pada push ke main, ia memanggil
+  #      `uji.yml` lagi - sehingga setiap push menjalankan 594 tes dua kali.
+  #      Menit runner gratis terbatas, dan uji yang dijalankan karena
+  #      kebetulan bukan uji yang dipercaya.
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      lewati_uji:
+        description: 'Lewati uji sebelum rilis (hanya untuk keadaan darurat)'
+        type: boolean
+        default: false
+
+concurrency:
+  # Deploy tidak boleh berjalan bersamaan: dua deploy yang tumpang tindih
+  # membuat migrasi dan smoke test saling menimpa, dan hasil akhirnya tidak
+  # bisa dijelaskan oleh log mana pun. `cancel-in-progress: false` disengaja -
+  # membatalkan deploy yang sedang berjalan bisa meninggalkan layanan di
+  # tengah migrasi.
+  group: rilis
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  # -------------------------------------------------------------------------
+  # Memanggil ulang pipeline uji. Rilis tidak boleh berjalan di atas kode yang
+  # belum lulus - dan memanggil ulang, bukan menyalin langkahnya, berarti tidak
+  # ada rangkaian uji kedua yang bisa berbeda pendapat.
+  # -------------------------------------------------------------------------
+  uji:
+    name: Uji sebelum rilis
+    if: github.event.inputs.lewati_uji != 'true'
+    uses: ./.github/workflows/uji.yml
+
+  # -------------------------------------------------------------------------
+  # Bangun dan dorong ke registry.
+  # -------------------------------------------------------------------------
+  bangun:
+    name: Bangun dan dorong image
+    runs-on: ubuntu-latest
+    needs: [uji]
+    # `needs: uji` yang di-skip (karena lewati_uji) akan membuat job ini
+    # ter-skip juga. `always()` menjaga rilis darurat tetap bisa jalan.
+    if: always() && (needs.uji.result == 'success' || github.event.inputs.lewati_uji == 'true')
+    timeout-minutes: 30
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      digest_api: ${{ steps.build_api.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Siapkan Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Masuk ke GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tentukan tag
+        id: meta
+        run: |
+          # Tag yang mudah dibaca manusia DAN bisa dilacak ke commit:
+          # `v1.2.3` untuk tag git, `sha-<pendek>` untuk push biasa.
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            TAG="${GITHUB_REF_NAME}"
+          else
+            TAG="sha-${GITHUB_SHA::7}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Tag: ${TAG}"
+
+          # GHCR menolak nama image yang mengandung huruf besar, sedangkan
+          # nama repositori GitHub boleh mengandung huruf besar. `${VAR,,}`
+          # adalah lowercasing bash, jadi `ryry55/Project-RPL` tetap sah
+          # sebagai `ghcr.io/ryry55/project-rpl/api`. Dihitung di sini, sekali,
+          # supaya langkah build dan ringkasan memakai nama yang sama persis.
+          REPO="${GITHUB_REPOSITORY,,}"
+          echo "image_api=${REPO}/api" >> "$GITHUB_OUTPUT"
+          echo "image_web=${REPO}/web" >> "$GITHUB_OUTPUT"
+
+      - name: Bangun dan dorong image API
+        id: build_api
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.meta.outputs.image_api }}:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ steps.meta.outputs.image_api }}:latest
+          # Cache lintas jalan: tanpa ini setiap rilis memasang ulang PHP,
+          # ekstensinya, dan seluruh dependensi composer.
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.title=Kos-Kosan API
+
+      - name: Bangun dan dorong image SPA
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.meta.outputs.image_web }}:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ steps.meta.outputs.image_web }}:latest
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.title=Kos-Kosan Web
+
+      - name: Ringkasan
+        run: |
+          {
+            echo "### Image terbangun"
+            echo ""
+            echo "| Image | Tag |"
+            echo "|---|---|"
+            echo "| \`${IMAGE_API}\` | \`${TAG}\` |"
+            echo "| \`${IMAGE_WEB}\` | \`${TAG}\` |"
+            echo ""
+            echo "Commit: \`${GITHUB_SHA}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          IMAGE_API: ${{ steps.meta.outputs.image_api }}
+          IMAGE_WEB: ${{ steps.meta.outputs.image_web }}
+
+  # -------------------------------------------------------------------------
+  # Deploy. Staging lebih dulu, produksi hanya bila staging hijau.
+  #
+  # Kenapa berurutan dan bukan dua job yang berjalan bersamaan: produksi
+  # adalah satu-satunya lingkungan yang tidak bisa diulang. Bila keduanya
+  # berjalan bersamaan, kesalahan yang sama sampai ke pemilik kos pada menit
+  # yang sama saat ia muncul di staging - dan staging kehilangan gunanya.
+  #
+  # Keduanya memakai deploy.yml yang SAMA. Satu badan deploy, dua lingkungan,
+  # nilai berbeda dari GitHub Environments. Menyalin badan itu dua kali berarti
+  # perbaikan pada salinan pertama tidak sampai ke yang kedua.
+  # -------------------------------------------------------------------------
+  staging:
+    name: Deploy staging
+    needs: [bangun]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      lingkungan: staging
+      tag: ${{ needs.bangun.outputs.tag }}
+    secrets: inherit
+
+  produksi:
+    name: Deploy produksi
+    needs: [bangun, staging]
+    # Hanya bila staging benar-benar hijau. `success()` bukan sekadar
+    # `needs` terpenuhi: staging yang GAGAL harus menghentikan produksi,
+    # sedangkan staging yang ter-skip karena targetnya belum dikonfigurasi
+    # (LANGKAH 11) tidak boleh memblokir apa pun - keduanya dibedakan di sini.
+    if: |
+      always()
+      && needs.bangun.result == 'success'
+      && (needs.staging.result == 'success' || needs.staging.result == 'skipped')
+    uses: ./.github/workflows/deploy.yml
+    with:
+      lingkungan: production
+      tag: ${{ needs.bangun.outputs.tag }}
+    secrets: inherit

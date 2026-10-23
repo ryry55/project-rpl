@@ -318,4 +318,105 @@ class OperasionalTest extends TestCase
         // ponsel yang jarang dibuka, cukup pendek untuk membatasi token bocor.
         $this->assertSame(60 * 24 * 14, config('sanctum.expiration'));
     }
+
+    // --- CORS (T31) ---------------------------------------------------------
+    //
+    // CORS sebelumnya ditulis tetap `['*']` di berkas konfigurasi. Untuk demo
+    // itu tidak terasa salah - SPA dan API memang beda port di satu laptop.
+    // Di produksi artinya situs mana pun boleh membaca jawaban API. Karena
+    // nilainya sekarang bergantung pada environment, ia perlu diuji dengan
+    // environment yang diubah, bukan hanya dibaca dari berkas.
+
+    /** Nilai `allowed_origins` untuk environment tertentu. */
+    private function originCors(array $env): array
+    {
+        // config/cors.php dibaca ulang dengan environment yang diminta.
+        // `config()` tidak bisa dipakai: nilainya sudah dimuat sekali saat
+        // aplikasi boot, dan yang diuji justru percabangan di dalam berkasnya.
+        $lama = [];
+        foreach (array_keys($env) as $kunci) {
+            $lama[$kunci] = [$_ENV[$kunci] ?? null, $_SERVER[$kunci] ?? null];
+            $_ENV[$kunci] = $env[$kunci];
+            $_SERVER[$kunci] = $env[$kunci];
+        }
+
+        try {
+            /** @var array<string, mixed> $konfig */
+            $konfig = require base_path('config/cors.php');
+
+            return $konfig['allowed_origins'];
+        } finally {
+            foreach ($lama as $kunci => [$envLama, $serverLama]) {
+                if ($envLama === null) {
+                    unset($_ENV[$kunci]);
+                } else {
+                    $_ENV[$kunci] = $envLama;
+                }
+                if ($serverLama === null) {
+                    unset($_SERVER[$kunci]);
+                } else {
+                    $_SERVER[$kunci] = $serverLama;
+                }
+            }
+        }
+    }
+
+    public function test_cors_terbuka_di_luar_produksi(): void
+    {
+        // Bukan kelalaian: SPA lokal dilayani dari port 3000 dan API dari 8081,
+        // jadi origin-nya memang berbeda dan harus diizinkan.
+        $this->assertSame(['*'], $this->originCors([
+            'APP_ENV' => 'local',
+            'APP_URL' => 'http://localhost:8081',
+            'CORS_ALLOWED_ORIGINS' => '',
+        ]));
+    }
+
+    public function test_cors_di_produksi_jatuh_ke_app_url_bukan_bintang(): void
+    {
+        // Inilah yang menutup bahayanya. Bila variabel CORS lupa diisi saat
+        // deploy, jawabannya harus SATU origin - aplikasi itu sendiri - bukan
+        // `*`. Nilai bawaan yang aman tidak bisa terlupa; nilai bawaan yang
+        // berbahaya akan terlupa tepat sekali.
+        $this->assertSame(['https://kos-kosan.my.id'], $this->originCors([
+            'APP_ENV' => 'production',
+            'APP_URL' => 'https://kos-kosan.my.id',
+            'CORS_ALLOWED_ORIGINS' => '',
+        ]));
+    }
+
+    public function test_cors_di_produksi_menghormati_daftar_eksplisit(): void
+    {
+        $this->assertSame(
+            ['https://kos-kosan.my.id', 'https://admin.kos-kosan.my.id'],
+            $this->originCors([
+                'APP_ENV' => 'production',
+                'APP_URL' => 'https://kos-kosan.my.id',
+                'CORS_ALLOWED_ORIGINS' => 'https://kos-kosan.my.id, https://admin.kos-kosan.my.id',
+            ]),
+        );
+    }
+
+    public function test_cors_di_produksi_tanpa_app_url_menolak_semua_origin_lintas_situs(): void
+    {
+        // Menebak di sini berarti membuka. Daftar kosong membuat browser
+        // menolak setiap origin asing, sedangkan SPA tetap bekerja karena ia
+        // satu origin dengan API dan tidak membuat permintaan lintas-origin.
+        $this->assertSame([], $this->originCors([
+            'APP_ENV' => 'production',
+            'APP_URL' => '',
+            'CORS_ALLOWED_ORIGINS' => '',
+        ]));
+    }
+
+    // --- Profil produksi (T31) ----------------------------------------------
+    //
+    // Diperiksa oleh `docs/uji/periksa-profil-produksi.sh`, bukan di sini.
+    // Alasannya teknis dan bukan pilihan gaya: `docker-compose.prod.yml` berada
+    // di akar repo, sedangkan image api hanya berisi direktori `api/`. Tes yang
+    // berjalan di dalam container karena itu tidak bisa membacanya - dan
+    // `dirname(base_path())` menunjuk ke `/var/www`, bukan ke akar repo.
+    //
+    // Yang diuji di sini tetap yang memang hidup di dalam image: nilai CORS
+    // yang dibaca `config/cors.php`.
 }

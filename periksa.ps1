@@ -159,7 +159,34 @@ if (Test-Path web\node_modules) {
     Write-Host '  dilewati: web\node_modules belum ada (cd web; npm install)' -ForegroundColor Yellow
 }
 
-# --- 6. Uji browser ---------------------------------------------------------
+# --- 6. Profil produksi -----------------------------------------------------
+# Berkas profil yang ada tetapi nilainya salah lebih berbahaya daripada yang
+# tidak ada: ia membuat orang mengira pagarnya sudah terpasang. Diperiksa di
+# sini karena `docker-compose.prod.yml` berada di akar repo - di luar build
+# context image api, sehingga tes PHPUnit tidak bisa membacanya.
+#
+# Pemeriksanya ditulis dalam bash karena berkas yang sama dipakai CI (Linux).
+# Bila bash tidak ada di mesin ini, langkahnya DILEWATI dengan peringatan -
+# bukan dilaporkan lulus, karena melaporkan lulus berarti mengaku memeriksa
+# sesuatu yang tidak diperiksa.
+if (-not $Cepat) {
+    Judul 'Profil produksi'
+    $adaBash = $null -ne (Get-Command bash -ErrorAction SilentlyContinue)
+    if (-not $adaBash) {
+        Write-Host '  dilewati: bash tidak ada di PATH (dipakai CI, bukan langkah wajib di Windows)' -ForegroundColor Yellow
+    } elseif (Test-Path docs/uji/periksa-profil-produksi.sh) {
+        $keluaranProfil = bash docs/uji/periksa-profil-produksi.sh 2>&1
+        $profilOk = $LASTEXITCODE -eq 0
+        Catat 'profil produksi menutup tiga bahaya' $profilOk
+        if (-not $profilOk) {
+            $keluaranProfil | Select-String -Pattern '^  - ' | ForEach-Object { Write-Host ('    ' + $_.Line) }
+        }
+    } else {
+        Catat 'profil produksi menutup tiga bahaya' $false 'docs/uji/periksa-profil-produksi.sh tidak ada'
+    }
+}
+
+# --- 7. Uji browser ---------------------------------------------------------
 if (-not $Cepat) {
     Judul 'Uji browser (E2E)'
 
@@ -182,16 +209,21 @@ if (-not $Cepat) {
     }
     Catat 'sintaks seluruh skrip uji' ($rusak.Count -eq 0) $(if ($rusak.Count -eq 0) { '' } else { 'rusak: ' + ($rusak -join ', ') })
 
+    # Endpoint CDP dibaca dari lingkungan, sama seperti skrip Node di bawah.
+    # Tanpa ini, mengeset CDP_BASE membuat pemeriksaan hidup dan pembersihan
+    # tab menunjuk browser yang berbeda dari yang dipakai skrip uji.
+    $cdpBase = if ($env:CDP_BASE) { $env:CDP_BASE } else { 'http://127.0.0.1:9222' }
+
     $chromeHidup = $false
     try {
-        Invoke-RestMethod -Uri 'http://127.0.0.1:9222/json/version' -TimeoutSec 3 | Out-Null
+        Invoke-RestMethod -Uri "$cdpBase/json/version" -TimeoutSec 3 | Out-Null
         $chromeHidup = $true
     } catch {
-        Catat 'Chrome dengan --remote-debugging-port=9222' $false 'uji browser dilewati'
+        Catat "Chrome di $cdpBase" $false 'uji browser dilewati'
     }
 
     if ($chromeHidup) {
-        Catat 'Chrome dengan --remote-debugging-port=9222' $true
+        Catat "Chrome di $cdpBase" $true
 
         # Skrip berikut MENGUBAH database demo, jadi database di-seed ulang
         # sebelum masing-masing dijalankan.
@@ -207,13 +239,18 @@ if (-not $Cepat) {
             # Tab yatim dari percobaan sebelumnya membuat langkah login gagal
             # karena alasan yang tidak ada hubungannya dengan aplikasi.
             try {
-                $tabs = Invoke-RestMethod -Uri 'http://127.0.0.1:9222/json/list' -TimeoutSec 5
+                $tabs = Invoke-RestMethod -Uri "$cdpBase/json/list" -TimeoutSec 5
                 $tabs | Where-Object { $_.type -eq 'page' } | ForEach-Object {
-                    Invoke-RestMethod -Uri ("http://127.0.0.1:9222/json/close/" + $_.id) -TimeoutSec 5 | Out-Null
+                    Invoke-RestMethod -Uri ("$cdpBase/json/close/" + $_.id) -TimeoutSec 5 | Out-Null
                 }
             } catch { }
 
             docker compose exec -T api php artisan migrate:fresh --seed 2>&1 | Out-Null
+            # Cache ikut dibersihkan, bukan hanya database. Pembatas percobaan
+            # masuk menyimpan hitungannya di cache, dan migrate:fresh tidak
+            # menyentuhnya - sehingga kegagalan login yang disengaja oleh satu
+            # skrip membuat skrip berikutnya menerima 429 pada login yang BENAR.
+            docker compose exec -T api php artisan cache:clear 2>&1 | Out-Null
 
             $hasil = node "docs/uji/$s" 2>&1
             $akhir = ($hasil | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
@@ -226,6 +263,7 @@ if (-not $Cepat) {
         Judul 'Uji balapan'
         foreach ($s in @('uji-balapan-t4.mjs', 'uji-balapan-t5.mjs')) {
             docker compose exec -T api php artisan migrate:fresh --seed 2>&1 | Out-Null
+            docker compose exec -T api php artisan cache:clear 2>&1 | Out-Null
             $hasil = node "docs/uji/$s" 2>&1
             $akhir = ($hasil | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
             Catat $s ($LASTEXITCODE -eq 0) $(if ($akhir) { $akhir } else { '' })

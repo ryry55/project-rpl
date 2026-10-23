@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Domain\Akses\Wewenang;
+use App\Domain\Akun\PembatasMasuk;
 use App\Mail\TautanAkunKos;
 use App\Models\PengelolaKewenangan;
 use App\Models\Penghuni;
@@ -11,6 +12,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
 /**
@@ -512,6 +514,41 @@ class AktivasiAkunTest extends TestCase
                 'password' => 'salah',
             ])->assertStatus(401);
         }
+    }
+
+    public function test_hitungan_lapis_per_menit_kedaluwarsa_dalam_satu_menit(): void
+    {
+        $this->buatPenghuniAktifLewatBasisData();
+
+        // Tiga kegagalan: cukup untuk menaikkan kedua lapis, belum cukup
+        // untuk memicu 429 di lapis mana pun.
+        for ($i = 0; $i < 3; $i++) {
+            $this->postJson('/api/login', [
+                'email' => 'budi@kos.test',
+                'password' => 'salah',
+            ])->assertStatus(401);
+        }
+
+        $pasangan = new PembatasMasuk;
+        $ipPair = 'masuk:budi@kos.test|127.0.0.1';
+        $emailKey = 'masuk-email:budi@kos.test';
+
+        // Lapis pasangan memakai umur SATU MENIT. Kalau ia memakai 3600 detik
+        // seperti lapis per-jam, pengguna yang salah ketik lima kali terkunci
+        // satu jam - dan pesannya menjanjikan "tunggu sebentar".
+        $this->assertLessThanOrEqual(
+            PembatasMasuk::DETIK_PER_MENIT,
+            RateLimiter::availableIn($ipPair),
+            'Hitungan lapis per-menit tidak boleh hidup lebih lama dari satu menit.',
+        );
+
+        // Lapis per-jam memang berumur satu jam: ia yang menghentikan tebakan
+        // lambat lintas IP, dan memperpendeknya membuatnya tidak berguna.
+        $this->assertGreaterThan(
+            PembatasMasuk::DETIK_PER_MENIT,
+            RateLimiter::availableIn($emailKey),
+            'Hitungan lapis per-jam seharusnya bertahan lebih dari satu menit.',
+        );
     }
 
     public function test_permintaan_tautan_dibatasi_tiga_per_jam(): void

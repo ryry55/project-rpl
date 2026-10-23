@@ -1,0 +1,55 @@
+# ---------------------------------------------------------------------------
+# Yang TIDAK boleh ikut ke dalam image api.
+#
+# Sebelum berkas ini ada, `COPY . .` di Dockerfile menyalin SELURUH direktori
+# api ke image - termasuk `api/.env`. Akibatnya bukan sekadar image lebih besar:
+# rahasia yang seharusnya hidup di mesin tempat aplikasi berjalan ikut
+# terpanggang ke dalam artefak yang dibagikan, diunggah ke registry, dan
+# diunduh siapa pun yang bisa menariknya. Variabel yang sama sekali tidak
+# dipakai kode pun bisa menimpa nilai yang benar di container tujuan, karena
+# berkas .env ikut terbaca Laravel.
+#
+# Yang dilewatkan di sini hanya yang MEMANG dipasang ulang di dalam image
+# (vendor lewat composer install, .env lewat entrypoint) atau yang tidak
+# berguna sama sekali di Linux (cache editor, .git).
+# ---------------------------------------------------------------------------
+
+# --- Rahasia ---------------------------------------------------------------
+# `.env.example` sengaja DIPERTAHANKAN: entrypoint menyalinnya menjadi `.env`
+# lalu mengisi APP_KEY sendiri. Tanpa berkas itu container tidak bisa start.
+.env
+.env.*
+!.env.example
+
+# --- Dependensi ------------------------------------------------------------
+# Dipasang ulang oleh `composer install` di dalam Dockerfile. Kalau direktori
+# host ikut tersalin, ia menimpa hasil install itu - dan vendor yang dibuat di
+# Windows berisi jalur absolut Windows yang tidak ada di dalam container.
+vendor/
+
+# --- Kontrol versi ---------------------------------------------------------
+# Riwayat git tidak dipakai aplikasi. pint --dirty juga tidak dipakai di sini
+# (periksa.sh memakai `pint --test` pada SELURUH kode), jadi .git tidak perlu.
+.git/
+.gitignore
+.gitattributes
+
+# --- Berkas yang berubah saat aplikasi berjalan ----------------------------
+# Isinya dibuat oleh aplikasi di dalam container. Menyalin versi host berarti
+# ikut membawa log dan cache dari mesin pengembang.
+storage/logs/*.log
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*.php
+
+# --- Sisa alat pengembangan -----------------------------------------------
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+.phpunit.result.cache
+.phpunit.cache/

@@ -39,6 +39,12 @@ class PembatasMasuk
 
     public const MAKS_PER_JAM = 20;
 
+    /** Umur hitungan lapis per-menit. */
+    public const DETIK_PER_MENIT = 60;
+
+    /** Umur hitungan lapis per-jam. */
+    public const DETIK_PER_JAM = 3600;
+
     /**
      * Hash tiruan untuk menyamakan waktu, dibuat sekali per proses.
      *
@@ -53,8 +59,8 @@ class PembatasMasuk
      */
     public function tungguSebelum(string $email, string $ip): int
     {
-        foreach ($this->kunci($email, $ip) as $kunci => $batas) {
-            if (RateLimiter::tooManyAttempts($kunci, $batas)) {
+        foreach ($this->kunci($email, $ip) as $kunci => $aturan) {
+            if (RateLimiter::tooManyAttempts($kunci, $aturan['batas'])) {
                 return RateLimiter::availableIn($kunci);
             }
         }
@@ -64,8 +70,8 @@ class PembatasMasuk
 
     public function catatGagal(string $email, string $ip): void
     {
-        foreach (array_keys($this->kunci($email, $ip)) as $kunci) {
-            RateLimiter::hit($kunci, 3600);
+        foreach ($this->kunci($email, $ip) as $kunci => $aturan) {
+            RateLimiter::hit($kunci, $aturan['detik']);
         }
     }
 
@@ -83,13 +89,28 @@ class PembatasMasuk
     }
 
     /**
-     * @return array<string, int> kunci => batas
+     * Aturan per lapis: batas percobaan dan umur hitungannya.
+     *
+     * Dua nilai ini HARUS berpasangan. Lapis per-menit yang umurnya satu jam
+     * bukan lapis per-menit: pengguna yang salah ketik lima kali akan terkunci
+     * selama satu jam, dan pesannya berbunyi "coba lagi dalam 59 menit" - jauh
+     * dari maksud "tunggu sebentar". Bug ini sempat lolos karena `hit()` dulu
+     * dipanggil dengan 3600 untuk KEDUA lapis, sehingga batas 5 kali yang
+     * dimaksudkan per menit berlaku per jam.
+     *
+     * @return array<string, array{batas: int, detik: int}>
      */
     private function kunci(string $email, string $ip): array
     {
         return [
-            $this->kunciPasangan($email, $ip) => self::MAKS_PER_MENIT,
-            $this->kunciEmail($email) => self::MAKS_PER_JAM,
+            $this->kunciPasangan($email, $ip) => [
+                'batas' => self::MAKS_PER_MENIT,
+                'detik' => self::DETIK_PER_MENIT,
+            ],
+            $this->kunciEmail($email) => [
+                'batas' => self::MAKS_PER_JAM,
+                'detik' => self::DETIK_PER_JAM,
+            ],
         ];
     }
 

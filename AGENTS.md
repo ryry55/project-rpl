@@ -25,7 +25,26 @@ Ia menjalankan build image, tes PHP, pint, lalu seluruh uji browser dan uji bala
 urutan langkahnya menentukan, dan salah urutan menghasilkan hijau yang menyesatkan
 (lihat di bawah).
 
-### Enam jebakan yang sudah menggigit
+### CI/CD
+
+Tiga workflow di `.github/workflows/`: `uji.yml` (kebenaran kode - lint lalu 599
+tes PHP lalu 18 skrip browser di Chrome headless), `rilis.yml` (bangun image,
+dorong ke GHCR, staging lalu produksi), dan `deploy.yml` (satu lingkungan,
+dipanggil dua kali). Rinciannya di `docs/ci-cd.md`.
+
+Uji browser **tidak** ditulis ulang dengan Playwright. Delapan belas skrip di
+`docs/uji/` berbicara CDP mentah, dan endpoint CDP-nya dapat diatur lewat
+`CDP_BASE`/`APP_URL`/`API_URL`/`MAILPIT_URL` - jadi skrip yang sama berjalan di
+Chrome berjendela di laptop dan di Chrome headless di runner tanpa satu baris pun
+diubah. Menulis ulang berarti membuang bukti yang sudah ada dan membuat dua
+rangkaian uji yang akan berbeda pendapat.
+
+Di Linux dan di CI, kembaran `periksa.ps1` adalah `./periksa.sh` (pilihan
+`--cepat`, `--tanpa-build`, `--hanya-e2e`). `uji.yml` memeriksa bahwa daftar
+skrip uji di keduanya identik: skrip yang hanya didaftarkan di salah satunya
+akan lolos dari guardrail selamanya tanpa ada yang memberi tahu.
+
+### Jebakan yang sudah menggigit
 
 - **Kode dibakar ke image, bukan di-mount.** `php artisan test` tanpa
   `docker compose build api` menguji kode LAMA dan memberi hasil hijau padahal
@@ -54,6 +73,21 @@ urutan langkahnya menentukan, dan salah urutan menghasilkan hijau yang menyesatk
   tetapi menyematkan tanggal lewat header `X-Simulasi-Tanggal`, atau
   membandingkan dengan nilai dari API alih-alih angka hardcoded. Kalau sebuah
   asersi menyebut "hari ini", "Denda Rp 0", atau tanggal tertentu, curigai ia.
+- **Jangan menyunting skrip shell saat ia sedang berjalan.** Bash membaca
+  berkas secara bertahap berdasarkan offset byte, bukan memuatnya utuh di awal.
+  Menyisipkan beberapa baris di dekat atas `periksa.sh` saat ia masih
+  mengeksekusi uji membuat bash melanjutkan dari offset lama, yaitu di tengah
+  baris - hasilnya `syntax error near unexpected token ')'` pada baris yang
+  isinya tidak salah, dan `SEMUA LULUS` tidak pernah tercetak walau seluruh uji
+  lulus. Sunting dulu, jalankan kemudian.
+- **Pembatas percobaan masuk menyimpan hitungannya di CACHE, bukan di
+  database.** `migrate:fresh --seed` tidak menyentuhnya, jadi kegagalan login
+  yang sengaja dilakukan satu skrip E2E membuat skrip berikutnya menerima 429
+  pada login yang BENAR - gejalanya berpindah-pindah seperti gangguan jaringan.
+  `periksa.sh` dan `periksa.ps1` karena itu menjalankan `cache:clear` di samping
+  `migrate:fresh` sebelum tiap skrip. Kalau sebuah uji tiba-tiba gagal di
+  langkah login padahal kredensialnya benar, periksa penghitung ini lebih dulu:
+  `masuk:<email>|<ip>` (5/menit) dan `masuk-email:<email>` (20/jam).
 
 ### Menulis skrip uji
 

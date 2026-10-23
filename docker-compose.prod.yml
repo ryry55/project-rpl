@@ -1,0 +1,59 @@
+# ---------------------------------------------------------------------------
+# Profil produksi - lapisan di atas docker-compose.yml.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Kenapa lapisan, bukan berkas tersendiri: yang berbeda antara demo dan
+# produksi hanyalah NILAI, bukan bentuk. Empat layanan, port yang sama, volume
+# yang sama. Menyalin seluruh berkas berarti setiap perbaikan pada layanan harus
+# ditulis dua kali, dan salinan kedua selalu yang terlupa.
+#
+# Yang diubah di sini, dan bahaya yang ditutup masing-masing:
+#
+#   APP_DEBUG=false     - halaman galat Laravel menampilkan jejak tumpukan,
+#                         nama berkas, dan isi variabel lingkungan. Satu galat
+#                         di produksi dengan debug hidup sama dengan
+#                         menerbitkan kredensial database.
+#   APP_DEMO_MODE=false - header `X-Simulasi-Tanggal` menggeser "hari ini".
+#                         Dengan mode demo hidup, siapa pun bisa memundurkan
+#                         tanggal untuk menghapus denda, atau memajukannya untuk
+#                         menagih denda yang belum jatuh tempo. Diperiksa oleh
+#                         docs/uji/smoke-produksi.sh.
+#   RUN_SEEDER=false    - seeder menulis ulang sandi pemilik menjadi
+#                         "password" setiap container start. Diperiksa juga oleh
+#                         smoke test, karena ini satu-satunya bahaya yang
+#                         akibatnya adalah "seluruh data kos terbuka".
+#   CORS eksplisit      - `*` berarti situs mana pun boleh membaca jawaban API.
+#
+# Yang TIDAK dijalankan di sini, dan itu disengaja: `migrate:fresh`. Satu
+# perintah itu menghapus seluruh tagihan dan pembayaran, dan tidak ada satu pun
+# keadaan produksi yang membutuhkannya. Entrypoint memakai `migrate --force`.
+# ---------------------------------------------------------------------------
+
+services:
+  api:
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_DEMO_MODE: "false"
+      RUN_SEEDER: "false"
+      RUN_MIGRATIONS: "true"
+      LOG_LEVEL: warning
+      # Wajib diisi saat deploy sungguhan. Bila kosong, config/cors.php jatuh
+      # ke APP_URL - satu origin, yaitu aplikasi itu sendiri.
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
+      # Surat keluar memakai layanan sungguhan (Brevo), bukan Mailpit. Nilai
+      # bawaannya sengaja tetap Mailpit supaya profil ini bisa dijalankan di
+      # laptop untuk menguji pagar-pagarnya tanpa mengirim email ke siapa pun.
+      MAIL_MAILER: ${MAIL_MAILER:-smtp}
+      MAIL_HOST: ${MAIL_HOST:-mailpit}
+      MAIL_PORT: ${MAIL_PORT:-1025}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-kos@contoh.test}
+      MAIL_SCHEME: ${MAIL_SCHEME:-}
+    # Port tidak perlu ditutup di sini: layanan `api` memang tidak pernah
+    # mempublikasikan port di docker-compose.yml. Satu-satunya pintu masuk
+    # adalah `web` (nginx yang juga mem-proxy /api), sama seperti di Render
+    # nanti. Menulis `ports: []` di sini hanya akan tampak seperti pagar yang
+    # bekerja padahal tidak ada yang dijaganya.

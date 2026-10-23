@@ -1,0 +1,132 @@
+# ---------------------------------------------------------------------------
+# Satu deploy ke satu lingkungan. Dipanggil oleh rilis.yml, dua kali.
+#
+#   staging  -> selalu
+#   produksi -> hanya bila staging hijau
+#
+# Kenapa dipisah menjadi berkas sendiri, bukan dua job di dalam rilis.yml:
+# dua job berarti badan deploy ditulis dua kali, dan salinan kedua selalu yang
+# terlupa saat ada perbaikan. Berkas ini dipanggil dengan satu parameter -
+# nama lingkungan - dan GitHub Environments menyelesaikan sisanya: variabel
+# `APP_URL` dan rahasia `RENDER_DEPLOY_HOOK` dibaca dari lingkungan yang
+# bersangkutan, jadi nilainya berbeda tanpa satu baris pun bercabang di sini.
+#
+# Konsekuensinya, dan ini disengaja: untuk mengaktifkan deploy, yang dibuat di
+# halaman repo adalah DUA lingkungan (staging, production), masing-masing
+# dengan `APP_URL` sebagai variabel dan `RENDER_DEPLOY_HOOK` sebagai rahasia.
+# Lingkungan production bisa diberi "required reviewers", sehingga rilis
+# sungguhan menunggu persetujuan manusia - tanpa mengubah berkas ini.
+# ---------------------------------------------------------------------------
+
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      lingkungan:
+        description: 'Nama environment GitHub (staging atau production)'
+        required: true
+        type: string
+      tag:
+        description: 'Tag image yang dipasang'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy ${{ inputs.lingkungan }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment:
+      # Nama ini yang menentukan variabel dan rahasia mana yang terbaca.
+      name: ${{ inputs.lingkungan }}
+      url: ${{ vars.APP_URL || '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Periksa kesiapan target deploy
+        id: siap
+        # Deploy yang berpura-pura berhasil lebih berbahaya daripada deploy yang
+        # tidak berjalan: ia membuat orang mengira versi baru sudah tayang.
+        # Karena endpoint produksi baru dibuat di LANGKAH 11, job ini
+        # MELAPORKAN bahwa ia belum dikonfigurasi alih-alih gagal - workflow
+        # yang selalu merah karena rahasia yang memang belum ada akan diabaikan
+        # orang, dan setelah diabaikan ia tidak lagi menjaga apa pun.
+        run: |
+          if [ -z "${{ vars.APP_URL }}" ] || [ -z "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
+            echo "::warning::Lingkungan '${{ inputs.lingkungan }}' belum dikonfigurasi (LANGKAH 11)."
+            echo ""
+            echo "Yang dibutuhkan pada environment '${{ inputs.lingkungan }}':"
+            echo "  variabel  APP_URL             mis. https://kos-kosan.my.id"
+            echo "  rahasia   RENDER_DEPLOY_HOOK  URL dari dashboard Render"
+            echo ""
+            echo "Image sudah didorong ke GHCR sebagai tag '${{ inputs.tag }}'."
+            echo "siap=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Target: ${{ vars.APP_URL }}"
+            echo "siap=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Picu deploy Render
+        if: steps.siap.outputs.siap == 'true'
+        run: |
+          # Hook Render menunggu sampai build+deploy selesai sebelum menjawab,
+          # jadi jawabannya sendiri adalah konfirmasi. Tetap diverifikasi lagi
+          # oleh smoke test di bawah: hook bisa menjawab 200 untuk deploy yang
+          # kemudian gagal start.
+          kode=$(curl -s -o /tmp/render.txt -w '%{http_code}' \
+            --max-time 900 -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}")
+          echo "Render menjawab HTTP ${kode}"
+          cat /tmp/render.txt || true
+          if [ "$kode" -lt 200 ] || [ "$kode" -ge 300 ]; then
+            echo "Deploy ditolak Render." >&2
+            exit 1
+          fi
+
+      - name: Tunggu aplikasi menjawab
+        if: steps.siap.outputs.siap == 'true'
+        # Layanan gratis Render tidur setelah 15 menit dan butuh ~50 detik
+        # untuk bangun. Batas 6 menit memberi ruang untuk cold start tanpa
+        # membuat kegagalan sungguhan menunggu terlalu lama.
+        run: |
+          url="${{ vars.APP_URL }}/api/health"
+          for i in $(seq 1 36); do
+            kode=$(curl -s -o /tmp/health.json -w '%{http_code}' --max-time 30 "$url" || true)
+            if [ "$kode" = "200" ]; then
+              echo "Aplikasi menjawab 200 setelah $((i * 10)) detik."
+              cat /tmp/health.json
+              exit 0
+            fi
+            echo "percobaan ${i}: HTTP ${kode:-000}"
+            sleep 10
+          done
+          echo "Aplikasi tidak menjawab 200 dalam 6 menit." >&2
+          cat /tmp/health.json 2>/dev/null || true
+          exit 1
+
+      - name: Smoke test
+        if: steps.siap.outputs.siap == 'true'
+        # Yang diperiksa ada di docs/uji/smoke-produksi.sh, bukan di sini,
+        # karena berkas shell bisa dijalankan di laptop - dan memang begitu ia
+        # dibuktikan: terhadap profil demo ia GAGAL pada tujuh pemeriksaan,
+        # terhadap docker-compose.prod.yml ia LULUS. Pemeriksaan yang tidak
+        # pernah terbukti bisa gagal bukan pemeriksaan.
+        run: bash docs/uji/smoke-produksi.sh "${{ vars.APP_URL }}"
+
+      - name: Ringkasan
+        if: always()
+        run: |
+          {
+            echo "### Deploy ${{ inputs.lingkungan }}"
+            echo ""
+            echo "| Hal | Nilai |"
+            echo "|---|---|"
+            echo "| Lingkungan | \`${{ inputs.lingkungan }}\` |"
+            echo "| Target siap | \`${{ steps.siap.outputs.siap }}\` |"
+            echo "| Tag image | \`${{ inputs.tag }}\` |"
+            echo "| Commit | \`${GITHUB_SHA}\` |"
+            echo "| Hasil | ${{ job.status }} |"
+          } >> "$GITHUB_STEP_SUMMARY"

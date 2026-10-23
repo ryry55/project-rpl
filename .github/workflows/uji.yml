@@ -1,0 +1,266 @@
+# ---------------------------------------------------------------------------
+# T30 - Pipeline uji.
+#
+# Dua pekerjaan, dan pemisahannya disengaja:
+#
+#   lint  - pint + eslint + vite build. Sekitar satu menit, tidak butuh
+#           database dan tidak butuh Docker. Dijalankan lebih dulu supaya
+#           kesalahan format dan variabel mati dijawab dalam hitungan detik,
+#           bukan setelah sepuluh menit membangun image.
+#
+#   uji   - membangun image, menjalankan 594 tes PHP di dalam container, lalu
+#           seluruh skrip uji browser terhadap Chrome headless.
+#
+# Kenapa uji browser TIDAK ditulis ulang memakai Playwright, padahal rencana
+# awal menyebutkannya sebagai pilihan: kedelapan belas skrip di docs/uji/
+# berbicara CDP mentah lewat WebSocket, dan endpoint CDP-nya dapat diatur lewat
+# variabel lingkungan (CDP_BASE/APP_URL/API_URL/MAILPIT_URL). Artinya skrip yang
+# SAMA berjalan di Chrome berjendela di laptop dan di Chrome headless di runner
+# tanpa satu baris pun diubah. Menulis ulang delapan belas skrip berarti
+# membuang bukti yang sudah ada dan membuat dua rangkaian uji yang akan berbeda
+# pendapat - dan yang di CI selalu kalah, karena tidak ada yang membacanya.
+#
+# Kenapa tes PHP dijalankan lewat docker compose, bukan lewat blok
+# `services: postgres`: phpunit.xml menulis DB_HOST=db sebagai <server>, dan
+# docker/postgres/init-test-db.sql membuat database kos_test. Menjalankan tes di
+# runner berarti menimpa kedua hal itu dengan konfigurasi KEDUA yang hanya hidup
+# di CI. Yang diuji di sini harus persis yang diuji di laptop, jadi yang dipakai
+# adalah berkas compose yang sama.
+# ---------------------------------------------------------------------------
+
+name: Uji
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  # Dipanggil ulang oleh rilis.yml. Rilis tidak boleh berjalan di atas kode yang
+  # belum lulus, dan memanggil ulang lebih baik daripada menyalin langkahnya:
+  # salinan kedua akan menyimpang, dan yang menyimpang selalu yang di CI.
+  workflow_call:
+
+# Push berturut-turut ke cabang yang sama membatalkan yang sebelumnya: yang
+# tertua sudah tidak relevan, dan runner gratis hanya memberi 2000 menit/bulan
+# untuk repo privat.
+concurrency:
+  group: uji-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Node 22 dipakai karena `WebSocket` dan `fetch` sudah global di sana. Skrip
+  # uji memakai keduanya tanpa impor, dan di Node 18 keduanya belum ada.
+  NODE_VERSION: '22'
+
+jobs:
+  # -------------------------------------------------------------------------
+  # Pemeriksaan cepat: format, lint, dan kompilasi template.
+  # -------------------------------------------------------------------------
+  lint:
+    name: Format dan lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Siapkan PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_pgsql, bcmath, intl, zip
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache dependensi composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: composer-${{ runner.os }}-${{ hashFiles('api/composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      # --prefer-dist --no-scripts: skrip post-install menjalankan
+      # `artisan package:discover`, yang butuh .env dan koneksi database.
+      # Pint tidak memerlukannya, jadi keduanya dilewati di sini.
+      - name: Pasang dependensi PHP
+        working-directory: api
+        run: composer install --no-interaction --prefer-dist --no-scripts --no-progress
+
+      - name: pint --test (seluruh kode, bukan hanya yang berubah)
+        working-directory: api
+        run: php vendor/bin/pint --test
+
+      - name: Siapkan Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Pasang dependensi frontend
+        working-directory: web
+        run: npm ci --no-audit --no-fund
+
+      - name: eslint
+        working-directory: web
+        run: npm run lint
+
+      # Build menangkap galat kompilasi template Vue yang lolos eslint -
+      # `v-if` dengan ekspresi rusak, slot yang tidak ada, komponen yang salah
+      # impor. Tanpa langkah ini galat seperti itu baru muncul saat halamannya
+      # dibuka di uji browser, dua pekerjaan kemudian.
+      - name: vite build
+        working-directory: web
+        run: npm run build
+
+      # Dua berkas memuat daftar skrip uji yang sama: periksa.ps1 (Windows)
+      # dan periksa.sh (Linux/CI). Kalau keduanya berbeda, salah satu berhenti
+      # menguji sesuatu tanpa ada yang memberi tahu. Skrip baru yang hanya
+      # didaftarkan di salah satunya akan lolos dari guardrail selamanya.
+      - name: Daftar skrip uji di periksa.ps1 dan periksa.sh harus sama
+        run: |
+          grep -oE '[a-z0-9-]+\.mjs' periksa.ps1 | sort -u > /tmp/ps1.txt
+          grep -oE '[a-z0-9-]+\.mjs' periksa.sh  | sort -u > /tmp/sh.txt
+          echo "--- periksa.ps1 ---"; cat /tmp/ps1.txt
+          echo "--- periksa.sh  ---"; cat /tmp/sh.txt
+          if ! diff -u /tmp/ps1.txt /tmp/sh.txt; then
+            echo ""
+            echo "Daftar skrip uji berbeda antara periksa.ps1 dan periksa.sh."
+            echo "Tambahkan skrip yang hilang ke keduanya, lalu commit ulang."
+            exit 1
+          fi
+
+      # Profil produksi diperiksa di sini, bukan di tes PHPUnit: berkasnya
+      # berada di akar repo, di luar build context image api.
+      - name: Profil produksi menutup bahayanya
+        run: bash docs/uji/periksa-profil-produksi.sh
+
+  # -------------------------------------------------------------------------
+  # Uji sebenarnya: tes PHP di dalam container, lalu seluruh skrip browser.
+  # -------------------------------------------------------------------------
+  uji:
+    name: Tes PHP dan uji browser
+    runs-on: ubuntu-latest
+    needs: lint
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      # Docker layer cache. Tanpa ini setiap jalan membangun ulang PHP beserta
+      # seluruh ekstensinya - sekitar empat menit yang diulang setiap push.
+      - name: Siapkan Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache layer image
+        uses: actions/cache@v4
+        with:
+          path: /tmp/docker-cache
+          key: buildx-${{ runner.os }}-${{ hashFiles('api/Dockerfile', 'api/composer.lock', 'web/Dockerfile', 'web/package-lock.json') }}
+
+      - name: Siapkan .env
+        # .env tidak masuk repo (berisi rahasia), jadi dibuat dari contohnya.
+        # Nilainya sama dengan yang dipakai di laptop, termasuk port 8081 -
+        # supaya skrip uji yang menulis URL tidak perlu tahu bedanya.
+        run: cp .env.example .env
+
+      - name: Bangun image
+        # Nama tag HARUS sama dengan `image:` di docker-compose.yml, kalau tidak
+        # `docker compose up` akan membangun ulang dari nol dan seluruh cache di
+        # atas tidak berguna.
+        run: |
+          docker buildx build \
+            --cache-from type=local,src=/tmp/docker-cache \
+            --cache-to type=local,dest=/tmp/docker-cache,mode=max \
+            --load \
+            -t kos-kosan/api:dev ./api
+          docker buildx build \
+            --cache-from type=local,src=/tmp/docker-cache \
+            --cache-to type=local,dest=/tmp/docker-cache,mode=max \
+            --load \
+            -t kos-kosan/web:dev ./web
+
+      - name: Jalankan seluruh layanan
+        run: docker compose up -d
+
+      - name: Tunggu API siap
+        # Menunggu endpoint health, bukan `sleep 30`. Waktu yang dibutuhkan
+        # berbeda-beda, dan `sleep` yang kebetulan cukup di laptop bisa kurang
+        # di runner yang lebih lambat - kegagalannya lalu terbaca seperti
+        # aplikasi rusak.
+        run: |
+          for i in $(seq 1 60); do
+            kode=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://localhost:8081/api/health || true)
+            if [ "$kode" = "200" ]; then
+              echo "API siap setelah ${i} percobaan."
+              curl -s http://localhost:8081/api/health
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API tidak menjawab 200 dalam 120 detik (kode terakhir: ${kode:-000})."
+          docker compose ps
+          docker compose logs api --tail 60
+          exit 1
+
+      - name: Tes PHP
+        run: docker compose exec -T api php artisan test
+
+      # --- Uji browser ---------------------------------------------------
+      # `google-chrome` sudah terpasang di runner ubuntu-latest. Yang perlu
+      # dilakukan hanyalah menjalankannya dengan port debug terbuka, lalu
+      # skrip yang sama dengan di laptop mengambil alih.
+      - name: Jalankan Chrome headless dengan CDP
+        run: |
+          google-chrome \
+            --headless=new \
+            --remote-debugging-port=9222 \
+            --remote-debugging-address=127.0.0.1 \
+            --no-sandbox \
+            --disable-dev-shm-usage \
+            --disable-gpu \
+            --user-data-dir=/tmp/chrome-uji \
+            about:blank > /tmp/chrome.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -s --max-time 2 http://127.0.0.1:9222/json/version > /dev/null; then
+              echo "CDP siap setelah ${i} percobaan."
+              curl -s http://127.0.0.1:9222/json/version
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "CDP tidak menjawab. Isi log Chrome:"
+          cat /tmp/chrome.log
+          exit 1
+
+      - name: Siapkan Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Skrip uji berjalan di HOST (bukan di container): ia bicara ke CDP dan
+      # ke API lewat localhost, keduanya sudah dipetakan compose.
+      - name: Uji browser dan uji balapan
+        run: ./periksa.sh --hanya-e2e
+
+      - name: Simpan tangkapan layar bila ada yang gagal
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tangkapan-layar-gagal
+          path: docs/uji/*.png
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Log container bila gagal
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs api --tail 120
+          docker compose logs mailpit --tail 40
+
+      - name: Bersihkan
+        if: always()
+        run: docker compose down -v

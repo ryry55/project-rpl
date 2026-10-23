@@ -31,6 +31,14 @@ services:
     restart: unless-stopped
 
   api:
+    # Nama image ditulis eksplisit, bukan dibiarkan memakai nama bawaan
+    # (kos-kosan-api) yang bergantung pada nama proyek compose. Alasannya ada di
+    # CI: runner tidak menyimpan layer di antara dua job, jadi satu-satunya cara
+    # cache build terpakai adalah bila tag yang dibangun di luar compose persis
+    # sama dengan yang dipakai compose saat `up`. Nama bawaan berubah bila
+    # seseorang mengganti `name:` di atas, dan cache-nya diam-diam berhenti
+    # bekerja.
+    image: kos-kosan/api:dev
     build:
       context: ./api
       dockerfile: Dockerfile
@@ -107,6 +115,7 @@ services:
     restart: unless-stopped
 
   web:
+    image: kos-kosan/web:dev
     build:
       context: ./web
       dockerfile: Dockerfile
