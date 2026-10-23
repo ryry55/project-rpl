@@ -187,6 +187,17 @@ class KomponenPerKamarTest extends TestCase
             'berlaku_dari' => '2026-10-01',
         ])->assertCreated();
 
+        // T16: kebijakan kos juga wajib. Dinyatakan lewat HTTP, bukan model,
+        // supaya tes ini sekaligus membuktikan endpoint-nya bisa dipakai
+        // sebagai jalur penyiapan yang sebenarnya.
+        foreach ([['satuan_sewa', 'bulanan'], ['jatuh_tempo', 'tanggal_masuk']] as [$tipe, $nilai]) {
+            $this->sebagaiPemilik()->postJson('/api/kebijakan', [
+                'tipe' => $tipe,
+                'nilai' => $nilai,
+                'berlaku_dari' => '2026-10-01',
+            ])->assertCreated();
+        }
+
         $penghuni = $this->sebagaiPemilik()->postJson('/api/penghuni', [
             'nama' => 'Budi',
             'email' => 'budi@kos.test',

@@ -24,14 +24,15 @@ import {
   jalankan,
   teksMemuat,
   rupiah,
+  pastikanKebijakan,
 } from './_cdp.mjs'
 
 const SIMULASI = '2026-11-23'
 const PERIODE = '2026-11-01'
 const POKOK = 1_500_000
 
-// Denda yang diharapkan: jatuh tempo 15 Nov, simulasi 23 Nov → terlambat 8
-// hari, masa tenggang 7, jadi 1 hari kena denda = 1% × 1.500.000.
+// Denda yang diharapkan: jatuh tempo 15 Nov, simulasi 23 Nov -> terlambat 8
+// hari, masa tenggang 7, jadi 1 hari kena denda = 1% x 1.500.000.
 const DENDA_DIHARAPKAN = 15_000
 
 jalankan(async () => {
@@ -42,6 +43,13 @@ jalankan(async () => {
   const masukPemilik = await masukSebagai(ws, 'pemilik@kos.test')
   lapor('login pemilik berhasil', masukPemilik, await evaluasi(ws, 'location.pathname'))
   if (!masukPemilik) throw new Error('login pemilik gagal')
+
+  // T16b: gerbang kebijakan kos. Dinyatakan di sini, sekali, supaya langkah
+  // uji di bawahnya tidak gagal karena alasan yang tidak sedang diuji -
+  // gerbangnya memang bekerja, dan yang perlu dilakukan adalah memenuhinya.
+  const kebijakan = await pastikanKebijakan(ws)
+  lapor('kebijakan kos siap', kebijakan.ok, kebijakan.alasan)
+  if (!kebijakan.ok) throw new Error('kebijakan kos gagal disiapkan: ' + kebijakan.alasan)
 
   const siap = await evaluasi(ws, `
     (async () => {
@@ -215,7 +223,7 @@ jalankan(async () => {
 
   // Nama aktor diambil dari `/me`, bukan ditulis di skrip: nama pemilik berasal
   // dari seeder, dan asersi yang menghafalnya akan gagal setiap kali data
-  // contoh diubah — kegagalan yang tidak berarti apa-apa tentang aplikasi.
+  // contoh diubah - kegagalan yang tidak berarti apa-apa tentang aplikasi.
   const namaPemilik = await evaluasi(ws, `
     (async () => {
       const res = await fetch('${API}/me', {
@@ -256,7 +264,7 @@ jalankan(async () => {
   lapor(
     'log menyebut aktor yang melakukannya',
     Boolean(namaPemilik) && isiAudit.aktor.every((a) => a === namaPemilik),
-    `aktor: ${[...new Set(isiAudit.aktor)].join(', ') || '(kosong)'} · diharapkan ${namaPemilik}`,
+    `aktor: ${[...new Set(isiAudit.aktor)].join(', ') || '(kosong)'} | diharapkan ${namaPemilik}`,
   )
   lapor(
     'tidak ada tombol untuk mengubah atau menghapus log',

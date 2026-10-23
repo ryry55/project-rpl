@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DendaController;
 use App\Http\Controllers\Api\KamarController;
+use App\Http\Controllers\Api\KebijakanController;
 use App\Http\Controllers\Api\KomponenBiayaController;
 use App\Http\Controllers\Api\KontrakController;
 use App\Http\Controllers\Api\ParameterDendaController;
@@ -72,6 +73,12 @@ Route::middleware('auth:sanctum')->group(function () {
             ->name('komponen.index');
         Route::post('/komponen-biaya', [KomponenBiayaController::class, 'store'])
             ->name('komponen.store');
+
+        // Kebijakan kos (T16). Append-only: hanya index dan store, tidak ada
+        // update atau delete. Gerbangnya ada di POST /tagihan dan
+        // POST /tagihan/terbitkan, bukan di sini.
+        Route::get('/kebijakan', [KebijakanController::class, 'index'])->name('kebijakan.index');
+        Route::post('/kebijakan', [KebijakanController::class, 'store'])->name('kebijakan.store');
 
         Route::get('/parameter-denda', [ParameterDendaController::class, 'index'])
             ->name('parameter-denda.index');

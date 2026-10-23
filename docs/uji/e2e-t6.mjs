@@ -1,7 +1,7 @@
 // Verifikasi end-to-end T6 lewat browser sungguhan.
 //
-// Inti yang dibuktikan: satu tagihan yang sama, dendanya berubah dari Rp 0 →
-// Rp 15.000 → Rp 450.000 hanya dengan menggeser X-Simulasi-Tanggal — tanpa
+// Inti yang dibuktikan: satu tagihan yang sama, dendanya berubah dari Rp 0 ->
+// Rp 15.000 -> Rp 450.000 hanya dengan menggeser X-Simulasi-Tanggal - tanpa
 // menunggu 37 hari. Inilah demo yang akan ditunjukkan di sidang.
 //
 // Pakai: node docs/uji/e2e-t6.mjs
@@ -19,12 +19,13 @@ import {
   kirim,
   evaluasi,
   tungguSampai,
+  pastikanKebijakan,
 } from './_cdp.mjs'
 
 const langkah = []
 function lapor(nama, lulus, detail = '') {
   langkah.push({ nama, lulus, detail })
-  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' — ' + detail : ''}`)
+  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' - ' + detail : ''}`)
 }
 
 const tidur = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -83,6 +84,12 @@ async function jalan() {
   lapor('login pemilik berhasil', Boolean(masuk), await evaluasi(ws, 'location.pathname'))
   if (!masuk) throw new Error('login gagal, sisa langkah tidak bisa dijalankan')
 
+  // T16b: gerbang kebijakan kos. Dinyatakan di sini, sekali, supaya langkah
+  // uji di bawahnya tidak gagal karena alasan yang tidak sedang diuji -
+  // gerbangnya memang bekerja, dan yang perlu dilakukan adalah memenuhinya.
+  const kebijakan = await pastikanKebijakan(ws)
+  lapor('kebijakan kos siap', kebijakan.ok, kebijakan.alasan)
+  if (!kebijakan.ok) throw new Error('kebijakan kos gagal disiapkan: ' + kebijakan.alasan)
   // --- Siapkan data: kamar, tarif, penghuni, kontrak, tagihan jatuh tempo 15 Okt
   const siap = await evaluasi(ws, `
     (async () => {
@@ -120,7 +127,7 @@ async function jalan() {
         // Masuk Januari, bukan Oktober: tagihan Oktober harus TARIF PENUH supaya
         // angka dendanya cocok dengan contoh di tiket (pokok 1.500.000).
         // Kalau masuk 15 Oktober, tagihan Oktober diprorata jadi 822.581 dan
-        // denda 1% dari angka itu — benar, tapi bukan yang mau ditunjukkan.
+        // denda 1% dari angka itu - benar, tapi bukan yang mau ditunjukkan.
         tgl_masuk: '2026-01-15',
         deposit: 0,
       })
@@ -309,7 +316,7 @@ async function jalan() {
     })()
   `)
 
-  // Panel rincian harus ikut berubah. Tanpa ini, daftar menampilkan denda "—"
+  // Panel rincian harus ikut berubah. Tanpa ini, daftar menampilkan denda "-"
   // sementara panel di atasnya masih menampilkan Rp 450.000.
   //
   // Perhatikan: plafon SELALU Rp 450.000 (30% dari pokok), jadi tidak boleh

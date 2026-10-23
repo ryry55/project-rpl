@@ -1,7 +1,7 @@
 // Verifikasi end-to-end T2 lewat browser sungguhan.
 //
 // Membuktikan alur pemilik dari layar: mendaftarkan 8 kamar, 6 penghuni, lalu
-// membuat kontrak — dan bahwa mengubah tarif menambah baris riwayat alih-alih
+// membuat kontrak - dan bahwa mengubah tarif menambah baris riwayat alih-alih
 // menimpa.
 //
 // Pakai: node docs/uji/e2e-t2.mjs
@@ -35,12 +35,13 @@ import {
   kirim,
   evaluasi,
   tungguSampai,
+  pastikanKebijakan,
 } from './_cdp.mjs'
 
 const langkah = []
 function lapor(nama, lulus, detail = '') {
   langkah.push({ nama, lulus, detail })
-  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' — ' + detail : ''}`)
+  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' - ' + detail : ''}`)
 }
 
 // Mengisi input Vue dengan memicu event input, bukan menulis value langsung:
@@ -96,6 +97,12 @@ async function jalan() {
   const masuk = await loginPemilik(ws)
   lapor('login pemilik berhasil', Boolean(masuk), await evaluasi(ws, 'location.pathname'))
 
+  // T16b: gerbang kebijakan kos. Dinyatakan di sini, sekali, supaya langkah
+  // uji di bawahnya tidak gagal karena alasan yang tidak sedang diuji -
+  // gerbangnya memang bekerja, dan yang perlu dilakukan adalah memenuhinya.
+  const kebijakan = await pastikanKebijakan(ws)
+  lapor('kebijakan kos siap', kebijakan.ok, kebijakan.alasan)
+  if (!kebijakan.ok) throw new Error('kebijakan kos gagal disiapkan: ' + kebijakan.alasan)
   const keKamar = await tungguSampai(ws, `location.pathname === '/pemilik/kamar'`)
   lapor('pemilik diarahkan ke halaman kamar', Boolean(keKamar),
     await evaluasi(ws, 'location.pathname'))
@@ -158,7 +165,7 @@ async function jalan() {
   await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/penghuni` })
   await tungguSampai(ws, `document.querySelector('h1')?.textContent.includes('Penghuni')`)
 
-  // Enam penghuni baru. Namanya sengaja tidak memakai "Budi Santoso" — nama
+  // Enam penghuni baru. Namanya sengaja tidak memakai "Budi Santoso" - nama
   // itu sudah ada dari seeder, dan memakainya lagi membuat pemeriksaan
   // "nama sudah muncul di tabel" lulus sebelum formulir sempat terkirim.
   const namaPenghuni = [
@@ -196,7 +203,7 @@ async function jalan() {
     `)
     if (!terdaftar) break
 
-    // Tunggu formulir tertutup lebih dulu — itu tanda penyimpanan selesai —
+    // Tunggu formulir tertutup lebih dulu - itu tanda penyimpanan selesai -
     // baru periksa namanya ada di tabel.
     const formTertutup = await tungguSampai(ws, `!document.querySelector('#nama')`, 8000)
     if (!formTertutup) break
@@ -321,7 +328,7 @@ async function jalan() {
   `, 6000)
 
   // Hitung baris riwayat lewat API: bukti bahwa baris lama tidak hilang.
-  // ID kamar dicari dari daftar, bukan ditebak — asumsi "A2 ber-ID 2" akan
+  // ID kamar dicari dari daftar, bukan ditebak - asumsi "A2 ber-ID 2" akan
   // patah begitu urutan pembuatan kamar berubah.
   const riwayat = await evaluasi(ws, `
     (async () => {

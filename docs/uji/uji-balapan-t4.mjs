@@ -1,7 +1,7 @@
 // Uji balapan R-02 dengan dua permintaan HTTP yang benar-benar bersamaan.
 //
 // Kenapa berkas terpisah dari tes PHPUnit: di dalam satu proses PHP, dua
-// permintaan tidak bisa tiba bersamaan — yang kedua selalu menunggu yang
+// permintaan tidak bisa tiba bersamaan - yang kedua selalu menunggu yang
 // pertama selesai. Percobaan memakai dua koneksi basis data di dalam satu tes
 // juga tidak membuktikan apa pun: PostgreSQL memblokir penulis kedua dengan
 // `55P03` (lock timeout), bukan menolaknya dengan `23505`, sehingga kegagalan
@@ -19,7 +19,7 @@ const API = process.env.API_URL || 'http://localhost:8081/api'
 const langkah = []
 function lapor(nama, lulus, detail = '') {
   langkah.push({ nama, lulus })
-  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' — ' + detail : ''}`)
+  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' - ' + detail : ''}`)
 }
 
 async function masuk() {
@@ -49,6 +49,51 @@ function panggil(token, jalur, metode, isi) {
     status: res.status,
     isi: await res.json().catch(() => null),
   }))
+}
+
+/**
+ * Menyatakan kebijakan kos default bila belum ada (T16b).
+ *
+ * Sejak T16, menerbitkan tagihan menolak berjalan sebelum satuan sewa dan cara
+ * jatuh tempo ditetapkan. Skrip ini menerbitkan tagihan lewat API, jadi tanpa
+ * langkah ini kegagalannya akan muncul sebagai 422 pada langkah balapan - bukan
+ * pada gerbang yang sebenarnya bekerja.
+ *
+ * Idempoten: yang diperiksa `meta.lengkap` dari GET, bukan hasil POST. Skrip
+ * bisa dijalankan berulang tanpa `migrate:fresh` lebih dulu, dan `kebijakan_kos`
+ * append-only menolak POST kedua dengan tanggal yang sama.
+ *
+ * `berlaku_dari` 2026-01-01 karena periode yang diuji di sini 2026.
+ */
+async function pastikanKebijakan(token) {
+  const awal = await panggil(token, '/kebijakan?berlaku_pada=2026-01-01', 'GET')
+  if (awal.status !== 200) throw new Error(`GET /kebijakan: ${awal.status}`)
+  if (awal.isi?.meta?.lengkap) return 'sudah lengkap'
+
+  const nilaiBawaan = { satuan_sewa: 'bulanan', jatuh_tempo: 'tanggal_masuk' }
+  const diisi = []
+
+  for (const tipe of awal.isi?.meta?.kurang || []) {
+    const nilai = nilaiBawaan[tipe]
+    if (!nilai) throw new Error(`tidak ada nilai bawaan untuk tipe ${tipe}`)
+
+    const kirim = await panggil(token, '/kebijakan', 'POST', {
+      tipe,
+      nilai,
+      berlaku_dari: '2026-01-01',
+    })
+
+    // 422 berarti baris untuk tanggal itu sudah ada - sama baiknya dengan 201.
+    if (kirim.status !== 201 && kirim.status !== 422) {
+      throw new Error(`POST /kebijakan ${tipe}: ${kirim.status}`)
+    }
+    diisi.push(tipe)
+  }
+
+  const akhir = await panggil(token, '/kebijakan?berlaku_pada=2026-01-01', 'GET')
+  if (!akhir.isi?.meta?.lengkap) throw new Error('kebijakan masih belum lengkap')
+
+  return `diisi: ${diisi.join(', ')}`
 }
 
 async function siapkanSatuKontrak(token) {
@@ -85,6 +130,11 @@ async function siapkanSatuKontrak(token) {
 async function jalan() {
   const token = await masuk()
   lapor('login pemilik berhasil', Boolean(token))
+
+  // T16b: gerbang kebijakan. Periode yang diuji 2026-11, jadi kebijakan harus
+  // berlaku sebelum itu.
+  const kebijakan = await pastikanKebijakan(token)
+  lapor('kebijakan kos siap', true, kebijakan)
 
   // --- Satu kontrak, dua permintaan serentak ------------------------------
   const { kontrakId, nomor } = await siapkanSatuKontrak(token)

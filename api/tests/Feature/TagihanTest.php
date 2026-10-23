@@ -12,6 +12,7 @@ use App\Models\TarifSewa;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Tests\Concerns\MenyiapkanKebijakan;
 use Tests\TestCase;
 
 /**
@@ -24,6 +25,7 @@ use Tests\TestCase;
  */
 class TagihanTest extends TestCase
 {
+    use MenyiapkanKebijakan;
     use RefreshDatabase;
 
     private User $pemilik;
@@ -38,6 +40,11 @@ class TagihanTest extends TestCase
             'password' => Hash::make('password'),
             'peran' => User::PERAN_PEMILIK,
         ]);
+
+        // Sejak T16 tagihan tidak bisa terbit tanpa kebijakan. Tes di berkas ini
+        // menguji prorata dan snapshot, bukan gerbangnya, jadi kebijakannya
+        // dinyatakan di sini — sama seperti parameter denda.
+        $this->siapkanKebijakanDefault();
     }
 
     private function sebagaiPemilik()

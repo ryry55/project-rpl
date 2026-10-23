@@ -19,6 +19,7 @@ import {
   kirim,
   evaluasi,
   tungguSampai,
+  pastikanKebijakan,
 } from './_cdp.mjs'
 
 const PERIODE = '2026-11-01'
@@ -26,7 +27,7 @@ const PERIODE = '2026-11-01'
 const langkah = []
 function lapor(nama, lulus, detail = '') {
   langkah.push({ nama, lulus, detail })
-  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' — ' + detail : ''}`)
+  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' - ' + detail : ''}`)
 }
 
 async function jalan() {
@@ -57,6 +58,12 @@ async function jalan() {
   lapor('login pemilik berhasil', Boolean(masuk), await evaluasi(ws, 'location.pathname'))
   if (!masuk) throw new Error('login gagal, sisa langkah tidak bisa dijalankan')
 
+  // T16b: gerbang kebijakan kos. Dinyatakan di sini, sekali, supaya langkah
+  // uji di bawahnya tidak gagal karena alasan yang tidak sedang diuji -
+  // gerbangnya memang bekerja, dan yang perlu dilakukan adalah memenuhinya.
+  const kebijakan = await pastikanKebijakan(ws)
+  lapor('kebijakan kos siap', kebijakan.ok, kebijakan.alasan)
+  if (!kebijakan.ok) throw new Error('kebijakan kos gagal disiapkan: ' + kebijakan.alasan)
   // --- Siapkan tiga kontrak aktif, satu tanpa tarif ------------------------
   const siap = await evaluasi(ws, `
     (async () => {
@@ -225,7 +232,7 @@ async function jalan() {
   // --- Tangkapan layar: hasil sukses, bukan penekanan kedua ----------------
   // Diambil sekarang, selagi panel masih menampilkan "2 terbit" beserta
   // rinciannya. Kalau diambil di akhir, yang tertangkap adalah keadaan
-  // "tidak ada tagihan baru" — benar, tetapi tidak menunjukkan bahwa fiturnya
+  // "tidak ada tagihan baru" - benar, tetapi tidak menunjukkan bahwa fiturnya
   // bekerja.
   const tangkapan = await kirim(ws, 'Page.captureScreenshot', { format: 'png' })
   const { writeFileSync } = await import('node:fs')
@@ -307,7 +314,7 @@ async function jalan() {
 jalan().catch(async (e) => {
   console.error('E2E gagal:', e.message)
   // Tab ditutup juga saat gagal. Tanpa ini, tiap kegagalan meninggalkan tab
-  // yatim — dan setelah beberapa tab, langkah login mulai gagal karena alasan
+  // yatim - dan setelah beberapa tab, langkah login mulai gagal karena alasan
   // yang tidak ada hubungannya dengan aplikasi.
   try {
     const daftar = await fetch(`${CDP_BASE}/json/list`).then((r) => r.json())

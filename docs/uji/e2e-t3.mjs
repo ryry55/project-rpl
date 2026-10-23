@@ -19,12 +19,13 @@ import {
   kirim,
   evaluasi,
   tungguSampai,
+  pastikanKebijakan,
 } from './_cdp.mjs'
 
 const langkah = []
 function lapor(nama, lulus, detail = '') {
   langkah.push({ nama, lulus, detail })
-  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' — ' + detail : ''}`)
+  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' - ' + detail : ''}`)
 }
 
 const tidur = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -78,6 +79,12 @@ async function jalan() {
   const masuk = await tungguSampai(ws, `location.pathname.startsWith('/pemilik')`)
   lapor('login pemilik berhasil', Boolean(masuk), await evaluasi(ws, 'location.pathname'))
 
+  // T16b: gerbang kebijakan kos. Dinyatakan di sini, sekali, supaya langkah
+  // uji di bawahnya tidak gagal karena alasan yang tidak sedang diuji -
+  // gerbangnya memang bekerja, dan yang perlu dilakukan adalah memenuhinya.
+  const kebijakan = await pastikanKebijakan(ws)
+  lapor('kebijakan kos siap', kebijakan.ok, kebijakan.alasan)
+  if (!kebijakan.ok) throw new Error('kebijakan kos gagal disiapkan: ' + kebijakan.alasan)
   const menuTagihan = await evaluasi(ws, `
     (() => {
       const a = [...document.querySelectorAll('a')].find(a => /tagihan/i.test(a.textContent))
@@ -244,7 +251,7 @@ async function jalan() {
   // Tanggal disematkan ke 20 Okt 2026 (hari terlambat 5, masih dalam tenggang)
   // supaya asersi "denda masih 0 saat terbit" tidak bergantung pada jam nyata.
   // Tanpa ini, tes lulus selama hari ini <= 22 Okt dan gagal sendiri mulai
-  // 23 Okt — kelas kesalahan yang sudah pernah menggigit repo ini.
+  // 23 Okt - kelas kesalahan yang sudah pernah menggigit repo ini.
   const konsisten = await evaluasi(ws, `
     (async () => {
       const headers = {

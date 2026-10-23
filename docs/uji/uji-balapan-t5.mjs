@@ -1,15 +1,15 @@
-﻿// Uji balapan pembayaran: dua pembayaran serentak yang totalnya melebihi sisa.
+// Uji balapan pembayaran: dua pembayaran serentak yang totalnya melebihi sisa.
 //
 // Kenapa ini perlu skrip terpisah, bukan tes PHPUnit: di dalam satu proses PHP
 // dua permintaan tidak bisa tiba bersamaan, sehingga yang diuji hanya urutan.
-// Padahal justru balapan yang berbahaya di sini — pemeriksaan sisa adalah
+// Padahal justru balapan yang berbahaya di sini - pemeriksaan sisa adalah
 // baca-lalu-tulis:
 //
-//   baca sisa 1.500.000 → nilai "tidak melebihi sisa" → tulis
+//   baca sisa 1.500.000 -> nilai "tidak melebihi sisa" -> tulis
 //
 // Kalau dua permintaan melakukannya bersamaan tanpa kunci baris, keduanya
 // membaca sisa yang sama, keduanya menilai aman, dan keduanya menulis. Hasilnya
-// Rp 2.000.000 tercatat untuk tagihan Rp 1.500.000 — uang yang tidak pernah
+// Rp 2.000.000 tercatat untuk tagihan Rp 1.500.000 - uang yang tidak pernah
 // diterima, tersimpan sebagai angka yang tampak sah.
 //
 // `PencatatPembayaran` mengunci baris `tagihan` dengan `FOR UPDATE` sebelum
@@ -29,7 +29,7 @@ const SIMULASI = '2026-11-01'
 const langkah = []
 function lapor(nama, lulus, detail = '') {
   langkah.push({ nama, lulus })
-  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' — ' + detail : ''}`)
+  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' - ' + detail : ''}`)
 }
 
 async function masuk() {
@@ -58,6 +58,47 @@ function panggil(token, jalur, metode, isi) {
     status: res.status,
     isi: await res.json().catch(() => null),
   }))
+}
+
+/**
+ * Menyatakan kebijakan kos default bila belum ada (T16b).
+ *
+ * Skrip ini menerbitkan tagihan lewat API, dan sejak T16 penerbitan menolak
+ * berjalan sebelum satuan sewa dan cara jatuh tempo ditetapkan. Tanpa langkah
+ * ini kegagalannya muncul sebagai 422 pada langkah balapan - bukan pada gerbang
+ * yang sebenarnya bekerja.
+ *
+ * Idempoten: yang diperiksa `meta.lengkap` dari GET, bukan hasil POST, karena
+ * `kebijakan_kos` append-only menolak POST kedua dengan tanggal yang sama.
+ */
+async function pastikanKebijakan(token) {
+  const awal = await panggil(token, '/kebijakan?berlaku_pada=2026-01-01', 'GET')
+  if (awal.status !== 200) throw new Error(`GET /kebijakan: ${awal.status}`)
+  if (awal.isi?.meta?.lengkap) return 'sudah lengkap'
+
+  const nilaiBawaan = { satuan_sewa: 'bulanan', jatuh_tempo: 'tanggal_masuk' }
+  const diisi = []
+
+  for (const tipe of awal.isi?.meta?.kurang || []) {
+    const nilai = nilaiBawaan[tipe]
+    if (!nilai) throw new Error(`tidak ada nilai bawaan untuk tipe ${tipe}`)
+
+    const kirim = await panggil(token, '/kebijakan', 'POST', {
+      tipe,
+      nilai,
+      berlaku_dari: '2026-01-01',
+    })
+
+    if (kirim.status !== 201 && kirim.status !== 422) {
+      throw new Error(`POST /kebijakan ${tipe}: ${kirim.status}`)
+    }
+    diisi.push(tipe)
+  }
+
+  const akhir = await panggil(token, '/kebijakan?berlaku_pada=2026-01-01', 'GET')
+  if (!akhir.isi?.meta?.lengkap) throw new Error('kebijakan masih belum lengkap')
+
+  return `diisi: ${diisi.join(', ')}`
 }
 
 /** Satu kontrak + satu tagihan terbit, dibuat lewat API seperti pemilik sungguhan. */
@@ -101,6 +142,10 @@ async function siapkanTagihan(token) {
 async function jalan() {
   const token = await masuk()
   lapor('login pemilik berhasil', Boolean(token))
+
+  // T16b: gerbang kebijakan. siapkanTagihan() menerbitkan tagihan lewat API.
+  const kebijakan = await pastikanKebijakan(token)
+  lapor('kebijakan kos siap', true, kebijakan)
 
   // --- Dua pembayaran serentak, masing-masing 1.000.000 dari pokok 1.500.000 --
   const { tagihanId, pokok } = await siapkanTagihan(token)

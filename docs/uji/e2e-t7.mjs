@@ -21,6 +21,7 @@ import {
   kirim,
   evaluasi,
   tungguSampai,
+  pastikanKebijakan,
 } from './_cdp.mjs'
 
 const ACUAN = '2026-11-21'
@@ -28,7 +29,7 @@ const ACUAN = '2026-11-21'
 const langkah = []
 function lapor(nama, lulus, detail = '') {
   langkah.push({ nama, lulus, detail })
-  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' — ' + detail : ''}`)
+  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' - ' + detail : ''}`)
 }
 
 /**
@@ -37,10 +38,10 @@ function lapor(nama, lulus, detail = '') {
  * Jatuh tempo ditentukan oleh tanggal masuk kontrak, jadi tiap kontrak memakai
  * tanggal masuk yang berbeda. Periode menentukan bulan tagihan.
  *
- *   belum jatuh tempo : jatuh tempo 15 Des 2026 → −24 hari
- *   0-30              : jatuh tempo  1 Nov 2026 →  20 hari
- *   31-60             : jatuh tempo  1 Okt 2026 →  51 hari
- *   lebih dari 60     : jatuh tempo  1 Agu 2026 → 112 hari
+ *   belum jatuh tempo : jatuh tempo 15 Des 2026 -> ~24 hari
+ *   0-30              : jatuh tempo  1 Nov 2026 ->  20 hari
+ *   31-60             : jatuh tempo  1 Okt 2026 ->  51 hari
+ *   lebih dari 60     : jatuh tempo  1 Agu 2026 -> 112 hari
  */
 const SKENARIO = [
   { kamar: 'T7-A', nama: 'Ani Belum Jatuh Tempo', masuk: '2026-01-15', periode: '2026-12-01', kelompok: 'belum_jatuh_tempo', hari: -24 },
@@ -77,6 +78,12 @@ async function jalan() {
   lapor('login pemilik berhasil', Boolean(masuk), await evaluasi(ws, 'location.pathname'))
   if (!masuk) throw new Error('login gagal, sisa langkah tidak bisa dijalankan')
 
+  // T16b: gerbang kebijakan kos. Dinyatakan di sini, sekali, supaya langkah
+  // uji di bawahnya tidak gagal karena alasan yang tidak sedang diuji -
+  // gerbangnya memang bekerja, dan yang perlu dilakukan adalah memenuhinya.
+  const kebijakan = await pastikanKebijakan(ws)
+  lapor('kebijakan kos siap', kebijakan.ok, kebijakan.alasan)
+  if (!kebijakan.ok) throw new Error('kebijakan kos gagal disiapkan: ' + kebijakan.alasan)
   // --- Siapkan empat kontrak + tagihan -------------------------------------
   const siap = await evaluasi(ws, `
     (async () => {
@@ -215,7 +222,7 @@ async function jalan() {
   // Dengan tanggal acuan jauh di masa lalu, keempat tagihan belum jatuh tempo:
   // semuanya masuk kelompok pertama dan tiga kelompok sisanya kosong. Ini
   // sekaligus membuktikan kelompok kosong tetap dikirim, dan bahwa "belum jatuh
-  // tempo" benar-benar terpisah dari 0-30 — bukan sekadar wadah sementara.
+  // tempo" benar-benar terpisah dari 0-30 - bukan sekadar wadah sementara.
   const masaLalu = await evaluasi(ws, panggilTunggakan('2020-01-01'))
   const jumlahMasaLalu = (masaLalu.data?.kelompok || []).map((k) => k.jumlah)
   lapor(
@@ -235,7 +242,7 @@ async function jalan() {
   `, 6000)
   lapor('menu Tunggakan ada di navigasi pemilik', Boolean(adaMenu))
 
-  // Geser tanggal lewat UI, bukan lewat API — buktikan kendalinya bekerja.
+  // Geser tanggal lewat UI, bukan lewat API - buktikan kendalinya bekerja.
   const digeser = await evaluasi(ws, `
     (async () => {
       const input = document.querySelector('.simulasi-panel input[type="date"]')
@@ -271,7 +278,7 @@ async function jalan() {
   )
 
   // Kontras teks kartu. Kartu memakai <button>, jadi ia mewarisi `color: #fff`
-  // dari gaya tombol global — teks putih di atas kartu putih. Tidak ada asersi
+  // dari gaya tombol global - teks putih di atas kartu putih. Tidak ada asersi
   // teks yang menangkap ini karena DOM-nya benar; hanya warnanya yang salah.
   const kontras = await evaluasi(ws, `
     (() => {

@@ -3,7 +3,10 @@
 namespace App\Domain\Billing;
 
 use App\Domain\Audit\PencatatAudit;
+use App\Domain\Kebijakan\PenyelesaiKebijakan;
+use App\Domain\Kebijakan\PilihanKebijakan;
 use App\Domain\Tarif\PencariTarif;
+use App\Models\KebijakanKos;
 use App\Models\Kontrak;
 use App\Models\Tagihan;
 use App\Models\TagihanRincian;
@@ -31,6 +34,7 @@ class PenerbitTagihan
     public function __construct(
         private readonly Kalkulator $kalkulator,
         private readonly PencariTarif $pencari,
+        private readonly PenyelesaiKebijakan $kebijakan,
         private readonly PencatatAudit $audit,
     ) {}
 
@@ -46,6 +50,18 @@ class PenerbitTagihan
 
         $this->pastikanPeriodeMasukAkal($kontrak, $awalPeriode, $tanggalMasuk);
 
+        // Gerbang kebijakan (T16) sengaja diperiksa SEBELUM tarif dan parameter
+        // denda. Urutannya menentukan pesan mana yang dibaca pemilik lebih
+        // dulu, dan pesan yang paling bisa ditindaklanjuti adalah "kebijakan
+        // belum diisi": itu satu-satunya langkah yang memperbaiki semua kamar
+        // sekaligus. Sebaliknya, "kamar A1 belum punya tarif" untuk kos 30
+        // kamar baru akan menuntun pemilik ke 30 pesan yang berbeda.
+        //
+        // Diperiksa per kamar, bukan sekali untuk seluruh kos: satu kamar boleh
+        // punya penimpa (mis. kamar harian), dan kamar itu tetap wajib lengkap
+        // walau default kos sudah diisi.
+        $berlaku = $this->kebijakan->untukPenerbitan($awalPeriode, $kontrak->kamar);
+
         $tarif = $this->pencari->sewaUntuk($kontrak->kamar, $awalPeriode);
 
         if ($tarif === null) {
@@ -58,43 +74,41 @@ class PenerbitTagihan
             throw TagihanTidakDapatDiterbitkan::karenaParameterDendaKosong($awalPeriode);
         }
 
+        $satuanSewa = $berlaku[KebijakanKos::TIPE_SATUAN_SEWA];
+        $caraJatuhTempo = $berlaku[KebijakanKos::TIPE_JATUH_TEMPO];
+
         // R-01 hanya berlaku pada bulan penghuni masuk. Bulan berikutnya selalu
         // tarif penuh — termasuk bulan ketika penghuni keluar di tengah bulan:
         // tidak ada prorata keluar, karena sisa bulan tetap disewa.
+        //
+        // T16: yang berubah hanya cara harga diterjemahkan, bukan kapan prorata
+        // berlaku. `hariDitagih` tetap sama untuk ketiga satuan, sehingga kos
+        // mingguan pun tidak menagih sebulan penuh untuk penghuni yang masuk
+        // tanggal 28.
         $baris = [];
         $bulanMasuk = $awalPeriode->isSameMonth($tanggalMasuk);
+        $hariDalamBulan = $awalPeriode->daysInMonth;
+        $hariDitagih = $bulanMasuk
+            ? $this->kalkulator->hariTinggal($tanggalMasuk)
+            : $hariDalamBulan;
 
-        if ($bulanMasuk) {
-            $hariTinggal = $this->kalkulator->hariTinggal($tanggalMasuk);
-            $hariDalamBulan = $awalPeriode->daysInMonth;
-            $sewa = $this->kalkulator->hitungSewaBulanPertama(
-                (int) $tarif->nilai,
-                $hariTinggal,
-                $hariDalamBulan,
-            );
+        $sewa = $this->kalkulator->hitungSewa(
+            $satuanSewa->nilai,
+            (int) $tarif->nilai,
+            $hariDitagih,
+            $hariDalamBulan,
+        );
 
-            // Sebut "prorata" hanya bila memang diprorata. Masuk tanggal 1
-            // menghasilkan sewa penuh, dan menuliskannya sebagai "prorata 31/31"
-            // hanya membingungkan pembaca tagihan.
-            $namaBaris = $hariTinggal === $hariDalamBulan
-                ? sprintf('Sewa %s', $awalPeriode->translatedFormat('F Y'))
-                : sprintf(
-                    'Sewa %s (prorata %d/%d hari)',
-                    $awalPeriode->translatedFormat('F Y'),
-                    $hariTinggal,
-                    $hariDalamBulan,
-                );
+        // Label rincian mengikuti satuan yang benar-benar dipakai. Tanpa ini,
+        // tagihan kos harian tetap berbunyi "Sewa November 2026" — dan pemilik
+        // yang menagih Rp 50.000 untuk kamar Rp 1.500.000/bulan tidak punya
+        // penjelasan apa pun di layar.
+        $namaBaris = $this->namaBarisSewa($satuanSewa->nilai, $awalPeriode, $hariDitagih, $hariDalamBulan);
 
-            $baris[] = [
-                'nama' => $namaBaris,
-                'nilai' => $sewa,
-            ];
-        } else {
-            $baris[] = [
-                'nama' => sprintf('Sewa %s', $awalPeriode->translatedFormat('F Y')),
-                'nilai' => (int) $tarif->nilai,
-            ];
-        }
+        $baris[] = [
+            'nama' => $namaBaris,
+            'nilai' => $sewa,
+        ];
 
         // Komponen biaya tetap selalu tarif penuh, tidak diprorata: kebersihan
         // dan parkir tidak berkurang hanya karena penghuni masuk di tengah bulan.
@@ -137,14 +151,23 @@ class PenerbitTagihan
             $pokok,
             $komponenTerpakai,
             $bulanMasuk,
+            $satuanSewa,
+            $caraJatuhTempo,
+            $hariDitagih,
+            $hariDalamBulan,
         ) {
+            $jatuhTempo = $this->kalkulator->tanggalJatuhTempoMenurut(
+                $caraJatuhTempo->nilai,
+                $awalPeriode,
+                $tanggalMasuk,
+                $caraJatuhTempo->tanggal,
+            );
+
             $tagihan = Tagihan::create([
                 'kontrak_id' => $kontrak->id,
                 'periode' => $awalPeriode->toDateString(),
                 'pokok' => $pokok,
-                'jatuh_tempo' => $this->kalkulator
-                    ->tanggalJatuhTempo($tanggalMasuk, $awalPeriode)
-                    ->toDateString(),
+                'jatuh_tempo' => $jatuhTempo->toDateString(),
                 'status' => Tagihan::STATUS_BELUM_BAYAR,
                 'tarif_terpakai' => [
                     'tarif_sewa' => [
@@ -159,6 +182,28 @@ class PenerbitTagihan
                         'plafon_persen' => (string) $parameter->plafon_persen,
                         'masa_tenggang' => $parameter->masa_tenggang,
                         'berlaku_dari' => $parameter->berlaku_dari->toDateString(),
+                    ],
+                    // T16: kebijakan yang dipakai ikut dibekukan. Tanpa ini,
+                    // pemilik yang mengubah satuan sewa menjadi harian bulan
+                    // depan tidak bisa menjelaskan mengapa tagihan bulan lalu
+                    // sebesar itu — `kebijakan_kos` sudah berisi baris baru,
+                    // dan baris lama tidak menunjuk tagihan mana pun.
+                    'kebijakan' => [
+                        'satuan_sewa' => [
+                            'id' => $satuanSewa->id,
+                            'nilai' => $satuanSewa->nilai,
+                            'berlaku_dari' => $satuanSewa->berlaku_dari->toDateString(),
+                            'kamar_id' => $satuanSewa->kamar_id,
+                        ],
+                        'jatuh_tempo' => [
+                            'id' => $caraJatuhTempo->id,
+                            'nilai' => $caraJatuhTempo->nilai,
+                            'tanggal' => $caraJatuhTempo->tanggal,
+                            'berlaku_dari' => $caraJatuhTempo->berlaku_dari->toDateString(),
+                            'kamar_id' => $caraJatuhTempo->kamar_id,
+                        ],
+                        'hari_ditagih' => $hariDitagih,
+                        'hari_dalam_bulan' => $hariDalamBulan,
                     ],
                     'prorata' => $bulanMasuk,
                 ],
@@ -202,6 +247,43 @@ class PenerbitTagihan
 
             return $tagihan;
         });
+    }
+
+    /**
+     * Nama baris rincian untuk sewa, mengikuti satuan yang dipakai.
+     *
+     * Dipisah dari alur utama supaya bisa dibaca sebagai aturan penamaan, bukan
+     * sebagai tiga kondisi bertingkat di tengah perhitungan uang. Yang dijamin
+     * di sini hanya satu hal: baris rincian menjelaskan angka di sebelahnya.
+     *
+     * Kata "prorata" hanya muncul bila memang diprorata. Masuk tanggal 1
+     * menghasilkan sewa penuh, dan menuliskannya sebagai "prorata 31/31" hanya
+     * membingungkan pembaca tagihan.
+     */
+    private function namaBarisSewa(string $satuan, CarbonInterface $awalPeriode, int $hariDitagih, int $hariDalamBulan): string
+    {
+        $bulan = $awalPeriode->translatedFormat('F Y');
+        $penuh = $hariDitagih === $hariDalamBulan;
+
+        // Satuan selain bulanan selalu menyebut satuannya, karena jumlahnya
+        // tidak akan cocok dengan tarif bulanan yang tertulis di menu Kamar.
+        // Tanpa keterangan itu, pemilik sendiri tidak bisa menjelaskan asal
+        // angka Rp 350.000 pada kamar bertarif Rp 1.500.000/bulan.
+        $satuanLabel = match ($satuan) {
+            PilihanKebijakan::SATUAN_MINGGUAN => 'mingguan',
+            PilihanKebijakan::SATUAN_HARIAN => 'harian',
+            default => null,
+        };
+
+        if ($satuanLabel !== null) {
+            return $penuh
+                ? sprintf('Sewa %s (%s %d hari)', $bulan, $satuanLabel, $hariDitagih)
+                : sprintf('Sewa %s (%s, %d/%d hari)', $bulan, $satuanLabel, $hariDitagih, $hariDalamBulan);
+        }
+
+        return $penuh
+            ? sprintf('Sewa %s', $bulan)
+            : sprintf('Sewa %s (prorata %d/%d hari)', $bulan, $hariDitagih, $hariDalamBulan);
     }
 
     /**

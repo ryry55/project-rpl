@@ -53,6 +53,26 @@ export function tanggalHariIni() {
 }
 
 /**
+ * Tanggal berlaku yang membuat kebijakan langsung terpakai untuk bulan berjalan.
+ *
+ * Kebijakan diselesaikan terhadap **awal periode**, bukan terhadap hari ini
+ * (`PenyelesaiKebijakan::semuaBerlaku`), karena tagihan Agustus yang terbit
+ * September harus memakai kebijakan yang berlaku pada Agustus. Akibatnya
+ * `berlaku_dari` = hari ini tidak terpakai untuk periode bulan ini: tanggal 23
+ * lebih besar dari awal bulan, jadi barisnya belum berlaku sampai bulan depan.
+ *
+ * Itu membingungkan di layar: pemilik menekan Tetapkan, membaca "Kebijakan
+ * tersimpan", dan gerbangnya tetap menutup. Yang benar bukan mengubah cara
+ * penyelesaian - itu akan merusak R-06 - melainkan menawarkan tanggal yang
+ * memang langsung berlaku.
+ */
+export function tanggalBerlakuBulanIni() {
+  const sekarang = new Date()
+  const bulan = String(sekarang.getMonth() + 1).padStart(2, '0')
+  return `${sekarang.getFullYear()}-${bulan}-01`
+}
+
+/**
  * Label status yang bisa dibaca: `belum_bayar` → "belum bayar".
  *
  * Dipakai di layar pemilik, yang menampilkan status apa adanya dalam huruf kecil

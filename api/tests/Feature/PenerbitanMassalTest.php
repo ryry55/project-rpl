@@ -15,6 +15,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Tests\Concerns\MenyiapkanKebijakan;
 use Tests\TestCase;
 
 /**
@@ -29,6 +30,7 @@ use Tests\TestCase;
  */
 class PenerbitanMassalTest extends TestCase
 {
+    use MenyiapkanKebijakan;
     use RefreshDatabase;
 
     private User $pemilik;
@@ -50,6 +52,10 @@ class PenerbitanMassalTest extends TestCase
             'masa_tenggang' => 7,
             'berlaku_dari' => '2026-01-01',
         ]);
+
+        // Sejak T16 tagihan tidak bisa terbit tanpa kebijakan. Berkas ini
+        // menguji batch, bukan gerbangnya.
+        $this->siapkanKebijakanDefault();
     }
 
     private function sebagaiPemilik()

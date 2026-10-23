@@ -1,6 +1,6 @@
 // Verifikasi end-to-end T5 lewat browser sungguhan.
 //
-// Yang dibuktikan: siklus penuh tagihan → uang masuk → status berubah, dengan
+// Yang dibuktikan: siklus penuh tagihan -> uang masuk -> status berubah, dengan
 // dua pembayaran (sebagian lalu sisa) dan riwayat yang bisa diperiksa ulang.
 // Juga bahwa kelebihan bayar ditolak di layar, bukan diam-diam tersimpan.
 //
@@ -22,6 +22,7 @@ import {
   kirim,
   evaluasi,
   tungguSampai,
+  pastikanKebijakan,
 } from './_cdp.mjs'
 
 const SIMULASI = '2026-11-10'
@@ -31,7 +32,7 @@ const POKOK = 1_500_000
 const langkah = []
 function lapor(nama, lulus, detail = '') {
   langkah.push({ nama, lulus, detail })
-  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' — ' + detail : ''}`)
+  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' - ' + detail : ''}`)
 }
 
 async function jalan() {
@@ -62,6 +63,12 @@ async function jalan() {
   lapor('login pemilik berhasil', Boolean(masuk), await evaluasi(ws, 'location.pathname'))
   if (!masuk) throw new Error('login gagal, sisa langkah tidak bisa dijalankan')
 
+  // T16b: gerbang kebijakan kos. Dinyatakan di sini, sekali, supaya langkah
+  // uji di bawahnya tidak gagal karena alasan yang tidak sedang diuji -
+  // gerbangnya memang bekerja, dan yang perlu dilakukan adalah memenuhinya.
+  const kebijakan = await pastikanKebijakan(ws)
+  lapor('kebijakan kos siap', kebijakan.ok, kebijakan.alasan)
+  if (!kebijakan.ok) throw new Error('kebijakan kos gagal disiapkan: ' + kebijakan.alasan)
   // --- Siapkan kontrak + tagihan lewat API ---------------------------------
   const siap = await evaluasi(ws, `
     (async () => {
@@ -402,7 +409,7 @@ async function jalan() {
 jalan().catch(async (e) => {
   console.error('E2E gagal:', e.message)
   // Tab ditutup juga saat gagal. Tanpa ini, tiap kegagalan meninggalkan tab
-  // yatim — dan setelah beberapa tab, langkah login mulai gagal karena alasan
+  // yatim - dan setelah beberapa tab, langkah login mulai gagal karena alasan
   // yang tidak ada hubungannya dengan aplikasi.
   try {
     const daftar = await fetch(`${CDP_BASE}/json/list`).then((r) => r.json())

@@ -15,6 +15,17 @@ const props = defineProps({
   daftar: { type: Array, default: () => [] },
   memuat: { type: Boolean, default: false },
   memuatDetail: { type: Boolean, default: false },
+  /**
+   * Petunjuk saat daftar kosong.
+   *
+   * Dikirim induk karena hanya induk yang tahu apakah tombol terbit sedang
+   * ditampilkan. Sejak gerbang kebijakan ada, tombol itu bisa disembunyikan,
+   * dan "lewat tombol di atas" lalu menunjuk tombol yang tidak ada.
+   */
+  pesanKosong: {
+    type: String,
+    default: 'Belum ada tagihan. Terbitkan tagihan pertama lewat tombol di atas.',
+  },
 })
 
 const emit = defineEmits(['buka'])
@@ -64,7 +75,7 @@ const KOLOM = 11
             </td>
           </tr>
           <BarisKosong v-if="!props.memuat && props.daftar.length === 0" :kolom="KOLOM">
-            Belum ada tagihan. Terbitkan tagihan pertama lewat tombol di atas.
+            {{ props.pesanKosong }}
           </BarisKosong>
           <BarisKosong v-if="props.memuat" :kolom="KOLOM">Memuat…</BarisKosong>
           <BarisKosong v-if="props.memuatDetail" :kolom="KOLOM">Memuat rincian…</BarisKosong>

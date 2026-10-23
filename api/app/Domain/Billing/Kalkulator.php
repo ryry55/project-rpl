@@ -2,6 +2,7 @@
 
 namespace App\Domain\Billing;
 
+use App\Domain\Kebijakan\PilihanKebijakan;
 use Carbon\CarbonInterface;
 
 /**
@@ -53,6 +54,98 @@ class Kalkulator
         }
 
         return $this->bagiBulatHalfUp($tarif * $hariTinggal, $hariDalamBulan);
+    }
+
+    /**
+     * Sewa satu periode menurut satuan yang dipilih pemilik (T16).
+     *
+     * Ini dispatcher, bukan rumus baru: cabang `bulanan` memanggil
+     * {@see hitungSewaBulanPertama} apa adanya. Memindahkan prorata ke sini
+     * akan mengubah satu-satunya tempat pembulatan R-01 berada, dan tes batas
+     * 17/31 yang sudah ada berhenti membuktikan apa pun tentang kode yang
+     * benar-benar berjalan.
+     *
+     * Arti tiap satuan, dan kenapa begitu:
+     *
+     *   - `bulanan` — tarif adalah harga sebulan; bulan masuk diprorata menurut
+     *     hari tinggal (R-01), bulan berikutnya tarif penuh.
+     *   - `mingguan` — tarif adalah harga seminggu. Jumlah yang ditagih adalah
+     *     tarif × hari / 7, dibulatkan half-up. Kos mingguan tetap menagih
+     *     bulanan di sistem ini, karena periode tagihan selalu satu bulan;
+     *     yang berubah hanya cara harga mingguan diterjemahkan ke sebulan.
+     *   - `harian` — tarif adalah harga sehari; jumlahnya tarif × hari.
+     *
+     * Ketiganya memakai `hariDitagih` yang sama, sehingga bulan masuk tetap
+     * diprorata pada satuan apa pun. Tanpa itu, penghuni yang masuk tanggal 28
+     * akan ditagih sebulan penuh hanya karena kosnya mingguan.
+     *
+     * @param  int  $hariDitagih  hari yang ditagih pada periode ini (1..hariDalamBulan)
+     * @param  int  $hariDalamBulan  jumlah hari bulan periode
+     */
+    public function hitungSewa(string $satuan, int $tarif, int $hariDitagih, int $hariDalamBulan): int
+    {
+        if ($hariDalamBulan <= 0) {
+            throw new \InvalidArgumentException('hari_dalam_bulan harus lebih besar dari 0.');
+        }
+
+        if ($hariDitagih < 1 || $hariDitagih > $hariDalamBulan) {
+            throw new \InvalidArgumentException(sprintf(
+                'hari_ditagih harus di antara 1 dan %d, diterima %d.',
+                $hariDalamBulan,
+                $hariDitagih,
+            ));
+        }
+
+        if ($tarif < 0) {
+            throw new \InvalidArgumentException("Tarif tidak boleh negatif, diterima {$tarif}.");
+        }
+
+        return match ($satuan) {
+            PilihanKebijakan::SATUAN_BULANAN => $this->hitungSewaBulanPertama(
+                $tarif,
+                $hariDitagih,
+                $hariDalamBulan,
+            ),
+            // Sebulan penuh pada satuan mingguan tidak selalu bilangan bulat
+            // minggu (31 hari = 4,43 minggu), jadi tidak ada jalan pintas di
+            // sini: pembagiannya memang harus terjadi.
+            PilihanKebijakan::SATUAN_MINGGUAN => $this->bagiBulatHalfUp($tarif * $hariDitagih, 7),
+            PilihanKebijakan::SATUAN_HARIAN => $tarif * $hariDitagih,
+            default => throw new \InvalidArgumentException(
+                "Satuan sewa \"{$satuan}\" tidak dikenal."
+            ),
+        };
+    }
+
+    /**
+     * Jatuh tempo menurut cara yang dipilih pemilik (T16).
+     *
+     * Cabang `tanggal_masuk` memanggil {@see tanggalJatuhTempo} apa adanya,
+     * sehingga perilaku sebelum T16 tetap persis sama — termasuk penjepitan
+     * tanggal 31 di bulan Februari, yang sudah diuji dan tidak boleh berubah.
+     *
+     * `tanggal_tetap` juga dijepit dengan alasan yang sama: pemilik yang
+     * menagih "tanggal 31" tidak boleh mendapat jatuh tempo 3 Maret di bulan
+     * Februari, karena denda akan dihitung dari tanggal yang salah.
+     */
+    public function tanggalJatuhTempoMenurut(
+        string $cara,
+        CarbonInterface $periode,
+        CarbonInterface $tanggalMasuk,
+        ?int $tanggalTetap = null,
+    ): CarbonInterface {
+        $awalBulan = $periode->copy()->startOfMonth();
+
+        return match ($cara) {
+            PilihanKebijakan::JATUH_TEMPO_TANGGAL_MASUK => $this->tanggalJatuhTempo($tanggalMasuk, $periode),
+            PilihanKebijakan::JATUH_TEMPO_TANGGAL_TETAP => $awalBulan->copy()->day(
+                min($tanggalTetap ?? 1, $awalBulan->daysInMonth)
+            ),
+            PilihanKebijakan::JATUH_TEMPO_AKHIR_BULAN => $awalBulan->copy()->endOfMonth()->startOfDay(),
+            default => throw new \InvalidArgumentException(
+                "Cara jatuh tempo \"{$cara}\" tidak dikenal."
+            ),
+        };
     }
 
     /**

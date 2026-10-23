@@ -12,6 +12,9 @@ const menu = [
   { nama: 'kontrak', label: 'Kontrak', ket: 'Penghuni menempati kamar' },
   { nama: 'tagihan', label: 'Tagihan', ket: 'Terbitkan dan periksa tagihan' },
   { nama: 'tunggakan', label: 'Tunggakan', ket: 'Siapa menunggak dan sudah separah apa' },
+  // Diletakkan setelah Tunggakan, bukan di paling atas: pemilik membuka menu
+  // ini sekali di awal lalu jarang lagi, sementara Tagihan dibuka setiap bulan.
+  { nama: 'kebijakan', label: 'Kebijakan', ket: 'Satuan sewa dan jatuh tempo kos ini' },
   { nama: 'audit', label: 'Jejak audit', ket: 'Siapa mengubah apa, kapan' },
 ]
 

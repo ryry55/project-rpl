@@ -151,6 +151,30 @@ button.mungil {
   font-size: 13px;
 }
 
+/* Tautan yang harus terlihat seperti tombol.
+ *
+ * Navigasi antar-halaman memakai `<RouterLink>`, bukan `<button>` yang
+ * memanggil router: tautan asli bisa dibuka di tab baru, punya alamat, dan
+ * terbaca pembaca layar sebagai navigasi. Yang dipinjam di sini hanya
+ * tampilannya.
+ */
+.tombol-tautan {
+  display: inline-block;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 570;
+  color: #fff;
+  background: var(--aksen);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.tombol-tautan:hover {
+  filter: brightness(0.94);
+}
+
 .kartu {
   background: var(--permukaan);
   border: 1px solid var(--garis);

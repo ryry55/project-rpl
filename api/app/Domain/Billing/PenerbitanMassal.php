@@ -42,6 +42,16 @@ class PenerbitanMassal
 
     public const SEBAB_BELUM_MULAI = 'belum_mulai';
 
+    /**
+     * Sebab gagalnya sebuah kontrak karena kebijakan kos belum lengkap (T16).
+     *
+     * Dipisahkan dari gagal biasa karena tindakannya berbeda: tarif kosong
+     * diperbaiki per kamar, sedangkan kebijakan kosong diperbaiki sekali untuk
+     * seluruh kos. Pemilik yang melihat 30 baris "gagal" tanpa sebab akan
+     * mengira ada 30 masalah.
+     */
+    public const SEBAB_KEBIJAKAN = 'kebijakan';
+
     public function __construct(private readonly PenerbitTagihan $penerbit) {}
 
     /**
@@ -161,6 +171,7 @@ class PenerbitanMassal
         } catch (TagihanTidakDapatDiterbitkan $e) {
             return $dasar + [
                 'status' => self::GAGAL,
+                'sebab' => self::SEBAB_KEBIJAKAN,
                 'alasan' => $e->getMessage(),
             ];
         }

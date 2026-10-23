@@ -2,7 +2,7 @@
 // lalu laporkan galat konsol, permintaan yang gagal, dan halaman yang kosong.
 //
 // Ini bukan pengganti E2E per tiket. E2E membuktikan satu alur bisnis benar;
-// skrip ini membuktikan tidak ada halaman yang diam-diam rusak — kelas
+// skrip ini membuktikan tidak ada halaman yang diam-diam rusak - kelas
 // kesalahan yang tidak tertangkap tes karena tes tidak pernah membukanya.
 //
 // Pakai: node docs/uji/asap-semua-halaman.mjs
@@ -177,6 +177,34 @@ jalankan(async () => {
         if (buat.status !== 201) return 'kontrak: ' + JSON.stringify(buat.data)
       }
 
+      // Kebijakan kos: sejak T16, penerbitan tagihan ditolak sebelum satuan sewa
+      // dan cara jatuh tempo ditetapkan. Tanpa langkah ini langkah tagihan di
+      // bawah gagal 422 - dan pesannya akan terbaca seperti kerusakan halaman,
+      // padahal gerbangnya memang bekerja.
+      //
+      // Idempoten dengan pola yang sama: baca dulu apa yang kurang, tulis hanya
+      // yang kurang. kebijakan_kos bersifat append-only sehingga POST kedua
+      // bertanggal sama ditolak, jadi 422 diperlakukan sebagai "sudah ada".
+      const kebijakan = await p('/kebijakan?berlaku_pada=2026-01-01', 'GET')
+      if (kebijakan.status !== 200) {
+        return 'kebijakan: ' + JSON.stringify(kebijakan.data)
+      }
+      if (!kebijakan.data?.meta?.lengkap) {
+        const nilaiBawaan = { satuan_sewa: 'bulanan', jatuh_tempo: 'tanggal_masuk' }
+        for (const tipe of kebijakan.data?.meta?.kurang || []) {
+          const nilai = nilaiBawaan[tipe]
+          if (!nilai) return 'kebijakan: tidak ada nilai bawaan untuk ' + tipe
+          const tulis = await p('/kebijakan', 'POST', {
+            tipe, nilai, berlaku_dari: '2026-01-01',
+          })
+          if (tulis.status !== 201 && tulis.status !== 422) {
+            return 'kebijakan ' + tipe + ': ' + JSON.stringify(tulis.data)
+          }
+        }
+        const ulang = await p('/kebijakan?berlaku_pada=2026-01-01', 'GET')
+        if (!ulang.data?.meta?.lengkap) return 'kebijakan masih belum lengkap'
+      }
+
       // Tagihan: terbitkan untuk periode uji, dan terima 409 sebagai "sudah ada".
       const kontrak = (await daftar('/kontrak')).filter((x) => x.kamar_id === kamar.id)[0]
       if (!kontrak) return 'kontrak tidak ditemukan setelah dibuat'
@@ -224,7 +252,7 @@ jalankan(async () => {
         gagalNyata.length ? `HTTP 5xx: ${gagalNyata.join(' | ')}` : '',
       ]
         .filter(Boolean)
-        .join(' · '),
+        .join(' | '),
     )
   }
 
@@ -234,6 +262,7 @@ jalankan(async () => {
     ['/pemilik/kontrak', 'Kontrak'],
     ['/pemilik/tagihan', 'Tagihan'],
     ['/pemilik/tunggakan', 'Tunggakan'],
+    ['/pemilik/kebijakan', 'Kebijakan'],
     ['/pemilik/audit', 'Jejak audit'],
   ]
   for (const [jalur, nama] of halamanPemilik) {
@@ -262,7 +291,7 @@ jalankan(async () => {
   lapor(
     'halaman 404 menjelaskan dan menyediakan jalan pulang',
     nyasar.panjangTeks > 20 && nyasar.adaTautanPulang,
-    `${nyasar.panjangTeks} huruf · tautan pulang: ${nyasar.adaTautanPulang}`,
+    `${nyasar.panjangTeks} huruf | tautan pulang: ${nyasar.adaTautanPulang}`,
   )
 
   await uji.selesai()

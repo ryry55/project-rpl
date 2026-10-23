@@ -7,6 +7,8 @@ use App\Domain\Billing\PencatatPembayaran;
 use App\Domain\Billing\PenerbitanMassal;
 use App\Domain\Billing\PenerbitTagihan;
 use App\Domain\Billing\TagihanTidakDapatDiterbitkan;
+use App\Domain\Kebijakan\KebijakanBelumLengkap;
+use App\Domain\Kebijakan\PenyelesaiKebijakan;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CatatPembayaranRequest;
 use App\Http\Requests\Api\TerbitkanMassalRequest;
@@ -27,6 +29,7 @@ class TagihanController extends Controller
         private readonly PenerbitTagihan $penerbit,
         private readonly PenerbitanMassal $penerbitanMassal,
         private readonly PencatatPembayaran $pencatatPembayaran,
+        private readonly PenyelesaiKebijakan $penyelesaiKebijakan,
         private readonly WaktuSistem $waktu,
     ) {}
 
@@ -188,6 +191,26 @@ class TagihanController extends Controller
         }
 
         $periode = Carbon::parse($request->string('periode')->value());
+
+        // Gerbang kebijakan (T16) diperiksa sekali untuk default kos, sebelum
+        // satu pun kontrak diproses. Tanpa pemeriksaan di sini, batch tanpa
+        // kebijakan akan menghasilkan 30 baris "gagal" bernasib sama dan kode
+        // status 200 — yang menurut arti kode itu sendiri berarti "tidak ada
+        // yang perlu dikerjakan", padahal justru semuanya perlu dikerjakan.
+        //
+        // Gerbang per kamar tetap berlaku di dalam PenerbitTagihan: kamar yang
+        // punya penimpa sendiri harus lengkap walau default kos sudah diisi.
+        $kurang = $this->penyelesaiKebijakan->tipeYangKurang($periode, null);
+
+        if ($kurang !== []) {
+            $pesan = KebijakanBelumLengkap::dariTipe($kurang)->getMessage();
+
+            return response()->json([
+                'message' => $pesan,
+                'errors' => ['periode' => [$pesan]],
+            ], 422);
+        }
+
         $hasil = $this->penerbitanMassal->jalankan($periode);
 
         $status = match (true) {

@@ -19,7 +19,7 @@ import {
 const langkah = []
 function lapor(nama, lulus, detail = '') {
   langkah.push({ nama, lulus, detail })
-  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' — ' + detail : ''}`)
+  console.log(`${lulus ? 'LULUS' : 'GAGAL'}  ${nama}${detail ? ' - ' + detail : ''}`)
 }
 
 async function jalan() {
@@ -60,7 +60,7 @@ async function jalan() {
   // Sejak T2, `/pemilik` tidak lagi punya halaman sendiri: rute kosong
   // dialihkan ke halaman kerja pertama (`/pemilik/kamar`). Asersi lama
   // menuntut `location.pathname === '/pemilik'`, yang tidak pernah lagi benar
-  // setelah perubahan itu — jadi ia gagal bukan karena aplikasinya salah,
+  // setelah perubahan itu - jadi ia gagal bukan karena aplikasinya salah,
   // melainkan karena tesnya menghafal bentuk lama. Yang diperiksa sekarang
   // adalah hal yang memang dijanjikan: pemilik mendarat di dalam `/pemilik`.
   const kePemilik = await tungguSampai(ws, `location.pathname.startsWith('/pemilik')`)

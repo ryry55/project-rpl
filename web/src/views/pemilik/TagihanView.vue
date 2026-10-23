@@ -8,12 +8,14 @@
  * formulir terbit satuan.
  */
 import { computed, onMounted, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import { sesi } from '../../sesi.js'
 import { rupiah, pesanGalat } from '../../format.js'
 import { simulasiTanggal } from '../../simulasi.js'
 import KendaliSimulasi from '../../komponen/KendaliSimulasi.vue'
 import KepalaHalaman from '../../komponen/ui/KepalaHalaman.vue'
 import PesanBaris from '../../komponen/ui/PesanBaris.vue'
+import PanelKartu from '../../komponen/ui/PanelKartu.vue'
 import PanelTerbitMassal from './komponen/PanelTerbitMassal.vue'
 import PanelTerbitTagihan from './komponen/PanelTerbitTagihan.vue'
 import PanelDetailTagihan from './komponen/PanelDetailTagihan.vue'
@@ -23,6 +25,16 @@ const daftar = ref([])
 const kontrak = ref([])
 const memuat = ref(true)
 const galatMuat = ref('')
+
+// Gerbang kebijakan (T16). `kebijakanKurang` berisi label jenis yang belum
+// ditetapkan; selama tidak kosong, tombol terbit tidak ditampilkan sama sekali.
+// Server tetap menolak dengan 422 walau tombolnya dipaksa lewat - yang ini
+// hanya supaya pemilik tidak menempuh jalan buntu yang tidak dijelaskan.
+//
+// Yang disimpan label, bukan kode: `satuan_sewa` dan `jatuh_tempo` adalah nama
+// kolom, bukan bahasa yang dibaca pemilik. Label datang dari server
+// (`meta.label_tipe`) supaya layar ini tidak menyimpan salinan kedua kosakata.
+const kebijakanKurang = ref([])
 
 const massalTerbuka = ref(false)
 const formTerbuka = ref(false)
@@ -51,16 +63,42 @@ const totalSisa = computed(() =>
   daftar.value.reduce((j, t) => j + (t.status === 'dibatalkan' ? 0 : t.sisa || 0), 0),
 )
 
+/**
+ * Petunjuk saat tabel kosong.
+ *
+ * Menyebut tombol hanya kalau tombolnya ada. Selama gerbang kebijakan menutup,
+ * tombol terbit disembunyikan, dan petunjuk lama menunjuk sesuatu yang tidak
+ * bisa dilihat - pemilik mencari tombol yang memang tidak dirender.
+ */
+const pesanKosong = computed(() =>
+  kebijakanKurang.value.length
+    ? 'Belum ada tagihan. Tetapkan kebijakan kos lebih dulu sebelum menerbitkan.'
+    : 'Belum ada tagihan. Terbitkan tagihan pertama lewat tombol di atas.',
+)
+
 async function muat() {
   memuat.value = true
   galatMuat.value = ''
   try {
-    const [hasilTagihan, hasilKontrak] = await Promise.all([
+    const [hasilTagihan, hasilKontrak, hasilKebijakan] = await Promise.all([
       sesi.panggil('/tagihan', { headers: simulasiTanggal.header() }),
       sesi.panggil('/kontrak'),
+      // Kegagalan membaca kebijakan tidak boleh mengosongkan halaman Tagihan:
+      // daftar tagihan tetap berguna, dan gerbang di bawah hanya menampilkan
+      // peringatan bila datanya memang berhasil dibaca.
+      sesi.panggil('/kebijakan', { headers: simulasiTanggal.header() }).catch(() => null),
     ])
     daftar.value = hasilTagihan.data
     kontrak.value = hasilKontrak.data.filter((k) => k.status === 'aktif')
+
+    // Kode tipe diterjemahkan ke label di sini, sekali, lalu dibuang. Kalau
+    // kode mentah yang disimpan, setiap tempat yang menampilkannya harus ingat
+    // menerjemahkan - dan satu tempat yang lupa akan menampilkan `jatuh_tempo`
+    // kepada pemilik kos.
+    const labelTipe = hasilKebijakan?.meta?.label_tipe || {}
+    kebijakanKurang.value = (hasilKebijakan?.meta?.kurang || []).map(
+      (tipe) => labelTipe[tipe] || tipe,
+    )
 
     // Status simulasi dibaca dari server, bukan ditebak dari ada/tidaknya
     // header. Server yang tahu apakah mode demo aktif; menganggap "ada tanggal
@@ -140,12 +178,37 @@ onMounted(muat)
         <template v-if="totalSisa > 0">· belum masuk {{ rupiah(totalSisa) }}</template>
       </template>
       <template #aksi>
-        <button v-if="!massalTerbuka" class="halus" @click="massalTerbuka = true">
-          Terbitkan semua
-        </button>
-        <button v-if="!formTerbuka" @click="formTerbuka = true">Terbitkan tagihan</button>
+        <RouterLink
+          v-if="kebijakanKurang.length"
+          class="tombol-tautan"
+          :to="{ name: 'pemilik-kebijakan' }"
+        >
+          Isi kebijakan dulu
+        </RouterLink>
+        <template v-else>
+          <button v-if="!massalTerbuka" class="halus" @click="massalTerbuka = true">
+            Terbitkan semua
+          </button>
+          <button v-if="!formTerbuka" @click="formTerbuka = true">Terbitkan tagihan</button>
+        </template>
       </template>
     </KepalaHalaman>
+
+    <!-- Gerbang kebijakan (T16). Panel, bukan modal: pemilik harus bisa
+         membaca akibatnya sambil melihat daftar tagihan yang sudah ada, dan
+         modal yang menutup layar membuat tagihan lama seolah hilang. -->
+    <PanelKartu v-if="kebijakanKurang.length" kelas="gerbang-tagihan" judul="Kebijakan kos belum lengkap">
+      <template #keterangan>
+        <p class="bantuan">
+          Tagihan tidak bisa diterbitkan sebelum
+          <strong>{{ kebijakanKurang.join(' dan ') }}</strong>
+          ditetapkan. Sistem tidak menebak kebijakan kos.
+        </p>
+      </template>
+      <RouterLink class="tombol-tautan" :to="{ name: 'pemilik-kebijakan' }">
+        Buka Kebijakan
+      </RouterLink>
+    </PanelKartu>
 
     <PanelTerbitMassal v-if="massalTerbuka" @tutup="massalTerbuka = false" @terbit="muat" />
 
@@ -178,7 +241,21 @@ onMounted(muat)
       :daftar="daftar"
       :memuat="memuat"
       :memuat-detail="memuatDetail"
+      :pesan-kosong="pesanKosong"
       @buka="bukaDetail"
     />
   </div>
 </template>
+
+<style scoped>
+/* Gerbang ditandai garis kiri, sama seperti di layar Kebijakan, supaya dua
+   tempat yang membicarakan hal yang sama terlihat sebagai satu hal. */
+.gerbang-tagihan {
+  border-left: 3px solid var(--bahaya);
+  background: var(--bahaya-lemah);
+}
+
+.gerbang-tagihan :deep(h2) {
+  color: var(--bahaya);
+}
+</style>
