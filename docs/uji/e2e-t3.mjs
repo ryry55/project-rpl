@@ -125,13 +125,18 @@ async function jalan() {
       if (tarif.status !== 201) return { galat: 'tarif: ' + JSON.stringify(tarif.data) }
 
       // Dua penghuni: satu masuk 15 Okt (prorata 17/31), satu masuk 1 Okt (penuh).
+      //
+      // Tanpa kolom password: sejak T27 pemilik tidak mengetikkan sandi siapa pun.
+      // Akunnya lahir dengan sandi acak yang tidak diketahui siapa pun, dan
+      // penghuni menetapkannya sendiri lewat tautan aktivasi. Skrip ini tidak
+      // memakai akun itu untuk masuk, jadi tautannya tidak perlu dibuka.
       const p1 = await panggil('/penghuni', 'POST', {
-        nama: 'Uji Prorata', email: 't3-prorata@kos.test', password: 'rahasia123',
+        nama: 'Uji Prorata', email: 't3-prorata@kos.test',
       })
       if (p1.status !== 201) return { galat: 'penghuni1: ' + JSON.stringify(p1.data) }
 
       const p2 = await panggil('/penghuni', 'POST', {
-        nama: 'Uji Penuh', email: 't3-penuh@kos.test', password: 'rahasia123',
+        nama: 'Uji Penuh', email: 't3-penuh@kos.test',
       })
       if (p2.status !== 201) return { galat: 'penghuni2: ' + JSON.stringify(p2.data) }
 

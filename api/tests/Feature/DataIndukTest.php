@@ -99,7 +99,6 @@ class DataIndukTest extends TestCase
                 'nama' => 'Budi Santoso',
                 'email' => 'budi@kos.test',
                 'no_hp' => '081200000001',
-                'password' => 'rahasia123',
             ])
             ->assertCreated()
             ->assertJsonPath('data.nama', 'Budi Santoso');
@@ -113,18 +112,32 @@ class DataIndukTest extends TestCase
         ]);
     }
 
-    public function test_penghuni_bisa_login_dengan_akun_yang_dibuat_pemilik(): void
+    /**
+     * T27: akun baru dibuat dalam keadaan BELUM AKTIF, dan pemilik tidak
+     * memegang sandinya.
+     *
+     * Inilah pengganti tes lama "penghuni bisa login dengan akun yang dibuat
+     * pemilik". Tes itu sekarang justru menguji hal yang harus gagal: sandi
+     * awal tidak diketahui siapa pun, jadi tidak ada kombinasi yang bisa
+     * dipakai masuk sebelum penghuni menetapkannya sendiri.
+     */
+    public function test_akun_penghuni_baru_belum_aktif_dan_sandinya_tidak_diketahui_pemilik(): void
     {
         $this->sebagaiPemilik()->postJson('/api/penghuni', [
             'nama' => 'Budi Santoso',
             'email' => 'budi@kos.test',
-            'password' => 'rahasia123',
         ])->assertCreated();
 
-        $this->postJson('/api/login', [
-            'email' => 'budi@kos.test',
-            'password' => 'rahasia123',
-        ])->assertOk()->assertJsonPath('data.user.peran', 'penghuni');
+        $user = User::where('email', 'budi@kos.test')->firstOrFail();
+
+        $this->assertNull($user->email_verified_at);
+        $this->assertFalse($user->wajibGantiSandi());
+
+        // Tidak ada sandi yang bisa ditebak: bukan nama, bukan "password",
+        // bukan apa pun yang dikirim pemilik (tidak ada yang dikirim).
+        foreach (['rahasia123', 'password', 'Budi Santoso', ''] as $tebakan) {
+            $this->assertFalse(Hash::check($tebakan, $user->password));
+        }
     }
 
     public function test_email_penghuni_duplikat_ditolak_422(): void
@@ -135,10 +148,31 @@ class DataIndukTest extends TestCase
             ->postJson('/api/penghuni', [
                 'nama' => 'B',
                 'email' => 'sama@kos.test',
-                'password' => 'rahasia123',
             ])
             ->assertStatus(422)
             ->assertJsonStructure(['errors' => ['email']]);
+    }
+
+    /**
+     * T27: medan `password` yang masih dikirim klien lama tidak ditolak.
+     *
+     * Kalau ditolak `prohibited`, layar versi lama menampilkan galat tentang
+     * medan yang sudah tidak ada di formulirnya - pesan yang tidak bisa
+     * ditindaklanjuti siapa pun. Yang benar: diabaikan, dan sandi yang dikirim
+     * TIDAK dipakai.
+     */
+    public function test_password_yang_masih_dikirim_klien_lama_diabaikan(): void
+    {
+        $this->sebagaiPemilik()->postJson('/api/penghuni', [
+            'nama' => 'Budi Santoso',
+            'email' => 'budi@kos.test',
+            'password' => 'rahasia123',
+        ])->assertCreated();
+
+        $user = User::where('email', 'budi@kos.test')->firstOrFail();
+
+        $this->assertFalse(Hash::check('rahasia123', $user->password));
+        $this->assertNull($user->email_verified_at);
     }
 
     // --- Kontrak -----------------------------------------------------------

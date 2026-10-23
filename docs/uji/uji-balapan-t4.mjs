@@ -122,7 +122,6 @@ async function siapkanSatuKontrak(token) {
   const penghuni = await panggil(token, '/penghuni', 'POST', {
     nama: `Penghuni ${nomor}`,
     email: `${nomor.toLowerCase()}@kos.test`,
-    password: 'rahasia123',
   })
   if (penghuni.status !== 201) throw new Error(`penghuni: ${JSON.stringify(penghuni.isi)}`)
 
@@ -213,7 +212,6 @@ async function jalan() {
   const penghuni2 = await panggil(token, '/penghuni', 'POST', {
     nama: `Penghuni ${nomor2}`,
     email: `${nomor2.toLowerCase()}@kos.test`,
-    password: 'rahasia123',
   })
   const kontrak2 = await panggil(token, '/kontrak', 'POST', {
     kamar_id: kamar2.isi.data.id,

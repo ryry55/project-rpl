@@ -6,6 +6,22 @@ const token = ref(localStorage.getItem(KUNCI_TOKEN) || '')
 const user = ref(null)
 const sedangMemuat = ref(false)
 
+/**
+ * Dua gerbang akun (T27, T28), dilaporkan server lewat `meta` pada `GET /me`.
+ *
+ * Disimpan di sini, bukan di komponen, karena router perlu membacanya pada
+ * setiap perpindahan halaman - dan router tidak punya akses ke state komponen.
+ *
+ * `wajibGantiSandi` **menahan** seluruh aplikasi: server menjawab 403 untuk
+ * setiap endpoint lain, jadi layar yang membiarkannya lewat hanya akan
+ * menampilkan deretan galat. `perluPersetujuanPdp` **tidak** menahan apa pun:
+ * persetujuan adalah pilihan yang harus bisa ditolak, dan menahannya membuat
+ * kotak centang berubah menjadi syarat memakai aplikasi.
+ */
+const wajibGantiSandi = ref(false)
+const perluPersetujuanPdp = ref(false)
+const versiPdp = ref('')
+
 const apiDasar = import.meta.env.VITE_API_BASE || '/api'
 
 async function panggil(path, opsi = {}) {
@@ -53,6 +69,12 @@ async function masuk(email, password) {
     token.value = hasil.data.token
     user.value = hasil.data.user
     localStorage.setItem(KUNCI_TOKEN, token.value)
+
+    // Login tidak membawa `meta` gerbang - hanya `GET /me` yang membawanya.
+    // Diambil di sini supaya pengguna yang wajib mengganti sandi langsung
+    // diarahkan, bukan menunggu 403 pertama dari layar berikutnya.
+    await muatSaya()
+
     return user.value
   } finally {
     sedangMemuat.value = false
@@ -66,6 +88,9 @@ async function muatSaya() {
   try {
     const hasil = await panggil('/me')
     user.value = hasil.data
+    wajibGantiSandi.value = hasil.meta?.wajib_ganti_sandi === true
+    perluPersetujuanPdp.value = hasil.meta?.perlu_persetujuan_pdp === true
+    versiPdp.value = hasil.meta?.versi_pdp || ''
     return user.value
   } catch (e) {
     // Token kedaluwarsa atau dicabut — bersihkan supaya tidak mencoba terus.
@@ -88,6 +113,9 @@ async function keluar() {
 function keluarLokal() {
   token.value = ''
   user.value = null
+  wajibGantiSandi.value = false
+  perluPersetujuanPdp.value = false
+  versiPdp.value = ''
   localStorage.removeItem(KUNCI_TOKEN)
 }
 
@@ -113,6 +141,9 @@ export const sesi = {
   token,
   user,
   sedangMemuat,
+  wajibGantiSandi,
+  perluPersetujuanPdp,
+  versiPdp,
   apiDasar,
   panggil,
   masuk,

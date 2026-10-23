@@ -203,7 +203,6 @@ class KomponenPerKamarTest extends TestCase
         $penghuni = $this->sebagaiPemilik()->postJson('/api/penghuni', [
             'nama' => 'Budi',
             'email' => 'budi@kos.test',
-            'password' => 'password',
         ])->assertCreated()->json('data');
 
         $kontrak = $this->sebagaiPemilik()->postJson('/api/kontrak', [

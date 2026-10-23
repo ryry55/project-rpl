@@ -195,7 +195,6 @@ async function jalan() {
         set('#nama', ${JSON.stringify(namaPenghuni[i])})
         set('#email', ${JSON.stringify(email)})
         set('#no_hp', '08120000${String(i + 1).padStart(4, '0')}')
-        set('#password', 'rahasia123')
         document.querySelector('form').dispatchEvent(
           new Event('submit', { bubbles: true, cancelable: true }))
         return true

@@ -26,8 +26,9 @@
 const CDP_BASE = process.env.CDP_BASE || 'http://127.0.0.1:9222'
 const APP = process.env.APP_URL || 'http://localhost:3000'
 const API = process.env.API_URL || 'http://localhost:8081/api'
+const MAILPIT = process.env.MAILPIT_URL || 'http://localhost:8025'
 
-export { CDP_BASE, APP, API }
+export { CDP_BASE, APP, API, MAILPIT }
 
 /**
  * Mencocokkan teks yang tampil di layar.
@@ -249,6 +250,246 @@ export async function pastikanKebijakan(ws) {
   const potret = await kirim(ws, 'Page.captureScreenshot', { format: 'png' })
   writeFileSync(`docs/uji/${nama}.png`, Buffer.from(potret.data, 'base64'))
 }
+
+// --- Kotak surat Mailpit ----------------------------------------------------
+//
+// Sejak T27 akun baru tidak punya kata sandi yang diketahui siapa pun. Satu-
+// satunya jalan masuk adalah tautan aktivasi yang dikirim ke email penghuni,
+// dan tautan itu hanya ada di kotak surat. Skrip uji karena itu harus membaca
+// email - bukan mengambil token dari basis data, karena tes yang membaca token
+// dari basis data akan lulus walau emailnya tidak pernah berisi tautan yang
+// benar, dan justru itu yang paling mudah rusak.
+
+/** Cari pesan untuk satu alamat, terbaru lebih dulu, sejak waktu tertentu. */
+async function pesanUntuk(ke, sejak) {
+  const kueri = encodeURIComponent(`to:${ke}`)
+  const res = await fetch(`${MAILPIT}/api/v1/search?query=${kueri}&limit=50`)
+
+  if (!res.ok) {
+    throw new Error(`Mailpit tidak bisa dibaca (${res.status}). Jalankan docker compose up -d mailpit.`)
+  }
+
+  const isi = await res.json()
+  const batas = sejak ? sejak.getTime() : 0
+
+  return (isi.messages || [])
+    .filter((m) => new Date(m.Created).getTime() >= batas)
+    .sort((a, b) => String(b.Created).localeCompare(String(a.Created)))
+}
+
+/** Isi teks satu pesan, berdasarkan ID-nya. */
+async function teksPesan(id) {
+  const res = await fetch(`${MAILPIT}/api/v1/message/${id}`)
+
+  if (!res.ok) {
+    throw new Error(`pesan Mailpit ${id} tidak bisa dibaca (${res.status})`)
+  }
+
+  const isi = await res.json()
+
+  return String(isi.Text || '')
+}
+
+/**
+ * Kosongkan seluruh kotak surat.
+ *
+ * Berguna saat menyiapkan ulang demo. Skrip uji sendiri tidak bergantung pada
+ * ini: `tautanAkunTerakhir()` menyaring menurut waktu kirim, jadi surat lama
+ * dari percobaan sebelumnya tidak pernah terpilih.
+ */
+export async function bersihkanSurat() {
+  const res = await fetch(`${MAILPIT}/api/v1/messages`, { method: 'DELETE' })
+
+  if (!res.ok) {
+    throw new Error(`Mailpit tidak bisa dikosongkan (${res.status})`)
+  }
+}
+
+/**
+ * Isi teks surat terakhir untuk satu alamat.
+ *
+ * Dipakai untuk memeriksa hal-hal yang hanya tertulis di surat - mis. umur
+ * tautan yang dinyatakan dalam kalimat. Diperiksa dari surat, bukan dari
+ * konstanta di kode: konstanta yang benar tetapi tidak dipakai di templat akan
+ * lulus uji yang membaca kode.
+ */
+export async function teksSuratTerakhir(ke, sejak = null, percobaan = 40) {
+  for (let i = 0; i < percobaan; i++) {
+    const pesan = await pesanUntuk(ke, sejak)
+
+    if (pesan.length > 0) {
+      return teksPesan(pesan[0].ID)
+    }
+
+    await new Promise((r) => setTimeout(r, 250))
+  }
+
+  throw new Error(`tidak ada surat untuk ${ke}`)
+}
+
+/**
+ * Ambil tautan `/atur-sandi?...` yang dikirim ke satu alamat.
+ *
+ * `sejak` menyaring surat lama. Penting karena `periksa.ps1` me-reset basis
+ * data sebelum setiap skrip tetapi TIDAK mengosongkan Mailpit: surat dari
+ * percobaan sebelumnya masih ada di sana dengan token yang sudah tidak dikenal
+ * server. Tanpa penyaringan, skrip akan membaca token mati dan melaporkan
+ * "tautan tidak berlaku" - kegagalan yang menunjuk ke tempat yang salah.
+ *
+ * @returns {Promise<{token: string, jenis: string, jalur: string}>}
+ */
+export async function tautanAkunTerakhir(ke, sejak = null, percobaan = 40) {
+  // Email dikirim setelah respons HTTP selesai, jadi ada jeda antara
+  // `POST /penghuni` kembali dan suratnya tiba di Mailpit. Menunggu dengan
+  // batas, bukan tidur tetap: mesin yang lambat butuh lebih lama, mesin yang
+  // cepat tidak perlu menunggu penuh.
+  for (let i = 0; i < percobaan; i++) {
+    const pesan = await pesanUntuk(ke, sejak)
+
+    for (const satu of pesan) {
+      const teks = await teksPesan(satu.ID)
+      const cocok = teks.match(/\/atur-sandi\?[^\s]+/)
+
+      if (cocok) {
+        const jalur = cocok[0].replace(/[.,)]+$/, '')
+        const kueri = new URLSearchParams(jalur.split('?')[1] || '')
+
+        return {
+          token: kueri.get('token') || '',
+          jenis: kueri.get('jenis') || '',
+          jalur,
+        }
+      }
+    }
+
+    await new Promise((r) => setTimeout(r, 250))
+  }
+
+  throw new Error(`tidak ada tautan akun di kotak surat ${ke}`)
+}
+
+/**
+ * Aktifkan akun lewat API, tanpa menyentuh layar.
+ *
+ * Dipakai skrip yang butuh akun yang bisa masuk tetapi TIDAK sedang menguji
+ * aktivasi itu sendiri. Jalan pintas lewat basis data sengaja dihindari: kalau
+ * email berhenti dikirim, skrip-skrip ini ikut gagal - dan itu benar, karena
+ * penghuni sungguhan juga tidak akan bisa masuk.
+ *
+ * @param {Date|null} sejak lihat `tautanAkunTerakhir()`
+ * @returns {Promise<{status: number, data: any}>}
+ */
+export async function aktifkanAkunApi(ke, sandi = 'password', sejak = null) {
+  const { token, jenis } = await tautanAkunTerakhir(ke, sejak)
+
+  return panggilApiPublik('/atur-sandi', 'POST', {
+    token,
+    jenis,
+    password: sandi,
+    password_confirmation: sandi,
+  })
+}
+
+/**
+ * Panggil API dari Node, tanpa sesi.
+ *
+ * Berbeda dari `panggilApi()`, yang berjalan di dalam peramban dan membawa
+ * token pemilik. Dipakai untuk langkah yang memang tidak butuh sesi - aktivasi
+ * akun adalah endpoint publik, dan memanggilnya dengan token pemilik akan
+ * menyembunyikan kesalahan bila endpoint itu suatu saat tidak lagi publik.
+ */
+export async function panggilApiPublik(jalur, metode = 'GET', isi = null, token = '') {
+  const res = await fetch(`${API}${jalur}`, {
+    method: metode,
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: isi === null ? undefined : JSON.stringify(isi),
+  })
+
+  const teks = await res.text()
+  let data = null
+  try {
+    data = teks ? JSON.parse(teks) : null
+  } catch {
+    data = null
+  }
+
+  return { status: res.status, data }
+}
+
+/**
+ * Aktifkan akun lewat tautan email - persis seperti yang dilakukan penghuni.
+ *
+ * `APP_URL` di server menunjuk ke alamat API (port 8081 di Docker), sedangkan
+ * SPA dilayani di port lain. Tautannya karena itu dipakai sebagai JALUR saja,
+ * dan hostnya diganti dengan `APP`. Di produksi keduanya satu alamat, jadi
+ * penggantian ini tidak menyembunyikan kesalahan apa pun.
+ *
+ * @returns {Promise<boolean>} true bila halaman menyatakan sandi tersimpan
+ */
+export async function aktifkanAkun(ws, ke, sandiBaru = 'sandi-uji-12345', sejak = null) {
+  const { jalur } = await tautanAkunTerakhir(ke, sejak)
+
+  await kirim(ws, 'Page.navigate', { url: `${APP}${jalur}` })
+  await tungguSampai(ws, `document.querySelector('#password-baru')`, 15000)
+
+  await evaluasi(ws, `
+    (() => {
+      const set = (sel, v) => {
+        const el = document.querySelector(sel)
+        if (!el) return false
+        el.value = v
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        return true
+      }
+      if (!set('#password-baru', ${JSON.stringify(sandiBaru)})) return false
+      set('#password-ulang', ${JSON.stringify(sandiBaru)})
+      document.querySelector('form').dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true }))
+      return true
+    })()
+  `)
+
+  return tungguSampai(ws, `document.body.textContent.includes('Kata sandi tersimpan')`, 15000)
+}
+
+/**
+ * Menyetujui teks PDP bila gerbangnya muncul, lalu lanjut.
+ *
+ * Sejak T28 setiap akun baru mendarat di `/persetujuan-pdp` sekali, sebelum
+ * boleh memakai aplikasi. Skrip yang menguji hal LAIN - isolasi tagihan,
+ * wewenang pengelola, notifikasi - tidak sedang menguji gerbang itu, dan
+ * membiarkannya berdiri membuat kegagalannya terbaca seperti kerusakan pada hal
+ * yang sebenarnya benar.
+ *
+ * Dipanggil setelah `masukSebagai()`. Tidak melakukan apa pun bila gerbangnya
+ * tidak muncul, jadi aman dipanggil pada akun yang sudah pernah menyetujui.
+ *
+ * @returns {Promise<boolean>} true bila tidak ada gerbang, atau gerbangnya berhasil dilewati
+ */
+export async function lewatiPersetujuanPdp(ws) {
+  // Gerbang muncul sebagai pengalihan, bukan modal: tunggu sebentar untuk
+  // memberi router kesempatan memutuskannya sebelum menyimpulkan "tidak ada".
+  await new Promise((r) => setTimeout(r, 700))
+
+  const diGerbang = await evaluasi(ws, `location.pathname === '/persetujuan-pdp'`)
+  if (!diGerbang) return true
+
+  await evaluasi(ws, `
+    (() => {
+      const tombol = [...document.querySelectorAll('button')]
+        .find((b) => /saya setuju/i.test(b.textContent))
+      if (tombol) tombol.click()
+      return Boolean(tombol)
+    })()
+  `)
+
+  return tungguSampai(ws, `location.pathname !== '/persetujuan-pdp'`, 15000)
+}
+
 
 /**
  * Menutup semua tab `page` yang menggantung.

@@ -128,7 +128,6 @@ async function siapkanTagihan(token) {
   const penghuni = await panggil(token, '/penghuni', 'POST', {
     nama: `Penghuni ${nomor}`,
     email: `${nomor.toLowerCase()}@kos.test`,
-    password: 'rahasia123',
   })
   if (penghuni.status !== 201) throw new Error(`penghuni: ${JSON.stringify(penghuni.isi)}`)
 

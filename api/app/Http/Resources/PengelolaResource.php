@@ -35,6 +35,11 @@ class PengelolaResource extends JsonResource
                 fn () => $this->kewenangan->pluck('wewenang')->values()->all(),
                 [],
             ),
+            // Status aktivasi (T27). Tanpa ini pemilik melihat akun yang tampak
+            // normal padahal pemiliknya belum pernah membuka tautan aktivasi -
+            // dan satu-satunya jalan keluar adalah menghapus akunnya, yang
+            // justru tidak bisa dilakukan akun yang sudah tercatat di audit.
+            'sudah_aktif' => $this->email_verified_at !== null,
         ];
     }
 }

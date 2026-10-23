@@ -1,10 +1,13 @@
 <?php
 
+namespace Database\Seeders;
+
 use App\Domain\Akses\Wewenang;
 use App\Models\AturanKos;
 use App\Models\Fasilitas;
 use App\Models\PengelolaKewenangan;
 use App\Models\Penghuni;
+use App\Models\PersetujuanPdp;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -19,11 +22,37 @@ use Illuminate\Support\Facades\Hash;
  * riwayat bersifat append-only, dan trigger di basis data akan menolak UPDATE.
  * Seeder yang menjalankan ulang `updateOrCreate` akan gagal — dan itu memang
  * perilaku yang diinginkan, karena mengubah riwayat tidak boleh jadi kebiasaan.
+ *
+ * **Namespace `Database\Seeders` wajib ada.** Tanpa itu kelasnya menjadi
+ * `DatabaseSeeder` global, sementara `db:seed` mencari
+ * `Database\Seeders\DatabaseSeeder` - dan karena tidak menemukannya, autoloader
+ * memuat berkas ini SETIAP kali seeder dipanggil. Panggilan pertama berhasil,
+ * panggilan kedua gagal dengan "Cannot declare class DatabaseSeeder, because
+ * the name is already in use". Gejalanya menyesatkan karena `db:seed` yang
+ * dijalankan sekali - seperti di entrypoint - selalu tampak baik-baik saja.
  */
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Seeder ini menulis sandi yang tercetak di layar masuk, dan
+        // menimpanya setiap kali berjalan. Di produksi itu berarti akun
+        // pemilik kembali ke "password" setiap layanan bangun dari tidur -
+        // persis setelah T27 menghabiskan seluruh tiketnya untuk memastikan
+        // tidak ada yang tahu sandi orang lain.
+        //
+        // Penolakan ini bukan kehati-hatian berlebihan: satu deploy dengan
+        // RUN_SEEDER yang lupa dimatikan sudah cukup untuk membuka seluruh
+        // data kos. Lebih baik gagal keras dan terlihat.
+        if (app()->environment('production')) {
+            $this->command?->warn(
+                'Seeder tidak dijalankan di produksi (T29). '
+                .'Akun demo hanya boleh dibuat di lingkungan pengembangan.'
+            );
+
+            return;
+        }
+
         $pemilik = User::updateOrCreate(
             ['email' => 'pemilik@kos.test'],
             [
@@ -31,6 +60,10 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'peran' => User::PERAN_PEMILIK,
                 'penghuni_id' => null,
+                // Pemilik tidak pernah ditahan oleh gerbang mana pun, tetapi
+                // email_verified_at diisi supaya keadaannya jujur: akun ini
+                // memang dipakai masuk.
+                'email_verified_at' => now(),
             ]
         );
 
@@ -46,8 +79,18 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'peran' => User::PERAN_PENGHUNI,
                 'penghuni_id' => $penghuni->id,
+                // Akun demo dianggap sudah aktif dan sudah menyetujui PDP.
+                // Tanpa ini, dosen yang membuka aplikasi mendarat di layar
+                // persetujuan sebelum melihat satu tagihan pun - dan kredensial
+                // yang tercetak di layar masuk menjadi tidak berguna.
+                'email_verified_at' => now(),
             ]
         );
+
+        // Akun demo dikecualikan dari kewajiban ganti sandi. Sandinya memang
+        // dicetak di layar masuk dengan sengaja, jadi memaksanya berganti
+        // berarti mencetak kredensial yang tidak berlaku.
+        $akunPenghuni->forceFill(['wajib_ganti_sandi' => false])->save();
 
         // Akun pengelola contoh (T24).
         //
@@ -64,8 +107,27 @@ class DatabaseSeeder extends Seeder
                 'peran' => User::PERAN_PENGELOLA,
                 'penghuni_id' => null,
                 'pemilik_id' => $pemilik->id,
+                'email_verified_at' => now(),
             ]
         );
+
+        $pengelola->forceFill(['wajib_ganti_sandi' => false])->save();
+
+        // Persetujuan PDP untuk ketiga akun contoh (T28).
+        //
+        // Tanpa baris ini, dosen yang membuka aplikasi mendarat di layar
+        // persetujuan sebelum melihat satu tagihan pun - dan kredensial yang
+        // tercetak di layar masuk menjadi tidak berguna, karena layar itu
+        // muncul sebelum apa pun bisa dilihat.
+        //
+        // `firstOrCreate`, bukan `create`: tabelnya append-only lewat trigger,
+        // dan seeder ini dijalankan setiap container start.
+        foreach ([$pemilik, $akunPenghuni, $pengelola] as $akunContoh) {
+            PersetujuanPdp::firstOrCreate(
+                ['user_id' => $akunContoh->id, 'versi' => PersetujuanPdp::VERSI_BERLAKU],
+                ['disetujui_pada' => now()]
+            );
+        }
 
         foreach ([
             Wewenang::CATAT_PEMBAYARAN,

@@ -103,7 +103,7 @@ async function jalan() {
         if (tarif.status !== 201) return { galat: 'tarif ' + s.kamar + ': ' + JSON.stringify(tarif.data) }
 
         const penghuni = await panggil('/penghuni', 'POST', {
-          nama: s.nama, email: s.kamar.toLowerCase() + '@kos.test', password: 'rahasia123',
+          nama: s.nama, email: s.kamar.toLowerCase() + '@kos.test',
         })
         if (penghuni.status !== 201) return { galat: 'penghuni ' + s.nama + ': ' + JSON.stringify(penghuni.data) }
 

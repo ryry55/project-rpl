@@ -18,6 +18,14 @@ class AuthTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Akun yang sudah aktif.
+     *
+     * `email_verified_at` wajib diisi sejak T27: akun tanpa penanda itu
+     * ditolak saat masuk dengan pesan "belum diaktifkan", bukan "sandi salah".
+     * Tes yang lupa mengisinya akan menguji gerbang aktivasi, bukan gerbang
+     * kredensial - dan gagalnya akan terbaca seperti kesalahan sandi.
+     */
     private function buatPemilik(): User
     {
         return User::create([
@@ -25,6 +33,7 @@ class AuthTest extends TestCase
             'email' => 'pemilik@kos.test',
             'password' => Hash::make('password'),
             'peran' => User::PERAN_PEMILIK,
+            'email_verified_at' => now(),
         ]);
     }
 
@@ -38,6 +47,7 @@ class AuthTest extends TestCase
             'password' => Hash::make('password'),
             'peran' => User::PERAN_PENGHUNI,
             'penghuni_id' => $penghuni->id,
+            'email_verified_at' => now(),
         ]);
     }
 

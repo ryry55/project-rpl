@@ -182,6 +182,19 @@ async function keluar() {
           </div>
         </div>
         <button class="halus mungil" @click="keluar">Keluar</button>
+
+        <!-- Data pribadi (T28) untuk pemilik dan pengelola. Diletakkan di kaki
+             samping, bukan di menu: hak atas data sendiri bukan pekerjaan atas
+             kos, dan menu yang dibuka setiap hari tidak perlu memuatnya. -->
+        <RouterLink :to="{ name: 'pengaturan-pdp' }" class="tautan-data mungil">
+          Data pribadi saya
+        </RouterLink>
+        <RouterLink
+          :to="{ name: 'atur-sandi', query: { dari: 'sesi' } }"
+          class="tautan-data mungil"
+        >
+          Ganti kata sandi
+        </RouterLink>
       </div>
     </aside>
 
@@ -330,6 +343,17 @@ async function keluar() {
 .utama {
   padding: 26px 28px 40px;
   min-width: 0;
+}
+
+.tautan-data {
+  padding: 0 4px;
+  color: var(--teks-lemah);
+  text-align: left;
+  text-decoration: none;
+}
+
+.tautan-data:hover {
+  color: var(--aksen);
 }
 
 @media (max-width: 860px) {

@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { sesi } from '../sesi.js'
 
 const route = useRoute()
@@ -11,14 +11,37 @@ const password = ref('')
 const galat = ref('')
 const galatField = ref({})
 
+/**
+ * Pesan sekali-tampil dari halaman lain.
+ *
+ * Dipakai setelah penghapusan identitas (T28): akunnya sudah tidak ada, jadi
+ * layar masuk tidak bisa menjelaskan apa pun lewat sesi - satu-satunya jalan
+ * adalah membawa penjelasannya di alamat.
+ */
+const pesan = ref(
+  route.query.pesan === 'dihapus'
+    ? 'Identitas Anda sudah dilepas dari catatan kos ini. Riwayat pembayaran tetap tersimpan tanpa nama.'
+    : '',
+)
+
 async function kirim() {
   galat.value = ''
   galatField.value = {}
+  pesan.value = ''
 
   try {
     const user = await sesi.masuk(email.value, password.value)
-    const tujuan = route.query.lanjut || (user.peran === 'pemilik' ? '/pemilik' : '/penghuni')
-    router.replace(tujuan)
+
+    // `lanjut` dihormati bila ada, supaya pengguna yang terlempar ke sini dari
+    // halaman tertentu kembali ke halaman itu. Tanpa `lanjut`, `beranda`
+    // memilih halaman muka sesuai peran - pengelola tidak lagi mendarat di
+    // Kamar, halaman yang justru tidak boleh ia ubah.
+    //
+    // Gerbang wajib-ganti-sandi dan gerbang PDP diperiksa penjaga router
+    // SETELAH pengalihan ini, jadi keduanya tetap berlaku di sini.
+    router.replace(route.query.lanjut || { name: 'beranda' })
+
+    return user
   } catch (e) {
     galat.value = e.message
     galatField.value = e.errors || {}
@@ -60,12 +83,20 @@ async function kirim() {
           />
         </div>
 
+        <p v-if="pesan" class="pesan-sukses" role="status">{{ pesan }}</p>
+
         <p v-if="galat" class="pesan-galat" role="alert">{{ galat }}</p>
 
         <button type="submit" class="lebar" :disabled="sesi.sedangMemuat.value">
           {{ sesi.sedangMemuat.value ? 'Memeriksa…' : 'Masuk' }}
         </button>
       </form>
+
+      <p class="lupa">
+        <RouterLink :to="{ name: 'lupa-sandi' }" class="tombol-tautan">
+          Lupa kata sandi?
+        </RouterLink>
+      </p>
 
       <p class="petunjuk lemah mungil">
         Akun demo: <code>pemilik@kos.test</code> atau <code>penghuni@kos.test</code>,
@@ -125,6 +156,11 @@ async function kirim() {
 
 .pesan-galat {
   margin: 0 0 14px;
+}
+
+.lupa {
+  margin: 12px 0 0;
+  text-align: right;
 }
 
 .petunjuk {

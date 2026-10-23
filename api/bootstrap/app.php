@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Middleware\CatatPermintaanGagal;
 use App\Http\Middleware\PaksaJson;
 use App\Http\Middleware\PastikanPeran;
 use App\Http\Middleware\PastikanWewenang;
 use App\Http\Middleware\SimulasiTanggal;
+use App\Http\Middleware\WajibGantiSandi;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'peran' => PastikanPeran::class,
             'wewenang' => PastikanWewenang::class,
+            'wajib_ganti_sandi' => WajibGantiSandi::class,
         ]);
 
         // Semua /api/* selalu dijawab JSON: 401, 403, 404, 422 — tidak pernah
@@ -31,6 +34,15 @@ return Application::configure(basePath: dirname(__DIR__))
         // api, bukan hanya endpoint denda: dua layar yang memakai tanggal acuan
         // berbeda untuk tagihan yang sama akan tampak seperti bug.
         $middleware->prependToGroup('api', SimulasiTanggal::class);
+
+        // Log terstruktur untuk setiap respons >= 400 (T29).
+        //
+        // `prependToGroup`, BUKAN `appendToGroup`. Middleware yang didaftarkan
+        // lebih dulu berjalan lebih luar pada permintaan, dan itu yang
+        // dibutuhkan di sini: 401 dari `auth:sanctum` dan 403 dari `wewenang:`
+        // DILEMPAR sebelum handler rute berjalan, sehingga middleware yang
+        // berada di dalam keduanya tidak pernah melihatnya.
+        $middleware->prependToGroup('api', CatatPermintaanGagal::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Semua permintaan ke /api/* dijawab JSON, termasuk 401 dan 404,

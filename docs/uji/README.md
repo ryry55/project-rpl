@@ -1,6 +1,6 @@
 # Skrip uji
 
-Enam belas berkas di folder ini menguji aplikasi dari luar: tiga belas lewat
+Dua puluh berkas di folder ini menguji aplikasi dari luar: delapan belas lewat
 browser sungguhan (termasuk satu yang menyapu seluruh halaman dan satu yang
 mengukur tata letak di lebar ponsel), dua menguji balapan HTTP, dan satu berkas
 bersama yang dipakai semuanya.
@@ -37,6 +37,13 @@ dulu:
    sampai pemilik menetapkan satuan sewa, jatuh tempo, dan denda. Skrip yang
    butuh kontrak membuatnya sendiri lewat API, lalu memenuhi ketiga tipe itu
    lewat `pastikanKebijakan()` di `_cdp.mjs`.
+4. **Mailpit hidup** (`docker compose up -d mailpit`, UI di
+   `http://localhost:8025`) untuk `e2e-t25`, `e2e-t27`, dan `e2e-t28`. Ketiganya
+   membaca tautan aktivasi dan email pemberitahuan dari sana, bukan dari basis
+   data - yang diuji adalah surat yang benar-benar terkirim, bukan baris tabel.
+   Setiap skrip mencatat satu cap waktu saat mulai dan hanya menerima surat yang
+   lebih baru daripadanya, sehingga surat sisa percobaan sebelumnya tidak pernah
+   terbaca. `periksa.ps1` **tidak** mengosongkan Mailpit di antara skrip.
 
 ## Indeks
 
@@ -88,7 +95,11 @@ halaman baru dimuat, jadi harus dipasang ulang setelah `Page.navigate`.
 | `e2e-t18.mjs` | Fasilitas: kelola katalog, centang per kamar, dan mencentang fasilitas **tidak** membuat komponen biaya maupun baris tagihan | Chrome, seed |
 | `e2e-t19.mjs` | Aturan kos: kelola, sembunyikan lewat sakelar, dan aturan nonaktif **tidak ada sama sekali** di HTML portal penghuni | Chrome, seed |
 | `e2e-t20.mjs` | Metode bayar wajib (tanpa nilai bawaan), pemegang uang hanya untuk tunai, verifikasi pembayaran yang berlaku adalah baris terakhir, dan rekap yang **memisahkan denda sebagai piutang** alih-alih menambahkannya ke pendapatan | Chrome, seed |
-| `e2e-t24.mjs` | Pengelola dan wewenang: pemilik membuat akun berwewenang terbatas, pengelola masuk dan bekerja sebatas itu, dan setiap penolakan diuji dengan **menembak API langsung** memakai token pengelola �?" bukan sekadar memeriksa tombolnya hilang | Chrome, seed |
+| `e2e-t24.mjs` | Pengelola dan wewenang: pemilik membuat akun berwewenang terbatas, pengelola masuk dan bekerja sebatas itu, dan setiap penolakan diuji dengan **menembak API langsung** memakai token pengelola - bukan sekadar memeriksa tombolnya hilang | Chrome, seed |
+| `e2e-t25.mjs` | Notifikasi: tiap peristiwa sampai ke kotak masuk penerima yang benar dan **tidak** ke pelakunya sendiri; mematikan satu kanal hanya mematikan kanal itu; email benar-benar terkirim (diperiksa lewat Mailpit) dan kegagalan kirim tidak membatalkan transaksinya | Chrome, seed, Mailpit |
+| `e2e-t26.mjs` | Usulan perubahan: pengelola mengajukan tarif/kebijakan dan menerima **202** dengan `meta.diajukan`, bukan 201; pemilik menyetujui atau menolak; usulan yang kedaluwarsa tidak bisa diputuskan walau statusnya masih `menunggu` | Chrome, seed |
+| `e2e-t27.mjs` | Aktivasi akun: formulir penghuni tidak punya kolom sandi, akun baru tidak bisa masuk sebelum tautannya dibuka, tautan mati setelah dipakai, lupa sandi menjawab sama untuk email terdaftar dan tidak, dan akun lama dipaksa mengganti sandi sebelum boleh bekerja | Chrome, seed, Mailpit |
+| `e2e-t28.mjs` | UU PDP: gerbang persetujuan bisa ditolak, halaman Data pribadi menampilkan apa yang tercatat, penghapusan ditahan selama kontrak aktif, konfirmasi tertulis wajib, dan sesudah dilepas **tagihannya tetap utuh sedangkan namanya hilang** - termasuk dari jejak audit pemilik | Chrome, seed, Mailpit |
 
 ### Balapan
 
@@ -105,7 +116,7 @@ muncul kalau ia menunggu transaksi pertama commit lalu membaca ulang.
 
 | Berkas | Isi |
 |---|---|
-| `_cdp.mjs` | Helper CDP: `mulaiUji`, `masukSebagai`, `panggilApi`, `teksMemuat`, `tangkapLayar`, `bersihkanTab` |
+| `_cdp.mjs` | Helper CDP: `mulaiUji`, `masukSebagai`, `panggilApi`, `teksMemuat`, `tangkapLayar`, `bersihkanTab`, `aktifkanAkun`, `tautanAkunTerakhir`, `panggilApiPublik` |
 
 **Jangan menyalin helper CDP ke berkas baru.** Dua kesalahan berulang lahir
 justru di bagian yang dulu disalin ke delapan berkas: regex `/15\\.000/` yang
@@ -113,7 +124,7 @@ berarti "backslash literal" (T5, T6, T9), dan nama pemilik dari seeder yang
 ditulis tetap lalu gagal setiap kali data contoh berubah. Pakai
 `teksMemuat(teks, '15.000')`.
 
-## Dua jebakan yang sudah memakan korban
+## Tiga jebakan yang sudah memakan korban
 
 **Kotak centang `v-model` butuh satu putaran di antaranya.** Dua event `change`
 yang jatuh sebelum Vue sempat render ulang sama-sama membaca array nilai yang
@@ -126,6 +137,14 @@ yang diuji tetap perilaku pemakaian sebenarnya.
 DOM dikirim sebagai template literal; satu backtick di komentar membuat
 `node --check` gagal dengan pesan yang menunjuk baris yang salah. Jalankan
 `node --check` pada setiap berkas `.mjs` baru sebelum menjalankannya.
+
+**Gerbang PDP berdiri di depan setiap akun baru.** Sejak T28, akun yang baru
+diaktifkan mendarat di `/persetujuan-pdp` sekali sebelum boleh memakai
+aplikasi. Skrip yang menguji hal lain - isolasi tagihan, wewenang pengelola,
+notifikasi - lalu gagal pada langkah pertamanya, dan pesannya terbaca seperti
+kebocoran data atau tombol yang hilang. Pakai `lewatiPersetujuanPdp(ws)` tepat
+sesudah `masukSebagai()` untuk akun yang baru dibuat; ia tidak melakukan apa pun
+bila gerbangnya tidak muncul, jadi aman dipanggil pada akun yang sudah menyetujui.
 
 ## Variabel lingkungan
 

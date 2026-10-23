@@ -45,7 +45,18 @@ const menyimpan = ref(false)
 const galatForm = ref('')
 const galatBidang = ref({})
 const sedangDiubah = ref(null)
-const form = ref({ nama: '', email: '', password: '', wewenang: [] })
+const form = ref({ nama: '', email: '', wewenang: [] })
+
+/**
+ * Hasil pengiriman tautan aktivasi terakhir (T27).
+ *
+ * Pemilik tidak lagi mengetik kata sandi pengelola - jadi satu-satunya hal
+ * yang perlu ia pastikan adalah tautan aktivasi benar-benar sampai. Tanpa
+ * baris ini, akun yang emailnya gagal terkirim tampak sama dengan akun yang
+ * berhasil, dan pengelola baru tidak akan pernah bisa masuk.
+ */
+const tautanTerkirim = ref(null)
+const kirimUlangId = ref(null)
 
 const konfirmasiCabut = ref(null)
 const mencabut = ref(false)
@@ -80,9 +91,10 @@ async function muat() {
 
 function bukaTambah() {
   sedangDiubah.value = null
-  form.value = { nama: '', email: '', password: '', wewenang: [] }
+  form.value = { nama: '', email: '', wewenang: [] }
   galatForm.value = ''
   galatBidang.value = {}
+  tautanTerkirim.value = null
   formTerbuka.value = true
 }
 
@@ -91,10 +103,6 @@ function bukaUbah(p) {
   form.value = {
     nama: p.nama,
     email: p.email,
-    // Kata sandi sengaja dikosongkan. Menampilkan titik-titik akan membuat
-    // pemilik mengira kata sandinya diketahui sistem, dan mengisinya kembali
-    // berarti mengganti kata sandi orang lain tanpa diminta.
-    password: '',
     wewenang: [...(p.wewenang || [])],
   }
   galatForm.value = ''
@@ -112,38 +120,65 @@ async function simpan() {
   galatForm.value = ''
   galatBidang.value = {}
   try {
+    // Tidak ada medan kata sandi di sini, dan ketiadaannya disengaja (T27):
+    // pemilik yang tahu sandi pengelolanya bisa mengubah tarif atas namanya,
+    // dan jejak audit yang tertulis adalah nama orang yang tidak melakukannya.
+    // Sandi ditetapkan pemilik akun sendiri lewat tautan aktivasi.
     const isi = {
       nama: form.value.nama.trim(),
       email: form.value.email.trim(),
       wewenang: form.value.wewenang,
     }
 
-    // Medan kata sandi hanya dikirim bila diisi. Mengirim string kosong akan
-    // ditolak validasi `min:6`, dan pemilik yang hanya ingin menambah satu
-    // wewenang akan melihat galat tentang kata sandi yang tidak ia sentuh.
-    if (form.value.password) {
-      isi.password = form.value.password
-    }
+    let hasil
 
     if (sedangDiubah.value) {
-      await sesi.panggil(`/pengelola/${sedangDiubah.value.id}`, {
+      hasil = await sesi.panggil(`/pengelola/${sedangDiubah.value.id}`, {
         method: 'PUT',
         body: JSON.stringify(isi),
       })
     } else {
-      await sesi.panggil('/pengelola', {
+      hasil = await sesi.panggil('/pengelola', {
         method: 'POST',
         body: JSON.stringify(isi),
       })
     }
 
     tutupForm()
+
+    // Hanya ditampilkan bila ada yang perlu dikatakan: saat membuat akun baru,
+    // atau saat emailnya berubah sehingga aktivasi lama batal.
+    if (hasil.meta?.tautan_aktivasi_terkirim !== null) {
+      tautanTerkirim.value = {
+        email: hasil.meta?.email || isi.email,
+        terkirim: hasil.meta?.tautan_aktivasi_terkirim === true,
+      }
+    }
+
     await muat()
   } catch (e) {
     galatForm.value = pesanGalat(e)
     galatBidang.value = galatPerBidang(e)
   } finally {
     menyimpan.value = false
+  }
+}
+
+async function kirimUlang(p) {
+  kirimUlangId.value = p.id
+  galatMuat.value = ''
+  try {
+    const hasil = await sesi.panggil(`/pengelola/${p.id}/kirim-ulang-aktivasi`, {
+      method: 'POST',
+    })
+    tautanTerkirim.value = {
+      email: hasil.meta?.email || p.email,
+      terkirim: hasil.meta?.tautan_aktivasi_terkirim === true,
+    }
+  } catch (e) {
+    galatMuat.value = pesanGalat(e)
+  } finally {
+    kirimUlangId.value = null
   }
 }
 
@@ -188,6 +223,22 @@ onMounted(muat)
 
     <PesanBaris v-if="galatMuat" jenis="galat">{{ galatMuat }}</PesanBaris>
 
+    <PesanBaris
+      v-if="tautanTerkirim"
+      :jenis="tautanTerkirim.terkirim ? 'sukses' : 'galat'"
+      kelas="pesan-tautan"
+    >
+      <template v-if="tautanTerkirim.terkirim">
+        Tautan aktivasi sudah dikirim ke <strong>{{ tautanTerkirim.email }}</strong>.
+        Pengelola menetapkan kata sandinya sendiri lewat tautan itu.
+      </template>
+      <template v-else>
+        Akun untuk <strong>{{ tautanTerkirim.email }}</strong> sudah dibuat, tetapi email
+        tautan aktivasi gagal dikirim. Periksa alamat emailnya, lalu tekan
+        &ldquo;kirim ulang tautan&rdquo; pada baris akunnya.
+      </template>
+    </PesanBaris>
+
     <section v-if="formTerbuka" class="kartu panel">
       <h2>{{ sedangDiubah ? 'Ubah pengelola' : 'Tambah pengelola' }}</h2>
 
@@ -220,25 +271,14 @@ onMounted(muat)
           </MedanForm>
         </div>
 
-        <MedanForm
-          id="sandi-pengelola"
-          :label="sedangDiubah ? 'Kata sandi baru' : 'Kata sandi'"
-          :bantuan="
-            sedangDiubah
-              ? 'Kosongkan bila tidak ingin mengganti kata sandi.'
-              : 'Minimal 6 karakter. Berikan kepada pengelola lewat jalur yang aman.'
-          "
-          :galat="galatBidang.password"
-        >
-          <input
-            id="sandi-pengelola"
-            v-model="form.password"
-            type="password"
-            :placeholder="sedangDiubah ? 'Kosongkan bila tetap' : 'Minimal 6 karakter'"
-            :aria-invalid="Boolean(galatBidang.password)"
-            autocomplete="new-password"
-          />
-        </MedanForm>
+        <!-- T27: tidak ada medan kata sandi. Pemilik yang tahu sandi pengelola
+             bisa mengubah tarif atas namanya, dan jejak audit lalu menulis nama
+             orang yang tidak melakukannya. Pengelola menetapkan sandinya
+             sendiri lewat tautan yang dikirim ke emailnya. -->
+        <PesanBaris jenis="netral" mungil>
+          Pengelola menetapkan kata sandinya sendiri lewat tautan aktivasi yang dikirim ke
+          emailnya. Anda tidak perlu mengetahui kata sandi itu.
+        </PesanBaris>
 
         <!-- Kelompok 1: pekerjaan harian -->
         <fieldset class="kelompok">
@@ -315,7 +355,11 @@ onMounted(muat)
           </thead>
           <tbody>
             <tr v-for="p in daftar" :key="p.id">
-              <td><strong>{{ p.nama }}</strong></td>
+              <td>
+                <strong>{{ p.nama }}</strong>
+                <span v-if="p.sudah_aktif" class="lencana-status status-aktif lencana-akun">aktif</span>
+                <span v-else class="lencana-status status-belum_bayar lencana-akun">belum aktif</span>
+              </td>
               <td class="lemah mungil">{{ p.email }}</td>
               <td>
                 <span v-if="!p.wewenang || p.wewenang.length === 0" class="lemah mungil">
@@ -334,6 +378,14 @@ onMounted(muat)
               </td>
               <td class="kanan aksi-baris">
                 <button class="halus mungil" @click="bukaUbah(p)">Ubah</button>
+                <button
+                  v-if="!p.sudah_aktif"
+                  class="halus mungil"
+                  :disabled="kirimUlangId === p.id"
+                  @click="kirimUlang(p)"
+                >
+                  {{ kirimUlangId === p.id ? 'mengirim…' : 'kirim ulang tautan' }}
+                </button>
                 <button class="halus mungil" @click="mintaCabut(p)">Cabut akses</button>
               </td>
             </tr>
@@ -356,6 +408,14 @@ onMounted(muat)
 <style scoped>
 .aksi-baris {
   white-space: nowrap;
+}
+
+/* Lencana status di sebelah nama: ukurannya dikecilkan supaya tidak menggeser
+   kolom wewenang, dan `vertical-align` menjaga garis dasarnya sejajar teks. */
+.lencana-akun {
+  margin-left: 6px;
+  vertical-align: 1px;
+  font-size: 10.5px;
 }
 
 .kelompok {

@@ -16,6 +16,10 @@ import PersetujuanView from './views/pemilik/PersetujuanView.vue'
 import PengaturanNotifikasiView from './views/pemilik/PengaturanNotifikasiView.vue'
 import PengelolaView from './views/pemilik/PengelolaView.vue'
 import DashboardPenghuni from './views/DashboardPenghuni.vue'
+import AturSandiView from './views/AturSandiView.vue'
+import LupaSandiView from './views/LupaSandiView.vue'
+import PersetujuanPdpView from './views/PersetujuanPdpView.vue'
+import PengaturanPdpView from './views/PengaturanPdpView.vue'
 import TidakDitemukanView from './views/TidakDitemukanView.vue'
 
 /**
@@ -35,6 +39,62 @@ import TidakDitemukanView from './views/TidakDitemukanView.vue'
 const routes = [
   { path: '/', redirect: '/masuk' },
   { path: '/masuk', name: 'masuk', component: LoginView, meta: { publik: true } },
+
+  // --- Pemulihan dan penetapan kata sandi (T27) ---------------------------
+  //
+  // Ketiganya `publik` karena seluruh gunanya adalah untuk orang yang BELUM
+  // bisa masuk. `/atur-sandi` juga dipakai dari dalam sesi - saat akun ditahan
+  // `wajib_ganti_sandi` - dan `meta.publik` di sana bukan pelonggaran: server
+  // tetap memeriksa token pada dua keadaan pertama, dan keadaan ketiga hanya
+  // bisa dicapai dengan sesi yang sah.
+  {
+    path: '/lupa-sandi',
+    name: 'lupa-sandi',
+    component: LupaSandiView,
+    meta: { publik: true },
+  },
+  {
+    path: '/atur-sandi',
+    name: 'atur-sandi',
+    component: AturSandiView,
+    meta: { publik: true },
+  },
+
+  // --- Gerbang persetujuan PDP (T28) --------------------------------------
+  {
+    path: '/persetujuan-pdp',
+    name: 'persetujuan-pdp',
+    component: PersetujuanPdpView,
+    meta: { peran: ['pemilik', 'pengelola', 'penghuni'] },
+  },
+
+  // --- Data pribadi (T28) -------------------------------------------------
+  //
+  // Di luar `/pemilik` dan di luar portal penghuni, karena ketiga peran punya
+  // hak yang sama di sini dan isinya tentang DIRINYA, bukan tentang kos. Ditaruh
+  // di dalam salah satu tata letak berarti satu peran tidak bisa membukanya.
+  {
+    path: '/data-pribadi',
+    name: 'pengaturan-pdp',
+    component: PengaturanPdpView,
+    meta: { peran: ['pemilik', 'pengelola', 'penghuni'] },
+  },
+
+  // --- Beranda per peran --------------------------------------------------
+  //
+  // Rute tanpa halaman: `redirect` diselesaikan sebelum penjaga navigasi
+  // berjalan, jadi `sesi.user` harus sudah terisi saat fungsi ini dipanggil.
+  // Itu selalu benar di sini karena satu-satunya pemanggilnya adalah layar yang
+  // baru saja menyelesaikan sesuatu dalam keadaan sudah masuk.
+  {
+    path: '/beranda',
+    name: 'beranda',
+    redirect: () => {
+      const peran = sesi.user.value?.peran
+      return peran ? halamanMuka(peran) : { name: 'masuk' }
+    },
+  },
+
   {
     path: '/pemilik',
     component: TataLetakPemilik,
@@ -132,13 +192,52 @@ function halamanMuka(peran) {
 }
 
 router.beforeEach(async (to) => {
-  if (to.meta.publik) {
+  // Dua keadaan yang menahan seluruh aplikasi, dan keduanya harus diperiksa
+  // SEBELUM `meta.publik`: pengguna yang ditahan tetap harus bisa membuka
+  // layar yang menyelesaikan penahanannya, dan layar itu sendiri harus bisa
+  // dibuka walau ia belum punya sesi yang sah.
+
+  // Coba pulihkan sesi dari token tersimpan sebelum memutuskan apa pun.
+  if (!sesi.user.value && sesi.token.value) {
+    await sesi.muatSaya()
+  }
+
+  // --- Gerbang wajib ganti sandi (T27) -----------------------------------
+  //
+  // Server menjawab 403 untuk SETIAP endpoint lain selama sandi belum diganti.
+  // Membiarkan navigasi lewat hanya menghasilkan deretan galat di layar yang
+  // tidak menjelaskan apa pun, jadi pengguna diarahkan ke satu-satunya tempat
+  // yang bisa memperbaikinya.
+  //
+  // `dari=sesi` memberi tahu layar itu bahwa hak menggantinya berasal dari sesi
+  // yang sudah ada, bukan dari token email - dan karena itu sandi lama tidak
+  // ditanyakan.
+  if (sesi.wajibGantiSandi.value) {
+    const dikecualikan = ['atur-sandi', 'masuk', 'lupa-sandi']
+
+    if (!dikecualikan.includes(to.name)) {
+      return { name: 'atur-sandi', query: { dari: 'sesi' } }
+    }
+
     return true
   }
 
-  // Coba pulihkan sesi dari token tersimpan sebelum menolak akses.
-  if (!sesi.user.value) {
-    await sesi.muatSaya()
+  // --- Gerbang persetujuan PDP (T28) -------------------------------------
+  //
+  // Berbeda dari gerbang di atas, ini TIDAK menahan pekerjaan: server tidak
+  // menolak apa pun bila persetujuan belum diberikan. Yang dilakukan di sini
+  // hanya menampilkan layarnya sekali, karena persetujuan yang tidak pernah
+  // ditanyakan bukan persetujuan.
+  if (sesi.perluPersetujuanPdp.value && sesi.user.value && to.name !== 'persetujuan-pdp') {
+    // Halaman masuk dan pemulihan sandi tidak perlu ditahan: orangnya mungkin
+    // sedang menyelesaikan masalah lain lebih dulu.
+    if (!['masuk', 'lupa-sandi', 'atur-sandi'].includes(to.name)) {
+      return { name: 'persetujuan-pdp' }
+    }
+  }
+
+  if (to.meta.publik) {
+    return true
   }
 
   if (!sesi.user.value) {

@@ -240,7 +240,6 @@ jalankan(async () => {
     const penghuni = await panggilApi(ws, '/penghuni', 'POST', {
       nama: 'Fasilitas Uji',
       email: 'fasilitas-uji-t18@kos.test',
-      password: 'rahasia123',
     })
     const penghuniId = penghuni.data?.data?.id
     lapor('penghuni uji dibuat', penghuni.status === 201, String(penghuni.status))

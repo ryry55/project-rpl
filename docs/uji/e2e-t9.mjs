@@ -25,11 +25,24 @@ import {
   teksMemuat,
   rupiah,
   pastikanKebijakan,
+  aktifkanAkun,
+  lewatiPersetujuanPdp,
 } from './_cdp.mjs'
 
 const SIMULASI = '2026-11-23'
 const PERIODE = '2026-11-01'
 const POKOK = 1_500_000
+
+/**
+ * Sandi yang ditetapkan sendiri oleh penghuni A lewat tautan aktivasi.
+ *
+ * Sejak T27 pemilik tidak mengetikkan sandi penghuni, jadi skrip ini harus
+ * membuka tautan yang dikirim ke emailnya - persis seperti penghuni sungguhan.
+ */
+const SANDI_A = 'sandi-t9-penghuni-a'
+
+/** Batas bawah waktu surat; lihat alasannya di e2e-t24.mjs. */
+const SEJAK = new Date()
 
 // Denda yang diharapkan: jatuh tempo 15 Nov, simulasi 23 Nov -> terlambat 8
 // hari, masa tenggang 7, jadi 1 hari kena denda = 1% x 1.500.000.
@@ -78,7 +91,7 @@ jalankan(async () => {
         if (tarif.status !== 201) return { galat: 'tarif ' + nomor + ': ' + JSON.stringify(tarif.data) }
 
         const penghuni = await panggil('/penghuni', 'POST', {
-          nama, email, password: 'password',
+          nama, email,
         })
         if (penghuni.status !== 201) return { galat: 'penghuni ' + nama + ': ' + JSON.stringify(penghuni.data) }
 
@@ -113,10 +126,25 @@ jalankan(async () => {
   )
   if (siap.galat) throw new Error('data uji gagal disiapkan: ' + siap.galat)
 
+  // --- Penghuni A mengaktifkan akunnya ------------------------------------
+  //
+  // Akunnya lahir tanpa sandi yang diketahui siapa pun. Tanpa langkah ini,
+  // login di bawah akan gagal 403 "akun belum diaktifkan" - dan pesan itu
+  // benar: yang belum terjadi adalah aktivasi, bukan isolasi tagihan.
+  const aktifA = await aktifkanAkun(ws, 't9-a@kos.test', SANDI_A, SEJAK)
+  lapor('penghuni A mengaktifkan akunnya lewat tautan email', aktifA)
+  if (!aktifA) throw new Error('aktivasi penghuni A gagal')
+
   // --- Portal penghuni: hanya tagihannya sendiri ---------------------------
-  const masukA = await masukSebagai(ws, 't9-a@kos.test')
+  const masukA = await masukSebagai(ws, 't9-a@kos.test', SANDI_A)
   lapor('login penghuni A berhasil', masukA, await evaluasi(ws, 'location.pathname'))
   if (!masukA) throw new Error('login penghuni gagal')
+
+  // Akun baru mendarat di gerbang persetujuan PDP (T28). Skrip ini menguji
+  // isolasi tagihan, bukan gerbang itu - membiarkannya berdiri membuat
+  // kegagalannya terbaca seperti kebocoran data.
+  const lolosPdp = await lewatiPersetujuanPdp(ws)
+  lapor('gerbang persetujuan PDP dilewati', lolosPdp, await evaluasi(ws, 'location.pathname'))
 
   // Tanggal simulasi disimpan di localStorage supaya portal ikut menghitung
   // denda terhadap tanggal demo yang sama dengan layar pemilik.

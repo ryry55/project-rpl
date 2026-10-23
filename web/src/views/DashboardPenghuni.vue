@@ -12,7 +12,7 @@
  * keduanya menyimpang, dan yang dilihat penghuni bukan yang dilihat pemilik.
  */
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { sesi } from '../sesi.js'
 import { rupiah, tanggal, pesanGalat } from '../format.js'
 import { simulasiTanggal } from '../simulasi.js'
@@ -151,6 +151,9 @@ onMounted(muatAturan)
       </div>
       <div class="aksi-bar">
         <LoncengNotifikasi />
+        <RouterLink :to="{ name: 'pengaturan-pdp' }" class="tombol-tautan mungil">
+          Data pribadi
+        </RouterLink>
         <button class="halus" @click="keluar">Keluar</button>
       </div>
     </header>

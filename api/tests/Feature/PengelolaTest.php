@@ -65,6 +65,10 @@ class PengelolaTest extends TestCase
             'password' => Hash::make('password'),
             'peran' => User::PERAN_PENGELOLA,
             'pemilik_id' => $this->pemilik->id,
+            // Aktif sejak T27: tanpa penanda ini, `POST /login` dijawab 403
+            // "belum diaktifkan" dan tes yang bermaksud menguji wewenang akan
+            // gagal karena gerbang aktivasi.
+            'email_verified_at' => now(),
         ]);
 
         $this->penghuni = Penghuni::create(['nama' => 'Budi Santoso', 'email' => 'budi@kos.test']);
@@ -75,6 +79,7 @@ class PengelolaTest extends TestCase
             'password' => Hash::make('password'),
             'peran' => User::PERAN_PENGHUNI,
             'penghuni_id' => $this->penghuni->id,
+            'email_verified_at' => now(),
         ]);
     }
 
@@ -160,7 +165,6 @@ class PengelolaTest extends TestCase
             ->postJson('/api/pengelola', [
                 'nama' => 'Joko Pengelola',
                 'email' => 'joko@kos.test',
-                'password' => 'rahasia123',
                 'wewenang' => [Wewenang::CATAT_PEMBAYARAN, Wewenang::KELOLA_KAMAR],
             ])
             ->assertCreated()
@@ -184,7 +188,6 @@ class PengelolaTest extends TestCase
             ->postJson('/api/pengelola', [
                 'nama' => 'Joko',
                 'email' => 'joko@kos.test',
-                'password' => 'rahasia123',
                 'wewenang' => [],
                 'pemilik_id' => 999,
             ])
@@ -200,7 +203,6 @@ class PengelolaTest extends TestCase
             ->postJson('/api/pengelola', [
                 'nama' => 'Joko',
                 'email' => 'joko@kos.test',
-                'password' => 'rahasia123',
                 'wewenang' => [Wewenang::UBAH_TARIF],
             ])
             ->assertForbidden();
@@ -227,7 +229,6 @@ class PengelolaTest extends TestCase
             ->postJson('/api/pengelola', [
                 'nama' => 'Joko',
                 'email' => 'joko@kos.test',
-                'password' => 'rahasia123',
                 'wewenang' => ['hapus_semua'],
             ])
             ->assertStatus(422)
@@ -253,7 +254,16 @@ class PengelolaTest extends TestCase
         );
     }
 
-    public function test_kata_sandi_kosong_tidak_mengubah_kata_sandi(): void
+    /**
+     * T27: mengubah data pengelola tidak pernah menyentuh sandinya.
+     *
+     * Tes lama menguji "sandi kosong tidak mengubah sandi" - perilaku formulir
+     * yang sudah tidak ada. Yang benar sekarang lebih keras: sandi TIDAK BISA
+     * diubah lewat endpoint ini, bahkan bila klien mengirim nilai yang sah.
+     * Kalau bisa, pemilik kembali memegang sandi pengelolanya, dan pemisahan
+     * `ubah_tarif` dari pemilik kehilangan arti.
+     */
+    public function test_mengubah_pengelola_tidak_menyentuh_kata_sandi(): void
     {
         $lama = $this->pengelola->password;
 
@@ -261,12 +271,15 @@ class PengelolaTest extends TestCase
             ->putJson("/api/pengelola/{$this->pengelola->id}", [
                 'nama' => 'Sari Pengelola',
                 'email' => 'pengelola@kos.test',
-                'password' => '',
+                'password' => 'sandi-baru-dari-pemilik',
                 'wewenang' => [],
             ])
             ->assertOk();
 
-        $this->assertSame($lama, $this->pengelola->fresh()->password);
+        $baru = $this->pengelola->fresh();
+
+        $this->assertSame($lama, $baru->password);
+        $this->assertFalse(Hash::check('sandi-baru-dari-pemilik', $baru->password));
     }
 
     public function test_pencabutan_menurunkan_peran_dan_mencabut_token(): void

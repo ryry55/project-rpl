@@ -163,6 +163,25 @@ if (Test-Path web\node_modules) {
 if (-not $Cepat) {
     Judul 'Uji browser (E2E)'
 
+    # Sintaks seluruh skrip uji diperiksa LEBIH DULU, sebelum satu pun dijalankan.
+    #
+    # Alasannya bukan kecepatan, melainkan waktu tunggu. Tanpa langkah ini,
+    # satu backtick yang salah tempat di dalam template literal baru ketahuan
+    # setelah build image, 594 tes PHP, pint, dan eslint selesai - sekitar lima
+    # menit - dan pesannya muncul sebagai galat PowerShell yang menyebut baris
+    # `$hasil = node ...`, bukan baris yang rusak. `node --check` menjawabnya
+    # dalam hitungan detik dan menyebut berkas serta barisnya.
+    #
+    # Backtick di dalam template literal memang menutup literalnya lebih awal.
+    # Itu terjadi bahkan di dalam komentar, dan itulah bentuk kerusakan yang
+    # paling mudah terjadi saat menyunting skrip ini.
+    $rusak = @()
+    foreach ($s in Get-ChildItem docs\uji\*.mjs) {
+        & node --check $s.FullName 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) { $rusak += $s.Name }
+    }
+    Catat 'sintaks seluruh skrip uji' ($rusak.Count -eq 0) $(if ($rusak.Count -eq 0) { '' } else { 'rusak: ' + ($rusak -join ', ') })
+
     $chromeHidup = $false
     try {
         Invoke-RestMethod -Uri 'http://127.0.0.1:9222/json/version' -TimeoutSec 3 | Out-Null
@@ -180,7 +199,7 @@ if (-not $Cepat) {
             'e2e-t1.mjs', 'e2e-t2.mjs', 'e2e-t3.mjs', 'e2e-t4.mjs',
             'e2e-t5.mjs', 'e2e-t6.mjs', 'e2e-t7.mjs', 'e2e-t9.mjs',
             'e2e-t18.mjs', 'e2e-t19.mjs', 'e2e-t20.mjs', 'e2e-t24.mjs',
-            'e2e-t25.mjs', 'e2e-t26.mjs',
+            'e2e-t25.mjs', 'e2e-t26.mjs', 'e2e-t27.mjs', 'e2e-t28.mjs',
             'asap-semua-halaman.mjs', 'uji-tata-letak.mjs'
         )
 

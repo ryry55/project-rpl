@@ -44,11 +44,24 @@ import {
   tangkapLayar,
   jalankan,
   pastikanKebijakan,
+  aktifkanAkun,
+  lewatiPersetujuanPdp,
 } from './_cdp.mjs'
 
 const EMAIL_PENGELOLA = 'uji-t25@kos.test'
 const NOMOR_KAMAR = 'T25-1'
 const MAILPIT = 'http://localhost:8025'
+
+/**
+ * Sandi yang ditetapkan sendiri oleh pengelola uji lewat tautan aktivasi.
+ *
+ * Sejak T27 pemilik tidak mengetikkan sandi siapa pun, jadi akun yang dibuat
+ * di sini tidak punya sandi yang diketahui skrip sampai tautannya dibuka.
+ */
+const SANDI_PENGELOLA = 'sandi-t25-pengelola'
+
+/** Batas bawah waktu surat; lihat alasannya di e2e-t24.mjs. */
+const SEJAK = new Date()
 
 /**
  * Membaca kotak surat Mailpit.
@@ -208,7 +221,6 @@ jalankan(async () => {
     const buatPengelola = await panggilApi(ws, '/pengelola', 'POST', {
       nama: 'Uji T25',
       email: EMAIL_PENGELOLA,
-      password: 'password',
       wewenang: ['ubah_tarif'],
     })
     lapor(
@@ -218,6 +230,12 @@ jalankan(async () => {
     )
     if (buatPengelola.status !== 201) throw new Error('pengelola gagal dibuat')
 
+    // Akunnya belum bisa dipakai masuk sebelum penghuninya menetapkan sandi
+    // lewat tautan email - pemilik tidak memegang sandi itu.
+    const aktif = await aktifkanAkun(ws, EMAIL_PENGELOLA, SANDI_PENGELOLA, SEJAK)
+    lapor('pengelola uji mengaktifkan akunnya', aktif)
+    if (!aktif) throw new Error('aktivasi pengelola gagal')
+
     // Kotak masuk pemilik dibersihkan lebih dulu. Tanpa ini, lencana yang
     // terlihat bisa berasal dari notifikasi jalan sebelumnya, dan setiap asersi
     // di bawah akan lulus tanpa membuktikan bahwa peristiwanya benar-benar
@@ -225,9 +243,14 @@ jalankan(async () => {
     await panggilApi(ws, '/notifikasi/baca-semua', 'POST')
 
     // --- Peristiwa pertama: pengelola mengusulkan tarif -------------------
-    const masukPengelola = await masukSebagai(ws, EMAIL_PENGELOLA)
+    const masukPengelola = await masukSebagai(ws, EMAIL_PENGELOLA, SANDI_PENGELOLA)
     lapor('pengelola bisa masuk', masukPengelola)
     if (!masukPengelola) throw new Error('login pengelola gagal')
+
+    // Akun yang baru diaktifkan mendarat di gerbang persetujuan PDP (T28).
+    // Skrip ini menguji notifikasi, bukan gerbang itu.
+    const lolosPdp = await lewatiPersetujuanPdp(ws)
+    lapor('gerbang persetujuan PDP dilewati', lolosPdp, await evaluasi(ws, 'location.pathname'))
 
     const usul = await panggilApi(ws, '/tarif', 'POST', {
       kamar_id: kamar.id,
@@ -316,7 +339,7 @@ jalankan(async () => {
     )
 
     // --- Peristiwa kedua: lencana kembali, lalu satu per satu -------------
-    await masukSebagai(ws, EMAIL_PENGELOLA)
+    await masukSebagai(ws, EMAIL_PENGELOLA, SANDI_PENGELOLA)
     const usulKedua = await panggilApi(ws, '/tarif', 'POST', {
       kamar_id: kamar.id,
       nilai: 1700000,
@@ -471,7 +494,7 @@ jalankan(async () => {
     )
 
     // --- Preferensi per akun, bukan per kos ------------------------------
-    await masukSebagai(ws, EMAIL_PENGELOLA)
+    await masukSebagai(ws, EMAIL_PENGELOLA, SANDI_PENGELOLA)
     const pengaturanPengelola = await panggilApi(ws, '/pengaturan-notifikasi')
     lapor(
       'pengaturan pemilik tidak mendiamkan akun pengelola',

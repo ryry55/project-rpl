@@ -48,9 +48,21 @@ return [
     | considered expired. This will override any values set in the token's
     | "expires_at" attribute, but first-party sessions are not affected.
     |
+    | Sejak T27 nilainya 14 hari, bukan null.
+    |
+    | `null` berarti token berlaku selamanya: token yang tertinggal di laptop
+    | warnet, di komputer kos, atau di riwayat peramban tetap bisa dipakai
+    | masuk berbulan-bulan kemudian, dan tidak ada satu pun layar yang
+    | menunjukkan bahwa sesi itu masih hidup. Lima belas menit terlalu pendek
+    | untuk aplikasi yang dibuka sekali sehari; 14 hari cukup untuk tidak
+    | mengganggu, dan cukup pendek untuk membatasi kerusakan token yang bocor.
+    |
+    | Dicabut lebih awal tetap mungkin: logout memutus token yang dipakai, dan
+    | penggantian sandi memutus seluruhnya.
+    |
     */
 
-    'expiration' => null,
+    'expiration' => env('SANCTUM_EXPIRATION', 60 * 24 * 14),
 
     /*
     |--------------------------------------------------------------------------

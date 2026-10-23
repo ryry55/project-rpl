@@ -40,10 +40,23 @@ import {
   tangkapLayar,
   jalankan,
   pastikanKebijakan,
+  aktifkanAkun,
+  lewatiPersetujuanPdp,
 } from './_cdp.mjs'
 
 const EMAIL_PENGELOLA = 'uji-t26@kos.test'
 const NOMOR_KAMAR = 'T26-1'
+
+/**
+ * Sandi yang ditetapkan sendiri oleh pengelola uji lewat tautan aktivasi.
+ *
+ * Sejak T27 pemilik tidak mengetikkan sandi siapa pun, jadi tidak ada sandi
+ * yang bisa dipakai di sini kecuali yang ditetapkan pemilik akunnya sendiri.
+ */
+const SANDI_PENGELOLA = 'sandi-t26-pengelola'
+
+/** Batas bawah waktu surat; lihat alasannya di e2e-t24.mjs. */
+const SEJAK = new Date()
 
 /**
  * Menjalankan satu perintah SQL di container basis data.
@@ -193,7 +206,6 @@ jalankan(async () => {
     const buatPengelola = await panggilApi(ws, '/pengelola', 'POST', {
       nama: 'Uji T26',
       email: EMAIL_PENGELOLA,
-      password: 'password',
       wewenang: ['ubah_tarif', 'ubah_kebijakan'],
     })
     lapor(
@@ -203,10 +215,21 @@ jalankan(async () => {
     )
     if (buatPengelola.status !== 201) throw new Error('pengelola gagal dibuat')
 
+    // Akun belum bisa dipakai masuk sebelum sandinya ditetapkan lewat tautan
+    // aktivasi - pemilik tidak memegang sandi itu sejak T27.
+    const aktif = await aktifkanAkun(ws, EMAIL_PENGELOLA, SANDI_PENGELOLA, SEJAK)
+    lapor('pengelola uji mengaktifkan akunnya', aktif)
+    if (!aktif) throw new Error('aktivasi pengelola gagal')
+
     // --- Pengelola mengusulkan lewat layar --------------------------------
-    const masukPengelola = await masukSebagai(ws, EMAIL_PENGELOLA)
+    const masukPengelola = await masukSebagai(ws, EMAIL_PENGELOLA, SANDI_PENGELOLA)
     lapor('pengelola bisa masuk', masukPengelola)
     if (!masukPengelola) throw new Error('login pengelola gagal')
+
+    // Akun yang baru diaktifkan mendarat di gerbang persetujuan PDP (T28).
+    // Skrip ini menguji usulan perubahan, bukan gerbang itu.
+    const lolosPdp = await lewatiPersetujuanPdp(ws)
+    lapor('gerbang persetujuan PDP dilewati', lolosPdp, await evaluasi(ws, 'location.pathname'))
 
     await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/kamar` })
     const kamarTerbuka = await tungguSampai(
@@ -405,7 +428,7 @@ jalankan(async () => {
     )
 
     // --- Jalur penolakan --------------------------------------------------
-    await masukSebagai(ws, EMAIL_PENGELOLA)
+    await masukSebagai(ws, EMAIL_PENGELOLA, SANDI_PENGELOLA)
     const usulKedua = await panggilApi(ws, '/tarif', 'POST', {
       kamar_id: kamar.id,
       nilai: 1900000,
@@ -474,7 +497,7 @@ jalankan(async () => {
     )
 
     // --- Jalur kedaluwarsa ------------------------------------------------
-    await masukSebagai(ws, EMAIL_PENGELOLA)
+    await masukSebagai(ws, EMAIL_PENGELOLA, SANDI_PENGELOLA)
     const usulKetiga = await panggilApi(ws, '/tarif', 'POST', {
       kamar_id: kamar.id,
       nilai: 2000000,
@@ -559,7 +582,7 @@ jalankan(async () => {
         .map((k) => ({ berlaku_dari: k.berlaku_dari })),
     )
 
-    await masukSebagai(ws, EMAIL_PENGELOLA)
+    await masukSebagai(ws, EMAIL_PENGELOLA, SANDI_PENGELOLA)
     const usulKebijakan = await panggilApi(ws, '/kebijakan', 'POST', {
       tipe: 'jatuh_tempo',
       nilai: 'akhir_bulan',

@@ -35,10 +35,34 @@ fi
 
 php artisan config:clear >/dev/null 2>&1 || true
 
+# ---------------------------------------------------------------------------
+# Pagar produksi (T29)
+#
+# Tiga hal di bawah pernah menjadi "nyaman untuk demo" dan berbahaya untuk data
+# sungguhan. Sekarang produsenya dijaga di sini, bukan dihafal oleh orang yang
+# men-deploy.
+# ---------------------------------------------------------------------------
+
+# `RUN_SEEDER=true` membuat ulang akun contoh SETIAP container start, dan seeder
+# menulis ulang sandi pemilik menjadi "password". Di demo itu yang diinginkan;
+# di produksi itu berarti sandi pemilik kembali ke "password" setiap kali
+# layanan Render bangun dari tidur. Sejak T29 seeder menolak berjalan bila
+# APP_ENV=production - lihat DatabaseSeeder - dan pagar ini memberi tahu
+# operatornya lebih awal, bukan setelah sandinya berubah.
+if [ "${RUN_SEEDER:-true}" = "true" ] && [ "${APP_ENV:-local}" = "production" ]; then
+    echo "[entrypoint] PERINGATAN: RUN_SEEDER=true di APP_ENV=production diabaikan."
+    echo "[entrypoint]            Seeder menolak berjalan di produksi (T29)."
+    RUN_SEEDER=false
+fi
+
 # Migrasi + seed otomatis. Idempoten: aman dijalankan setiap container start,
 # dan itulah syarat "docker compose up dari keadaan bersih tanpa langkah manual".
 if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
     echo "[entrypoint] menjalankan migrasi"
+    # `--force` diperlukan karena APP_ENV=production. Yang TIDAK pernah
+    # dijalankan di sini: `migrate:fresh`. Satu perintah itu menghapus seluruh
+    # tagihan dan pembayaran, dan tidak ada satu pun keadaan produksi yang
+    # membutuhkannya.
     php artisan migrate --force --no-interaction
 
     if [ "${RUN_SEEDER:-true}" = "true" ]; then

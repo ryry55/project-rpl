@@ -9,6 +9,7 @@ FROM php:8.3-fpm-alpine AS base
 
 RUN apk add --no-cache \
         postgresql-dev \
+        postgresql16-client \
         libzip-dev \
         icu-dev \
         oniguruma-dev \
@@ -44,7 +45,8 @@ RUN composer dump-autoload --optimize --no-interaction \
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/app.ini
 COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY docker/backup.sh /usr/local/bin/backup.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/backup.sh
 
 EXPOSE 9000
 

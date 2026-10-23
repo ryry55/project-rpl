@@ -40,6 +40,17 @@ class User extends Authenticatable
         'peran',
         'penghuni_id',
         'pemilik_id',
+        // Penanda "akun sudah diaktifkan" (T27). Ikut `$fillable` karena
+        // seeder dan tes perlu menetapkannya saat membuat akun contoh - dan
+        // tanpa itu `User::create(['email_verified_at' => now()])` mengabaikan
+        // kolomnya diam-diam, sehingga akun demo lahir dalam keadaan belum
+        // aktif dan menolak login dengan pesan "belum diaktifkan".
+        //
+        // Aman dari masukan pengguna: tidak ada endpoint yang meneruskan
+        // `$request->validated()` langsung ke `User::update`. Aktivasi hanya
+        // ditulis `TautanAkun::setelSandi()` setelah tautan email terbukti
+        // dibuka pemiliknya.
+        'email_verified_at',
     ];
 
     /**
@@ -58,7 +69,48 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'wajib_ganti_sandi' => 'boolean',
         ];
+    }
+
+    /**
+     * Apakah akun ini belum pernah diaktifkan.
+     *
+     * Akun dibuat pemilik dengan sandi acak yang tidak diketahui siapa pun,
+     * sehingga tidak ada yang bisa masuk sebelum pemiliknya sendiri menetapkan
+     * sandi lewat tautan aktivasi. Dipakai layar masuk untuk menjawab "tautan
+     * saya tidak berlaku" tanpa harus memberi tahu penebak apakah sebuah email
+     * terdaftar.
+     */
+    public function belumAktif(): bool
+    {
+        return $this->email_verified_at === null;
+    }
+
+    /**
+     * Apakah sandi akun ini wajib diganti sebelum boleh dipakai.
+     *
+     * Berlaku untuk akun lama yang sandinya pernah diketik pemilik. Sandi itu
+     * masih sah - karena itu akunnya tetap bisa masuk - tetapi tidak boleh
+     * dipakai untuk apa pun selain menggantinya.
+     */
+    public function wajibGantiSandi(): bool
+    {
+        return (bool) $this->wajib_ganti_sandi;
+    }
+
+    /**
+     * Apakah akun ini sudah menyetujui versi teks PDP yang berlaku.
+     *
+     * Diperiksa per versi, bukan "pernah menyetujui": teks yang berubah
+     * menuntut persetujuan baru, dan pengguna yang menyetujui teks lama tidak
+     * otomatis menyetujui teks yang menggantikannya.
+     */
+    public function sudahMenyetujuiPdp(): bool
+    {
+        return $this->persetujuanPdp()
+            ->where('versi', PersetujuanPdp::VERSI_BERLAKU)
+            ->exists();
     }
 
     public function isPemilik(): bool
@@ -140,5 +192,22 @@ class User extends Authenticatable
     public function kewenangan(): HasMany
     {
         return $this->hasMany(PengelolaKewenangan::class, 'user_id');
+    }
+
+    /**
+     * Riwayat persetujuan pemrosesan data pribadi (T28).
+     *
+     * `hasMany`, bukan `hasOne`: yang disimpan adalah riwayat per versi teks,
+     * dan pertanyaan "apa yang pernah ia setujui" hanya bisa dijawab kalau
+     * baris lama tidak ditimpa.
+     */
+    public function persetujuanPdp(): HasMany
+    {
+        return $this->hasMany(PersetujuanPdp::class);
+    }
+
+    public function tokenAkun(): HasMany
+    {
+        return $this->hasMany(TokenAkun::class);
     }
 }

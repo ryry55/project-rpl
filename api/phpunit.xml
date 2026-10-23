@@ -20,11 +20,24 @@
     <php>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
-        <env name="CACHE_STORE" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
-        <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+
+        <!--
+            `CACHE_STORE` dan `SESSION_DRIVER` wajib `array`, dan wajib ditulis
+            sebagai <server>.
+
+            Sejak T27 jumlah percobaan masuk disimpan di cache lewat
+            `RateLimiter`. Dengan `file` - nilai yang dioper docker-compose -
+            hitungannya bertahan DI LUAR satu tes, sehingga tes kedua yang
+            memakai alamat email yang sama langsung dijawab 429 tanpa pernah
+            mencoba masuk. Gejalanya menyesatkan: tes pembatas percobaan lulus,
+            dan seluruh tes lain yang kebetulan memakai `@kos.test` gagal karena
+            alasan yang tidak ada hubungannya dengan yang sedang diuji.
+        -->
+        <server name="CACHE_STORE" value="array"/>
+        <server name="SESSION_DRIVER" value="array"/>
 
         <!--
             Variabel di bawah ditulis sebagai <server>, bukan <env>.

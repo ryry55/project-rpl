@@ -28,9 +28,30 @@ import {
   tangkapLayar,
   jalankan,
   pastikanKebijakan,
+  aktifkanAkun,
+  lewatiPersetujuanPdp,
 } from './_cdp.mjs'
 
 const EMAIL_BARU = 'uji-t24@kos.test'
+
+/**
+ * Sandi yang ditetapkan SENDIRI oleh pengelola uji lewat tautan aktivasi.
+ *
+ * Sejak T27 pemilik tidak mengetikkan sandi siapa pun, jadi tidak ada sandi
+ * yang bisa dipakai di sini kecuali yang ditetapkan pemilik akunnya sendiri.
+ * Skrip ini berperan sebagai pengelola pada detik tautannya dibuka.
+ */
+const SANDI_PENGELOLA = 'sandi-t24-pengelola'
+
+/**
+ * Batas bawah waktu surat.
+ *
+ * Mailpit tidak dikosongkan `periksa.ps1` di antara skrip, sedangkan basis data
+ * di-reset. Tanpa batas ini, `aktifkanAkun()` bisa membaca tautan dari jalan
+ * sebelumnya - token yang sudah tidak dikenal server - lalu melaporkan tautan
+ * mati padahal surat barunya ada.
+ */
+const SEJAK = new Date()
 
 /**
  * Menyiapkan satu kamar, satu penghuni, dan satu kontrak aktif.
@@ -78,11 +99,13 @@ async function siapkanDataInduk(ws) {
   let penghuni = (penghuniAda.data?.data || []).find((p) => p.email === 'uji-t24-penghuni@kos.test')
 
   if (!penghuni) {
+    // Tanpa kata sandi: sejak T27 pemilik tidak mengetikkan sandi siapa pun.
+    // Akunnya lahir dengan sandi acak yang tidak diketahui siapa pun; skrip ini
+    // tidak memakai akun itu untuk masuk, jadi tautan aktivasinya tidak perlu
+    // dibuka.
     const buat = await panggilApi(ws, '/penghuni', 'POST', {
       nama: 'Penghuni Uji T24',
       email: 'uji-t24-penghuni@kos.test',
-      password: 'password',
-      password_confirmation: 'password',
     })
     if (buat.status !== 201) {
       return { ok: false, alasan: `POST /penghuni gagal (${buat.status})` }
@@ -215,7 +238,6 @@ jalankan(async () => {
 
         if (!set('#nama-pengelola', 'Uji T24')) return 'nama tidak ada'
         if (!set('#email-pengelola', ${JSON.stringify(EMAIL_BARU)})) return 'email tidak ada'
-        if (!set('#sandi-pengelola', 'password')) return 'sandi tidak ada'
 
         // Diklik satu per satu, dengan jeda satu putaran penuh di antaranya -
         // meniru orang, bukan menembak dua event dalam satu tick.
@@ -265,10 +287,28 @@ jalankan(async () => {
 
     await tangkapLayar(ws, 'T24-pengelola')
 
+    // --- Pengelola mengaktifkan akunnya sendiri ----------------------------
+    //
+    // Sejak T27 pemilik tidak memegang sandi pengelola. Yang membuktikan akun
+    // ini benar-benar bisa dipakai bukan "pemilik tahu sandinya", melainkan
+    // bahwa tautan aktivasi yang dikirim ke emailnya berfungsi. Sandi yang
+    // dipakai di sini hanya diketahui skrip dan pengelola itu sendiri.
+    const aktif = await aktifkanAkun(ws, EMAIL_BARU, SANDI_PENGELOLA, SEJAK)
+    lapor('pengelola mengaktifkan akunnya lewat tautan email', aktif)
+
+    const sudahAktif = await panggilApi(ws, '/pengelola')
+    const baris = (sudahAktif.data?.data || []).find((p) => p.email === EMAIL_BARU)
+    lapor('daftar pengelola menandai akun sudah aktif', baris?.sudah_aktif === true)
+
     // --- Pengelola masuk ---------------------------------------------------
-    const masukPengelola = await masukSebagai(ws, EMAIL_BARU)
-    lapor('pengelola bisa masuk dengan kata sandi yang diberikan', masukPengelola)
+    const masukPengelola = await masukSebagai(ws, EMAIL_BARU, SANDI_PENGELOLA)
+    lapor('pengelola bisa masuk dengan kata sandi yang ia tetapkan sendiri', masukPengelola)
     if (!masukPengelola) throw new Error('login pengelola gagal')
+
+    // Akun yang baru diaktifkan mendarat di gerbang persetujuan PDP (T28).
+    // Skrip ini menguji wewenang, bukan gerbang itu.
+    const lolosPdp = await lewatiPersetujuanPdp(ws)
+    lapor('gerbang persetujuan PDP dilewati', lolosPdp, await evaluasi(ws, 'location.pathname'))
 
     // Pengelola diarahkan ke Tagihan, bukan ke Kamar: kamar bukan pekerjaan
     // hariannya, dan mendarat di halaman yang tidak boleh ia ubah membuat
@@ -416,8 +456,12 @@ jalankan(async () => {
     // --- Jejak audit menyebut pengelola, bukan pemilik ---------------------
     await masukSebagai(ws, 'pemilik@kos.test')
     const audit = await panggilApi(ws, '/audit-log?aksi=pengelola.tambah')
+    // Dicocokkan lewat `entitas_id`, bukan lewat email di `nilai_baru`: sejak
+    // T28 jejak akun tidak lagi menyalin nama dan email subjeknya, karena
+    // salinan itu tinggal di tabel yang tidak bisa diubah dan karenanya tidak
+    // akan pernah ikut terlepas saat penghuninya menghapus akun.
     const jejakPengelola = (audit.data?.data || []).find(
-      (j) => j.nilai_baru?.email === EMAIL_BARU,
+      (j) => Number(j.entitas_id) === Number(baru.id),
     )
     lapor(
       'pembuatan akun pengelola tercatat di jejak audit',

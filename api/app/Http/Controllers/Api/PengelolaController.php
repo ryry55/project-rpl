@@ -3,15 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Akses\Wewenang;
+use App\Domain\Akun\PembuatAkun;
+use App\Domain\Akun\TautanAkun;
 use App\Domain\Audit\PencatatAudit;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SimpanPengelolaRequest;
 use App\Http\Resources\PengelolaResource;
+use App\Models\TokenAkun;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -30,7 +32,11 @@ use Illuminate\Validation\ValidationException;
  */
 class PengelolaController extends Controller
 {
-    public function __construct(private readonly PencatatAudit $audit) {}
+    public function __construct(
+        private readonly PencatatAudit $audit,
+        private readonly PembuatAkun $pembuat,
+        private readonly TautanAkun $tautan,
+    ) {}
 
     public function index(): JsonResponse
     {
@@ -58,18 +64,21 @@ class PengelolaController extends Controller
     {
         $data = $request->validated();
 
+        // Akunnya dibuat dengan sandi acak yang tidak diketahui siapa pun -
+        // termasuk pemilik yang menekan tombol ini. Lihat catatan kelas
+        // PembuatAkun: pemilik yang tahu sandi pengelola bisa mengubah tarif
+        // atas namanya, dan jejak audit lalu menulis nama orang yang tidak
+        // melakukannya.
         $pengelola = DB::transaction(function () use ($data, $request) {
-            $pengelola = User::create([
-                'name' => $data['nama'],
-                'email' => $data['email'],
-                'password' => Hash::make($request->string('password')->value()),
-                'peran' => User::PERAN_PENGELOLA,
-                // Pemilik yang membuat akun ini. Diambil dari sesi, bukan dari
-                // isian formulir: pengelola yang menunjuk pemilik lain tidak
-                // punya arti dalam model satu-kos, dan menerimanya dari klien
-                // berarti membuka jalan akun pengelola tanpa atasan.
-                'pemilik_id' => $request->user()->id,
-            ]);
+            $pengelola = $this->pembuat->untukPengelola(
+                nama: $data['nama'],
+                email: $data['email'],
+                // Diambil dari sesi, bukan dari isian formulir: pengelola yang
+                // menunjuk pemilik lain tidak punya arti dalam model satu-kos,
+                // dan menerimanya dari klien berarti membuka jalan akun
+                // pengelola tanpa atasan.
+                pemilikId: $request->user()->id,
+            );
 
             $this->simpanWewenang($pengelola, $data['wewenang'] ?? []);
 
@@ -77,9 +86,21 @@ class PengelolaController extends Controller
                 aksi: 'pengelola.tambah',
                 entitas: 'users',
                 entitasId: $pengelola->id,
+                // Sengaja TANPA `nama` dan `email` (T28).
+                //
+                // `entitas_id` sudah menunjuk akun ini, dan namanya bisa dibaca
+                // dari sana selama akunnya ada. Menyalinnya ke sini menciptakan
+                // salinan KEDUA data pribadi di tabel yang tidak bisa diubah -
+                // trigger `log_audit` hanya mengizinkan perubahan `aktor_*`,
+                // sehingga penghapusan data pribadi (T28) tidak akan pernah
+                // mencapai salinan ini. Yang tertinggal sesudah penghuni
+                // menghapus akunnya adalah justru hal yang ia minta dihapus.
+                //
+                // Bedanya dengan `aktor_nama`, yang memang dibekukan: aktor
+                // adalah pertanggungjawaban - "siapa yang melakukan ini" harus
+                // tetap terbaca walau namanya berubah kemudian. Subjek bukan
+                // pertanggungjawaban; ia hanya orang yang datanya tercatat.
                 nilaiBaru: [
-                    'nama' => $pengelola->name,
-                    'email' => $pengelola->email,
                     'wewenang' => $data['wewenang'] ?? [],
                 ],
             );
@@ -89,7 +110,15 @@ class PengelolaController extends Controller
 
         $pengelola->load('kewenangan');
 
-        return response()->json(['data' => new PengelolaResource($pengelola)], 201);
+        $terkirim = $this->tautan->kirimAman($pengelola, TokenAkun::JENIS_AKTIVASI);
+
+        return response()->json([
+            'data' => new PengelolaResource($pengelola),
+            'meta' => [
+                'tautan_aktivasi_terkirim' => $terkirim,
+                'email' => $pengelola->email,
+            ],
+        ], 201);
     }
 
     public function show(User $pengelola): JsonResponse
@@ -107,10 +136,10 @@ class PengelolaController extends Controller
 
         $data = $request->validated();
 
-        DB::transaction(function () use ($data, $request, $pengelola) {
+        $emailBerubah = $pengelola->email !== $data['email'];
+
+        DB::transaction(function () use ($data, $emailBerubah, $pengelola) {
             $lama = [
-                'nama' => $pengelola->name,
-                'email' => $pengelola->email,
                 'wewenang' => $pengelola->kewenangan()->pluck('wewenang')->sort()->values()->all(),
             ];
 
@@ -119,14 +148,21 @@ class PengelolaController extends Controller
                 'email' => $data['email'],
             ];
 
-            // Kata sandi hanya diubah bila diisi. Mengosongkan medan di layar
-            // berarti "jangan ubah", bukan "jadikan kosong" - dan kata sandi
-            // kosong akan mengunci akun tanpa ada yang menyadarinya.
-            if ($request->filled('password')) {
-                $perubahan['password'] = Hash::make($request->string('password')->value());
+            $pengelola->update($perubahan);
+
+            // `email_verified_at` TIDAK ikut di `$perubahan`: kolom itu tidak
+            // ada di `$fillable`, dan menaruhnya di sana akan diabaikan diam-diam
+            // oleh `update()`. Akibatnya mengganti email tidak membatalkan
+            // aktivasi lama, sementara tautan aktivasi baru tetap terkirim -
+            // dua keadaan yang saling bertentangan tanpa satu pun galat.
+            //
+            // Mengganti email membatalkan aktivasi sebelumnya: tautan lama
+            // dikirim ke alamat yang mungkin bukan milik orang ini.
+            if ($emailBerubah) {
+                $pengelola->forceFill(['email_verified_at' => null])->save();
+                $pengelola->tokens()->delete();
             }
 
-            $pengelola->update($perubahan);
             $this->simpanWewenang($pengelola, $data['wewenang'] ?? []);
 
             $pengelola->load('kewenangan');
@@ -136,15 +172,59 @@ class PengelolaController extends Controller
                 entitas: 'users',
                 entitasId: $pengelola->id,
                 nilaiLama: $lama,
+                // Tanpa `nama`/`email` - alasannya sama dengan `pengelola.tambah`.
                 nilaiBaru: [
-                    'nama' => $pengelola->name,
-                    'email' => $pengelola->email,
                     'wewenang' => $pengelola->kewenangan->pluck('wewenang')->sort()->values()->all(),
                 ],
             );
         });
 
-        return response()->json(['data' => new PengelolaResource($pengelola)]);
+        $terkirim = $emailBerubah
+            ? $this->tautan->kirimAman($pengelola, TokenAkun::JENIS_AKTIVASI)
+            : null;
+
+        return response()->json([
+            'data' => new PengelolaResource($pengelola),
+            'meta' => [
+                'tautan_aktivasi_terkirim' => $terkirim,
+                'email' => $pengelola->email,
+            ],
+        ]);
+    }
+
+    /**
+     * Kirim ulang tautan aktivasi.
+     *
+     * Endpoint tersendiri, bukan efek samping PUT. Kasusnya nyata dan sering:
+     * pemilik salah mengetik alamat email pengelola baru, atau emailnya masuk
+     * folder spam lalu terhapus. Tanpa endpoint ini, satu-satunya jalan keluar
+     * adalah menghapus akunnya - dan akun yang sudah tercatat di jejak audit
+     * tidak bisa dihapus.
+     *
+     * Hanya untuk akun yang belum aktif. Akun yang sudah aktif dan lupa
+     * sandinya memakai alur "lupa sandi" miliknya sendiri, bukan jalur ini:
+     * pemilik yang bisa mengirim ulang tautan aktivasi untuk akun aktif
+     * sama saja dengan pemilik yang bisa mengambil alih akun itu.
+     */
+    public function kirimUlangAktivasi(User $pengelola): JsonResponse
+    {
+        $this->pastikanPengelola($pengelola);
+
+        if (! $pengelola->belumAktif()) {
+            throw ValidationException::withMessages([
+                'pengelola' => ['Akun ini sudah aktif. Minta pemiliknya memakai "lupa kata sandi" di halaman masuk.'],
+            ])->status(409);
+        }
+
+        $terkirim = $this->tautan->kirimAman($pengelola, TokenAkun::JENIS_AKTIVASI);
+
+        return response()->json([
+            'data' => ['pesan' => 'Tautan aktivasi dikirim ulang.'],
+            'meta' => [
+                'tautan_aktivasi_terkirim' => $terkirim,
+                'email' => $pengelola->email,
+            ],
+        ]);
     }
 
     /**
@@ -187,8 +267,8 @@ class PengelolaController extends Controller
                 entitas: 'users',
                 entitasId: $pengelola->id,
                 nilaiLama: [
-                    'nama' => $pengelola->name,
-                    'email' => $pengelola->email,
+                    // Tanpa `nama`/`email` - alasannya sama dengan
+                    // `pengelola.tambah`. `entitas_id` sudah menunjuk akunnya.
                     'wewenang' => $wewenang,
                 ],
                 nilaiBaru: ['peran' => User::PERAN_PENGHUNI, 'wewenang' => []],

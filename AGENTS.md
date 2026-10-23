@@ -68,6 +68,19 @@ baru. Untuk memeriksa teks di layar pakai `teksMemuat(teks, '15.000')`, bukan
 regex: `/15\\.000/` di dalam template literal berarti "backslash literal" dan
 asersinya tidak pernah cocok. Kesalahan itu sudah terjadi tiga kali (T5, T6, T9).
 
+**Akun baru selalu mendarat di gerbang PDP lebih dulu** (T28). Skrip yang
+menguji hal lain wajib memanggil `lewatiPersetujuanPdp(ws)` tepat sesudah
+`masukSebagai()` untuk akun yang baru dibuat; tanpa itu langkah pertamanya
+gagal dan pesannya terbaca seperti kebocoran data atau tombol yang hilang.
+Fungsinya tidak melakukan apa pun bila gerbangnya tidak muncul.
+
+**Backtick di dalam komentar pun memutus template literal.** Seluruh pemeriksaan
+DOM dikirim sebagai template literal, jadi satu backtick di komentar membuat
+`node --check` gagal dengan pesan yang menunjuk baris yang salah - dan baru
+ketahuan setelah build, 594 tes PHP, pint, dan eslint selesai. `periksa.ps1`
+sekarang menjalankan `node --check` pada semua `.mjs` lebih dulu, tetapi jalankan
+sendiri saat menyunting satu berkas: `node --check docs/uji/<berkas>.mjs`.
+
 ### PowerShell
 
 `git commit -m` memotong pesan panjang; tulis ke berkas, pakai `-F <berkas>`,

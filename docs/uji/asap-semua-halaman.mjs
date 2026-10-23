@@ -22,7 +22,21 @@ import {
   masukSebagai,
   mulaiUji,
   jalankan,
+  aktifkanAkun,
+  lewatiPersetujuanPdp,
 } from './_cdp.mjs'
+
+/**
+ * Sandi yang ditetapkan sendiri oleh penghuni uji lewat tautan aktivasi.
+ *
+ * Sejak T27 pemilik tidak mengetikkan sandi siapa pun, jadi skrip ini harus
+ * membuka tautan yang dikirim ke email penghuni - persis seperti penghuni
+ * sungguhan. Tanpa itu langkah "login penghuni" di bawah gagal 403.
+ */
+const SANDI_PENGHUNI = 'sandi-asap-penghuni'
+
+/** Batas bawah waktu surat; lihat alasannya di e2e-t24.mjs. */
+const SEJAK = new Date()
 
 // --- Perkakas khusus berkas ini --------------------------------------------
 //
@@ -158,8 +172,11 @@ jalankan(async () => {
       const semuaPenghuni = await daftar('/penghuni')
       let penghuni = semuaPenghuni.find((x) => x.email === 'asap@kos.test')
       if (!penghuni) {
+        // Tanpa kata sandi (T27). Akun dibuat, tautan aktivasi dikirim, dan
+        // skrip ini mengaktifkannya setelah login pemilik selesai - lihat
+        // fungsi aktifkanAkun di bawah.
         const buat = await p('/penghuni', 'POST', {
-          nama: 'Asap Satu', email: 'asap@kos.test', password: 'password',
+          nama: 'Asap Satu', email: 'asap@kos.test',
         })
         if (buat.status !== 201) return 'penghuni: ' + JSON.stringify(buat.data)
         penghuni = buat.data.data
@@ -295,9 +312,22 @@ jalankan(async () => {
   }
 
   // --- Penghuni ------------------------------------------------------------
-  const masukP = await masukSebagai(ws, 'asap@kos.test')
+  //
+  // Akunnya belum aktif: sandinya tidak diketahui siapa pun sampai tautan
+  // aktivasi dibuka. Langkah ini sekaligus menyapu dua halaman baru T27/T28
+  // yang hanya bisa dibuka orang yang sudah masuk.
+  const aktifP = await aktifkanAkun(ws, 'asap@kos.test', SANDI_PENGHUNI, SEJAK)
+  lapor('penghuni uji mengaktifkan akunnya lewat tautan email', aktifP)
+  if (!aktifP) throw new Error('aktivasi penghuni gagal')
+
+  const masukP = await masukSebagai(ws, 'asap@kos.test', SANDI_PENGHUNI)
   lapor('login penghuni', masukP, await evaluasi(ws, 'location.pathname'))
   if (!masukP) throw new Error('login penghuni gagal')
+
+  // Gerbang persetujuan PDP berdiri sekali untuk tiap akun baru (T28). Skrip
+  // ini menyapu seluruh halaman, bukan menguji gerbangnya.
+  const lolosPdp = await lewatiPersetujuanPdp(ws)
+  lapor('gerbang persetujuan PDP dilewati', lolosPdp, await evaluasi(ws, 'location.pathname'))
 
   // Perekam sudah terpasang sekali di awal dan bertahan melewati navigasi,
   // jadi tidak dipasang lagi di sini.

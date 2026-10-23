@@ -21,6 +21,12 @@ class PenghuniResource extends JsonResource
             'nama' => $this->nama,
             'email' => $this->email,
             'no_hp' => $this->no_hp,
+            // Status aktivasi akun (T27). Layar memakainya untuk menandai
+            // penghuni yang tautannya belum dibuka dan menawarkan kirim ulang.
+            // Tanpa ini pemilik melihat baris yang tampak normal padahal
+            // penghuninya belum bisa masuk sama sekali.
+            'sudah_aktif' => $this->whenLoaded('user', fn () => $this->user !== null
+                && $this->user->email_verified_at !== null),
             'kontrak_aktif' => $this->whenLoaded('kontrakAktif', fn () => $this->kontrakAktif
                 ? [
                     'id' => $this->kontrakAktif->id,

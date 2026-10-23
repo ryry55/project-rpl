@@ -112,7 +112,6 @@ jalankan(async () => {
       const penghuni = await panggilApi(ws, '/penghuni', 'POST', {
         nama: 'Penghuni Tata Letak Dengan Nama Yang Cukup Panjang',
         email: 'tata-letak@kos.test',
-        password: 'rahasia123',
       })
       const kontrak = await panggilApi(ws, '/kontrak', 'POST', {
         kamar_id: kamarId,

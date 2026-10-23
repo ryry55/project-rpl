@@ -84,7 +84,6 @@ async function siapkanData(ws) {
     const buat = await panggilApi(ws, '/penghuni', 'POST', {
       nama: 'Gita Dua Puluh',
       email: 't20@kos.test',
-      password: 'password',
     })
     if (buat.status !== 201) {
       return { ok: false, alasan: `POST /penghuni gagal (${buat.status})` }
