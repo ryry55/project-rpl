@@ -29,7 +29,7 @@ class PencatatAudit
 
     public const AKSI_TARIF_TAMBAH = 'tarif.tambah';
 
-    public const AKSI_PARAMETER_DENDA_TAMBAH = 'parameter_denda.tambah';
+    public const AKSI_KEBIJAKAN_TAMBAH = 'kebijakan.tambah';
 
     public function catat(
         string $aksi,

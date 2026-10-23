@@ -40,6 +40,7 @@ class Tagihan extends Model
         'jatuh_tempo',
         'status',
         'tarif_terpakai',
+        'kebijakan_terpakai',
         'tarif_denda_persen',
         'plafon_persen',
         'masa_tenggang',
@@ -57,6 +58,10 @@ class Tagihan extends Model
             'pokok' => 'decimal:0',
             'total_final' => 'decimal:0',
             'tarif_terpakai' => 'array',
+            // Dokumen beku kebijakan (T17). `array` dipakai, bukan model
+            // tersendiri, karena isinya arsip: bentuknya harus boleh berbeda
+            // antar waktu tanpa migrasi.
+            'kebijakan_terpakai' => 'array',
             'tarif_denda_persen' => 'decimal:2',
             'plafon_persen' => 'decimal:2',
             'masa_tenggang' => 'integer',

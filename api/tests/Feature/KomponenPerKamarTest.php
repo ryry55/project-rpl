@@ -179,22 +179,24 @@ class KomponenPerKamarTest extends TestCase
             'berlaku_dari' => '2026-10-01',
         ])->assertCreated();
 
-        // Parameter denda wajib ada sebelum tagihan bisa terbit.
-        $this->sebagaiPemilik()->postJson('/api/parameter-denda', [
-            'tarif_persen' => 1,
-            'plafon_persen' => 30,
-            'masa_tenggang' => 7,
-            'berlaku_dari' => '2026-10-01',
-        ])->assertCreated();
-
-        // T16: kebijakan kos juga wajib. Dinyatakan lewat HTTP, bukan model,
-        // supaya tes ini sekaligus membuktikan endpoint-nya bisa dipakai
+        // Sejak T17 denda juga wajib: `parameter_denda` sudah dihapus, jadi
+        // kebijakan inilah satu-satunya sumber angka denda. Dinyatakan lewat
+        // HTTP supaya tes ini sekaligus membuktikan endpoint-nya bisa dipakai
         // sebagai jalur penyiapan yang sebenarnya.
-        foreach ([['satuan_sewa', 'bulanan'], ['jatuh_tempo', 'tanggal_masuk']] as [$tipe, $nilai]) {
+        foreach ([
+            ['satuan_sewa', 'bulanan'],
+            ['jatuh_tempo', 'tanggal_masuk'],
+            ['denda', 'persen_harian'],
+        ] as [$tipe, $nilai]) {
             $this->sebagaiPemilik()->postJson('/api/kebijakan', [
                 'tipe' => $tipe,
                 'nilai' => $nilai,
                 'berlaku_dari' => '2026-10-01',
+                // Hanya denda persen yang membawa angka; kuncinya diabaikan
+                // untuk tipe lain karena FormRequest melarangnya.
+                ...($tipe === 'denda'
+                    ? ['persen' => 1, 'plafon_persen' => 30, 'masa_tenggang' => 7]
+                    : []),
             ])->assertCreated();
         }
 

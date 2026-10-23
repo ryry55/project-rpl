@@ -24,7 +24,8 @@ use Illuminate\Support\Facades\DB;
  * Dua hal yang dibekukan saat terbit, keduanya untuk R-06 lapis 2:
  *
  *   1. `pokok` — angka jadi, tidak dihitung ulang saat dibaca.
- *   2. `tarif_terpakai` — salinan tarif, komponen, dan parameter denda.
+ *   2. `tarif_terpakai` — salinan tarif, komponen, dan kebijakan yang dipakai;
+ *      `kebijakan_terpakai` menyimpan bentuk denda yang berlaku saat terbit.
  *
  * Tanpa keduanya, menaikkan tarif bulan depan akan mengubah tagihan bulan lalu
  * lewat join, walau `tarif_sewa` sudah append-only.
@@ -50,12 +51,12 @@ class PenerbitTagihan
 
         $this->pastikanPeriodeMasukAkal($kontrak, $awalPeriode, $tanggalMasuk);
 
-        // Gerbang kebijakan (T16) sengaja diperiksa SEBELUM tarif dan parameter
-        // denda. Urutannya menentukan pesan mana yang dibaca pemilik lebih
-        // dulu, dan pesan yang paling bisa ditindaklanjuti adalah "kebijakan
-        // belum diisi": itu satu-satunya langkah yang memperbaiki semua kamar
-        // sekaligus. Sebaliknya, "kamar A1 belum punya tarif" untuk kos 30
-        // kamar baru akan menuntun pemilik ke 30 pesan yang berbeda.
+        // Gerbang kebijakan (T16) sengaja diperiksa SEBELUM tarif. Urutannya
+        // menentukan pesan mana yang dibaca pemilik lebih dulu, dan pesan yang
+        // paling bisa ditindaklanjuti adalah "kebijakan belum diisi": itu
+        // satu-satunya langkah yang memperbaiki semua kamar sekaligus.
+        // Sebaliknya, "kamar A1 belum punya tarif" untuk kos 30 kamar baru akan
+        // menuntun pemilik ke 30 pesan yang berbeda.
         //
         // Diperiksa per kamar, bukan sekali untuk seluruh kos: satu kamar boleh
         // punya penimpa (mis. kamar harian), dan kamar itu tetap wajib lengkap
@@ -68,14 +69,15 @@ class PenerbitTagihan
             throw TagihanTidakDapatDiterbitkan::karenaTarifKosong($kontrak, $awalPeriode);
         }
 
-        $parameter = $this->pencari->parameterDendaUntuk($awalPeriode);
-
-        if ($parameter === null) {
-            throw TagihanTidakDapatDiterbitkan::karenaParameterDendaKosong($awalPeriode);
-        }
-
         $satuanSewa = $berlaku[KebijakanKos::TIPE_SATUAN_SEWA];
         $caraJatuhTempo = $berlaku[KebijakanKos::TIPE_JATUH_TEMPO];
+
+        // T17: bentuk denda ikut dibekukan ke tagihan. Inilah satu-satunya
+        // angka di sistem ini yang dihitung ulang tiap kali dibaca, jadi tanpa
+        // snapshot pemilik yang menaikkan denda bulan depan akan mengubah
+        // denda tagihan bulan lalu.
+        $kebijakanDenda = $berlaku[KebijakanKos::TIPE_DENDA];
+        $dendaTerpakai = $this->bentukDenda($kebijakanDenda);
 
         // R-01 hanya berlaku pada bulan penghuni masuk. Bulan berikutnya selalu
         // tarif penuh — termasuk bulan ketika penghuni keluar di tengah bulan:
@@ -146,7 +148,6 @@ class PenerbitTagihan
             $awalPeriode,
             $tanggalMasuk,
             $tarif,
-            $parameter,
             $baris,
             $pokok,
             $komponenTerpakai,
@@ -155,6 +156,8 @@ class PenerbitTagihan
             $caraJatuhTempo,
             $hariDitagih,
             $hariDalamBulan,
+            $kebijakanDenda,
+            $dendaTerpakai,
         ) {
             $jatuhTempo = $this->kalkulator->tanggalJatuhTempoMenurut(
                 $caraJatuhTempo->nilai,
@@ -176,13 +179,6 @@ class PenerbitTagihan
                         'berlaku_dari' => $tarif->berlaku_dari->toDateString(),
                     ],
                     'komponen_biaya' => $komponenTerpakai,
-                    'parameter_denda' => [
-                        'id' => $parameter->id,
-                        'tarif_persen' => (string) $parameter->tarif_persen,
-                        'plafon_persen' => (string) $parameter->plafon_persen,
-                        'masa_tenggang' => $parameter->masa_tenggang,
-                        'berlaku_dari' => $parameter->berlaku_dari->toDateString(),
-                    ],
                     // T16: kebijakan yang dipakai ikut dibekukan. Tanpa ini,
                     // pemilik yang mengubah satuan sewa menjadi harian bulan
                     // depan tidak bisa menjelaskan mengapa tagihan bulan lalu
@@ -207,9 +203,18 @@ class PenerbitTagihan
                     ],
                     'prorata' => $bulanMasuk,
                 ],
-                'tarif_denda_persen' => $parameter->tarif_persen,
-                'plafon_persen' => $parameter->plafon_persen,
-                'masa_tenggang' => $parameter->masa_tenggang,
+                // Dokumen beku tersendiri untuk denda (T17). Bentuknya boleh
+                // berbeda antar waktu tanpa migrasi, karena ini arsip — bukan
+                // sumber kebenaran. `id` dan `berlaku_dari` ikut disimpan
+                // supaya baris kebijakan asalnya bisa ditunjuk saat ditanya.
+                'kebijakan_terpakai' => [
+                    'denda' => $dendaTerpakai->toArray() + [
+                        'id' => $kebijakanDenda->id,
+                        'nilai' => $kebijakanDenda->nilai,
+                        'berlaku_dari' => $kebijakanDenda->berlaku_dari->toDateString(),
+                        'kamar_id' => $kebijakanDenda->kamar_id,
+                    ],
+                ],
                 'terbit_pada' => now(),
             ]);
 
@@ -240,13 +245,48 @@ class PenerbitTagihan
                     'tarif_terpakai' => [
                         'tarif_sewa_id' => $tarif->id,
                         'nilai' => (int) $tarif->nilai,
-                        'parameter_denda_id' => $parameter->id,
+                        'kebijakan_denda_id' => $kebijakanDenda->id,
                     ],
                 ],
             );
 
             return $tagihan;
         });
+    }
+
+    /**
+     * Terjemahkan baris kebijakan `denda` menjadi bentuk yang bisa dihitung.
+     *
+     * Dipisah supaya `PenerbitTagihan` tidak perlu tahu bahwa denda persen
+     * membawa dua angka sementara denda nominal membawa satu. Pengetahuan itu
+     * tinggal di {@see DendaTerpilih}, satu tempat, dan `PenghitungDenda`
+     * memakai penerjemah yang sama saat membaca arsipnya kembali.
+     */
+    private function bentukDenda(KebijakanKos $kebijakan): DendaTerpilih
+    {
+        return match ($kebijakan->nilai) {
+            PilihanKebijakan::DENDA_TANPA_DENDA => DendaTerpilih::tanpaDenda(),
+
+            PilihanKebijakan::DENDA_NOMINAL_TETAP => DendaTerpilih::nominalTetap(
+                (int) $kebijakan->nominal,
+            ),
+
+            PilihanKebijakan::DENDA_PERSEN_BULANAN => DendaTerpilih::persenBulanan(
+                (string) $kebijakan->persen,
+                (string) $kebijakan->plafon_persen,
+                (int) ($kebijakan->masa_tenggang ?? 0),
+            ),
+
+            PilihanKebijakan::DENDA_PERSEN_HARIAN => DendaTerpilih::persenHarian(
+                (string) $kebijakan->persen,
+                (string) $kebijakan->plafon_persen,
+                (int) ($kebijakan->masa_tenggang ?? 0),
+            ),
+
+            default => throw new \UnexpectedValueException(
+                "Nilai kebijakan denda \"{$kebijakan->nilai}\" tidak dikenal."
+            ),
+        };
     }
 
     /**

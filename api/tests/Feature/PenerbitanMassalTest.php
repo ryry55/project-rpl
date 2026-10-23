@@ -6,7 +6,6 @@ use App\Domain\Audit\PencatatAudit;
 use App\Models\Kamar;
 use App\Models\Kontrak;
 use App\Models\LogAudit;
-use App\Models\ParameterDenda;
 use App\Models\Penghuni;
 use App\Models\Tagihan;
 use App\Models\TarifSewa;
@@ -46,15 +45,9 @@ class PenerbitanMassalTest extends TestCase
             'peran' => User::PERAN_PEMILIK,
         ]);
 
-        ParameterDenda::create([
-            'tarif_persen' => 1.00,
-            'plafon_persen' => 30.00,
-            'masa_tenggang' => 7,
-            'berlaku_dari' => '2026-01-01',
-        ]);
-
         // Sejak T16 tagihan tidak bisa terbit tanpa kebijakan. Berkas ini
-        // menguji batch, bukan gerbangnya.
+        // menguji batch, bukan gerbangnya. `siapkanKebijakanDefault()`
+        // menyertakan denda R-03, jadi tidak perlu dipanggil terpisah.
         $this->siapkanKebijakanDefault();
     }
 
@@ -174,9 +167,15 @@ class PenerbitanMassalTest extends TestCase
             'jatuh_tempo' => '2026-11-15',
             'status' => 'belum_bayar',
             'tarif_terpakai' => json_encode(['prorata' => false]),
-            'tarif_denda_persen' => '1.00',
-            'plafon_persen' => '30.00',
-            'masa_tenggang' => 7,
+            'kebijakan_terpakai' => json_encode([
+                'denda' => [
+                    'tipe' => 'persen_harian',
+                    'persen' => '1.00',
+                    'plafon_persen' => '30.00',
+                    'masa_tenggang' => 7,
+                    'nominal' => 0,
+                ],
+            ]),
             'terbit_pada' => now(),
             'created_at' => now(),
             'updated_at' => now(),
@@ -392,21 +391,23 @@ class PenerbitanMassalTest extends TestCase
         $this->assertSame('2026-12-01', $log->nilai_baru['berlaku_dari']);
     }
 
-    public function test_perubahan_parameter_denda_tercatat_di_log_audit(): void
+    public function test_perubahan_kebijakan_denda_tercatat_di_log_audit(): void
     {
         $this->sebagaiPemilik()
-            ->postJson('/api/parameter-denda', [
-                'tarif_persen' => 1.5,
+            ->postJson('/api/kebijakan', [
+                'tipe' => 'denda',
+                'nilai' => 'persen_harian',
+                'persen' => 1.5,
                 'plafon_persen' => 40,
                 'masa_tenggang' => 5,
                 'berlaku_dari' => '2026-12-01',
             ])
             ->assertCreated();
 
-        $log = LogAudit::where('aksi', PencatatAudit::AKSI_PARAMETER_DENDA_TAMBAH)->firstOrFail();
+        $log = LogAudit::where('aksi', PencatatAudit::AKSI_KEBIJAKAN_TAMBAH)->firstOrFail();
 
-        $this->assertSame('parameter_denda', $log->entitas);
-        $this->assertSame('1.50', $log->nilai_baru['tarif_persen']);
+        $this->assertSame('kebijakan_kos', $log->entitas);
+        $this->assertSame('1.50', $log->nilai_baru['persen']);
         $this->assertSame(5, $log->nilai_baru['masa_tenggang']);
     }
 

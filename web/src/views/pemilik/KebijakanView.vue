@@ -41,6 +41,10 @@ const belumLengkap = computed(() => meta.value && !meta.value.lengkap)
 
 const tipeTersedia = computed(() => meta.value?.tipe || [])
 const pilihan = computed(() => meta.value?.pilihan || {})
+// Matriks kolom angka per tipe, dari server. Kartu memakainya untuk tahu medan
+// mana yang wajib muncul; menyalinnya di Vue akan menjadi salinan ketiga dari
+// aturan yang sama dengan validasi dan CHECK constraint.
+const kolom = computed(() => meta.value?.kolom || {})
 const labelTipe = computed(() => meta.value?.label_tipe || {})
 const kurang = computed(() => meta.value?.kurang || [])
 
@@ -165,6 +169,7 @@ onMounted(muat)
         :label="labelTipe[tipe] || tipe"
         :berlaku="berlakuUntuk(tipe)"
         :pilihan="pilihan[tipe] || {}"
+        :kolom="kolom[tipe] || {}"
         :wajib="kurang.includes(tipe)"
         :menyimpan="menyimpanTipe === tipe"
         @simpan="simpan"

@@ -150,29 +150,57 @@ async function catatPembayaran() {
       </table>
     </div>
 
-    <!-- Uraian denda: angka tanpa penjelasan selalu jadi pertanyaan. -->
+    <!-- Uraian denda: angka tanpa penjelasan selalu jadi pertanyaan.
+         Sejak T17 kalimatnya bergantung pada bentuk denda yang dipilih pemilik.
+         Tiga bentuk, tiga kalimat: persen (menyebut tenggang dan plafon),
+         nominal (nominal tetap per bulan), dan tanpa denda (tidak menyebut
+         apa pun). `berjalan` saja tidak cukup membedakan yang terakhir dari
+         yang kedua — keduanya sama-sama `false` — jadi cabangnya memakai
+         `bentuk` yang dikirim server. -->
     <div v-if="detail.dendaDetail" class="denda-uraian">
       <p v-if="detail.dendaDetail.berhenti" class="mungil lemah">
         {{ detail.dendaDetail.alasan_berhenti }} Denda tidak berjalan lagi.
       </p>
+      <!-- Tanpa denda: tidak ada yang perlu dijelaskan selain bahwa tidak ada
+           dendanya. Menulis "nominal tetap Rp 0" akan terbaca seperti
+           kebijakan yang belum diisi, padahal ini pilihan pemilik. -->
+      <template v-else-if="detail.dendaDetail.bentuk === 'tanpa'">
+        <p class="mungil">
+          Kebijakan kos ini tidak menerapkan denda keterlambatan. Tidak ada
+          tambahan biaya meskipun tagihan lewat jatuh tempo.
+        </p>
+        <p class="mungil lemah">Dihitung pada {{ tanggal(detail.dendaDetail.tanggal_acuan) }}.</p>
+      </template>
       <template v-else>
         <p class="mungil">
           <template v-if="detail.dendaDetail.hari_terlambat <= 0">
             Belum jatuh tempo — tidak ada denda.
           </template>
-          <template
-            v-else-if="detail.dendaDetail.hari_terlambat <= detail.dendaDetail.masa_tenggang"
-          >
-            Terlambat {{ detail.dendaDetail.hari_terlambat }} hari, masih dalam masa tenggang
-            {{ detail.dendaDetail.masa_tenggang }} hari — belum ada denda.
+          <!-- Denda persen: berjalan tiap hari, punya tenggang dan plafon. -->
+          <template v-else-if="detail.dendaDetail.bentuk === 'persen'">
+            <template
+              v-if="detail.dendaDetail.hari_terlambat <= detail.dendaDetail.masa_tenggang"
+            >
+              Terlambat {{ detail.dendaDetail.hari_terlambat }} hari, masih dalam masa tenggang
+              {{ detail.dendaDetail.masa_tenggang }} hari — belum ada denda.
+            </template>
+            <template v-else>
+              Terlambat <strong>{{ detail.dendaDetail.hari_terlambat }} hari</strong>,
+              lewat tenggang {{ detail.dendaDetail.masa_tenggang }} hari, jadi
+              <strong>{{ detail.dendaDetail.hari_denda }} hari</strong> kena denda.
+            </template>
           </template>
+          <!-- Denda nominal: tidak berjalan per hari, jadi cukup jumlah hari
+               terlambat tanpa menyebut tenggang maupun hari kena denda. -->
           <template v-else>
-            Terlambat <strong>{{ detail.dendaDetail.hari_terlambat }} hari</strong>,
-            lewat tenggang {{ detail.dendaDetail.masa_tenggang }} hari, jadi
-            <strong>{{ detail.dendaDetail.hari_denda }} hari</strong> kena denda.
+            Terlambat <strong>{{ detail.dendaDetail.hari_terlambat }} hari</strong> dari
+            jatuh tempo {{ tanggal(detail.dendaDetail.jatuh_tempo) }}.
           </template>
         </p>
-        <p class="mungil lemah">
+
+        <!-- Plafon hanya bermakna untuk denda persen. `null` di sini bukan nol:
+             artinya bentuk denda ini memang tidak dibatasi plafon. -->
+        <p v-if="detail.dendaDetail.bentuk === 'persen'" class="mungil lemah">
           Denda {{ rupiah(detail.dendaDetail.denda) }} dari maksimum
           {{ rupiah(detail.dendaDetail.plafon) }}.
           <template v-if="detail.dendaDetail.sisa_hari_ke_plafon > 0">
@@ -180,6 +208,11 @@ async function catatPembayaran() {
           </template>
           <template v-else>Plafon sudah tercapai.</template>
         </p>
+        <p v-else class="mungil lemah">
+          Denda {{ rupiah(detail.dendaDetail.denda) }} — nominal tetap, dihitung per bulan
+          keterlambatan.
+        </p>
+
         <p class="mungil lemah">Dihitung pada {{ tanggal(detail.dendaDetail.tanggal_acuan) }}.</p>
       </template>
     </div>

@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\ParameterDenda;
 use App\Models\Penghuni;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -46,16 +45,13 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Parameter denda awal: 1% per hari, plafon 30%, masa tenggang 7 hari
-        // (R-03). Tanpa baris ini, T3 tidak punya parameter untuk dihitung.
-        ParameterDenda::firstOrCreate(
-            ['berlaku_dari' => '2026-01-01'],
-            [
-                'tarif_persen' => 1.00,
-                'plafon_persen' => 30.00,
-                'masa_tenggang' => 7,
-            ]
-        );
+        // Sengaja TIDAK menyemai kebijakan kos maupun parameter denda.
+        //
+        // Sejak T17 tidak ada lagi `parameter_denda`: angka denda hanya datang
+        // dari kebijakan yang dipilih pemilik. Membuatkan kebijakan bawaan di
+        // sini akan menyembunyikan gerbang "kebijakan belum lengkap" — dan
+        // gerbang itulah yang mendemonstrasikan tesis proyek ini: sistem tidak
+        // menebak kebijakan kos.
 
         $this->command?->info("Pemilik  : {$pemilik->email} / password");
         $this->command?->info("Penghuni : {$akunPenghuni->email} / password");

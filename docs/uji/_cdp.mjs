@@ -164,9 +164,11 @@ export async function panggilApi(ws, jalur, metode = 'GET', isi = null, headerTa
  * Menyatakan kebijakan kos default bila belum ada (T16b).
  *
  * Sejak T16, `POST /tagihan` menolak terbit sebelum satuan sewa dan jatuh tempo
- * ditetapkan. Tujuh skrip E2E melakukan POST /kamar lalu POST /tagihan, jadi
- * semuanya akan gagal pada langkah yang tidak sedang diuji - dan kegagalan itu
- * benar: gerbangnya memang bekerja.
+ * ditetapkan; sejak T17 denda ikut wajib, karena `parameter_denda` sudah
+ * dihapus dan kebijakan adalah satu-satunya sumber angka denda. Tujuh skrip E2E
+ * melakukan POST /kamar lalu POST /tagihan, jadi semuanya akan gagal pada
+ * langkah yang tidak sedang diuji - dan kegagalan itu benar: gerbangnya memang
+ * bekerja.
  *
  * Idempoten dengan sengaja. Skrip E2E dijalankan berulang tanpa
  * `migrate:fresh` lebih dulu, dan `kebijakan_kos` bersifat append-only: POST
@@ -192,21 +194,36 @@ export async function pastikanKebijakan(ws) {
     return { ok: true, alasan: 'sudah lengkap' }
   }
 
-  // Hanya tipe yang benar-benar kurang yang dikirim. Mengirim keduanya selalu
+  // Hanya tipe yang benar-benar kurang yang dikirim. Mengirim semuanya selalu
   // akan gagal 422 pada tipe yang sudah ada, karena unique index menolak
   // tanggal yang sama.
+  //
+  // Sejak T17 daftarnya tiga tipe, dan `denda` membawa angka. Angkanya R-03
+  // (1% per hari, plafon 30%, tenggang 7) supaya skrip E2E yang memeriksa
+  // nominal denda tetap melihat angka yang sama seperti sebelum tiket ini.
+  // Kuncinya sengaja dikirim hanya untuk tipe yang memakainya: FormRequest
+  // melarang kolom angka pada tipe yang tidak membacanya.
   const kurang = awal.data?.meta?.kurang || []
-  const nilaiBawaan = { satuan_sewa: 'bulanan', jatuh_tempo: 'tanggal_masuk' }
+  const bawaan = {
+    satuan_sewa: { nilai: 'bulanan' },
+    jatuh_tempo: { nilai: 'tanggal_masuk' },
+    denda: {
+      nilai: 'persen_harian',
+      persen: 1,
+      plafon_persen: 30,
+      masa_tenggang: 7,
+    },
+  }
 
   for (const tipe of kurang) {
-    const nilai = nilaiBawaan[tipe]
-    if (!nilai) {
+    const isi = bawaan[tipe]
+    if (!isi) {
       return { ok: false, alasan: `tidak ada nilai bawaan untuk tipe ${tipe}` }
     }
 
     const kirim = await panggilApi(ws, '/kebijakan', 'POST', {
       tipe,
-      nilai,
+      ...isi,
       berlaku_dari: '2026-01-01',
     })
 

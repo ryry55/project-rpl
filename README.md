@@ -30,10 +30,11 @@ Tunggu sampai `db` berstatus sehat dan container `api` menulis `[entrypoint] sia
 
 Dari keadaan bersih (tanpa volume), migrasi dan seeder berjalan otomatis. Tidak ada langkah manual.
 
-**Data demo.** Seeder hanya membuat akun, satu penghuni, dan parameter denda awal (1%/hari, plafon
-30%, tenggang 7 hari). Kamar, kontrak, dan tagihan belum diisi otomatis — isi lewat menu **Kamar →
-Tambah kamar**, **Penghuni → Tambah penghuni**, **Kontrak → Buat kontrak**, lalu **Tagihan →
-Terbitkan tagihan**.
+**Data demo.** Seeder hanya membuat akun dan satu penghuni. Kamar, kontrak, tagihan, dan **kebijakan
+kos** belum diisi otomatis — dan itu disengaja: menu **Kebijakan** harus diisi pemilik lebih dulu
+(satuan sewa, jatuh tempo, dan denda), karena tanpanya penerbitan tagihan ditolak. Setelah itu isi
+lewat **Kamar → Tambah kamar**, **Penghuni → Tambah penghuni**, **Kontrak → Buat kontrak**, lalu
+**Tagihan → Terbitkan tagihan**.
 
 Untuk data contoh tanpa mengetik, jalankan skrip E2E yang melakukan persis alur itu:
 
@@ -60,6 +61,31 @@ Untuk kembali ke keadaan bersih:
 docker compose exec api php artisan migrate:fresh --seed
 ```
 
+## Menetapkan kebijakan kos (wajib sebelum menagih)
+
+Setiap kos berbeda: ada yang menagih bulanan, ada yang harian; ada yang mendenda 1%/hari, ada yang
+hanya menagih nominal tetap, ada yang tidak mendenda sama sekali. Karena itu semua aturan itu **bukan
+konstanta di kode**, melainkan data yang dipilih pemilik di menu **Kebijakan**.
+
+Tiga tipe wajib diisi sebelum tagihan pertama bisa terbit:
+
+| Tipe | Pilihan | Angka yang menyertainya |
+|---|---|---|
+| Satuan sewa | bulanan / mingguan / harian | — |
+| Jatuh tempo | tanggal masuk / tanggal tetap / akhir bulan | `tanggal` (untuk "tanggal tetap") |
+| Denda | persen per hari / persen per bulan / nominal tetap / tanpa denda | `persen` + `plafon_persen` + `masa_tenggang`, atau `nominal` |
+
+Menu **Deposit** opsional (tanpa deposit / nominal / satu bulan sewa); bila tidak diisi, deposit
+kontrak baru bernilai nol.
+
+Selama ketiganya belum lengkap, `POST /tagihan` dijawab **422** dengan menyebut tipe mana yang
+kurang — bukan menerbitkan tagihan dengan angka tebakan. Layar Kebijakan menandai kartu yang masih
+menghalangi penagihan.
+
+Kebijakan bersifat **append-only**: mengubahnya berarti menambah baris baru dengan tanggal berlaku
+baru. Tagihan yang sudah terbit tetap memakai salinan yang dibekukan saat terbit, jadi menaikkan
+denda hari ini tidak mengubah tagihan bulan lalu.
+
 ## Mendemokan denda tanpa menunggu 37 hari
 
 Denda bergantung pada "hari ini", jadi menunggu plafon 30% berarti menunggu lebih dari sebulan.
@@ -78,7 +104,8 @@ Header ini **hanya berlaku bila `APP_DEMO_MODE=true`** (default di `docker-compo
 Di mode normal header diabaikan sepenuhnya, dan respons mengumumkannya lewat
 `X-Simulasi-Dipakai: false` serta `meta.simulasi` di badan respons.
 
-Urutan yang cocok untuk sidang, untuk tagihan pokok Rp 1.500.000 yang jatuh tempo 15 Okt:
+Urutan yang cocok untuk sidang, untuk tagihan pokok Rp 1.500.000 yang jatuh tempo 15 Okt dengan
+kebijakan denda **persen per hari 1%, plafon 30%, tenggang 7 hari**:
 
 | Tanggal simulasi | Hari terlambat | Denda |
 |---|---|---|
@@ -127,7 +154,7 @@ Hasilnya memisahkan tiga nasib, karena artinya berbeda bagi pemilik:
 |---|---|---|
 | **Terbit** | Tagihan baru dibuat | Tidak |
 | **Dilewati** | Sudah punya tagihan periode ini, atau kontraknya belum mulai | Tidak |
-| **Gagal** | Kamar belum punya tarif, atau parameter denda belum ditetapkan | Ya |
+| **Gagal** | Kamar belum punya tarif, atau kebijakan kos (satuan sewa / jatuh tempo / denda) belum lengkap | Ya |
 
 Menekan tombol dua kali untuk periode yang sama menghasilkan **HTTP 409**, bukan tagihan kedua.
 Aturan ini ditegakkan unique index `(kontrak_id, periode)` di basis data, bukan hanya pengecekan di

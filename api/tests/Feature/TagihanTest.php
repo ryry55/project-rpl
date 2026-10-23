@@ -2,10 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Kebijakan\PilihanKebijakan;
 use App\Models\Kamar;
+use App\Models\KebijakanKos;
 use App\Models\KomponenBiaya;
 use App\Models\Kontrak;
-use App\Models\ParameterDenda;
 use App\Models\Penghuni;
 use App\Models\Tagihan;
 use App\Models\TarifSewa;
@@ -65,15 +66,6 @@ class TagihanTest extends TestCase
             'nilai' => $tarif,
             'berlaku_dari' => '2026-01-01',
         ]);
-
-        if (ParameterDenda::count() === 0) {
-            ParameterDenda::create([
-                'tarif_persen' => 1.00,
-                'plafon_persen' => 30.00,
-                'masa_tenggang' => 7,
-                'berlaku_dari' => '2026-01-01',
-            ]);
-        }
 
         foreach ($komponen as $nama => $nilai) {
             KomponenBiaya::create([
@@ -337,8 +329,8 @@ class TagihanTest extends TestCase
         $this->assertSame('2026-01-01', $snapshot['tarif_sewa']['berlaku_dari']);
         $this->assertSame('Kebersihan', $snapshot['komponen_biaya'][0]['nama']);
         $this->assertSame(50_000, $snapshot['komponen_biaya'][0]['nilai']);
-        $this->assertSame('1.00', $snapshot['parameter_denda']['tarif_persen']);
-        $this->assertSame(30.00, (float) $snapshot['parameter_denda']['plafon_persen']);
+        $this->assertSame('1.00', $respons->json('data.kebijakan_terpakai.denda.persen'));
+        $this->assertSame(30.0, (float) $respons->json('data.kebijakan_terpakai.denda.plafon_persen'));
         $this->assertTrue($snapshot['prorata']);
     }
 
@@ -389,29 +381,92 @@ class TagihanTest extends TestCase
             ->assertJsonPath('data.tarif_terpakai.tarif_sewa.berlaku_dari', '2026-11-01');
     }
 
-    public function test_parameter_denda_dibekukan_di_tagihan(): void
+    public function test_kebijakan_denda_dibekukan_di_tagihan(): void
     {
         $kontrak = $this->siapkanKontrak('2026-10-01');
 
         $tagihan = $this->sebagaiPemilik()
             ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-10-01'])
             ->assertCreated()
-            ->assertJsonPath('data.tarif_terpakai.parameter_denda.masa_tenggang', 7)
+            ->assertJsonPath('data.kebijakan_terpakai.denda.tipe', PilihanKebijakan::DENDA_PERSEN_HARIAN)
+            ->assertJsonPath('data.kebijakan_terpakai.denda.masa_tenggang', 7)
             ->json('data.id');
 
-        // Parameter diubah untuk periode berikutnya.
-        ParameterDenda::create([
-            'tarif_persen' => 2.00,
-            'plafon_persen' => 25.00,
+        // Kebijakan diubah untuk periode berikutnya.
+        KebijakanKos::create([
+            'tipe' => PilihanKebijakan::TIPE_DENDA,
+            'nilai' => PilihanKebijakan::DENDA_PERSEN_HARIAN,
+            'persen' => '2.00',
+            'plafon_persen' => '25.00',
             'masa_tenggang' => 5,
             'berlaku_dari' => '2026-11-01',
         ]);
 
-        // Tagihan lama tetap memakai parameter lama.
+        // Tagihan lama tetap memakai bentuk denda lama.
         $this->sebagaiPemilik()
             ->getJson("/api/tagihan/{$tagihan}")
             ->assertOk()
-            ->assertJsonPath('data.tarif_terpakai.parameter_denda.masa_tenggang', 7);
+            ->assertJsonPath('data.kebijakan_terpakai.denda.masa_tenggang', 7)
+            ->assertJsonPath('data.kebijakan_terpakai.denda.persen', '1.00');
+    }
+
+    // --- Bentuk denda dan pengaruhnya pada tagihan -------------------------
+
+    public function test_denda_nominal_tetap_dibekukan_dan_dipakai(): void
+    {
+        $kontrak = $this->siapkanKontrak('2026-10-01');
+
+        // Kebijakan denda default dari siapkanKontrak() harus diganti: satu
+        // periode hanya boleh punya satu baris denda yang cocok. Karena itu
+        // kebijakan baru berlaku mulai November, dan tagihan Oktober tetap
+        // R-03 — yang diuji di sini adalah tagihan November.
+        KebijakanKos::create([
+            'tipe' => PilihanKebijakan::TIPE_DENDA,
+            'nilai' => PilihanKebijakan::DENDA_NOMINAL_TETAP,
+            'nominal' => 100_000,
+            'berlaku_dari' => '2026-11-01',
+        ]);
+
+        $tagihan = $this->sebagaiPemilik()
+            ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-11-01'])
+            ->assertCreated()
+            ->assertJsonPath('data.kebijakan_terpakai.denda.tipe', PilihanKebijakan::DENDA_NOMINAL_TETAP)
+            ->assertJsonPath('data.kebijakan_terpakai.denda.nominal', 100_000)
+            ->json('data.id');
+
+        // Jatuh tempo 2026-11-01, simulasi 2026-11-20 -> 19 hari terlambat.
+        // Denda nominal dihitung per bulan keterlambatan: 1 bulan -> 100.000.
+        $this->sebagaiPemilik()
+            ->getJson("/api/tagihan/{$tagihan}", ['X-Simulasi-Tanggal' => '2026-11-20'])
+            ->assertOk()
+            ->assertJsonPath('data.denda', 100_000)
+            ->assertJsonPath('data.denda_ringkas.tipe', PilihanKebijakan::DENDA_NOMINAL_TETAP)
+            ->assertJsonPath('data.denda_ringkas.berjalan', false)
+            ->assertJsonPath('data.denda_ringkas.plafon', null);
+    }
+
+    public function test_tanpa_denda_menghasilkan_nol_bukan_galat(): void
+    {
+        $kontrak = $this->siapkanKontrak('2026-10-01');
+
+        KebijakanKos::create([
+            'tipe' => PilihanKebijakan::TIPE_DENDA,
+            'nilai' => PilihanKebijakan::DENDA_TANPA_DENDA,
+            'berlaku_dari' => '2026-11-01',
+        ]);
+
+        $tagihan = $this->sebagaiPemilik()
+            ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-11-01'])
+            ->assertCreated()
+            ->assertJsonPath('data.kebijakan_terpakai.denda.tipe', PilihanKebijakan::DENDA_TANPA_DENDA)
+            ->json('data.id');
+
+        $this->sebagaiPemilik()
+            ->getJson("/api/tagihan/{$tagihan}", ['X-Simulasi-Tanggal' => '2027-06-01'])
+            ->assertOk()
+            ->assertJsonPath('data.denda', 0)
+            ->assertJsonPath('data.status', Tagihan::STATUS_BELUM_BAYAR)
+            ->assertJsonPath('data.denda_ringkas.berjalan', false);
     }
 
     // --- Penolakan ---------------------------------------------------------
@@ -443,10 +498,6 @@ class TagihanTest extends TestCase
     {
         $kamar = Kamar::create(['nomor' => 'B9', 'status_huni' => 'terisi']);
         $penghuni = Penghuni::create(['nama' => 'Ani', 'email' => 'ani@kos.test']);
-        ParameterDenda::create([
-            'tarif_persen' => 1.00, 'plafon_persen' => 30.00,
-            'masa_tenggang' => 7, 'berlaku_dari' => '2026-01-01',
-        ]);
         $kontrak = Kontrak::create([
             'kamar_id' => $kamar->id, 'penghuni_id' => $penghuni->id,
             'tgl_masuk' => '2026-10-01', 'tarif_awal' => 0, 'deposit' => 0,
@@ -456,22 +507,6 @@ class TagihanTest extends TestCase
             ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-10-01'])
             ->assertStatus(422)
             ->assertJsonPath('message', 'Kamar B9 belum punya tarif yang berlaku untuk periode 2026-10-01.');
-    }
-
-    public function test_tanpa_parameter_denda_ditolak_dengan_pesan_jelas(): void
-    {
-        $kamar = Kamar::create(['nomor' => 'C1', 'status_huni' => 'terisi']);
-        $penghuni = Penghuni::create(['nama' => 'Ani', 'email' => 'ani@kos.test']);
-        TarifSewa::create(['kamar_id' => $kamar->id, 'nilai' => 1_500_000, 'berlaku_dari' => '2026-01-01']);
-        $kontrak = Kontrak::create([
-            'kamar_id' => $kamar->id, 'penghuni_id' => $penghuni->id,
-            'tgl_masuk' => '2026-10-01', 'tarif_awal' => 1_500_000, 'deposit' => 0,
-        ]);
-
-        $this->sebagaiPemilik()
-            ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-10-01'])
-            ->assertStatus(422)
-            ->assertJsonPath('message', 'Belum ada parameter denda yang berlaku untuk periode 2026-10-01. Tetapkan dulu di menu parameter denda.');
     }
 
     // --- Akses -------------------------------------------------------------

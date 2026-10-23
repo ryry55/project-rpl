@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Billing\PenghitungDenda;
+use App\Domain\Kebijakan\PilihanKebijakan;
 use App\Models\Kamar;
+use App\Models\KebijakanKos;
 use App\Models\Kontrak;
-use App\Models\ParameterDenda;
 use App\Models\Penghuni;
 use App\Models\Tagihan;
 use App\Models\User;
@@ -46,12 +48,18 @@ class DendaHttpTest extends TestCase
 
     /**
      * Tagihan siap uji dengan jatuh tempo tetap 2026-10-15.
+     *
+     * Sejak T17 bentuk denda dibekukan di `kebijakan_terpakai`, bukan di tiga
+     * kolom terpisah. Helper ini menulis dokumen beku itu langsung, yang
+     * memang persis yang dilakukan `PenerbitTagihan` saat menerbitkan — jadi
+     * tes di berkas ini tetap menguji pembacaan arsip, bukan pembentukan
+     * kebijakan.
      */
     private function buatTagihan(
         int $pokok = 1_500_000,
         string $jatuhTempo = '2026-10-15',
         string $status = Tagihan::STATUS_BELUM_BAYAR,
-        array $parameter = [],
+        array $denda = [],
     ): Tagihan {
         $kamar = Kamar::create(['nomor' => 'A1', 'status_huni' => 'terisi']);
         $penghuni = Penghuni::create(['nama' => 'Budi Santoso', 'email' => 'budi@kos.test']);
@@ -71,9 +79,15 @@ class DendaHttpTest extends TestCase
             'jatuh_tempo' => $jatuhTempo,
             'status' => $status,
             'tarif_terpakai' => ['prorata' => true],
-            'tarif_denda_persen' => $parameter['tarif_persen'] ?? '1.00',
-            'plafon_persen' => $parameter['plafon_persen'] ?? '30.00',
-            'masa_tenggang' => $parameter['masa_tenggang'] ?? 7,
+            'kebijakan_terpakai' => [
+                'denda' => array_merge([
+                    'tipe' => PilihanKebijakan::DENDA_PERSEN_HARIAN,
+                    'persen' => '1.00',
+                    'plafon_persen' => '30.00',
+                    'masa_tenggang' => 7,
+                    'nominal' => 0,
+                ], $denda),
+            ],
             'terbit_pada' => now(),
         ]);
     }
@@ -199,16 +213,19 @@ class DendaHttpTest extends TestCase
             ->assertJsonPath('data.berhenti', true);
     }
 
-    // --- R-06 lapis 2: parameter dibekukan --------------------------------
+    // --- R-06 lapis 2: bentuk denda dibekukan ------------------------------
 
-    public function test_mengubah_parameter_denda_tidak_mengubah_tagihan_lama(): void
+    public function test_mengubah_kebijakan_denda_tidak_mengubah_tagihan_lama(): void
     {
         $tagihan = $this->buatTagihan();
 
-        // Parameter baru: 5%/hari, plafon 50%, tenggang 0.
-        ParameterDenda::create([
-            'tarif_persen' => 5.00,
-            'plafon_persen' => 50.00,
+        // Kebijakan baru: 5%/hari, plafon 50%, tenggang 0. Ini yang dulu
+        // ditulis ke `parameter_denda`; sekarang ke `kebijakan_kos`.
+        KebijakanKos::create([
+            'tipe' => PilihanKebijakan::TIPE_DENDA,
+            'nilai' => PilihanKebijakan::DENDA_PERSEN_HARIAN,
+            'persen' => '5.00',
+            'plafon_persen' => '50.00',
             'masa_tenggang' => 0,
             'berlaku_dari' => '2026-11-01',
         ]);
@@ -244,9 +261,15 @@ class DendaHttpTest extends TestCase
             'jatuh_tempo' => '2026-10-15',
             'status' => Tagihan::STATUS_BELUM_BAYAR,
             'tarif_terpakai' => ['prorata' => false],
-            'tarif_denda_persen' => '2.00',
-            'plafon_persen' => '10.00',
-            'masa_tenggang' => 0,
+            'kebijakan_terpakai' => [
+                'denda' => [
+                    'tipe' => PilihanKebijakan::DENDA_PERSEN_HARIAN,
+                    'persen' => '2.00',
+                    'plafon_persen' => '10.00',
+                    'masa_tenggang' => 0,
+                    'nominal' => 0,
+                ],
+            ],
             'terbit_pada' => now(),
         ]);
 
@@ -414,6 +437,145 @@ class DendaHttpTest extends TestCase
             ->assertJsonPath('data.denda', 15_000)
             ->assertJsonPath('data.denda_ringkas.masa_tenggang', 7)
             ->assertJsonPath('data.denda_ringkas.sisa_hari_ke_plafon', 29);
+    }
+
+    // --- Bentuk denda lain lewat HTTP (T17) --------------------------------
+
+    public function test_denda_nominal_tetap_lewat_http(): void
+    {
+        // Denda nominal tidak berjalan per hari: hari ke-1 dan hari ke-30 sama
+        // besarnya. `berjalan` mengirim kesimpulan itu sekali supaya layar
+        // tidak perlu menyalin daftar bentuk mana yang bertambah tiap hari.
+        $tagihan = $this->buatTagihan(denda: [
+            'tipe' => PilihanKebijakan::DENDA_NOMINAL_TETAP,
+            'nominal' => 100_000,
+            'persen' => '0.00',
+            'plafon_persen' => '0.00',
+            'masa_tenggang' => 0,
+        ]);
+
+        $this->sebagaiPemilik()
+            ->getJson("/api/tagihan/{$tagihan->id}/denda", ['X-Simulasi-Tanggal' => '2026-10-16'])
+            ->assertOk()
+            ->assertJsonPath('data.denda', 100_000)
+            ->assertJsonPath('data.tipe', PilihanKebijakan::DENDA_NOMINAL_TETAP)
+            ->assertJsonPath('data.bentuk', 'nominal')
+            ->assertJsonPath('data.berjalan', false)
+            // null, bukan 0: bentuk ini memang tidak berplafon, dan 0 akan
+            // terbaca sebagai "plafonnya nol".
+            ->assertJsonPath('data.plafon', null);
+    }
+
+    public function test_denda_nominal_tetap_bertambah_per_bulan_terlambat(): void
+    {
+        $tagihan = $this->buatTagihan(denda: [
+            'tipe' => PilihanKebijakan::DENDA_NOMINAL_TETAP,
+            'nominal' => 100_000,
+            'persen' => '0.00',
+            'plafon_persen' => '0.00',
+            'masa_tenggang' => 0,
+        ]);
+
+        // Jatuh tempo 2026-10-15. Hari ke-30 (14 Nov) masih satu bulan.
+        $this->sebagaiPemilik()
+            ->getJson("/api/tagihan/{$tagihan->id}/denda", ['X-Simulasi-Tanggal' => '2026-11-14'])
+            ->assertOk()
+            ->assertJsonPath('data.denda', 100_000);
+
+        // Hari ke-31 (15 Nov) sudah dua bulan.
+        $this->sebagaiPemilik()
+            ->getJson("/api/tagihan/{$tagihan->id}/denda", ['X-Simulasi-Tanggal' => '2026-11-15'])
+            ->assertOk()
+            ->assertJsonPath('data.denda', 200_000);
+    }
+
+    public function test_denda_tanpa_denda_lewat_http_tetap_nol(): void
+    {
+        $tagihan = $this->buatTagihan(denda: [
+            'tipe' => PilihanKebijakan::DENDA_TANPA_DENDA,
+            'persen' => '0.00',
+            'plafon_persen' => '0.00',
+            'masa_tenggang' => 0,
+            'nominal' => 0,
+        ]);
+
+        // Setahun kemudian tetap nol: bentuk ini bukan "denda nol yang bisa
+        // naik", melainkan "tidak ada denda sama sekali".
+        $this->sebagaiPemilik()
+            ->getJson("/api/tagihan/{$tagihan->id}/denda", ['X-Simulasi-Tanggal' => '2027-10-15'])
+            ->assertOk()
+            ->assertJsonPath('data.denda', 0)
+            ->assertJsonPath('data.tipe', PilihanKebijakan::DENDA_TANPA_DENDA)
+            // `bentuk` inilah yang membedakan "tanpa denda" dari "nominal
+            // tetap": keduanya sama-sama `berjalan: false`, dan layar yang
+            // hanya membaca `berjalan` akan menulis "nominal tetap per bulan"
+            // untuk kos yang justru tidak menerapkan denda.
+            ->assertJsonPath('data.bentuk', 'tanpa')
+            ->assertJsonPath('data.berjalan', false);
+    }
+
+    public function test_denda_persen_bulanan_lewat_http(): void
+    {
+        // 2% per bulan dari pokok 1.500.000 = 30.000 per bulan, tenggang 7.
+        $tagihan = $this->buatTagihan(denda: [
+            'tipe' => PilihanKebijakan::DENDA_PERSEN_BULANAN,
+            'persen' => '2.00',
+            'plafon_persen' => '30.00',
+            'masa_tenggang' => 7,
+            'nominal' => 0,
+        ]);
+
+        // Hari ke-8 = hari denda pertama = 1 bulan.
+        $this->sebagaiPemilik()
+            ->getJson("/api/tagihan/{$tagihan->id}/denda", ['X-Simulasi-Tanggal' => '2026-10-23'])
+            ->assertOk()
+            ->assertJsonPath('data.denda', 30_000)
+            ->assertJsonPath('data.tipe', PilihanKebijakan::DENDA_PERSEN_BULANAN)
+            ->assertJsonPath('data.bentuk', 'persen')
+            ->assertJsonPath('data.berjalan', true)
+            // Plafon 30% dari 1.500.000.
+            ->assertJsonPath('data.plafon', 450_000);
+    }
+
+    public function test_bentuk_tak_dikenal_di_arsip_menghasilkan_galat_bukan_nol(): void
+    {
+        // `tagihan.kebijakan_terpakai` adalah arsip: isinya bisa berasal dari
+        // versi kode sebelumnya, dan bisa memuat bentuk yang sudah tidak ada.
+        // Membacanya sebagai nol akan menampilkan "tidak ada denda" untuk
+        // tagihan yang jelas punya denda — jadi pembacanya harus menolak.
+        //
+        // Yang diperiksa di sini adalah pembacanya langsung, bukan respons
+        // HTTP: lewat HTTP galat ini menjadi 500, dan 500 tidak membedakan
+        // "arsip rusak" dari kegagalan lain. Memanggil `PenghitungDenda`
+        // membuat sebabnya terbaca.
+        $tagihan = $this->buatTagihan(denda: [
+            'tipe' => 'bunga_berbunga',
+        ]);
+
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionMessage('bunga_berbunga');
+
+        app(PenghitungDenda::class)->bentukDenda($tagihan);
+    }
+
+    public function test_tagihan_lama_tanpa_dokumen_memakai_kolom_lama(): void
+    {
+        // Tagihan yang terbit sebelum T17 tidak punya `kebijakan_terpakai`,
+        // tetapi punya tiga kolom lama yang dulu NOT NULL. Kolom itu tetap
+        // dibaca supaya riwayat tidak kehilangan dendanya.
+        $tagihan = $this->buatTagihan();
+        $tagihan->forceFill([
+            'kebijakan_terpakai' => null,
+            'tarif_denda_persen' => '1.00',
+            'plafon_persen' => '30.00',
+            'masa_tenggang' => 7,
+        ])->save();
+
+        $this->sebagaiPemilik()
+            ->getJson("/api/tagihan/{$tagihan->id}/denda", ['X-Simulasi-Tanggal' => '2026-10-23'])
+            ->assertOk()
+            ->assertJsonPath('data.denda', 15_000)
+            ->assertJsonPath('data.masa_tenggang', 7);
     }
 
     // --- Akses -------------------------------------------------------------

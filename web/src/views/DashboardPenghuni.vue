@@ -218,22 +218,43 @@ onMounted(muat)
                           <span>Terlambat</span>
                           <strong>{{ t.denda_ringkas?.hari_terlambat || 0 }} hari</strong>
                         </li>
-                        <li>
-                          <span>Masa tenggang</span>
-                          <strong>{{ t.denda_ringkas?.masa_tenggang || 0 }} hari</strong>
+                        <!-- Baris tenggang, hari kena denda, dan plafon hanya
+                             bermakna untuk denda persen. Menampilkannya untuk
+                             denda nominal tetap akan menulis "Masa tenggang 0
+                             hari" dan "Plafon Rp 0", yang terbaca sebagai
+                             kebijakan kos, padahal itu hanya kolom yang tidak
+                             dipakai bentuk denda ini. Cabangnya memakai
+                             `bentuk` dari server, bukan `berjalan`: yang
+                             terakhir bernilai sama untuk "nominal tetap" dan
+                             "tanpa denda", sehingga penghuni yang kosnya tidak
+                             menerapkan denda akan membaca "Nominal tetap per
+                             bulan" — padahal tidak ada denda sama sekali. -->
+                        <template v-if="t.denda_ringkas?.bentuk === 'persen'">
+                          <li>
+                            <span>Masa tenggang</span>
+                            <strong>{{ t.denda_ringkas.masa_tenggang || 0 }} hari</strong>
+                          </li>
+                          <li>
+                            <span>Hari kena denda</span>
+                            <strong>{{ t.denda_ringkas.hari_denda || 0 }} hari</strong>
+                          </li>
+                          <li>
+                            <span>Plafon</span>
+                            <strong>{{ rupiah(t.denda_ringkas.plafon) }}</strong>
+                          </li>
+                        </template>
+                        <li v-else-if="t.denda_ringkas?.bentuk === 'nominal'">
+                          <span>Bentuk denda</span>
+                          <strong>Nominal tetap per bulan</strong>
                         </li>
-                        <li>
-                          <span>Hari kena denda</span>
-                          <strong>{{ t.denda_ringkas?.hari_denda || 0 }} hari</strong>
-                        </li>
-                        <li>
-                          <span>Plafon</span>
-                          <strong>{{ rupiah(t.denda_ringkas?.plafon || 0) }}</strong>
+                        <li v-else>
+                          <span>Bentuk denda</span>
+                          <strong>Tidak ada denda</strong>
                         </li>
                       </ul>
                       <p v-if="t.denda_ringkas?.berhenti" class="pesan-netral mungil">
                         {{ t.denda_ringkas.alasan_berhenti }}
-                        <template v-if="t.denda_ringkas.sisa_hari_ke_plafon > 0">
+                        <template v-if="t.denda_ringkas.bentuk === 'persen' && t.denda_ringkas.sisa_hari_ke_plafon > 0">
                           · {{ t.denda_ringkas.sisa_hari_ke_plafon }} hari lagi mencapai plafon.
                         </template>
                       </p>

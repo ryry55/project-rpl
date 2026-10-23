@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Kebijakan\PilihanKebijakan;
 use App\Models\Kamar;
 use App\Models\Kontrak;
 use App\Models\Penghuni;
@@ -77,9 +78,17 @@ class TunggakanHttpTest extends TestCase
             'jatuh_tempo' => $jatuhTempo,
             'status' => $status,
             'tarif_terpakai' => ['prorata' => false],
-            'tarif_denda_persen' => '1.00',
-            'plafon_persen' => '30.00',
-            'masa_tenggang' => 7,
+            // Bentuk denda R-03 dibekukan langsung, seperti yang ditulis
+            // PenerbitTagihan saat terbit. Tunggakan hanya membaca arsip ini.
+            'kebijakan_terpakai' => [
+                'denda' => [
+                    'tipe' => PilihanKebijakan::DENDA_PERSEN_HARIAN,
+                    'persen' => '1.00',
+                    'plafon_persen' => '30.00',
+                    'masa_tenggang' => 7,
+                    'nominal' => 0,
+                ],
+            ],
             'terbit_pada' => now(),
         ]);
     }

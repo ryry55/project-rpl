@@ -6,7 +6,6 @@ use App\Domain\Audit\PencatatAudit;
 use App\Models\Kamar;
 use App\Models\Kontrak;
 use App\Models\LogAudit;
-use App\Models\ParameterDenda;
 use App\Models\Pembayaran;
 use App\Models\Penghuni;
 use App\Models\Tagihan;
@@ -16,6 +15,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Tests\Concerns\MenyiapkanKebijakan;
 use Tests\TestCase;
 
 /**
@@ -31,6 +31,7 @@ use Tests\TestCase;
  */
 class PembayaranTest extends TestCase
 {
+    use MenyiapkanKebijakan;
     use RefreshDatabase;
 
     private User $pemilik;
@@ -46,12 +47,9 @@ class PembayaranTest extends TestCase
             'peran' => User::PERAN_PEMILIK,
         ]);
 
-        ParameterDenda::create([
-            'tarif_persen' => 1.00,
-            'plafon_persen' => 30.00,
-            'masa_tenggang' => 7,
-            'berlaku_dari' => '2026-01-01',
-        ]);
+        // Denda sejak T17 berasal dari kebijakan, bukan tabel parameter.
+        // Bawaannya R-03 supaya angka di tes ini tetap sama seperti sebelumnya.
+        $this->siapkanKebijakanDenda();
     }
 
     private function sebagaiPemilik()
@@ -92,9 +90,15 @@ class PembayaranTest extends TestCase
             'jatuh_tempo' => '2026-11-15',
             'status' => $status,
             'tarif_terpakai' => ['prorata' => false],
-            'tarif_denda_persen' => '1.00',
-            'plafon_persen' => '30.00',
-            'masa_tenggang' => 7,
+            'kebijakan_terpakai' => [
+                'denda' => [
+                    'tipe' => 'persen_harian',
+                    'persen' => '1.00',
+                    'plafon_persen' => '30.00',
+                    'masa_tenggang' => 7,
+                    'nominal' => 0,
+                ],
+            ],
             'terbit_pada' => now(),
         ]);
     }

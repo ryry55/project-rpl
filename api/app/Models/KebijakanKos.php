@@ -30,6 +30,10 @@ class KebijakanKos extends Model
 
     public const TIPE_JATUH_TEMPO = PilihanKebijakan::TIPE_JATUH_TEMPO;
 
+    public const TIPE_DENDA = PilihanKebijakan::TIPE_DENDA;
+
+    public const TIPE_DEPOSIT = PilihanKebijakan::TIPE_DEPOSIT;
+
     public const SATUAN_BULANAN = PilihanKebijakan::SATUAN_BULANAN;
 
     public const SATUAN_MINGGUAN = PilihanKebijakan::SATUAN_MINGGUAN;

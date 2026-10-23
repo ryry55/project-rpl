@@ -190,12 +190,22 @@ jalankan(async () => {
         return 'kebijakan: ' + JSON.stringify(kebijakan.data)
       }
       if (!kebijakan.data?.meta?.lengkap) {
-        const nilaiBawaan = { satuan_sewa: 'bulanan', jatuh_tempo: 'tanggal_masuk' }
+        // Tiga tipe sejak T17; denda membawa angkanya sendiri (R-03).
+        const bawaan = {
+          satuan_sewa: { nilai: 'bulanan' },
+          jatuh_tempo: { nilai: 'tanggal_masuk' },
+          denda: {
+            nilai: 'persen_harian',
+            persen: 1,
+            plafon_persen: 30,
+            masa_tenggang: 7,
+          },
+        }
         for (const tipe of kebijakan.data?.meta?.kurang || []) {
-          const nilai = nilaiBawaan[tipe]
-          if (!nilai) return 'kebijakan: tidak ada nilai bawaan untuk ' + tipe
+          const isi = bawaan[tipe]
+          if (!isi) return 'kebijakan: tidak ada nilai bawaan untuk ' + tipe
           const tulis = await p('/kebijakan', 'POST', {
-            tipe, nilai, berlaku_dari: '2026-01-01',
+            tipe, ...isi, berlaku_dari: '2026-01-01',
           })
           if (tulis.status !== 201 && tulis.status !== 422) {
             return 'kebijakan ' + tipe + ': ' + JSON.stringify(tulis.data)

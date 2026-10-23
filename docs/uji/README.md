@@ -30,8 +30,12 @@ dulu:
 2. **Chrome hidup** dengan `--remote-debugging-port=9222` (semua `e2e-*` dan
    `asap-*`). Uji balapan tidak butuh Chrome.
 3. **Database baru di-seed**: `docker compose exec api php artisan migrate:fresh --seed`.
-   Seeder hanya membuat user, satu penghuni, dan satu parameter denda — **nol
-   kamar, nol kontrak**. Skrip yang butuh kontrak membuatnya sendiri lewat API.
+   Seeder hanya membuat user dan satu penghuni — **nol kamar, nol kontrak, dan
+   sengaja nol kebijakan**. Kebijakan kos dibiarkan kosong supaya gerbang
+   "wajib diisi dulu" benar-benar terlihat saat demo: tagihan pertama ditolak
+   sampai pemilik menetapkan satuan sewa, jatuh tempo, dan denda. Skrip yang
+   butuh kontrak membuatnya sendiri lewat API, lalu memenuhi ketiga tipe itu
+   lewat `pastikanKebijakan()` di `_cdp.mjs`.
 
 ## Indeks
 

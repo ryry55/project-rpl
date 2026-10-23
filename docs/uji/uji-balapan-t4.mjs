@@ -70,16 +70,26 @@ async function pastikanKebijakan(token) {
   if (awal.status !== 200) throw new Error(`GET /kebijakan: ${awal.status}`)
   if (awal.isi?.meta?.lengkap) return 'sudah lengkap'
 
-  const nilaiBawaan = { satuan_sewa: 'bulanan', jatuh_tempo: 'tanggal_masuk' }
+  // Tiga tipe sejak T17; denda membawa angkanya sendiri (R-03).
+  const bawaan = {
+    satuan_sewa: { nilai: 'bulanan' },
+    jatuh_tempo: { nilai: 'tanggal_masuk' },
+    denda: {
+      nilai: 'persen_harian',
+      persen: 1,
+      plafon_persen: 30,
+      masa_tenggang: 7,
+    },
+  }
   const diisi = []
 
   for (const tipe of awal.isi?.meta?.kurang || []) {
-    const nilai = nilaiBawaan[tipe]
-    if (!nilai) throw new Error(`tidak ada nilai bawaan untuk tipe ${tipe}`)
+    const isi = bawaan[tipe]
+    if (!isi) throw new Error(`tidak ada nilai bawaan untuk tipe ${tipe}`)
 
     const kirim = await panggil(token, '/kebijakan', 'POST', {
       tipe,
-      nilai,
+      ...isi,
       berlaku_dari: '2026-01-01',
     })
 

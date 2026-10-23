@@ -59,7 +59,20 @@ class TagihanResource extends JsonResource
 
             // Ringkasan denda ikut dikirim supaya layar tidak perlu memanggil
             // endpoint /denda hanya untuk menampilkan "terlambat 12 hari".
+            //
+            // Sejak T17 bentuknya bergantung tipe: `plafon` dan
+            // `sisa_hari_ke_plafon` bernilai null untuk denda nominal dan
+            // "tanpa denda", karena keduanya tidak punya batas atas yang bisa
+            // didekati. `berjalan` mengirim kesimpulan itu sekali, supaya layar
+            // tidak perlu menyalin daftar tipe mana yang bertambah tiap hari.
             'denda_ringkas' => [
+                'tipe' => $hasilDenda->tipe,
+                // `bentuk` membedakan tiga kalimat di layar. `berjalan` saja
+                // tidak cukup: nilainya sama untuk "nominal tetap" dan "tanpa
+                // denda", sehingga penghuni yang kosnya tidak menerapkan denda
+                // akan membaca "Nominal tetap per bulan".
+                'bentuk' => $hasilDenda->bentuk(),
+                'berjalan' => $hasilDenda->berjalan(),
                 'hari_terlambat' => $hasilDenda->hariTerlambat,
                 'masa_tenggang' => $hasilDenda->masaTenggang,
                 'hari_denda' => $hasilDenda->hariDenda,
@@ -101,6 +114,11 @@ class TagihanResource extends JsonResource
             // Snapshot beku (R-06 lapis 2). Dikirim apa adanya supaya bisa
             // diperiksa: tarif mana yang dipakai saat tagihan ini terbit.
             'tarif_terpakai' => $this->tarif_terpakai,
+
+            // Bentuk denda yang dibekukan saat terbit. Tanpa ini, layar tidak
+            // bisa menjelaskan mengapa denda tagihan ini persen sementara
+            // tagihan bulan berikutnya nominal.
+            'kebijakan_terpakai' => $this->kebijakan_terpakai,
         ];
     }
 }

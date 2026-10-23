@@ -7,7 +7,6 @@ use App\Domain\Kebijakan\PilihanKebijakan;
 use App\Models\Kamar;
 use App\Models\KebijakanKos;
 use App\Models\Kontrak;
-use App\Models\ParameterDenda;
 use App\Models\Penghuni;
 use App\Models\Tagihan;
 use App\Models\TarifSewa;
@@ -17,6 +16,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Tests\Concerns\MenyiapkanKebijakan;
 use Tests\TestCase;
 
 /**
@@ -38,6 +38,7 @@ use Tests\TestCase;
  */
 class KebijakanKosTest extends TestCase
 {
+    use MenyiapkanKebijakan;
     use RefreshDatabase;
 
     private User $pemilik;
@@ -53,12 +54,11 @@ class KebijakanKosTest extends TestCase
             'peran' => User::PERAN_PEMILIK,
         ]);
 
-        ParameterDenda::create([
-            'tarif_persen' => 1.00,
-            'plafon_persen' => 30.00,
-            'masa_tenggang' => 7,
-            'berlaku_dari' => '2026-01-01',
-        ]);
+        // Denda sengaja TIDAK disiapkan di sini: berkas ini menguji gerbang dan
+        // kelengkapan, jadi ia harus bisa menyatakan "denda belum diisi" tanpa
+        // harus menghapus baris — dan tabelnya append-only, sehingga menghapus
+        // memang tidak mungkin. Tes yang butuh lengkap memakai
+        // kebijakanLengkap().
     }
 
     private function sebagaiPemilik()
@@ -86,6 +86,28 @@ class KebijakanKosTest extends TestCase
         ]);
 
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_MASUK, [
+            'berlaku_dari' => $berlakuDari,
+            'kamar_id' => $kamarId,
+        ]);
+
+        $this->dendaBawaan($berlakuDari, $kamarId);
+    }
+
+    /**
+     * Denda R-03 saja, tanpa satuan sewa dan jatuh tempo.
+     *
+     * Tes yang menguji satuan sewa atau tanggal jatuh tempo tidak sedang
+     * menguji denda, tetapi sejak T17 tetap harus memenuhinya: `parameter_denda`
+     * sudah dihapus, jadi ketiga tipe wajib terisi sebelum tagihan boleh
+     * terbit. Memakai R-03 di sini menjaga angka denda yang dipakai tes-tes itu
+     * tetap sama seperti sebelum tiket ini.
+     */
+    private function dendaBawaan(string $berlakuDari = '2026-01-01', ?int $kamarId = null): void
+    {
+        $this->kebijakan(PilihanKebijakan::TIPE_DENDA, PilihanKebijakan::DENDA_PERSEN_HARIAN, [
+            'persen' => '1.00',
+            'plafon_persen' => '30.00',
+            'masa_tenggang' => 7,
             'berlaku_dari' => $berlakuDari,
             'kamar_id' => $kamarId,
         ]);
@@ -395,6 +417,7 @@ class KebijakanKosTest extends TestCase
         $kontrak = $this->siapkanKontrak('2026-10-01', 50_000);
         $this->kebijakan(PilihanKebijakan::TIPE_SATUAN_SEWA, PilihanKebijakan::SATUAN_HARIAN);
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_MASUK);
+        $this->dendaBawaan();
 
         // Oktober 31 hari, masuk tanggal 1: 50.000 Ã— 31 = 1.550.000.
         $this->sebagaiPemilik()
@@ -408,6 +431,7 @@ class KebijakanKosTest extends TestCase
         $kontrak = $this->siapkanKontrak('2026-10-01', 350_000);
         $this->kebijakan(PilihanKebijakan::TIPE_SATUAN_SEWA, PilihanKebijakan::SATUAN_MINGGUAN);
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_MASUK);
+        $this->dendaBawaan();
 
         // 350.000 Ã— 31 / 7 = 1.550.000 tepat.
         $this->sebagaiPemilik()
@@ -422,6 +446,7 @@ class KebijakanKosTest extends TestCase
         $kontrak = $this->siapkanKontrak('2026-10-15', 50_000);
         $this->kebijakan(PilihanKebijakan::TIPE_SATUAN_SEWA, PilihanKebijakan::SATUAN_HARIAN);
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_MASUK);
+        $this->dendaBawaan();
 
         // 50.000 Ã— 17 = 850.000, bukan 50.000 Ã— 31. Penghuni yang masuk tanggal
         // 15 tidak boleh ditagih sebulan penuh hanya karena kosnya harian.
@@ -436,6 +461,7 @@ class KebijakanKosTest extends TestCase
         $kontrak = $this->siapkanKontrak('2026-10-15', 50_000);
         $this->kebijakan(PilihanKebijakan::TIPE_SATUAN_SEWA, PilihanKebijakan::SATUAN_HARIAN);
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_MASUK);
+        $this->dendaBawaan();
 
         // November 30 hari: 50.000 Ã— 30 = 1.500.000.
         $this->sebagaiPemilik()
@@ -449,6 +475,7 @@ class KebijakanKosTest extends TestCase
         $kontrak = $this->siapkanKontrak('2026-10-01', 50_000);
         $this->kebijakan(PilihanKebijakan::TIPE_SATUAN_SEWA, PilihanKebijakan::SATUAN_HARIAN);
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_MASUK);
+        $this->dendaBawaan();
 
         $nama = $this->sebagaiPemilik()
             ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-10-01'])
@@ -470,6 +497,7 @@ class KebijakanKosTest extends TestCase
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_TETAP, [
             'tanggal' => 10,
         ]);
+        $this->dendaBawaan();
 
         $this->sebagaiPemilik()
             ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-11-01'])
@@ -484,6 +512,7 @@ class KebijakanKosTest extends TestCase
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_TETAP, [
             'tanggal' => 31,
         ]);
+        $this->dendaBawaan();
 
         // Tanpa penjepitan, tanggal 31 Februari akan menggelinding ke 3 Maret
         // dan denda dihitung dari tanggal yang salah.
@@ -498,6 +527,7 @@ class KebijakanKosTest extends TestCase
         $kontrak = $this->siapkanKontrak('2026-10-15');
         $this->kebijakan(PilihanKebijakan::TIPE_SATUAN_SEWA, PilihanKebijakan::SATUAN_BULANAN);
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_AKHIR_BULAN);
+        $this->dendaBawaan();
 
         $this->sebagaiPemilik()
             ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2027-02-01'])
@@ -539,6 +569,7 @@ class KebijakanKosTest extends TestCase
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_TETAP, [
             'tanggal' => 10,
         ]);
+        $this->dendaBawaan();
 
         $snapshot = $this->sebagaiPemilik()
             ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-10-01'])
@@ -668,7 +699,7 @@ class KebijakanKosTest extends TestCase
             // Lengkap = false karena jatuh tempo belum diisi, dan daftar yang
             // kurang menyebut persis apa yang harus diisi.
             ->assertJsonPath('meta.lengkap', false)
-            ->assertJsonPath('meta.kurang', ['jatuh_tempo'])
+            ->assertJsonPath('meta.kurang', ['jatuh_tempo', 'denda'])
             ->assertJsonPath('meta.berlaku.jatuh_tempo', null);
     }
 
@@ -771,5 +802,205 @@ class KebijakanKosTest extends TestCase
             'nilai' => 'bulanan',
             'berlaku_dari' => '2026-10-01',
         ])->assertStatus(403);
+    }
+
+    // --- Kolom angka per bentuk (T17) -------------------------------------
+
+    /**
+     * Denda persen butuh tiga angka sekaligus. Menyimpan hanya sebagian
+     * menghasilkan kebijakan yang tampak lengkap tetapi tidak bisa dihitung:
+     * tarif tanpa plafon berarti denda tumbuh tanpa batas, dan tanpa tenggang
+     * "denda mulai kapan" hanya bisa ditebak.
+     */
+    public function test_post_denda_persen_wajib_menyertakan_tiga_angka(): void
+    {
+        foreach ([
+            'tanpa persen' => ['plafon_persen' => 30, 'masa_tenggang' => 7],
+            'tanpa plafon' => ['persen' => 1, 'masa_tenggang' => 7],
+            'tanpa tenggang' => ['persen' => 1, 'plafon_persen' => 30],
+        ] as $nama => $isi) {
+            $this->sebagaiPemilik()
+                ->postJson('/api/kebijakan', array_merge([
+                    'tipe' => 'denda',
+                    'nilai' => 'persen_harian',
+                    'berlaku_dari' => '2026-10-01',
+                ], $isi))
+                ->assertStatus(422, "kasus: {$nama}");
+        }
+
+        // Tidak ada satu pun yang tersimpan: gerbang yang meloloskan satu baris
+        // sudah cukup membuat jaminan ini tidak berarti.
+        $this->assertSame(0, KebijakanKos::count());
+    }
+
+    public function test_post_denda_persen_menyimpan_tiga_angka(): void
+    {
+        $this->sebagaiPemilik()
+            ->postJson('/api/kebijakan', [
+                'tipe' => 'denda',
+                'nilai' => 'persen_harian',
+                'persen' => 1.5,
+                'plafon_persen' => 40,
+                'masa_tenggang' => 5,
+                'berlaku_dari' => '2026-10-01',
+            ])
+            ->assertCreated()
+            // Persentase disimpan sebagai decimal(5,2), jadi "1.5" menjadi
+            // "1.50". Normalisasi ini disengaja supaya riwayat tidak memuat
+            // dua bentuk berbeda untuk angka yang sama.
+            ->assertJsonPath('data.persen', '1.50')
+            ->assertJsonPath('data.plafon_persen', '40.00')
+            ->assertJsonPath('data.masa_tenggang', 5)
+            ->assertJsonPath('data.nominal', null)
+            ->assertJsonPath('data.ringkasan', '1.5% per hari, plafon 40%, tenggang 5 hari');
+    }
+
+    public function test_post_denda_nominal_hanya_menyertakan_nominal(): void
+    {
+        $this->sebagaiPemilik()
+            ->postJson('/api/kebijakan', [
+                'tipe' => 'denda',
+                'nilai' => 'nominal_tetap',
+                'nominal' => 100_000,
+                'berlaku_dari' => '2026-10-01',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.nominal', 100_000)
+            ->assertJsonPath('data.persen', null)
+            ->assertJsonPath('data.masa_tenggang', null)
+            ->assertJsonPath('data.ringkasan', 'Rp 100.000 per bulan keterlambatan');
+    }
+
+    public function test_post_denda_nominal_menolak_persen_yang_menganggur(): void
+    {
+        // Angka menganggur di baris kebijakan membuat pembaca mengira angka itu
+        // dipakai, padahal tidak. Karena itu kolom yang tidak dibaca rumus
+        // ditolak, bukan diabaikan diam-diam.
+        $this->sebagaiPemilik()
+            ->postJson('/api/kebijakan', [
+                'tipe' => 'denda',
+                'nilai' => 'nominal_tetap',
+                'nominal' => 100_000,
+                'persen' => 1,
+                'berlaku_dari' => '2026-10-01',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('persen');
+    }
+
+    public function test_post_denda_tanpa_denda_menolak_semua_angka(): void
+    {
+        $this->sebagaiPemilik()
+            ->postJson('/api/kebijakan', [
+                'tipe' => 'denda',
+                'nilai' => 'tanpa_denda',
+                'nominal' => 50_000,
+                'berlaku_dari' => '2026-10-01',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('nominal');
+    }
+
+    public function test_post_deposit_nominal_wajib_menyertakan_nominal(): void
+    {
+        $this->sebagaiPemilik()
+            ->postJson('/api/kebijakan', [
+                'tipe' => 'deposit',
+                'nilai' => 'nominal',
+                'berlaku_dari' => '2026-10-01',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('nominal');
+    }
+
+    public function test_post_deposit_satu_bulan_tidak_menyimpan_nominal(): void
+    {
+        // `satu_bulan` dihitung dari tarif sewa saat kontrak dibuat. Menyimpan
+        // nominal di sini akan membekukan angka yang seharusnya mengikuti tarif.
+        $this->sebagaiPemilik()
+            ->postJson('/api/kebijakan', [
+                'tipe' => 'deposit',
+                'nilai' => 'satu_bulan',
+                'nominal' => 1_500_000,
+                'berlaku_dari' => '2026-10-01',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('nominal');
+    }
+
+    public function test_post_deposit_satu_bulan_tanpa_nominal_diterima(): void
+    {
+        $this->sebagaiPemilik()
+            ->postJson('/api/kebijakan', [
+                'tipe' => 'deposit',
+                'nilai' => 'satu_bulan',
+                'berlaku_dari' => '2026-10-01',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.nilai', 'satu_bulan')
+            ->assertJsonPath('data.nominal', null);
+    }
+
+    public function test_post_denda_persen_menolak_persentase_di_atas_seratus(): void
+    {
+        $this->sebagaiPemilik()
+            ->postJson('/api/kebijakan', [
+                'tipe' => 'denda',
+                'nilai' => 'persen_harian',
+                'persen' => 150,
+                'plafon_persen' => 30,
+                'masa_tenggang' => 7,
+                'berlaku_dari' => '2026-10-01',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('persen');
+    }
+
+    public function test_post_denda_persen_menolak_tenggang_negatif(): void
+    {
+        $this->sebagaiPemilik()
+            ->postJson('/api/kebijakan', [
+                'tipe' => 'denda',
+                'nilai' => 'persen_harian',
+                'persen' => 1,
+                'plafon_persen' => 30,
+                'masa_tenggang' => -1,
+                'berlaku_dari' => '2026-10-01',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('masa_tenggang');
+    }
+
+    public function test_post_denda_persen_tenggang_nol_diterima(): void
+    {
+        // Nol adalah pernyataan yang sah: "denda mulai sejak hari pertama".
+        // Yang ditolak adalah tenggang yang tidak disebut sama sekali.
+        $this->sebagaiPemilik()
+            ->postJson('/api/kebijakan', [
+                'tipe' => 'denda',
+                'nilai' => 'persen_harian',
+                'persen' => 1,
+                'plafon_persen' => 30,
+                'masa_tenggang' => 0,
+                'berlaku_dari' => '2026-10-01',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.masa_tenggang', 0);
+    }
+
+    public function test_get_kebijakan_mengirim_matriks_kolom_untuk_layar(): void
+    {
+        // Layar memakai matriks ini untuk tahu medan angka mana yang wajib
+        // muncul. Menyalinnya ke Vue akan menjadi salinan ketiga dari aturan
+        // yang sama dengan validasi dan CHECK constraint.
+        $this->sebagaiPemilik()
+            ->getJson('/api/kebijakan?berlaku_pada=2026-10-01')
+            ->assertOk()
+            ->assertJsonPath('meta.kolom.denda.persen_harian.wajib', ['persen', 'plafon_persen', 'masa_tenggang'])
+            ->assertJsonPath('meta.kolom.denda.nominal_tetap.wajib', ['nominal'])
+            ->assertJsonPath('meta.kolom.denda.tanpa_denda.wajib', [])
+            ->assertJsonPath('meta.kolom.deposit.nominal.wajib', ['nominal'])
+            ->assertJsonPath('meta.kolom.deposit.satu_bulan.wajib', [])
+            ->assertJsonPath('meta.kolom.jatuh_tempo.tanggal_tetap.wajib', ['tanggal']);
     }
 }

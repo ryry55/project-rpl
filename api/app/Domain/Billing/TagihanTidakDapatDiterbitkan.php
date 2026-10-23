@@ -27,7 +27,7 @@ class TagihanTidakDapatDiterbitkan extends \RuntimeException
     public static function karenaParameterDendaKosong(CarbonInterface $periode): self
     {
         return new self(sprintf(
-            'Belum ada parameter denda yang berlaku untuk periode %s. Tetapkan dulu di menu parameter denda.',
+            'Belum ada kebijakan denda yang berlaku untuk periode %s. Tetapkan dulu di menu Kebijakan.',
             $periode->toDateString(),
         ));
     }

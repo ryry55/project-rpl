@@ -5,7 +5,6 @@ namespace App\Domain\Tarif;
 use App\Domain\Kebijakan\PenyelesaiKebijakan;
 use App\Models\Kamar;
 use App\Models\KomponenBiaya;
-use App\Models\ParameterDenda;
 use App\Models\TarifSewa;
 use Carbon\CarbonInterface;
 
@@ -63,16 +62,5 @@ class PencariTarif
     public function komponenUntuk(CarbonInterface $periode, ?Kamar $kamar = null): array
     {
         return $this->penyelesai->komponenBiaya($periode, $kamar);
-    }
-
-    /**
-     * Parameter denda yang berlaku pada periode tertentu.
-     */
-    public function parameterDendaUntuk(CarbonInterface $periode): ?ParameterDenda
-    {
-        return ParameterDenda::whereDate('berlaku_dari', '<=', $periode->copy()->startOfMonth())
-            ->orderByDesc('berlaku_dari')
-            ->orderByDesc('id')
-            ->first();
     }
 }

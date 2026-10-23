@@ -33,16 +33,22 @@ class PenyelesaiKebijakan
     /**
      * Tipe kebijakan yang wajib ada sebelum tagihan boleh terbit.
      *
-     * Hanya dua, walaupun tabelnya menyediakan tempat untuk empat. `denda` dan
-     * `deposit` masuk daftar ini di LANGKAH 3, bersamaan dengan pembacanya.
-     * Menagih lebih dulu atas kebijakan yang belum dibaca siapa pun akan
-     * membuat layar menampilkan satu angka dan basis data menyimpan angka lain.
+     * Tiga sejak T17. `denda` ikut wajib karena `parameter_denda` sudah
+     * dihapus: tidak ada lagi sumber angka denda yang lain, sehingga kosong
+     * berarti sistem harus menebak — dan menebak angka uang adalah persis
+     * yang dilarang.
+     *
+     * `deposit` sengaja TIDAK wajib: ia dibaca saat kontrak dibuat, bukan saat
+     * tagihan terbit. Kos yang tidak memungut deposit tidak boleh terhalang
+     * hanya karena ia tidak menyatakan "tanpa deposit"; ketiadaannya berarti
+     * nol, dan pemilik tetap bisa mengisinya sendiri di formulir kontrak.
      *
      * @var list<string>
      */
     public const TIPE_WAJIB = [
         KebijakanKos::TIPE_SATUAN_SEWA,
         KebijakanKos::TIPE_JATUH_TEMPO,
+        KebijakanKos::TIPE_DENDA,
     ];
 
     /**

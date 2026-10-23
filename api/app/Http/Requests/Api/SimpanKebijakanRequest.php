@@ -33,6 +33,13 @@ class SimpanKebijakanRequest extends FormRequest
     public function rules(): array
     {
         $tipe = (string) $this->input('tipe', '');
+        $nilai = (string) $this->input('nilai', '');
+
+        // Matriks "kolom angka mana yang wajib" diambil dari satu sumber yang
+        // sama dengan CHECK constraint dan dengan layar. Menyalinnya ke sini
+        // berarti tiga salinan harus setuju soal bentuk denda, dan yang paling
+        // sering tertinggal adalah salinan yang paling jarang dibaca.
+        $kolom = PilihanKebijakan::kolomAngka($tipe, $nilai);
 
         return [
             'tipe' => ['required', 'string', Rule::in(PilihanKebijakan::TIPE_TERSEDIA)],
@@ -58,10 +65,46 @@ class SimpanKebijakanRequest extends FormRequest
             // apa pun), dan dilarang di tempat lain supaya tidak ada angka
             // menganggur yang membuat baris terbaca seolah-olah dipakai.
             'tanggal' => [
-                Rule::requiredIf(PilihanKebijakan::butuhTanggal($tipe, (string) $this->input('nilai', ''))),
-                Rule::prohibitedIf(! PilihanKebijakan::butuhTanggal($tipe, (string) $this->input('nilai', ''))),
+                Rule::requiredIf(in_array('tanggal', $kolom['wajib'], true)),
+                Rule::prohibitedIf(in_array('tanggal', $kolom['terlarang'], true)),
                 'integer',
                 'between:1,31',
+            ],
+
+            // Kolom angka lain mengikuti matriks yang sama. `persen` dan
+            // `plafon_persen` disimpan sebagai decimal(5,2): batas atasnya 100
+            // karena keduanya persentase, dan plafon di atas 100% berarti
+            // denda boleh melebihi pokok — bukan yang dimaksud "plafon".
+            'persen' => [
+                Rule::requiredIf(in_array('persen', $kolom['wajib'], true)),
+                Rule::prohibitedIf(in_array('persen', $kolom['terlarang'], true)),
+                'numeric',
+                'gt:0',
+                'max:100',
+            ],
+            'plafon_persen' => [
+                Rule::requiredIf(in_array('plafon_persen', $kolom['wajib'], true)),
+                Rule::prohibitedIf(in_array('plafon_persen', $kolom['terlarang'], true)),
+                'numeric',
+                'gt:0',
+                'max:100',
+            ],
+            'masa_tenggang' => [
+                Rule::requiredIf(in_array('masa_tenggang', $kolom['wajib'], true)),
+                Rule::prohibitedIf(in_array('masa_tenggang', $kolom['terlarang'], true)),
+                'integer',
+                'min:0',
+                'max:365',
+            ],
+            // `nominal` rupiah bulat, sama seperti kolom uang lain di proyek
+            // ini. Batas atas 1 miliar cukup untuk kos mana pun dan menahan
+            // salah ketik yang menambahkan satu nol terlalu banyak.
+            'nominal' => [
+                Rule::requiredIf(in_array('nominal', $kolom['wajib'], true)),
+                Rule::prohibitedIf(in_array('nominal', $kolom['terlarang'], true)),
+                'integer',
+                'min:0',
+                'max:1000000000',
             ],
         ];
     }
@@ -83,6 +126,26 @@ class SimpanKebijakanRequest extends FormRequest
             'tanggal.required' => 'Tanggal jatuh tempo wajib diisi bila memilih "tanggal tetap".',
             'tanggal.prohibited' => 'Tanggal hanya dipakai oleh jatuh tempo "tanggal tetap".',
             'tanggal.between' => 'Tanggal jatuh tempo harus di antara 1 dan 31.',
+            'persen.required' => 'Tarif persen wajib diisi untuk denda persen.',
+            'persen.prohibited' => 'Tarif persen hanya dipakai oleh denda persen.',
+            'persen.numeric' => 'Tarif persen harus berupa angka.',
+            'persen.gt' => 'Tarif persen harus lebih besar dari nol.',
+            'persen.max' => 'Tarif persen tidak boleh melebihi 100.',
+            'plafon_persen.required' => 'Plafon denda wajib diisi untuk denda persen.',
+            'plafon_persen.prohibited' => 'Plafon hanya dipakai oleh denda persen.',
+            'plafon_persen.numeric' => 'Plafon denda harus berupa angka.',
+            'plafon_persen.gt' => 'Plafon denda harus lebih besar dari nol.',
+            'plafon_persen.max' => 'Plafon denda tidak boleh melebihi 100% dari pokok.',
+            'masa_tenggang.required' => 'Masa tenggang wajib diisi untuk denda persen. Isi 0 bila denda mulai sejak hari pertama.',
+            'masa_tenggang.prohibited' => 'Masa tenggang hanya dipakai oleh denda persen.',
+            'masa_tenggang.integer' => 'Masa tenggang harus bilangan bulat hari.',
+            'masa_tenggang.min' => 'Masa tenggang tidak boleh negatif.',
+            'masa_tenggang.max' => 'Masa tenggang tidak masuk akal bila lebih dari 365 hari.',
+            'nominal.required' => 'Nominal wajib diisi untuk pilihan ini.',
+            'nominal.prohibited' => 'Nominal hanya dipakai oleh denda nominal tetap dan deposit nominal.',
+            'nominal.integer' => 'Nominal harus bilangan bulat rupiah.',
+            'nominal.min' => 'Nominal tidak boleh negatif.',
+            'nominal.max' => 'Nominal terlalu besar.',
         ];
     }
 }

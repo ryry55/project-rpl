@@ -2,9 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Kebijakan\PilihanKebijakan;
 use App\Models\Kamar;
+use App\Models\KebijakanKos;
 use App\Models\KomponenBiaya;
-use App\Models\ParameterDenda;
 use App\Models\TarifSewa;
 use App\Models\User;
 use Illuminate\Database\QueryException;
@@ -186,18 +187,20 @@ class RiwayatTarifTest extends TestCase
         DB::table('tarif_sewa')->delete();
     }
 
-    public function test_update_langsung_ke_parameter_denda_ditolak_database(): void
+    public function test_update_langsung_ke_kebijakan_kos_ditolak_database(): void
     {
-        ParameterDenda::create([
-            'tarif_persen' => 1,
-            'plafon_persen' => 30,
+        KebijakanKos::create([
+            'tipe' => PilihanKebijakan::TIPE_DENDA,
+            'nilai' => PilihanKebijakan::DENDA_PERSEN_HARIAN,
+            'persen' => '1.00',
+            'plafon_persen' => '30.00',
             'masa_tenggang' => 7,
             'berlaku_dari' => '2026-10-01',
         ]);
 
         $this->expectException(QueryException::class);
 
-        DB::table('parameter_denda')->update(['tarif_persen' => 5]);
+        DB::table('kebijakan_kos')->update(['persen' => 5]);
     }
 
     public function test_update_langsung_ke_komponen_biaya_ditolak_database(): void
@@ -264,36 +267,53 @@ class RiwayatTarifTest extends TestCase
         $this->assertTrue($data['dihentikan']);
     }
 
-    // --- Parameter denda --------------------------------------------------
+    // --- Kebijakan denda ---------------------------------------------------
 
-    public function test_parameter_denda_default_menyimpan_tiga_nilai(): void
+    public function test_kebijakan_denda_persen_menyimpan_tiga_nilai(): void
     {
-        $this->sebagaiPemilik()->postJson('/api/parameter-denda', [
-            'tarif_persen' => 1,
+        $this->sebagaiPemilik()->postJson('/api/kebijakan', [
+            'tipe' => PilihanKebijakan::TIPE_DENDA,
+            'nilai' => PilihanKebijakan::DENDA_PERSEN_HARIAN,
+            'persen' => 1,
             'plafon_persen' => 30,
             'masa_tenggang' => 7,
             'berlaku_dari' => '2026-10-01',
         ])->assertCreated()
-            ->assertJsonPath('data.tarif_persen_teks', '1.00')
-            ->assertJsonPath('data.plafon_persen_teks', '30.00')
-            ->assertJsonPath('data.masa_tenggang', 7);
+            ->assertJsonPath('data.persen', '1.00')
+            ->assertJsonPath('data.plafon_persen', '30.00')
+            ->assertJsonPath('data.masa_tenggang', 7)
+            ->assertJsonPath('data.ringkasan', '1% per hari, plafon 30%, tenggang 7 hari');
     }
 
-    public function test_parameter_denda_yang_berlaku_dipilih_periode_terakhir(): void
+    public function test_kebijakan_denda_yang_berlaku_dipilih_periode_terakhir(): void
     {
-        ParameterDenda::create(['tarif_persen' => 1, 'plafon_persen' => 30, 'masa_tenggang' => 7, 'berlaku_dari' => '2026-10-01']);
-        ParameterDenda::create(['tarif_persen' => 2, 'plafon_persen' => 25, 'masa_tenggang' => 5, 'berlaku_dari' => '2027-01-01']);
+        KebijakanKos::create([
+            'tipe' => PilihanKebijakan::TIPE_DENDA,
+            'nilai' => PilihanKebijakan::DENDA_PERSEN_HARIAN,
+            'persen' => '1.00',
+            'plafon_persen' => '30.00',
+            'masa_tenggang' => 7,
+            'berlaku_dari' => '2026-10-01',
+        ]);
+        KebijakanKos::create([
+            'tipe' => PilihanKebijakan::TIPE_DENDA,
+            'nilai' => PilihanKebijakan::DENDA_PERSEN_HARIAN,
+            'persen' => '2.00',
+            'plafon_persen' => '25.00',
+            'masa_tenggang' => 5,
+            'berlaku_dari' => '2027-01-01',
+        ]);
 
         $this->sebagaiPemilik()
-            ->getJson('/api/parameter-denda/berlaku?berlaku_pada=2026-11-01')
+            ->getJson('/api/kebijakan?berlaku_pada=2026-11-01')
             ->assertOk()
-            ->assertJsonPath('data.tarif_persen_teks', '1.00');
+            ->assertJsonPath('meta.berlaku.denda.persen', '1.00');
 
         $this->sebagaiPemilik()
-            ->getJson('/api/parameter-denda/berlaku?berlaku_pada=2027-02-01')
+            ->getJson('/api/kebijakan?berlaku_pada=2027-02-01')
             ->assertOk()
-            ->assertJsonPath('data.tarif_persen_teks', '2.00')
-            ->assertJsonPath('data.masa_tenggang', 5);
+            ->assertJsonPath('meta.berlaku.denda.persen', '2.00')
+            ->assertJsonPath('meta.berlaku.denda.masa_tenggang', 5);
     }
 
     public function test_tarif_tersimpan_sebagai_numeric_bukan_float(): void

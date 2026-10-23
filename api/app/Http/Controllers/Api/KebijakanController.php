@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Audit\PencatatAudit;
 use App\Domain\Kebijakan\PenyelesaiKebijakan;
 use App\Domain\Kebijakan\PilihanKebijakan;
 use App\Http\Controllers\Controller;
@@ -14,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Kebijakan kos — append-only seperti tarif sewa dan komponen biaya.
@@ -40,6 +42,7 @@ class KebijakanController extends Controller
     public function __construct(
         private readonly PenyelesaiKebijakan $penyelesai,
         private readonly WaktuSistem $waktu,
+        private readonly PencatatAudit $audit,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -93,6 +96,16 @@ class KebijakanController extends Controller
                 // Menu pilihan dikirim server supaya layar tidak menyimpan
                 // salinan kedua daftar nilai yang sah.
                 'pilihan' => PilihanKebijakan::menu(),
+                // Matriks "kolom angka mana yang wajib" untuk setiap pasangan
+                // tipe+nilai. Dikirim, bukan ditulis ulang di Vue, karena
+                // matriks yang sama dipakai validasi dan CHECK constraint:
+                // salinan ketiga di JavaScript adalah salinan yang paling
+                // sering tertinggal saat bentuk denda bertambah.
+                'kolom' => collect(PilihanKebijakan::menu())
+                    ->map(fn (array $nilai, string $tipe) => collect($nilai)
+                        ->map(fn ($_, string $kode) => PilihanKebijakan::kolomAngka($tipe, $kode))
+                        ->all())
+                    ->all(),
                 'label_tipe' => collect(PilihanKebijakan::TIPE_TERSEDIA)
                     ->mapWithKeys(fn (string $tipe) => [$tipe => PilihanKebijakan::labelTipe($tipe)])
                     ->all(),
@@ -107,16 +120,56 @@ class KebijakanController extends Controller
         // Kolom angka yang tidak relevan dikosongkan, bukan disimpan apa adanya.
         // Validasi sudah melarangnya, tetapi menormalkan di sini membuat
         // perilaku tetap benar bila aturan itu dilonggarkan nanti.
-        $data['persen'] = null;
-        $data['plafon_persen'] = null;
-        $data['masa_tenggang'] = null;
-        $data['nominal'] = null;
-        $data['tanggal'] = PilihanKebijakan::butuhTanggal($data['tipe'], $data['nilai'])
+        //
+        // Sejak T17 kolom yang relevan **disimpan**, bukan dibuang: denda persen
+        // membawa tarif, plafon, dan tenggang; denda nominal membawa nominal.
+        // Sebelumnya keempatnya selalu dikosongkan karena belum ada tipe yang
+        // memakainya.
+        $kolom = PilihanKebijakan::kolomAngka($data['tipe'], $data['nilai']);
+
+        $data['persen'] = in_array('persen', $kolom['wajib'], true)
+            ? $this->desimal($data['persen'] ?? null)
+            : null;
+        $data['plafon_persen'] = in_array('plafon_persen', $kolom['wajib'], true)
+            ? $this->desimal($data['plafon_persen'] ?? null)
+            : null;
+        $data['masa_tenggang'] = in_array('masa_tenggang', $kolom['wajib'], true)
+            ? (int) $data['masa_tenggang']
+            : null;
+        $data['nominal'] = in_array('nominal', $kolom['wajib'], true)
+            ? (int) $data['nominal']
+            : null;
+        $data['tanggal'] = in_array('tanggal', $kolom['wajib'], true)
             ? (int) $data['tanggal']
             : null;
 
         try {
-            $kebijakan = KebijakanKos::create($data);
+            $kebijakan = DB::transaction(function () use ($data) {
+                $kebijakan = KebijakanKos::create($data);
+
+                // Kebijakan menentukan angka uang (denda, deposit), sama
+                // seperti tarif. Karena itu penambahannya dicatat: pertanyaan
+                // "sejak kapan denda kos ini 2%/hari" harus bisa dijawab dari
+                // jejak, bukan dari ingatan pemilik.
+                $this->audit->catat(
+                    aksi: PencatatAudit::AKSI_KEBIJAKAN_TAMBAH,
+                    entitas: 'kebijakan_kos',
+                    entitasId: $kebijakan->id,
+                    nilaiBaru: [
+                        'tipe' => $kebijakan->tipe,
+                        'nilai' => $kebijakan->nilai,
+                        'kamar_id' => $kebijakan->kamar_id,
+                        'persen' => $kebijakan->persen,
+                        'plafon_persen' => $kebijakan->plafon_persen,
+                        'masa_tenggang' => $kebijakan->masa_tenggang,
+                        'nominal' => $kebijakan->nominal,
+                        'tanggal' => $kebijakan->tanggal,
+                        'berlaku_dari' => $kebijakan->berlaku_dari->toDateString(),
+                    ],
+                );
+
+                return $kebijakan;
+            });
         } catch (QueryException $e) {
             // SQLSTATE 23505: unique (tipe, kamar_id, berlaku_dari). Pemeriksaan
             // di FormRequest punya celah balapan, dan constraint yang menang.
@@ -131,5 +184,19 @@ class KebijakanController extends Controller
         }
 
         return response()->json(['data' => new KebijakanResource($kebijakan)], 201);
+    }
+
+    /**
+     * Persentase disimpan sebagai decimal(5,2), jadi nilainya dinormalkan ke dua
+     * desimal di sini. Tanpa normalisasi, "1" dan "1.00" akan tersimpan sebagai
+     * dua bentuk berbeda dan perbandingan riwayat jadi membingungkan.
+     */
+    private function desimal(mixed $nilai): ?string
+    {
+        if ($nilai === null || $nilai === '') {
+            return null;
+        }
+
+        return number_format((float) $nilai, 2, '.', '');
     }
 }

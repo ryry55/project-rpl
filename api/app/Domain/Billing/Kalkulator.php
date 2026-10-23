@@ -149,6 +149,134 @@ class Kalkulator
     }
 
     /**
+     * Denda satu periode menurut bentuk yang dipilih pemilik (T17).
+     *
+     * Ini dispatcher, bukan rumus baru: cabang `persen_harian` memanggil
+     * {@see hitungDenda} apa adanya. Memindahkan rumus R-03 ke sini akan
+     * mengubah satu-satunya tempat pembulatan denda berada, dan seluruh tes
+     * batas hari 7/8/30/37 yang sudah ada berhenti membuktikan apa pun tentang
+     * kode yang benar-benar berjalan.
+     *
+     * Arti tiap bentuk:
+     *
+     *   - `persen_harian` — persen dari pokok, dikali hari denda. Ini R-03.
+     *   - `persen_bulanan` — persen dari pokok per **bulan** keterlambatan,
+     *     bukan per 30 hari. Sebulan dihitung sebagai satu bulan penuh sejak
+     *     jatuh tempo, karena pemilik kos berpikir "telat sebulan", bukan
+     *     "telat 30 hari". Bulan berjalan dihitung sebagai bulan penuh, sama
+     *     seperti sewa: masuk tanggal 28 tetap disewa sampai akhir bulan.
+     *   - `nominal_tetap` — angka rupiah tetap, tidak tumbuh. Dihitung per
+     *     bulan keterlambatan dengan aturan pembulatan yang sama.
+     *   - `tanpa_denda` — nol, dan bukan kesalahan.
+     *
+     * @param  int  $hariTerlambat  negatif berarti belum jatuh tempo
+     */
+    public function hitungDendaMenurut(DendaTerpilih $denda, int $pokok, int $hariTerlambat): int
+    {
+        if ($pokok < 0) {
+            throw new \InvalidArgumentException("Pokok tidak boleh negatif, diterima {$pokok}.");
+        }
+
+        // Belum lewat tenggang: tidak ada denda pada bentuk apa pun. Untuk
+        // denda nominal, tenggang selalu 0 sehingga hari ke-1 sudah kena.
+        if ($hariTerlambat <= $denda->masaTenggang) {
+            return 0;
+        }
+
+        return match ($denda->tipe) {
+            PilihanKebijakan::DENDA_TANPA_DENDA => 0,
+
+            PilihanKebijakan::DENDA_NOMINAL_TETAP => $this->dendaNominal(
+                $denda->nominal,
+                $hariTerlambat - $denda->masaTenggang,
+            ),
+
+            PilihanKebijakan::DENDA_PERSEN_BULANAN => $this->dendaPersenBulanan(
+                $pokok,
+                $hariTerlambat - $denda->masaTenggang,
+                $denda->persen,
+                $denda->plafonPersen,
+            ),
+
+            PilihanKebijakan::DENDA_PERSEN_HARIAN => $this->hitungDenda($pokok, $hariTerlambat, [
+                'tarif_persen' => $denda->persen,
+                'plafon_persen' => $denda->plafonPersen,
+                'masa_tenggang' => $denda->masaTenggang,
+            ]),
+
+            default => throw new \InvalidArgumentException(
+                "Bentuk denda \"{$denda->tipe}\" tidak dikenal."
+            ),
+        };
+    }
+
+    /**
+     * Batas atas denda untuk sebuah pokok, menurut bentuk yang dipilih.
+     *
+     * `null` berarti tidak ada batas atas — bukan "batasnya nol". Denda nominal
+     * tidak berplafon karena angkanya tetap, dan pemanggil yang menampilkan
+     * "dari maksimum Rp X" perlu tahu bedanya.
+     */
+    public function plafonDendaMenurut(DendaTerpilih $denda, int $pokok): ?int
+    {
+        if (! $denda->berplafon()) {
+            return null;
+        }
+
+        return $this->plafonDenda($pokok, [
+            'tarif_persen' => $denda->persen,
+            'plafon_persen' => $denda->plafonPersen,
+            'masa_tenggang' => $denda->masaTenggang,
+        ]);
+    }
+
+    /**
+     * Jumlah bulan keterlambatan, dibulatkan ke atas.
+     *
+     * Keterlambatan 1 hari sudah dihitung satu bulan, karena pemilik kos
+     * menagih "telat sebulan" untuk keterlambatan sekecil apa pun. Dihitung
+     * dengan aritmetika bulat: (hari + 29) / 30 tidak dipakai karena bulan
+     * tidak selalu 30 hari; yang dipakai adalah pembagian ke atas terhadap 30
+     * sebagai panjang bulan rata-rata — dan itu didokumentasikan sebagai
+     * keputusan, bukan kebetulan.
+     */
+    public function bulanTerlambat(int $hariDenda): int
+    {
+        if ($hariDenda <= 0) {
+            return 0;
+        }
+
+        return intdiv($hariDenda + 29, 30);
+    }
+
+    /**
+     * Denda persen per bulan, dengan plafon.
+     */
+    private function dendaPersenBulanan(int $pokok, int $hariDenda, string $persen, string $plafonPersen): int
+    {
+        $bulan = $this->bulanTerlambat($hariDenda);
+        $tarifRatusan = $this->persenKeRatusan($persen);
+        $plafonRatusan = $this->persenKeRatusan($plafonPersen);
+
+        $denda = $this->bagiBulatHalfUp($pokok * $bulan * $tarifRatusan, 10_000);
+        $plafon = $this->bagiBulatHalfUp($pokok * $plafonRatusan, 10_000);
+
+        return min($denda, $plafon);
+    }
+
+    /**
+     * Denda nominal tetap per bulan keterlambatan.
+     */
+    private function dendaNominal(int $nominal, int $hariDenda): int
+    {
+        if ($nominal < 0) {
+            throw new \InvalidArgumentException("Nominal denda tidak boleh negatif, diterima {$nominal}.");
+        }
+
+        return $nominal * $this->bulanTerlambat($hariDenda);
+    }
+
+    /**
      * Hari tinggal pada bulan masuk, termasuk hari masuk.
      */
     public function hariTinggal(CarbonInterface $tanggalMasuk): int

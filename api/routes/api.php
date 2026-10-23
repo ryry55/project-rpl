@@ -7,7 +7,6 @@ use App\Http\Controllers\Api\KamarController;
 use App\Http\Controllers\Api\KebijakanController;
 use App\Http\Controllers\Api\KomponenBiayaController;
 use App\Http\Controllers\Api\KontrakController;
-use App\Http\Controllers\Api\ParameterDendaController;
 use App\Http\Controllers\Api\PenghuniController;
 use App\Http\Controllers\Api\PortalPenghuniController;
 use App\Http\Controllers\Api\TagihanController;
@@ -79,13 +78,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // POST /tagihan/terbitkan, bukan di sini.
         Route::get('/kebijakan', [KebijakanController::class, 'index'])->name('kebijakan.index');
         Route::post('/kebijakan', [KebijakanController::class, 'store'])->name('kebijakan.store');
-
-        Route::get('/parameter-denda', [ParameterDendaController::class, 'index'])
-            ->name('parameter-denda.index');
-        Route::get('/parameter-denda/berlaku', [ParameterDendaController::class, 'show'])
-            ->name('parameter-denda.berlaku');
-        Route::post('/parameter-denda', [ParameterDendaController::class, 'store'])
-            ->name('parameter-denda.store');
 
         // --- Tagihan (T3) -------------------------------------------------
         Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');

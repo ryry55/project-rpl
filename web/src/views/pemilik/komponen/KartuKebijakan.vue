@@ -3,11 +3,19 @@
  * Satu dimensi kebijakan: nilai yang berlaku sekarang, dan formulir untuk
  * menetapkan nilai baru.
  *
- * Dipisah dari view karena dua jenis kebijakan punya bentuk yang sama persis —
- * label, nilai berlaku, menu pilihan, tanggal berlaku, tombol simpan — dan
- * hanya berbeda pada ada/tidaknya medan tambahan (`tanggal` untuk "tanggal
- * tetap"). Menulisnya dua kali di view berarti dua tempat yang harus diubah
- * setiap kali daftar jenis bertambah di LANGKAH 3.
+ * Dipisah dari view karena keempat jenis kebijakan punya bentuk yang sama
+ * persis — label, nilai berlaku, menu pilihan, tanggal berlaku, tombol simpan —
+ * dan hanya berbeda pada medan angka yang menyertainya. Menulisnya empat kali
+ * di view berarti empat tempat yang harus diubah setiap kali daftar jenis
+ * bertambah.
+ *
+ * **Medan angka tidak ditentukan di sini.** Komponen ini menerima `kolom` dari
+ * server: peta `nilai -> {wajib, terlarang}` yang berasal dari
+ * `PilihanKebijakan::kolomAngka`, sumber yang sama yang dipakai validasi HTTP
+ * dan CHECK constraint. Menyalin matriks itu ke JavaScript berarti tiga salinan
+ * harus setuju soal bentuk denda; yang paling sering tertinggal adalah salinan
+ * yang paling jarang dibaca, dan gejalanya adalah formulir yang mengirim kolom
+ * yang ditolak server.
  *
  * Komponen ini **tidak** memanggil API sendiri: ia mengirim nilai yang dipilih
  * lewat `simpan`, dan induk yang menyimpan. Alasannya, setelah menyimpan induk
@@ -30,6 +38,8 @@ const props = defineProps({
   berlaku: { type: Object, default: null },
   /** Peta nilai => label untuk tipe ini, dari server. */
   pilihan: { type: Object, default: () => ({}) },
+  /** Peta nilai => {wajib, terlarang} untuk tipe ini, dari server. */
+  kolom: { type: Object, default: () => ({}) },
   /** Apakah tipe ini termasuk yang wajib diisi sebelum menagih. */
   wajib: { type: Boolean, default: true },
   /** Sedang menyimpan; menonaktifkan tombol. */
@@ -38,8 +48,46 @@ const props = defineProps({
 
 const emit = defineEmits(['simpan'])
 
+/**
+ * Keterangan tiap kolom angka. Teksnya di sini, bukan dari server, karena ini
+ * murni bantuan mengisi — berbeda dengan *wajib/tidaknya* sebuah kolom, yang
+ * menentukan sah tidaknya data dan karena itu datang dari server.
+ */
+const KETERANGAN_KOLOM = {
+  persen: {
+    label: 'Tarif denda (% per hari/bulan)',
+    bantuan: 'Persentase dari pokok tagihan, dihitung per hari atau per bulan sesuai pilihan di atas.',
+    contoh: '1',
+    jenis: 'desimal',
+  },
+  plafon_persen: {
+    label: 'Plafon denda (%)',
+    bantuan: 'Batas atas denda relatif terhadap pokok. Denda berhenti bertambah setelah batas ini tercapai.',
+    contoh: '30',
+    jenis: 'desimal',
+  },
+  masa_tenggang: {
+    label: 'Masa tenggang (hari)',
+    bantuan: 'Hari setelah jatuh tempo sebelum denda mulai berjalan. Isi 0 bila denda mulai sejak hari pertama.',
+    contoh: '7',
+    jenis: 'bulat',
+  },
+  nominal: {
+    label: 'Nominal (Rp)',
+    bantuan: 'Angka rupiah bulat, tanpa titik atau koma.',
+    contoh: '50000',
+    jenis: 'bulat',
+  },
+  tanggal: {
+    label: 'Tanggal jatuh tempo',
+    bantuan: 'Tanggal 29—31 dijepit ke akhir bulan yang lebih pendek.',
+    contoh: '10',
+    jenis: 'bulat',
+  },
+}
+
 const nilai = ref('')
-const tanggalTetap = ref('')
+const angka = ref({})
 // Awal bulan berjalan, bukan hari ini: kebijakan diselesaikan terhadap awal
 // periode, jadi tanggal hari ini tidak berlaku untuk periode bulan ini.
 const berlakuDari = ref(tanggalBerlakuBulanIni())
@@ -59,14 +107,47 @@ watch(
   { immediate: true, deep: true },
 )
 
-/** Medan `tanggal` hanya muncul untuk jatuh tempo "tanggal tetap". */
-const butuhTanggal = computed(() => props.tipe === 'jatuh_tempo' && nilai.value === 'tanggal_tetap')
+/**
+ * Kolom yang wajib untuk pilihan yang sedang aktif.
+ *
+ * Server yang menentukan; komponen hanya membaca. Kalau tidak ada entri untuk
+ * pilihan ini, daftarnya kosong dan formulir tidak menampilkan medan angka
+ * apa pun — bentuk yang benar untuk `bulanan`, `tanpa_denda`, `satu_bulan`,
+ * dan sejenisnya.
+ */
+const kolomWajib = computed(() => props.kolom?.[nilai.value]?.wajib || [])
+
+const medanAngka = computed(() =>
+  kolomWajib.value.map((kunci) => ({
+    kunci,
+    // `tanggal` sudah punya id mapan sejak T16 dan dipakai skrip uji, jadi
+    // id-nya dipertahankan apa adanya; kolom angka baru memakai awalan
+    // `kebijakan-` supaya tidak bertabrakan dengan id lain di halaman.
+    id: kunci === 'tanggal' ? 'tanggal-kebijakan' : `kebijakan-${kunci}`,
+    ...KETERANGAN_KOLOM[kunci],
+  })),
+)
+
+// Saat pilihan berganti, angka yang tidak lagi dipakai dibuang. Tanpa ini,
+// pemilik yang mencoba "persen per hari" lalu beralih ke "tanpa denda" akan
+// mengirim tarif persen yang masih tersisa di state, dan server menolaknya
+// dengan pesan yang membingungkan karena medan itu sudah tidak tampak di layar.
+watch(nilai, () => {
+  const dipakai = new Set(kolomWajib.value)
+  for (const kunci of Object.keys(angka.value)) {
+    if (!dipakai.has(kunci)) {
+      delete angka.value[kunci]
+    }
+  }
+})
 
 const labelBerlaku = computed(() => {
   if (!props.berlaku) {
     return props.wajib ? 'Belum ditetapkan — tagihan belum bisa diterbitkan' : 'Belum ditetapkan'
   }
-  return props.berlaku.label_nilai
+  // Ringkasan disusun server: kalimatnya bergantung pada pasangan tipe+nilai,
+  // dan server yang paling tahu bentuknya.
+  return props.berlaku.ringkasan || props.berlaku.label_nilai
 })
 
 function kirim() {
@@ -78,16 +159,43 @@ function kirim() {
     berlaku_dari: berlakuDari.value,
   }
 
-  if (butuhTanggal.value) {
-    const angka = Number(tanggalTetap.value)
+  for (const kunci of kolomWajib.value) {
+    const teks = String(angka.value[kunci] ?? '').trim()
+    const keterangan = KETERANGAN_KOLOM[kunci]
+
+    if (teks === '') {
+      galat.value = `${keterangan.label} wajib diisi.`
+      return
+    }
+
     // Divalidasi di sini juga, bukan hanya di server: pengguna yang mengetik
     // "0" atau mengosongkan medan tidak perlu menunggu perjalanan jaringan
     // untuk tahu apa yang salah.
-    if (!Number.isInteger(angka) || angka < 1 || angka > 31) {
-      galat.value = 'Tanggal jatuh tempo harus berupa angka 1 sampai 31.'
+    const n = Number(teks)
+    if (!Number.isFinite(n)) {
+      galat.value = `${keterangan.label} harus berupa angka.`
       return
     }
-    isi.tanggal = angka
+
+    if (keterangan.jenis === 'bulat' && !Number.isInteger(n)) {
+      galat.value = `${keterangan.label} harus bilangan bulat.`
+      return
+    }
+
+    if (n < 0) {
+      galat.value = `${keterangan.label} tidak boleh negatif.`
+      return
+    }
+
+    isi[kunci] = n
+  }
+
+  // Batas atas tanggal hanya berlaku untuk medan tanggal; kolom lain punya
+  // batasnya sendiri yang ditegakkan server (persen <= 100, dst.), dan
+  // memeriksanya dua kali di sini akan menjadi dua aturan yang bisa berbeda.
+  if (kolomWajib.value.includes('tanggal') && (isi.tanggal < 1 || isi.tanggal > 31)) {
+    galat.value = 'Tanggal jatuh tempo harus berupa angka 1 sampai 31.'
+    return
   }
 
   emit('simpan', isi)
@@ -116,16 +224,17 @@ function kirim() {
         </MedanForm>
 
         <MedanForm
-          v-if="butuhTanggal"
-          id="tanggal-kebijakan"
-          label="Tanggal jatuh tempo"
-          bantuan="Tanggal 29–31 dijepit ke akhir bulan yang lebih pendek."
+          v-for="medan in medanAngka"
+          :id="medan.id"
+          :key="medan.kunci"
+          :label="medan.label"
+          :bantuan="medan.bantuan"
         >
           <input
-            id="tanggal-kebijakan"
-            v-model="tanggalTetap"
+            :id="medan.id"
+            v-model="angka[medan.kunci]"
             inputmode="numeric"
-            placeholder="10"
+            :placeholder="medan.contoh"
             autocomplete="off"
           />
         </MedanForm>
