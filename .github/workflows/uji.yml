@@ -270,8 +270,13 @@ jobs:
 
       # Skrip uji berjalan di HOST (bukan di container): ia bicara ke CDP dan
       # ke API lewat localhost, keduanya sudah dipetakan compose.
+      #
+      # Dipanggil lewat `bash`, bukan `./periksa.sh`: bit executable di Git
+      # hanya ikut bila berkasnya ditambahkan dengan mode 755, dan berkas yang
+      # ditambahkan dari Windows mudah masuk sebagai 644. Kegagalannya muncul
+      # sebagai "exit code 126" - yang tidak menyebut izin sama sekali.
       - name: Uji browser dan uji balapan
-        run: ./periksa.sh --hanya-e2e
+        run: bash periksa.sh --hanya-e2e
 
       - name: Simpan tangkapan layar bila ada yang gagal
         if: failure()
