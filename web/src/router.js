@@ -12,6 +12,8 @@ import AuditLogView from './views/pemilik/AuditLogView.vue'
 import KebijakanView from './views/pemilik/KebijakanView.vue'
 import FasilitasView from './views/pemilik/FasilitasView.vue'
 import AturanView from './views/pemilik/AturanView.vue'
+import PersetujuanView from './views/pemilik/PersetujuanView.vue'
+import PengaturanNotifikasiView from './views/pemilik/PengaturanNotifikasiView.vue'
 import PengelolaView from './views/pemilik/PengelolaView.vue'
 import DashboardPenghuni from './views/DashboardPenghuni.vue'
 import TidakDitemukanView from './views/TidakDitemukanView.vue'
@@ -55,6 +57,28 @@ const routes = [
       { path: 'fasilitas', name: 'pemilik-fasilitas', component: FasilitasView },
       { path: 'aturan', name: 'pemilik-aturan', component: AturanView },
       { path: 'audit', name: 'pemilik-audit', component: AuditLogView },
+      {
+        path: 'persetujuan',
+        name: 'pemilik-persetujuan',
+        component: PersetujuanView,
+        // Terbuka untuk pemilik DAN pengelola, dengan isi yang berbeda:
+        // server menyaring `GET /usulan` menjadi usulan milik pemanggil bila ia
+        // bukan pemilik. Tanpa ini pengelola tidak punya tempat melihat nasib
+        // usulannya - ia hanya menerima satu notifikasi lalu tidak bisa
+        // memeriksa apa pun lagi.
+        //
+        // Yang tetap hanya untuk pemilik adalah tombol keputusannya, dan itu
+        // ditegakkan server lewat `peran:pemilik` pada endpoint setujui/tolak.
+        // Menyembunyikan tombolnya di sini hanya mencegah pengelola menekan
+        // tombol yang pasti ditolak.
+      },
+      // Pengaturan notifikasi terbuka untuk siapa pun yang punya kotak masuk:
+      // mengatur cara diri sendiri diberi tahu bukan tindakan atas data kos.
+      {
+        path: 'pengaturan-notifikasi',
+        name: 'pemilik-pengaturan-notifikasi',
+        component: PengaturanNotifikasiView,
+      },
       {
         path: 'pengelola',
         name: 'pemilik-pengelola',

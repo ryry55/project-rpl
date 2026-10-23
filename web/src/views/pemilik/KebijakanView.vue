@@ -48,6 +48,15 @@ const kolom = computed(() => meta.value?.kolom || {})
 const labelTipe = computed(() => meta.value?.label_tipe || {})
 const kurang = computed(() => meta.value?.kurang || [])
 
+/**
+ * Apakah akun ini MENETAPKAN atau hanya MENGUSULKAN.
+ *
+ * Dibaca dari server, bukan disimpulkan dari peran di peramban. Server sudah
+ * tahu jawabannya (`boleh_menetapkan`), dan menyimpulkannya lagi di sini berarti
+ * dua tempat yang harus setuju soal siapa yang boleh menetapkan angka uang.
+ */
+const bolehMenetapkan = computed(() => meta.value?.boleh_menetapkan !== false)
+
 /** Baris yang berlaku untuk kamar yang sedang dipilih (atau default kos). */
 function berlakuUntuk(tipe) {
   return meta.value?.berlaku?.[tipe] || null
@@ -75,6 +84,14 @@ async function muat() {
   }
 }
 
+/**
+ * Menyimpan kebijakan baru.
+ *
+ * Sejak T26 jawabannya punya dua bentuk. Pemilik menetapkan (201); pengelola
+ * mengusulkan (202) dan kebijakan **belum** berubah. Kalau keduanya diperlakukan
+ * sama, pengelola akan membaca "Kebijakan tersimpan" padahal tidak ada yang
+ * berubah, lalu menunggu tagihan yang tidak pernah memakai nilainya.
+ */
 async function simpan(isi) {
   menyimpanTipe.value = isi.tipe
   galatSimpan.value = ''
@@ -82,13 +99,23 @@ async function simpan(isi) {
   sukses.value = ''
 
   try {
-    await sesi.panggil('/kebijakan', {
+    const hasil = await sesi.panggil('/kebijakan', {
       method: 'POST',
       body: JSON.stringify({
         ...isi,
         kamar_id: kamarTerpilih.value ? Number(kamarTerpilih.value) : null,
       }),
     })
+
+    if (hasil?.meta?.diajukan) {
+      // Riwayat tidak dimuat ulang pada jalur ini: isinya memang tidak berubah,
+      // dan memuat ulang hanya menambah satu permintaan untuk jawaban yang sama.
+      sukses.value =
+        hasil.meta.pesan ||
+        'Usulan terkirim. Kebijakan belum berubah sampai pemilik menyetujuinya.'
+      return
+    }
+
     await muat()
 
     // Tersimpan belum tentu berlaku. Kebijakan diselesaikan terhadap awal
@@ -134,7 +161,15 @@ onMounted(muat)
       alamatnya bisa dibuka langsung - jadi keadaan ini tetap harus ditangani.
     -->
     <PesanBaris v-if="!sesi.boleh('ubah_kebijakan')" jenis="netral">
-      Akun Anda hanya dapat membaca kebijakan kos. Menetapkannya adalah wewenang pemilik.
+      Akun Anda hanya dapat membaca kebijakan kos. Mengubahnya adalah wewenang pemilik.
+    </PesanBaris>
+
+    <!-- Pengelola yang PUNYA wewenang tetap tidak menetapkan. Sejak T26 ia
+         mengusulkan, dan pemilik yang menyetujui. Dikatakan di sini supaya
+         kalimat tombol "Ajukan perubahan" tidak mengejutkan. -->
+    <PesanBaris v-else-if="!bolehMenetapkan" jenis="netral">
+      Perubahan yang Anda ajukan akan masuk ke antrean persetujuan pemilik. Nilai
+      baru berlaku setelah disetujui, bukan setelah tombol ini ditekan.
     </PesanBaris>
 
     <section v-if="belumLengkap" class="kartu panel gerbang-kebijakan">
@@ -184,6 +219,7 @@ onMounted(muat)
         :wajib="kurang.includes(tipe)"
         :menyimpan="menyimpanTipe === tipe"
         :boleh-ubah="sesi.boleh('ubah_kebijakan')"
+        :menetapkan="bolehMenetapkan"
         @simpan="simpan"
       />
 

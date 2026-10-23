@@ -18,6 +18,7 @@ import { rupiah, tanggal, pesanGalat } from '../format.js'
 import { simulasiTanggal } from '../simulasi.js'
 import LencanaStatus from '../komponen/ui/LencanaStatus.vue'
 import BarisKosong from '../komponen/ui/BarisKosong.vue'
+import LoncengNotifikasi from '../komponen/LoncengNotifikasi.vue'
 
 const router = useRouter()
 
@@ -148,7 +149,10 @@ onMounted(muatAturan)
           <p class="lemah mungil">{{ sesi.user.value?.nama }}</p>
         </div>
       </div>
-      <button class="halus" @click="keluar">Keluar</button>
+      <div class="aksi-bar">
+        <LoncengNotifikasi />
+        <button class="halus" @click="keluar">Keluar</button>
+      </div>
     </header>
 
     <!-- Tanggal acuan diumumkan supaya penghuni tahu angka denda dihitung
@@ -366,6 +370,13 @@ onMounted(muatAturan)
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 20px;
+}
+
+.aksi-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .merek {

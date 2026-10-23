@@ -9,6 +9,7 @@ use App\Domain\Billing\PenerbitTagihan;
 use App\Domain\Billing\TagihanTidakDapatDiterbitkan;
 use App\Domain\Kebijakan\KebijakanBelumLengkap;
 use App\Domain\Kebijakan\PenyelesaiKebijakan;
+use App\Domain\Notifikasi\Pemberitahu;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CatatPembayaranRequest;
 use App\Http\Requests\Api\TerbitkanMassalRequest;
@@ -31,6 +32,7 @@ class TagihanController extends Controller
         private readonly PencatatPembayaran $pencatatPembayaran,
         private readonly PenyelesaiKebijakan $penyelesaiKebijakan,
         private readonly WaktuSistem $waktu,
+        private readonly Pemberitahu $pemberitahu,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -97,6 +99,21 @@ class TagihanController extends Controller
 
         $tagihan->load(['rincian', 'kontrak.kamar', 'kontrak.penghuni']);
 
+        // Pemberitahuan dikirim di sini, di batas HTTP, bukan di
+        // `PenerbitTagihan`: transaksi penulisan tagihan sudah selesai, jadi
+        // tidak ada lagi yang bisa dibatalkan oleh kegagalan email.
+        $this->pemberitahu->tagihanTerbit(
+            pelaku: $request->user(),
+            penghuniId: (int) $kontrak->penghuni_id,
+            ringkasan: sprintf(
+                'Tagihan %s kamar %s sebesar Rp %s',
+                $periode->copy()->translatedFormat('F Y'),
+                $kontrak->kamar?->nomor ?? "id {$kontrak->kamar_id}",
+                number_format((int) $tagihan->pokok, 0, ',', '.'),
+            ),
+            jatuhTempo: $tagihan->jatuh_tempo->toDateString(),
+        );
+
         return response()->json(['data' => new TagihanResource($tagihan)], 201);
     }
 
@@ -162,6 +179,17 @@ class TagihanController extends Controller
         }
 
         $tagihan->refresh()->load(['rincian', 'pembayaran.verifikasi', 'pembayaran.pencatat', 'pembayaran.penerima', 'kontrak.kamar', 'kontrak.penghuni']);
+
+        $this->pemberitahu->pembayaranDicatat(
+            pelaku: $request->user(),
+            penghuniId: (int) $tagihan->kontrak?->penghuni_id,
+            ringkasan: sprintf(
+                'Rp %s untuk tagihan %s kamar %s',
+                number_format($hasil->pembayaran->jumlah, 0, ',', '.'),
+                $tagihan->periode->translatedFormat('F Y'),
+                $tagihan->kontrak?->kamar?->nomor ?? 'tanpa nomor',
+            ),
+        );
 
         return response()->json([
             'data' => [
@@ -256,6 +284,17 @@ class TagihanController extends Controller
             $hasil['dilewati_duplikat'] > 0 => 409,
             default => 200,
         };
+
+        // Dikirim juga saat tidak ada yang terbit, selama batch-nya benar-benar
+        // dijalankan. Yang perlu diketahui pemilik adalah "tombolnya sudah
+        // ditekan dan inilah hasilnya" - termasuk hasil yang kosong. Diam saja
+        // saat 0 terbit akan membuatnya menekan tombol yang sama sekali lagi.
+        $this->pemberitahu->tagihanMassal(
+            pelaku: $request->user(),
+            periode: $periode->copy()->startOfMonth()->translatedFormat('F Y'),
+            terbit: $hasil['terbit'],
+            gagal: $hasil['gagal'],
+        );
 
         return response()->json([
             'data' => $hasil,

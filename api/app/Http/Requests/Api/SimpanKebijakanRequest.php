@@ -19,6 +19,11 @@ use Illuminate\Validation\Rule;
  * {@see PilihanKebijakan::menu} — sumber yang sama yang dipakai layar. Kalau
  * daftarnya disalin ke sini, cepat atau lambat satu salinan tertinggal dan
  * gejalanya adalah pilihan yang tampil di layar tetapi ditolak server.
+ *
+ * Sejak T26 aturannya dibangun dari array masukan (`aturan()`), bukan dari
+ * `$this->input()`. Jalur usulan memvalidasi payload yang datang sebagai
+ * kiriman biasa sebelum disimpan, dan jalur persetujuan tidak memvalidasi ulang
+ * — payload-nya sudah divalidasi saat diajukan.
  */
 class SimpanKebijakanRequest extends FormRequest
 {
@@ -32,8 +37,20 @@ class SimpanKebijakanRequest extends FormRequest
      */
     public function rules(): array
     {
-        $tipe = (string) $this->input('tipe', '');
-        $nilai = (string) $this->input('nilai', '');
+        return static::aturan($this->all());
+    }
+
+    /**
+     * Aturan yang sama, dibangun dari array masukan apa pun.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public static function aturan(array $data): array
+    {
+        $tipe = (string) ($data['tipe'] ?? '');
+        $nilai = (string) ($data['nilai'] ?? '');
+        $kamarId = $data['kamar_id'] ?? null;
 
         // Matriks "kolom angka mana yang wajib" diambil dari satu sumber yang
         // sama dengan CHECK constraint dan dengan layar. Menyalinnya ke sini
@@ -58,7 +75,7 @@ class SimpanKebijakanRequest extends FormRequest
                 'date_format:Y-m-d',
                 Rule::unique('kebijakan_kos', 'berlaku_dari')
                     ->where('tipe', $tipe)
-                    ->where('kamar_id', $this->input('kamar_id')),
+                    ->where('kamar_id', $kamarId),
             ],
             // Hanya `jatuh_tempo` + `tanggal_tetap` yang memakai kolom ini.
             // Wajib diisi di sana (tanpa tanggal, "tanggal tetap" tidak berarti
@@ -113,6 +130,14 @@ class SimpanKebijakanRequest extends FormRequest
      * @return array<string, string>
      */
     public function messages(): array
+    {
+        return static::pesan();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function pesan(): array
     {
         return [
             'tipe.required' => 'Jenis kebijakan wajib dipilih.',

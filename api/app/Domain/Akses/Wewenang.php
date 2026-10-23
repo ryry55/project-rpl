@@ -82,6 +82,17 @@ final class Wewenang
      *
      * Dikirim server ke layar supaya tidak ada dua daftar yang tumbuh sendiri.
      *
+     * Dua wewenang sensitif berbunyi "Mengusulkan", bukan "Mengubah". Sejak
+     * T26 keduanya memang tidak lagi memberi hak menetapkan: pemilik yang
+     * menetapkan, dan pemegang wewenang ini hanya bisa mengajukan. Label lama
+     * akan membuat pemilik mencentang "Mengubah tarif sewa" untuk seorang
+     * pengelola dan mengira pengelola itu bisa langsung menaikkan tarif - lalu
+     * kecewa saat menyetujui usulan yang tidak pernah ia duga akan datang.
+     *
+     * Nama konstantanya sengaja TIDAK ikut diganti: mengganti nilai `ubah_tarif`
+     * menjadi `usul_tarif` akan mencabut wewenang dari setiap akun pengelola
+     * yang sudah ada, tanpa galat dan tanpa pemberitahuan.
+     *
      * @return array<string, string>
      */
     public static function label(): array
@@ -91,8 +102,8 @@ final class Wewenang
             self::KELOLA_KAMAR => 'Mengelola kamar',
             self::KELOLA_PENGHUNI => 'Mengelola penghuni',
             self::TERBITKAN_TAGIHAN => 'Menerbitkan tagihan',
-            self::UBAH_TARIF => 'Mengubah tarif sewa',
-            self::UBAH_KEBIJAKAN => 'Mengubah kebijakan kos',
+            self::UBAH_TARIF => 'Mengusulkan perubahan tarif sewa',
+            self::UBAH_KEBIJAKAN => 'Mengusulkan perubahan kebijakan kos',
             self::VERIFIKASI_PEMBAYARAN => 'Memverifikasi pembayaran',
             self::BACA_AUDIT => 'Membaca jejak audit',
         ];

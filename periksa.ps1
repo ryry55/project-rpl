@@ -180,6 +180,7 @@ if (-not $Cepat) {
             'e2e-t1.mjs', 'e2e-t2.mjs', 'e2e-t3.mjs', 'e2e-t4.mjs',
             'e2e-t5.mjs', 'e2e-t6.mjs', 'e2e-t7.mjs', 'e2e-t9.mjs',
             'e2e-t18.mjs', 'e2e-t19.mjs', 'e2e-t20.mjs', 'e2e-t24.mjs',
+            'e2e-t25.mjs', 'e2e-t26.mjs',
             'asap-semua-halaman.mjs', 'uji-tata-letak.mjs'
         )
 

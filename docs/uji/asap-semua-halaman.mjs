@@ -283,6 +283,12 @@ jalankan(async () => {
     // halaman baru adalah tempat kesalahan yang paling sering lolos - tidak
     // ada tes per tiket lain yang membukanya.
     ['/pemilik/pengelola', 'Pengelola'],
+    // Persetujuan dan Pengaturan notifikasi (T25/T26) ikut disapu dengan alasan
+    // yang sama. Persetujuan khususnya: halaman itu kosong pada database yang
+    // belum punya usulan, dan halaman kosong adalah tempat kesalahan render
+    // yang paling mudah lolos - tidak ada baris untuk memicu satu pun cabang.
+    ['/pemilik/persetujuan', 'Persetujuan'],
+    ['/pemilik/pengaturan-notifikasi', 'Pengaturan notifikasi'],
   ]
   for (const [jalur, nama] of halamanPemilik) {
     await kunjungi(jalur, nama)

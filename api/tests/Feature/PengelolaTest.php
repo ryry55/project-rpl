@@ -10,6 +10,7 @@ use App\Models\PengelolaKewenangan;
 use App\Models\Penghuni;
 use App\Models\TarifSewa;
 use App\Models\User;
+use App\Models\UsulanPerubahan;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -318,7 +319,16 @@ class PengelolaTest extends TestCase
         $this->assertSame(0, TarifSewa::count());
     }
 
-    public function test_pengelola_dengan_ubah_tarif_boleh_menetapkan_tarif(): void
+    /**
+     * Sejak T26 wewenang `ubah_tarif` berarti "boleh MENGUSULKAN".
+     *
+     * Nama tesnya sengaja diubah dari "boleh menetapkan" menjadi "mengajukan
+     * usulan": yang diuji harus sama dengan yang dijanjikan nama wewenangnya.
+     * Tes lama menuntut 201 dan baris `tarif_sewa` - keduanya sekarang justru
+     * BUKTI bahwa pemisahan kewenangan gagal. 202 dan nol baris tarif adalah
+     * jawaban yang benar.
+     */
+    public function test_pengelola_dengan_ubah_tarif_mengajukan_usulan_bukan_menetapkan(): void
     {
         $kamar = $this->kamar();
 
@@ -328,9 +338,16 @@ class PengelolaTest extends TestCase
                 'nilai' => 1500000,
                 'berlaku_dari' => '2026-01-01',
             ])
-            ->assertCreated();
+            ->assertStatus(202)
+            ->assertJsonPath('meta.diajukan', true)
+            ->assertJsonPath('data.tipe', 'tarif')
+            ->assertJsonPath('data.status_efektif', 'menunggu');
 
-        $this->assertSame(1, TarifSewa::count());
+        // Yang terpenting: TIDAK ADA baris tarif. Kalau baris ini ada, tarif
+        // sudah berubah sebelum pemilik menyetujuinya - dan seluruh T26 tidak
+        // berarti apa pun.
+        $this->assertSame(0, TarifSewa::count());
+        $this->assertSame(1, UsulanPerubahan::count());
     }
 
     public function test_pengelola_tanpa_ubah_kebijakan_ditolak_menetapkan_kebijakan(): void
@@ -471,6 +488,14 @@ class PengelolaTest extends TestCase
 
     // --- Jejak audit -------------------------------------------------------
 
+    /**
+     * Jejak pengelola yang mengusulkan: `tarif.usul`, bukan `tarif.tambah`.
+     *
+     * Kalau yang tercatat `tarif.tambah`, log berbohong ke arah yang paling
+     * berbahaya: ia menyebut pengelola menetapkan tarif padahal tarifnya tidak
+     * berubah. Pertanyaan "siapa yang menaikkan tarif ini" akan dijawab dengan
+     * nama orang yang justru sedang menunggu keputusan.
+     */
     public function test_aksi_pengelola_tercatat_dengan_namanya(): void
     {
         $kamar = $this->kamar();
@@ -481,12 +506,15 @@ class PengelolaTest extends TestCase
                 'nilai' => 1500000,
                 'berlaku_dari' => '2026-01-01',
             ])
-            ->assertCreated();
+            ->assertStatus(202);
 
-        $jejak = LogAudit::where('aksi', 'tarif.tambah')->latest('id')->firstOrFail();
+        $jejak = LogAudit::where('aksi', 'tarif.usul')->latest('id')->firstOrFail();
 
         $this->assertSame('Sari Pengelola', $jejak->aktor_nama);
         $this->assertSame($this->pengelola->id, $jejak->aktor_id);
+        // Entitasnya usulan, bukan tarif: menyebut `tarif_sewa` dengan id
+        // kosong akan menunjuk baris tarif yang tidak pernah ada.
+        $this->assertSame('usulan_perubahan', $jejak->entitas);
     }
 
     public function test_nilai_lama_terisi_saat_tarif_dinaikkan(): void

@@ -78,6 +78,12 @@ const HALAMAN_PEMILIK = [
   // paling mudah meluber: label seperti "Memverifikasi pembayaran" lebih lebar
   // daripada setengah layar 360px.
   ['/pemilik/pengelola', 'Pengelola'],
+  // Persetujuan dan Pengaturan notifikasi (T25/T26). Keduanya paling mungkin
+  // meluber: Persetujuan memuat kalimat ringkasan panjang yang tidak bisa
+  // dipatahkan sembarangan, dan Pengaturan notifikasi adalah tabel tiga kolom
+  // dengan judul peristiwa yang panjang.
+  ['/pemilik/persetujuan', 'Persetujuan'],
+  ['/pemilik/pengaturan-notifikasi', 'Pengaturan notifikasi'],
 ]
 
 jalankan(async () => {

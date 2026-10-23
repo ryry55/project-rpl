@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Notifikasi\Pemberitahu;
 use App\Domain\Pembayaran\MetodePembayaran;
 use App\Domain\Pembayaran\PencatatVerifikasi;
 use App\Domain\Pembayaran\RekapPendapatan;
@@ -29,6 +30,7 @@ class PembayaranController extends Controller
         private readonly PencatatVerifikasi $verifikator,
         private readonly RekapPendapatan $rekap,
         private readonly WaktuSistem $waktu,
+        private readonly Pemberitahu $pemberitahu,
     ) {}
 
     /**
@@ -153,6 +155,22 @@ class PembayaranController extends Controller
         }
 
         $pembayaran->refresh()->load(['verifikasi', 'pencatat', 'penerima']);
+
+        // Pemeriksaan tidak mengubah angka apa pun, jadi tidak ada transaksi
+        // yang perlu ditunggu. Yang diberi tahu adalah pencatatnya - dialah yang
+        // perlu tahu catatannya diterima atau ditolak - plus pengurus lain.
+        $tagihan = $pembayaran->tagihan;
+
+        $this->pemberitahu->pembayaranDiverifikasi(
+            pelaku: $request->user(),
+            pencatat: $pembayaran->pencatat,
+            ringkasan: sprintf(
+                'pembayaran Rp %s%s',
+                number_format((int) $pembayaran->jumlah, 0, ',', '.'),
+                $tagihan !== null ? ' untuk tagihan '.$tagihan->periode->translatedFormat('F Y') : '',
+            ),
+            diterima: $keputusan === 'terima',
+        );
 
         return response()->json([
             'data' => [

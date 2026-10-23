@@ -1,7 +1,8 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter, useRoute, RouterLink, RouterView } from 'vue-router'
 import { sesi } from '../sesi.js'
+import LoncengNotifikasi from './LoncengNotifikasi.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -40,6 +41,26 @@ const semuaMenu = [
   { nama: 'fasilitas', label: 'Fasilitas', ket: 'Apa saja yang dimiliki tiap kamar', wewenang: 'kelola_kamar' },
   { nama: 'aturan', label: 'Aturan kos', ket: 'Yang dibaca penghuni di portalnya', wewenang: 'kelola_kamar' },
   { nama: 'audit', label: 'Jejak audit', ket: 'Siapa mengubah apa, kapan', wewenang: 'baca_audit' },
+  // Persetujuan diletakkan setelah Jejak audit, bukan di atas: halamannya kosong
+  // pada sebagian besar hari, dan menu yang selalu ada tetapi hampir selalu
+  // kosong akan terlatih untuk diabaikan. Lencananya yang memberi tahu kapan
+  // halaman ini perlu dibuka.
+  //
+  // Terbuka untuk pengelola juga: server menyaring isinya menjadi usulan milik
+  // pemanggil, sehingga pengelola melihat nasib usulannya sendiri di sini.
+  // Tombol keputusannya hanya dirender untuk pemilik.
+  {
+    nama: 'persetujuan',
+    label: 'Persetujuan',
+    ket: 'Usulan perubahan tarif dan kebijakan',
+  },
+  // Terbuka untuk semua yang punya kotak masuk: mengatur cara diri sendiri
+  // diberi tahu bukan tindakan atas data kos.
+  {
+    nama: 'pengaturan-notifikasi',
+    label: 'Pengaturan notifikasi',
+    ket: 'Peristiwa mana yang dikirim ke Anda',
+  },
   // Paling bawah karena dibuka paling jarang: sekali saat menambah orang,
   // lalu tidak lagi.
   { nama: 'pengelola', label: 'Pengelola', ket: 'Siapa membantu dan boleh apa', hanyaPemilik: true },
@@ -58,6 +79,36 @@ const menu = computed(() =>
     return sesi.boleh(m.wewenang)
   }),
 )
+
+/**
+ * Jumlah usulan yang menunggu keputusan pemilik.
+ *
+ * Diambil sekali saat tata letak dipasang, bukan dari daftar usulan yang
+ * kebetulan sedang terbuka. Lencana menu harus benar dari halaman mana pun -
+ * termasuk dari halaman yang tidak berhubungan dengan persetujuan, dan justru
+ * di sanalah pemilik perlu tahu ada yang menunggu.
+ *
+ * Hanya untuk pemilik: pengelola tidak bisa memutuskan, dan lencana yang tidak
+ * bisa dikerjakan hanya menimbulkan rasa bersalah tanpa jalan keluar.
+ */
+const jumlahMenunggu = ref(0)
+
+async function muatJumlahMenunggu() {
+  if (sesi.user.value?.peran !== 'pemilik') {
+    return
+  }
+
+  try {
+    const hasil = await sesi.panggil('/usulan?status=menunggu')
+    jumlahMenunggu.value = hasil.meta?.jumlah_menunggu ?? 0
+  } catch {
+    // Lencana adalah pelengkap. Gagal memuatnya tidak boleh menampilkan galat
+    // di halaman yang sedang dibuka pemilik.
+    jumlahMenunggu.value = 0
+  }
+}
+
+onMounted(muatJumlahMenunggu)
 
 /**
  * Sebutan peran di bawah nama kos.
@@ -102,6 +153,8 @@ async function keluar() {
         </div>
       </div>
 
+      <LoncengNotifikasi />
+
       <nav class="menu">
         <RouterLink
           v-for="m in menu"
@@ -110,7 +163,12 @@ async function keluar() {
           class="tautan"
           :class="{ aktif: route.name === `pemilik-${m.nama}` }"
         >
-          <span class="tautan-label">{{ m.label }}</span>
+          <span class="tautan-label">
+            {{ m.label }}
+            <span v-if="m.nama === 'persetujuan' && jumlahMenunggu > 0" class="tautan-jumlah">
+              {{ jumlahMenunggu }}
+            </span>
+          </span>
           <span class="tautan-ket mungil">{{ m.ket }}</span>
         </RouterLink>
       </nav>
@@ -200,6 +258,24 @@ async function keluar() {
 .tautan-label {
   font-size: 13.5px;
   font-weight: 570;
+}
+
+/* Lencana jumlah menunggu. Bentuknya bulat dan kecil supaya tidak terbaca
+   sebagai bagian dari nama menu; yang dibaca mata adalah namanya, dan angkanya
+   hanya menempel di ujung. */
+.tautan-jumlah {
+  display: inline-grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  margin-left: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--bahaya);
+  border-radius: 999px;
+  vertical-align: 1px;
 }
 
 .tautan-ket {

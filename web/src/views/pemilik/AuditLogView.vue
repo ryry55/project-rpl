@@ -27,27 +27,64 @@ const galatMuat = ref('')
 // itu dinonaktifkan saat entitas kosong — bukan dibiarkan tampak berfungsi.
 const saring = ref({ entitas: '', entitas_id: '', aksi: '' })
 
+/**
+ * Saringan yang ditawarkan.
+ *
+ * Daftar ini sengaja menyebut aksi yang **benar-benar ditulis** kode. Sebelum
+ * T26 daftarnya masih memuat `parameter_denda.tambah` - aksi yang tidak pernah
+ * terjadi lagi sejak tabel itu dihapus - dan tidak memuat `tarif.usul`,
+ * `tarif.setujui`, maupun `pembayaran.verifikasi`. Akibatnya penyaring yang
+ * paling berguna justru tidak bisa dipakai, dan yang paling tidak berguna
+ * menghasilkan daftar kosong yang terbaca sebagai "tidak ada kejadian".
+ *
+ * Aksi yang tidak ada di sini tetap tampil di tabel sebagai nilai mentahnya;
+ * daftar ini hanya memuat yang layak disaring, bukan gerbang.
+ */
 const ENTITAS = [
   { nilai: '', label: 'Semua entitas' },
   { nilai: 'tagihan', label: 'Tagihan' },
-  { nilai: 'tarif', label: 'Tarif' },
-  { nilai: 'parameter_denda', label: 'Parameter denda' },
+  { nilai: 'pembayaran', label: 'Pembayaran' },
+  { nilai: 'tarif_sewa', label: 'Tarif sewa' },
+  { nilai: 'kebijakan_kos', label: 'Kebijakan kos' },
+  { nilai: 'usulan_perubahan', label: 'Usulan perubahan' },
 ]
 
 const AKSI = [
   { nilai: '', label: 'Semua aksi' },
   { nilai: 'tagihan.terbit', label: 'Tagihan diterbitkan' },
   { nilai: 'tagihan.bayar', label: 'Pembayaran dicatat' },
-  { nilai: 'tarif.tambah', label: 'Tarif ditambahkan' },
-  { nilai: 'parameter_denda.tambah', label: 'Parameter denda ditambahkan' },
+  { nilai: 'pembayaran.verifikasi', label: 'Pembayaran diperiksa' },
+  { nilai: 'tarif.tambah', label: 'Tarif ditetapkan pemilik' },
+  { nilai: 'tarif.usul', label: 'Tarif diusulkan pengelola' },
+  { nilai: 'tarif.setujui', label: 'Usulan tarif disetujui' },
+  { nilai: 'tarif.tolak', label: 'Usulan tarif ditolak' },
+  { nilai: 'kebijakan.tambah', label: 'Kebijakan ditetapkan pemilik' },
+  { nilai: 'kebijakan.usul', label: 'Kebijakan diusulkan pengelola' },
+  { nilai: 'kebijakan.setujui', label: 'Usulan kebijakan disetujui' },
+  { nilai: 'kebijakan.tolak', label: 'Usulan kebijakan ditolak' },
 ]
 
-/** Nama aksi yang bisa dibaca, tanpa titik teknisnya. */
+/**
+ * Nama aksi yang bisa dibaca.
+ *
+ * `usul`/`setujui` sengaja dibedakan dari `tambah`: keduanya menulis baris
+ * dengan bentuk yang sama, tetapi pertanyaan yang dijawabnya berbeda - "siapa
+ * yang menetapkan" dan "siapa yang mengusulkan lalu siapa yang menyetujui".
+ * Menyamakan labelnya akan mengembalikan kebohongan yang justru ingin dihapus
+ * T26.
+ */
 const labelAksi = {
   'tagihan.terbit': 'Tagihan diterbitkan',
   'tagihan.bayar': 'Pembayaran dicatat',
-  'tarif.tambah': 'Tarif ditambahkan',
-  'parameter_denda.tambah': 'Parameter denda ditambahkan',
+  'pembayaran.verifikasi': 'Pembayaran diperiksa',
+  'tarif.tambah': 'Tarif ditetapkan',
+  'tarif.usul': 'Tarif diusulkan',
+  'tarif.setujui': 'Usulan tarif disetujui',
+  'tarif.tolak': 'Usulan tarif ditolak',
+  'kebijakan.tambah': 'Kebijakan ditetapkan',
+  'kebijakan.usul': 'Kebijakan diusulkan',
+  'kebijakan.setujui': 'Usulan kebijakan disetujui',
+  'kebijakan.tolak': 'Usulan kebijakan ditolak',
 }
 
 const jumlahSaring = computed(() => {

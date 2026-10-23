@@ -25,6 +25,7 @@ const formTarif = ref({ nilai: '', berlaku_dari: tanggalHariIni() })
 const galatTarif = ref('')
 const galatTarifBidang = ref({})
 const menyimpanTarif = ref(false)
+const suksesTarif = ref('')
 
 // Kamar yang fasilitasnya sedang diatur (T18).
 const kamarFasilitas = ref(null)
@@ -106,6 +107,7 @@ async function bukaTarif(kamar) {
 function tutupTarif() {
   kamarTarif.value = null
   riwayat.value = []
+  suksesTarif.value = ''
 }
 
 /**
@@ -178,25 +180,51 @@ async function simpanFasilitas() {
   }
 }
 
+/**
+ * Menyimpan tarif baru.
+ *
+ * Sejak T26 jawabannya punya dua bentuk, dan layar harus membedakannya:
+ *
+ *   pemilik   -> 201, baris tarif tertulis, riwayat bertambah
+ *   pengelola -> 202, usulan tercatat, riwayat TIDAK bertambah
+ *
+ * Kalau 202 diperlakukan seperti 201, pengelola akan melihat riwayat yang tidak
+ * berubah setelah menekan Berlakukan tarif - dan menyimpulkan aplikasinya rusak,
+ * lalu menekan tombolnya lagi. Karena itu pesannya berbeda, dan riwayat hanya
+ * dimuat ulang pada jalur 201.
+ */
 async function simpanTarif() {
   menyimpanTarif.value = true
   galatTarif.value = ''
   galatTarifBidang.value = {}
+  suksesTarif.value = ''
   try {
-    await sesi.panggil('/tarif', {
+    const hasil = await sesi.panggil('/tarif', {
       method: 'POST',
       body: JSON.stringify({
         kamar_id: kamarTarif.value.id,
         // Nilai dikirim sebagai bilangan bulat. Kalau pengguna mengetik
         // "1500000.5", Number() menghasilkan pecahan dan server menolaknya
-        // dengan 422 — itu memang yang diinginkan, bukan dipotong diam-diam.
+        // dengan 422 - itu memang yang diinginkan, bukan dipotong diam-diam.
         nilai: Number(formTarif.value.nilai),
         berlaku_dari: formTarif.value.berlaku_dari,
       }),
     })
+
     formTarif.value = { nilai: '', berlaku_dari: tanggalHariIni() }
-    await bukaTarif(kamarTarif.value)
-    await muat()
+
+    if (hasil?.meta?.diajukan) {
+      suksesTarif.value =
+        hasil.meta.pesan ||
+        'Usulan terkirim. Tarif belum berubah sampai pemilik menyetujuinya.'
+      // Riwayat tetap dimuat ulang: isinya tidak berubah, tetapi memuatnya
+      // memastikan layar tidak menampilkan sisa keadaan sebelumnya.
+      await bukaTarif(kamarTarif.value)
+    } else {
+      suksesTarif.value = 'Tarif baru berlaku. Tagihan periode berikutnya memakai nilai ini.'
+      await bukaTarif(kamarTarif.value)
+      await muat()
+    }
   } catch (e) {
     galatTarif.value = pesanGalat(e)
     galatTarifBidang.value = galatPerBidang(e)
@@ -328,10 +356,11 @@ onMounted(muat)
         </div>
 
         <p v-if="galatTarif" class="pesan-galat">{{ galatTarif }}</p>
+        <PesanBaris v-if="suksesTarif" jenis="sukses" mungil>{{ suksesTarif }}</PesanBaris>
 
         <div class="aksi">
           <button type="submit" :disabled="menyimpanTarif">
-            {{ menyimpanTarif ? 'Menyimpan…' : 'Berlakukan tarif' }}
+            {{ menyimpanTarif ? 'Menyimpan.' : (sesi.user.value?.peran === 'pemilik' ? 'Berlakukan tarif' : 'Ajukan perubahan tarif') }}
           </button>
         </div>
       </form>

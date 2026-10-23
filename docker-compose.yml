@@ -56,11 +56,39 @@ services:
       CACHE_STORE: file
       QUEUE_CONNECTION: sync
       LOG_CHANNEL: stderr
+      # Surat keluar ditangkap Mailpit, bukan dikirim ke alamat sungguhan.
+      # Sejak T25 aplikasi benar-benar mengirim email, dan mengirimnya ke
+      # penghuni demo yang alamatnya karangan berarti setiap simpan tarif
+      # menghasilkan bouncing message. Mailpit menangkap semuanya dan
+      # menampilkannya di http://localhost:8025 - cukup untuk membuktikan
+      # emailnya tersusun benar tanpa menyentuh kotak masuk siapa pun.
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-kos@contoh.test}
+      MAIL_FROM_NAME: "Kos-Kosan"
       RUN_MIGRATIONS: "true"
       RUN_SEEDER: "true"
     depends_on:
       db:
         condition: service_healthy
+      mailpit:
+        condition: service_started
+    restart: unless-stopped
+
+  # Penangkap email untuk demo dan pengujian manual. Bukan bagian dari
+  # aplikasi: mematikannya tidak mengubah perilaku apa pun selain email tidak
+  # terkirim, dan itu memang sudah ditangani (Pemberitahu mencatat kegagalan
+  # email ke log, tidak melemparnya ulang).
+  mailpit:
+    image: axllent/mailpit:v1.20
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      TZ: Asia/Jakarta
+    ports:
+      - "${MAILPIT_UI_PORT:-8025}:8025"
     restart: unless-stopped
 
   api-web:

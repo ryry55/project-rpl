@@ -2,21 +2,24 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Domain\Audit\NilaiLama;
 use App\Domain\Audit\PencatatAudit;
 use App\Domain\Kebijakan\PenyelesaiKebijakan;
 use App\Domain\Kebijakan\PilihanKebijakan;
+use App\Domain\Notifikasi\Pemberitahu;
+use App\Domain\Persetujuan\PenerapPerubahan;
+use App\Domain\Persetujuan\PengajuUsulan;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SimpanKebijakanRequest;
 use App\Http\Resources\KebijakanResource;
+use App\Http\Resources\UsulanResource;
 use App\Models\Kamar;
 use App\Models\KebijakanKos;
+use App\Models\UsulanPerubahan;
 use App\Support\WaktuSistem;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Kebijakan kos — append-only seperti tarif sewa dan komponen biaya.
@@ -26,24 +29,19 @@ use Illuminate\Support\Facades\DB;
  * dan tagihan yang sudah terbit tetap memakai salinan yang dibekukan saat
  * terbit (R-06). Menyediakan endpoint ubah akan membuat riwayat itu bohong.
  *
- * `GET` mengembalikan dua hal sekaligus, dan pemisahannya disengaja:
- *
- *   - `data`  — seluruh baris, terbaru dulu. Ini riwayat, untuk layar.
- *   - `meta`  — apa yang **berlaku** untuk satu kamar pada satu periode, plus
- *               daftar tipe yang masih kurang. Ini jawaban untuk pertanyaan
- *               "boleh menagih atau tidak", dan hanya bisa dijawab dengan
- *               memilih kamar dan periode lebih dulu.
- *
- * Tanpa `meta`, layar harus menyusun sendiri aturan "khusus kamar menimpa
- * default" di JavaScript — aturan yang sama yang sudah ditulis di
- * {@see PenyelesaiKebijakan}, dan yang paling mudah salah saat disalin.
+ * Sejak T26, `store` punya dua nasib menurut peran - sama seperti tarif.
+ * Kebijakan mengubah cara seluruh kos menagih, jadi ia justru perubahan yang
+ * paling perlu disetujui pemilik: satu baris di sini bisa mengubah tagihan
+ * semua penghuni bulan depan.
  */
 class KebijakanController extends Controller
 {
     public function __construct(
         private readonly PenyelesaiKebijakan $penyelesai,
         private readonly WaktuSistem $waktu,
-        private readonly PencatatAudit $audit,
+        private readonly PengajuUsulan $pengaju,
+        private readonly PenerapPerubahan $penerap,
+        private readonly Pemberitahu $pemberitahu,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -110,6 +108,11 @@ class KebijakanController extends Controller
                 'label_tipe' => collect(PilihanKebijakan::TIPE_TERSEDIA)
                     ->mapWithKeys(fn (string $tipe) => [$tipe => PilihanKebijakan::labelTipe($tipe)])
                     ->all(),
+                // Tunjukkan apakah akun ini hanya boleh mengusulkan. Layar
+                // memakai ini untuk mengubah kalimat tombol dari "Simpan"
+                // menjadi "Ajukan perubahan" - tombol yang berbunyi sama untuk
+                // dua akibat berbeda adalah tombol yang menipu.
+                'boleh_menetapkan' => $request->user()->isPemilik(),
             ],
         ]);
     }
@@ -118,81 +121,28 @@ class KebijakanController extends Controller
     {
         $data = $request->validated();
 
-        // Kolom angka yang tidak relevan dikosongkan, bukan disimpan apa adanya.
-        // Validasi sudah melarangnya, tetapi menormalkan di sini membuat
-        // perilaku tetap benar bila aturan itu dilonggarkan nanti.
-        //
-        // Sejak T17 kolom yang relevan **disimpan**, bukan dibuang: denda persen
-        // membawa tarif, plafon, dan tenggang; denda nominal membawa nominal.
-        // Sebelumnya keempatnya selalu dikosongkan karena belum ada tipe yang
-        // memakainya.
-        $kolom = PilihanKebijakan::kolomAngka($data['tipe'], $data['nilai']);
+        if (! $request->user()->isPemilik()) {
+            $hasil = $this->pengaju->ajukan(
+                tipe: UsulanPerubahan::TIPE_KEBIJAKAN,
+                payload: $data,
+                pengusul: $request->user(),
+            );
 
-        $data['persen'] = in_array('persen', $kolom['wajib'], true)
-            ? $this->desimal($data['persen'] ?? null)
-            : null;
-        $data['plafon_persen'] = in_array('plafon_persen', $kolom['wajib'], true)
-            ? $this->desimal($data['plafon_persen'] ?? null)
-            : null;
-        $data['masa_tenggang'] = in_array('masa_tenggang', $kolom['wajib'], true)
-            ? (int) $data['masa_tenggang']
-            : null;
-        $data['nominal'] = in_array('nominal', $kolom['wajib'], true)
-            ? (int) $data['nominal']
-            : null;
-        $data['tanggal'] = in_array('tanggal', $kolom['wajib'], true)
-            ? (int) $data['tanggal']
-            : null;
+            $this->pemberitahu->setelahTransaksi($hasil->surat);
+
+            $hasil->usulan->load(['pengusul', 'pemutus']);
+
+            return response()->json([
+                'data' => new UsulanResource($hasil->usulan),
+                'meta' => [
+                    'diajukan' => true,
+                    'pesan' => 'Usulan terkirim. Kebijakan belum berubah sampai pemilik menyetujuinya.',
+                ],
+            ], 202);
+        }
 
         try {
-            $kebijakan = DB::transaction(function () use ($data) {
-                // Baris yang digantikan: kebijakan terakhir untuk tipe dan
-                // kamar yang sama, berlaku sebelum tanggal yang baru. Dicari
-                // sebelum insert supaya tidak menunjuk baris baru itu sendiri.
-                //
-                // `kamar_id` dibandingkan dengan `whereNull`/`where` eksplisit,
-                // bukan `where('kamar_id', ...)`: `= null` tidak pernah cocok di
-                // SQL, sehingga kebijakan default kos akan selalu tampak "belum
-                // pernah ada" dan nilai lamanya hilang dari jejak.
-                $sebelumnya = KebijakanKos::query()
-                    ->where('tipe', $data['tipe'])
-                    ->where('berlaku_dari', '<', $data['berlaku_dari'])
-                    ->when(
-                        ($data['kamar_id'] ?? null) === null,
-                        fn ($q) => $q->whereNull('kamar_id'),
-                        fn ($q) => $q->where('kamar_id', $data['kamar_id']),
-                    )
-                    ->orderByDesc('berlaku_dari')
-                    ->orderByDesc('id')
-                    ->first();
-
-                $kebijakan = KebijakanKos::create($data);
-
-                // Kebijakan menentukan angka uang (denda, deposit), sama
-                // seperti tarif. Karena itu penambahannya dicatat: pertanyaan
-                // "sejak kapan denda kos ini 2%/hari" harus bisa dijawab dari
-                // jejak, bukan dari ingatan pemilik. Sejak T24 nilai lama ikut
-                // disimpan, sehingga "dari 1% menjadi 2%" bisa dibaca langsung.
-                $this->audit->catat(
-                    aksi: PencatatAudit::AKSI_KEBIJAKAN_TAMBAH,
-                    entitas: 'kebijakan_kos',
-                    entitasId: $kebijakan->id,
-                    nilaiLama: NilaiLama::kebijakan($sebelumnya),
-                    nilaiBaru: [
-                        'tipe' => $kebijakan->tipe,
-                        'nilai' => $kebijakan->nilai,
-                        'kamar_id' => $kebijakan->kamar_id,
-                        'persen' => $kebijakan->persen,
-                        'plafon_persen' => $kebijakan->plafon_persen,
-                        'masa_tenggang' => $kebijakan->masa_tenggang,
-                        'nominal' => $kebijakan->nominal,
-                        'tanggal' => $kebijakan->tanggal,
-                        'berlaku_dari' => $kebijakan->berlaku_dari->toDateString(),
-                    ],
-                );
-
-                return $kebijakan;
-            });
+            $hasil = $this->penerap->kebijakan($data, PencatatAudit::AKSI_KEBIJAKAN_TAMBAH);
         } catch (QueryException $e) {
             // SQLSTATE 23505: unique (tipe, kamar_id, berlaku_dari). Pemeriksaan
             // di FormRequest punya celah balapan, dan constraint yang menang.
@@ -206,20 +156,13 @@ class KebijakanController extends Controller
             throw $e;
         }
 
-        return response()->json(['data' => new KebijakanResource($kebijakan)], 201);
-    }
-
-    /**
-     * Persentase disimpan sebagai decimal(5,2), jadi nilainya dinormalkan ke dua
-     * desimal di sini. Tanpa normalisasi, "1" dan "1.00" akan tersimpan sebagai
-     * dua bentuk berbeda dan perbandingan riwayat jadi membingungkan.
-     */
-    private function desimal(mixed $nilai): ?string
-    {
-        if ($nilai === null || $nilai === '') {
-            return null;
+        if ($hasil->surat !== null) {
+            $this->pemberitahu->setelahTransaksi($hasil->surat);
         }
 
-        return number_format((float) $nilai, 2, '.', '');
+        return response()->json([
+            'data' => new KebijakanResource($hasil->baris),
+            'meta' => ['diajukan' => false],
+        ], 201);
     }
 }

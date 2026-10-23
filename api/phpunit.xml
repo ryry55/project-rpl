@@ -21,7 +21,6 @@
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
@@ -48,5 +47,19 @@
         <server name="DB_DATABASE" value="kos_test"/>
         <server name="DB_USERNAME" value="kos"/>
         <server name="DB_PASSWORD" value="kos"/>
+
+        <!--
+            Sejak T25 aplikasi mengirim email sungguhan. Di tes, MAIL_MAILER
+            harus `array` - dan harus ditulis sebagai <server> karena alasan
+            yang sama seperti blok di atas: docker-compose mengoper
+            MAIL_MAILER=smtp sebagai environment, jadi <env> akan kalah dan
+            seluruh rangkaian tes mencoba menghubungi Mailpit.
+
+            Dengan `array`, surat tertangkap di memori dan `Mail::fake()` tidak
+            dibutuhkan di tes yang tidak memeriksa email - tetapi tes yang
+            MEMERIKSA email tetap memakai `Mail::fake()`, karena yang diuji di
+            sana adalah "email dikirim setelah commit", bukan "SMTP hidup".
+        -->
+        <server name="MAIL_MAILER" value="array"/>
     </php>
 </phpunit>

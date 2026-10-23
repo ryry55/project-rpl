@@ -53,6 +53,16 @@ const props = defineProps({
    * yang berlaku sekarang, dan itu memang berguna dibaca siapa pun.
    */
   bolehUbah: { type: Boolean, default: true },
+  /**
+   * Apakah tombol ini MENETAPKAN atau hanya MENGUSULKAN (T26).
+   *
+   * Kalimat tombolnya berbeda karena akibatnya berbeda, dan tombol yang
+   * berbunyi sama untuk dua akibat berbeda adalah tombol yang menipu. Pengelola
+   * yang menekan "Tetapkan" lalu melihat nilainya tidak berubah akan mengira
+   * aplikasinya rusak; pengelola yang menekan "Ajukan perubahan" sudah tahu apa
+   * yang akan terjadi.
+   */
+  menetapkan: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['simpan'])
@@ -261,7 +271,7 @@ function kirim() {
 
       <div class="aksi">
         <button type="submit" :disabled="menyimpan">
-          {{ menyimpan ? 'Menyimpan…' : 'Tetapkan' }}
+          {{ menyimpan ? 'Menyimpan.' : (menetapkan ? 'Tetapkan' : 'Ajukan perubahan') }}
         </button>
       </div>
     </form>

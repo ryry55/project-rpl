@@ -282,6 +282,20 @@ export async function mulaiUji() {
   await kirim(ws, 'Page.enable')
   await kirim(ws, 'Runtime.enable')
 
+  // Cache dimatikan untuk seluruh sesi uji.
+  //
+  // Tanpa ini, Chrome menyajikan `index.html` dan bundel JS dari cache setelah
+  // `docker compose build web`, dan seluruh uji berjalan terhadap kode LAMA
+  // sambil melaporkan kegagalan pada fitur yang sebenarnya sudah ada. Gejalanya
+  // menyesatkan ke arah yang paling mahal: halaman 404 untuk rute yang baru
+  // ditambahkan, tombol yang bunyinya belum berubah, dan tidak satu pun pesan
+  // galat yang menyebut cache.
+  //
+  // `Network.setCacheDisabled` berlaku pada target ini saja, jadi tidak
+  // mengubah perilaku peramban di luar uji.
+  await kirim(ws, 'Network.enable')
+  await kirim(ws, 'Network.setCacheDisabled', { cacheDisabled: true })
+
   const langkah = []
 
   return {

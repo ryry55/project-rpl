@@ -9,13 +9,16 @@ use App\Http\Controllers\Api\KamarController;
 use App\Http\Controllers\Api\KebijakanController;
 use App\Http\Controllers\Api\KomponenBiayaController;
 use App\Http\Controllers\Api\KontrakController;
+use App\Http\Controllers\Api\NotifikasiController;
 use App\Http\Controllers\Api\PembayaranController;
+use App\Http\Controllers\Api\PengaturanNotifikasiController;
 use App\Http\Controllers\Api\PengelolaController;
 use App\Http\Controllers\Api\PenghuniController;
 use App\Http\Controllers\Api\PortalPenghuniController;
 use App\Http\Controllers\Api\TagihanController;
 use App\Http\Controllers\Api\TarifController;
 use App\Http\Controllers\Api\TunggakanController;
+use App\Http\Controllers\Api\UsulanController;
 use App\Http\Middleware\PastikanPeran;
 use App\Http\Middleware\PastikanWewenang;
 use Illuminate\Support\Facades\Route;
@@ -84,7 +87,37 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::apiResource('pengelola', PengelolaController::class)
             ->only(['index', 'store', 'show', 'update', 'destroy']);
+
+        // Keputusan atas usulan perubahan (T26).
+        //
+        // `peran:pemilik`, bukan `wewenang:ubah_tarif`. Inilah inti T26: akun
+        // yang boleh MENGUSULKAN tidak boleh MEMUTUSKAN usulannya sendiri.
+        // Memakai `wewenang:` di sini akan mengembalikan wewenang yang baru
+        // saja dipisahkan - pengelola dengan `ubah_tarif` bisa menyetujui
+        // usulannya sendiri, dan seluruh layar persetujuan menjadi formalitas.
+        Route::post('/usulan/{usulan}/setujui', [UsulanController::class, 'setujui'])
+            ->name('usulan.setujui');
+        Route::post('/usulan/{usulan}/tolak', [UsulanController::class, 'tolak'])
+            ->name('usulan.tolak');
     });
+
+    // --- Kotak masuk dan pengaturan notifikasi (T25) -------------------
+    //
+    // Tanpa `peran` dan tanpa `wewenang`: isinya notifikasi milik akun
+    // pemanggil sendiri, dan `$request->user()->notifications` tidak bisa
+    // menunjuk akun lain. Memeriksa peran di sini akan menutup kotak masuk
+    // penghuni - satu-satunya pihak yang justru paling perlu diberi tahu saat
+    // tagihannya terbit.
+    Route::get('/notifikasi', [NotifikasiController::class, 'index'])->name('notifikasi.index');
+    Route::post('/notifikasi/baca-semua', [NotifikasiController::class, 'tandaiSemuaDibaca'])
+        ->name('notifikasi.baca-semua');
+    Route::post('/notifikasi/{notifikasi}/baca', [NotifikasiController::class, 'tandaiDibaca'])
+        ->name('notifikasi.baca');
+
+    Route::get('/pengaturan-notifikasi', [PengaturanNotifikasiController::class, 'show'])
+        ->name('pengaturan-notifikasi.show');
+    Route::put('/pengaturan-notifikasi', [PengaturanNotifikasiController::class, 'update'])
+        ->name('pengaturan-notifikasi.update');
 
     // --- Membaca data kos: pemilik dan pengelola ----------------------
     //
@@ -126,6 +159,19 @@ Route::middleware('auth:sanctum')->group(function () {
             ->name('pembayaran.penerima');
         Route::get('/rekap', [PembayaranController::class, 'rekap'])
             ->name('rekap.index');
+
+        // Usulan perubahan (T26). Dibaca oleh pemilik dan pengelola - pengelola
+        // perlu tahu nasib usulannya sendiri. Yang tidak boleh dibaca pengelola
+        // hanyalah usulan rekan kerjanya, dan itu disaring di controller, bukan
+        // oleh middleware: satu endpoint yang menyaring hasil lebih jujur
+        // daripada dua endpoint yang isinya sama.
+        //
+        // Tidak ada `POST /usulan`. Pengajuan usulan memakai endpoint yang sama
+        // dengan penetapan - `POST /tarif` dan `POST /kebijakan` - dan yang
+        // berbeda hanya akibatnya menurut peran. Endpoint usulan tersendiri akan
+        // membuat dua jalan menuju perubahan tarif, dan cepat atau lambat salah
+        // satunya lupa memeriksa wewenang.
+        Route::get('/usulan', [UsulanController::class, 'index'])->name('usulan.index');
     });
 
     // --- Mengubah data kos: wewenang ----------------------------------
