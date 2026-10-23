@@ -275,7 +275,19 @@ if [ "$CEPAT" -eq 0 ]; then
             # Tanpa baris ini urutan skrip menentukan hasil, dan kegagalannya
             # berpindah-pindah seperti gangguan jaringan.
             docker compose exec -T api php artisan cache:clear >/dev/null 2>&1
-            hasil="$(node "docs/uji/$s" 2>&1)"
+            # Batas waktu per skrip. Tanpa ini, satu skrip yang menggantung
+            # menahan seluruh rangkaian tanpa mencetak namanya - dan di CI itu
+            # terlihat sebagai "job kehabisan waktu", bukan sebagai "skrip X
+            # menggantung". `timeout` mengubahnya menjadi kegagalan yang
+            # menyebut pelakunya. 240 detik = ~3x skrip terlama (88 langkah).
+            #
+            # `timeout` mengembalikan 124 bila batasnya tercapai, dan 127 bila
+            # perintahnya tidak ada. Keduanya sampai ke `catat` sebagai gagal.
+            if command -v timeout >/dev/null 2>&1; then
+                hasil="$(timeout 240 node "docs/uji/$s" 2>&1)"
+            else
+                hasil="$(node "docs/uji/$s" 2>&1)"
+            fi
             kode=$?
             akhir="$(printf '%s\n' "$hasil" | grep -E 'langkah lulus' | tail -n1)"
             catat "$s" "$([ "$kode" -eq 0 ] && echo 0 || echo 1)" "$akhir"
@@ -288,7 +300,11 @@ if [ "$CEPAT" -eq 0 ]; then
         for s in uji-balapan-t4.mjs uji-balapan-t5.mjs; do
             docker compose exec -T api php artisan migrate:fresh --seed >/dev/null 2>&1
             docker compose exec -T api php artisan cache:clear >/dev/null 2>&1
-            hasil="$(node "docs/uji/$s" 2>&1)"
+            if command -v timeout >/dev/null 2>&1; then
+                hasil="$(timeout 240 node "docs/uji/$s" 2>&1)"
+            else
+                hasil="$(node "docs/uji/$s" 2>&1)"
+            fi
             kode=$?
             akhir="$(printf '%s\n' "$hasil" | grep -E 'langkah lulus' | tail -n1)"
             catat "$s" "$([ "$kode" -eq 0 ] && echo 0 || echo 1)" "$akhir"

@@ -1,0 +1,132 @@
+# Utang teknis
+
+Hal-hal yang diketahui kurang, disengaja ditunda, dan alasannya. Daftar ini ada
+supaya penundaan tetap tercatat, bukan supaya terlupakan.
+
+Status per LANGKAH 9 (commit `f2c73f0`).
+
+---
+
+## 1. Uji browser di CI menggantung — BELUM SELESAI
+
+**Gejala.** Job `uji` pada GitHub Actions masuk ke langkah "Uji browser dan uji
+balapan" lalu tidak selesai: 17+ menit, padahal di laptop langkah yang sama
+memakan 257–283 detik. Job akhirnya berhenti karena `timeout-minutes: 30`, bukan
+karena uji gagal.
+
+**Yang sudah terbukti bekerja di CI:**
+
+| Langkah | Status |
+|---|---|
+| pint, eslint, vite build | lulus |
+| Paritas daftar E2E `periksa.ps1` vs `periksa.sh` | lulus |
+| Profil produksi (`periksa-profil-produksi.sh`) | lulus |
+| 599 tes PHP di dalam container | lulus |
+| Chrome headless membuka port 9222 | lulus |
+| `periksa.sh` benar-benar dijalankan (`bash periksa.sh`) | lulus |
+
+Jadi pagar yang menegakkan kebenaran kode **sudah** berjalan di CI. Yang belum
+adalah bagian E2E-nya.
+
+**Dugaan penyebab, berurut menurut kemungkinan.**
+
+1. **Penantian tanpa batas di skrip yang tidak punya `timeout`.** `periksa.sh`
+   memanggil `node docs/uji/<skrip>.mjs` tanpa `timeout`. Satu skrip yang
+   menggantung menahan seluruh rangkaian, dan tidak ada yang mencetak nama
+   skripnya karena `catat` baru dipanggil setelah `node` selesai. Perbaikan yang
+   tepat: bungkus dengan `timeout 180 node ...` supaya skrip yang menggantung
+   gagal sendiri dan namanya muncul di ringkasan.
+2. **`docker compose exec` menunggu selamanya** bila container `api` sedang
+   sibuk atau socket-nya tertinggal.
+3. **Tab Chrome yatim** yang tidak tertutup oleh `tutup_tab` karena
+   `CDP_BASE` di dalam `node -e` berbeda dari yang dipakai skrip.
+
+**Kenapa ditunda.** Penyebabnya belum bisa direproduksi di laptop: rangkaian yang
+sama lulus `SEMUA LULUS (283 detik)` lewat Git Bash dengan Chrome headless di
+port 9333. Tanpa reproduksi, setiap perbaikan adalah tebakan, dan tebakan pada
+pipa CI lebih mahal daripada manfaatnya saat ini.
+
+**Rencana penutupan.** Tambahkan `timeout` per skrip. Itu mengubah "menggantung
+tanpa kabar" menjadi "gagal dengan nama skrip", yang cukup untuk menemukan
+penyebab sebenarnya pada percobaan berikutnya.
+
+**Sudah dikerjakan sebagian.** `periksa.sh` (jalur CI) kini memakai
+`timeout 240 node ...` per skrip, dengan cadangan tanpa `timeout` bila
+perintahnya tidak ada. `periksa.ps1` **belum** - dan itu disengaja: padanan
+`Start-Process` + `WaitForExit` sudah dicoba dan justru menggantung sendiri saat
+diuji dengan proses yang sengaja dibuat macet, sehingga obatnya lebih berbahaya
+daripada penyakitnya. Batas waktu di PowerShell perlu pendekatan lain
+(mis. job + `Wait-Job -Timeout`), dan itu pekerjaan tersendiri.
+
+**Sementara ini.** Langkah E2E di `uji.yml` diberi `continue-on-error: true`
+sehingga pipeline tidak merah karena hal yang belum dipahami. **Ini harus
+dicabut** begitu penyebabnya ditemukan — pagar yang tidak menahan lebih buruk
+daripada tidak ada pagar, karena ia terlihat seperti pagar.
+
+---
+
+## 2. Tiga kegagalan E2E yang ditemukan CI dan sudah diperbaiki
+
+Dicatat karena cara temuannya penting: ketiganya **lulus di laptop** dan hanya
+muncul di runner yang lebih lambat. Commit `f2c73f0`.
+
+| Skrip | Sebab | Perbaikan |
+|---|---|---|
+| `e2e-t9.mjs` | Menunggu `.tabel tbody tr`, dan baris "Memuat tagihan…" juga cocok dengan selektor itu | Menunggu `.lencana-status`, yang hanya ada pada baris sungguhan |
+| `e2e-t19.mjs` | Menunggu `h1` (muncul sebelum tabel terisi) + `setTimeout(1400)` tetap | Menunggu baris yang memuat judul, lalu menunggu status berubah (maks 15 detik) |
+| `uji-tata-letak.mjs` | **Cacat layout nyata**: 363px pada viewport 360px | `.kepala` diberi `flex-wrap`, `.sisi` diberi `min-width: 0` |
+
+Pelajaran yang berlaku umum: **asersi yang menunggu "ada elemen" harus menunggu
+elemen yang membuktikan data sudah tiba**, bukan elemen pertama yang muncul.
+Penanda memuat selalu lebih dulu ada.
+
+---
+
+## 3. Cacat fungsional yang diketahui, belum diperbaiki
+
+| Cacat | Akibat | Catatan |
+|---|---|---|
+| `TerbitkanTagihanMassal` tidak terjadwal | Tagihan bulanan harus diterbitkan manual lewat layar | Disengaja; penjadwalan butuh cron yang tidak tersedia di Render free |
+| Deposit dibaca saat kontrak dibuat, tidak dipakai lagi | Deposit tidak pernah mengurangi tagihan akhir | Perlu keputusan produk, bukan perbaikan kode |
+| Tidak ada baris pembayaran pembalik | Salah catat pembayaran hanya bisa dikoreksi dengan pembayaran negatif | Sengaja: `pembayaran` tidak *append-only* tetapi tidak punya jalur koreksi resmi |
+| Akun yang pernah menangani uang tidak bisa dihapus | `RESTRICT` pada FK `dicatat_oleh`/`diterima_oleh` | Disengaja: jejak uang tidak boleh yatim |
+| Terbit massal mengirim satu email per penghuni, `QUEUE_CONNECTION=sync` | 30 penghuni = 30 email berurutan dalam satu permintaan | Perlu antrean; Render free tidak punya worker persisten |
+
+---
+
+## 4. Kesiapan produksi yang belum dikerjakan (LANGKAH 11)
+
+| Kurang | Akibat bila live sekarang |
+|---|---|
+| `Dockerfile.prod` satu layanan (SPA di dalam `public/` Laravel) | Dua origin, CORS harus dibuka, dua cold start |
+| `docker-compose.prod.yml` belum memakai Neon (masih service `db`) | Database hilang setiap restart — Render free tidak punya disk |
+| `SESSION_DRIVER`/`CACHE_STORE` masih `file` | Sesi dan pembatas login hilang setiap restart |
+| Akun demo belum dihapus dari database produksi | `pemilik@kos.test` / `password` = seluruh data kos terbuka |
+| Backup tidak terjadwal | `backup.sh` ada dan terbukti bisa memulihkan, tetapi tidak dipanggil cron mana pun |
+| Target deploy belum ada | `deploy.yml` melaporkan `siap=false`, tidak gagal |
+| T22 Midtrans belum bisa diverifikasi | Butuh kredensial sandbox |
+
+---
+
+## 5. Konsistensi dokumen (LANGKAH 11, T23)
+
+| Berkas | Masalah |
+|---|---|
+| `SPEC.md` §6 L374 | Masih menulis `komponen_biaya UNIQUE (nama, berlaku_dari)`; kenyataannya `(kamar_id, nama, berlaku_dari)` |
+| `SPEC.md` L259/281/380, `docs/uji/audit-ketertelusuran.md` | Masih menyebut `parameter_denda`, yang sudah dihapus seluruhnya |
+| DFD + SPEC | Masih menyebut 6 data store; `parameter_denda` hilang menyisakan 5 |
+| Laporan | Menunggu format dari dosen |
+
+---
+
+## 6. U2 — mobile dan PWA belum dikerjakan (LANGKAH 10)
+
+| Kurang | Dampak |
+|---|---|
+| Hanya 6 media query untuk 18 view | LoginView, PenghuniView, KontrakView, KamarView, TagihanView, KebijakanView, FasilitasView, AturanView tidak punya satu pun |
+| Belum ada `manifest.webmanifest` + service worker | Tidak bisa dipasang ke layar utama |
+| Belum ada uji PWA | — |
+
+**Catatan penting.** Luberan mendatar di 360px **sudah** diperbaiki (commit
+`f2c73f0`) dan dijaga `uji-tata-letak.mjs` 88/88. Jadi aplikasi sekarang *muat*
+di ponsel; yang belum adalah *nyaman*.
