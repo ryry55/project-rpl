@@ -18,8 +18,18 @@
  * Halaman ini juga menjawab pertanyaan yang tidak bisa dijawab rekap biasa:
  * **setoran tunai siapa yang masih di tangan pengelola.** Itu hanya mungkin
  * karena setiap baris tunai menyebut pemegangnya (T20).
+ *
+ * **Sejak REV-SEC-06 halaman ini punya dua wajah.** `/rekap` hanya untuk
+ * pemilik: rekap adalah gambaran utuh keuangan kos, dan pengelola yang bisa
+ * membacanya mengetahui penghasilan pemiliknya tanpa pernah diminta. Tetapi
+ * menutupnya begitu saja membuat pengelola kehilangan satu pertanyaan yang
+ * memang miliknya - "berapa uang tunai yang masih saya pegang". Karena itu
+ * pengelola yang membuka halaman ini melihat tampilan sempit dari
+ * `/pembayaran/tunai-saya`, bukan rekap yang dipersempit: angkanya miliknya
+ * sendiri, tanpa pendapatan kos, tanpa piutang, tanpa daftar penghuni lain.
  */
 import { computed, onMounted, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import { sesi } from '../../sesi.js'
 import { rupiah, tanggal, pesanGalat } from '../../format.js'
 import { simulasiTanggal } from '../../simulasi.js'
@@ -30,8 +40,20 @@ import PanelKartu from '../../komponen/ui/PanelKartu.vue'
 import BarisKosong from '../../komponen/ui/BarisKosong.vue'
 import MedanForm from '../../komponen/ui/MedanForm.vue'
 
+/**
+ * Apakah pemanggil melihat rekap penuh.
+ *
+ * Diperiksa dari peran, bukan dari wewenang: tidak ada wewenang yang bisa
+ * diberikan untuk membuka rekap - ia hak pemilik atas usahanya sendiri. Server
+ * menegakkan hal yang sama lewat `peran:pemilik`; pemeriksaan di sini hanya
+ * memilih tampilan mana yang dirender, supaya pengelola tidak melihat deretan
+ * angka kosong lalu mengira aplikasinya rusak.
+ */
+const rekapPenuh = computed(() => sesi.user.value?.peran === 'pemilik')
+
 const data = ref(null)
 const pembayaran = ref([])
+const tunaiSaya = ref(null)
 const memuat = ref(true)
 const galatMuat = ref('')
 
@@ -76,6 +98,21 @@ async function muat() {
     }
     const akhiran = kueri.toString() ? `?${kueri}` : ''
 
+    // Pengelola memakai jalur sempit (REV-SEC-06). Dua jalur, bukan satu jalur
+    // dengan parameter: yang berbeda bukan rentangnya, melainkan pertanyaannya -
+    // "berapa pendapatan kos" versus "berapa uang tunai yang saya pegang" - dan
+    // endpoint yang menjawab pertanyaan berbeda memang berbeda.
+    if (!rekapPenuh.value) {
+      const sempit = await sesi.panggil(`/pembayaran/tunai-saya${akhiran}`, {
+        headers: simulasiTanggal.header(),
+      })
+      tunaiSaya.value = sempit.data
+      dari.value = sempit.data.dari
+      sampai.value = sempit.data.sampai
+      simulasiDipakai.value = Boolean(sempit.meta?.simulasi)
+      return
+    }
+
     // Simulasi tanggal ikut dikirim: `piutang` dihitung memakai denda pada
     // "hari ini" milik server, dan selama mode demo aktif "hari ini" adalah
     // tanggal simulasi. Tanpa header ini, rekap dan layar Tunggakan akan
@@ -113,11 +150,16 @@ onMounted(muat)
 
 <template>
   <div class="halaman halaman-penuh">
-    <KepalaHalaman judul="Rekap pendapatan">
+    <KepalaHalaman :judul="rekapPenuh ? 'Rekap pendapatan' : 'Uang tunai saya'">
       <template #keterangan>
-        {{ jumlahTransaksi }} transaksi · {{ rupiah(total) }}
-        <template v-if="tanpaMetode.jumlah > 0">
-          · {{ rupiah(tanpaMetode.jumlah) }} tanpa metode
+        <template v-if="rekapPenuh">
+          {{ jumlahTransaksi }} transaksi · {{ rupiah(total) }}
+          <template v-if="tanpaMetode.jumlah > 0">
+            · {{ rupiah(tanpaMetode.jumlah) }} tanpa metode
+          </template>
+        </template>
+        <template v-else-if="tunaiSaya">
+          {{ tunaiSaya.transaksi }} transaksi · {{ rupiah(tunaiSaya.jumlah) }}
         </template>
       </template>
     </KepalaHalaman>
@@ -154,9 +196,43 @@ onMounted(muat)
     />
 
     <PesanBaris v-if="galatMuat" jenis="galat">{{ galatMuat }}</PesanBaris>
-    <p v-else-if="memuat && !data" class="bantuan">Memuat…</p>
+    <p v-else-if="memuat && !data && !tunaiSaya" class="bantuan">Memuat…</p>
 
-    <template v-else-if="data">
+    <!-- Tampilan sempit untuk pengelola (REV-SEC-06). Bukan rekap yang
+         dipersempit: yang ditampilkan hanya pertanyaan miliknya sendiri -
+         berapa uang tunai yang tercatat ia terima pada rentang ini. Tidak ada
+         pendapatan kos, piutang, metode lain, atau nama penghuni. -->
+    <template v-else-if="!rekapPenuh && tunaiSaya">
+      <div class="kisi-metode">
+        <div class="kartu kartu-metode">
+          <span class="metode-judul mungil">Tunai di tangan saya</span>
+          <span class="metode-angka">{{ rupiah(tunaiSaya.jumlah) }}</span>
+          <span class="metode-ket mungil lemah">
+            {{ tunaiSaya.transaksi }} transaksi
+          </span>
+        </div>
+        <div v-if="tunaiSaya.pembalik?.transaksi > 0" class="kartu kartu-metode">
+          <span class="metode-judul mungil">Dibatalkan</span>
+          <span class="metode-angka">{{ rupiah(tunaiSaya.pembalik.jumlah) }}</span>
+          <span class="metode-ket mungil lemah">
+            {{ tunaiSaya.pembalik.transaksi }} pembalikan
+          </span>
+        </div>
+      </div>
+
+      <PesanBaris jenis="netral" mungil>
+        {{ tunaiSaya.catatan }}
+      </PesanBaris>
+
+      <p class="bantuan mungil">
+        Rekap pendapatan kos hanya untuk pemilik. Yang dibutuhkan pekerjaan Anda
+        adalah angka di atas, dan daftar pembayaran tempat Anda memeriksa catatan
+        sendiri ada di halaman
+        <RouterLink :to="{ name: 'pemilik-tagihan' }">Tagihan</RouterLink>.
+      </p>
+    </template>
+
+    <template v-else-if="rekapPenuh && data">
       <!-- Kartu per metode. Yang kosong tetap tampil: "QRIS Rp 0" menjawab
            pertanyaan "apakah QRIS tidak dipakai atau layarnya rusak". -->
       <div class="kisi-metode">

@@ -33,7 +33,7 @@ Versi 1.0 · 26 Oktober 2026
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
 │  PostgreSQL 16                                               │
-│  21 tabel · 7 trigger append-only · CHECK sebagai penjaga    │
+│  21 tabel · 8 trigger (7 append-only) · CHECK sebagai pagar  │
 └──────────────────────────────────────────────────────────────┘
 
   di luar jalur utama:
@@ -73,14 +73,14 @@ return (new TagihanResource($hasil->tagihan))->response()->setStatusCode(201);
 
 ### 2.2 Domain — tempat semua aturan tinggal
 
-40 kelas di `app/Domain/`, dikelompokkan per masalah, bukan per tabel:
+41 kelas di `app/Domain/`, dikelompokkan per masalah, bukan per tabel:
 
 | Folder | Isi | Contoh |
 |---|---|---|
 | `Billing/` | Hitung dan terbitkan tagihan, denda, tunggakan | `Kalkulator`, `PenghitungDenda`, `PenerbitTagihan`, `DaftarTunggakan` |
 | `Kebijakan/` | Kebijakan kos, deposit | `PenyelesaiKebijakan`, `PenentuDeposit`, `PilihanKebijakan` |
 | `Persetujuan/` | Usulan perubahan dan pemutusnya | `PengajuUsulan`, `PemutusUsulan`, `PenerapPerubahan` |
-| `Pembayaran/` | Catat dan verifikasi pembayaran, rekap | `PencatatPembayaran`, `PencatatVerifikasi`, `RekapPendapatan` |
+| `Pembayaran/` | Catat, balik, dan verifikasi pembayaran; rekap | `PencatatPembayaran`, `PembalikPembayaran`, `PencatatVerifikasi`, `RekapPendapatan` |
 | `Akun/` | Aktivasi, tautan, pembatas masuk | `PembuatAkun`, `TautanAkun`, `PembatasMasuk` |
 | `Notifikasi/` | Peristiwa, surat, penerima | `Pemberitahu`, `Penerima`, `PengaturanKanal` |
 | `Audit/` | Jejak audit | `PencatatAudit`, `NilaiLama` |
@@ -400,14 +400,14 @@ penutupan. Daftar yang tidak dicatat akan terlupakan.
 
 ```
 api/
-  app/Domain/            40 kelas, 10 folder — semua aturan
+  app/Domain/            41 kelas, 10 folder - semua aturan
   app/Http/Controllers/  21 pengendali — hanya menerjemahkan
   app/Http/Middleware/   6 middleware
   app/Http/Requests/     validasi
   app/Http/Resources/    bentuk JSON
   app/Models/            19 model — hanya bentuk data
-  database/migrations/   28 migrasi
-  tests/                 29 berkas tes, 599 tes
+  database/migrations/   31 migrasi
+  tests/                 31 berkas tes, 636 tes
 
 web/
   src/views/             25 view (7 publik + 13 pemilik + 5 panel pemilik)

@@ -31,7 +31,12 @@ const semuaMenu = [
   // benar-benar masuk", pertanyaan yang muncul tepat setelah tagihan terbit.
   // Tunggakan menjawab pertanyaan yang berlawanan arah (siapa yang belum
   // membayar), jadi keduanya sengaja tidak berdampingan.
-  { nama: 'rekap', label: 'Rekap', ket: 'Uang masuk per metode bayar' },
+  //
+  // Sejak REV-SEC-06 halaman ini bernama berbeda menurut peran: pemilik melihat
+  // rekap pendapatan kos, pengelola melihat uang tunai miliknya sendiri. Satu
+  // rute, dua pertanyaan - dan label yang menyebut "Rekap" kepada pengelola
+  // akan menjanjikan angka yang tidak diberikan server.
+  { nama: 'rekap', label: 'Rekap', ket: 'Uang masuk per metode bayar', labelPengelola: 'Tunai saya', ketPengelola: 'Uang tunai yang Anda pegang' },
   { nama: 'tunggakan', label: 'Tunggakan', ket: 'Siapa menunggak dan sudah separah apa' },
   // Diletakkan setelah Tunggakan, bukan di paling atas: pemilik membuka menu
   // ini sekali di awal lalu jarang lagi, sementara Tagihan dibuka setiap bulan.
@@ -67,17 +72,27 @@ const semuaMenu = [
 ]
 
 const menu = computed(() =>
-  semuaMenu.filter((m) => {
-    if (m.hanyaPemilik) {
-      return sesi.user.value?.peran === 'pemilik'
-    }
+  semuaMenu
+    .filter((m) => {
+      if (m.hanyaPemilik) {
+        return sesi.user.value?.peran === 'pemilik'
+      }
 
-    if (!m.wewenang) {
-      return true
-    }
+      if (!m.wewenang) {
+        return true
+      }
 
-    return sesi.boleh(m.wewenang)
-  }),
+      return sesi.boleh(m.wewenang)
+    })
+    // Label yang berbeda menurut peran dipakai bila ada. Hanya `rekap` yang
+    // memilikinya sekarang: halaman yang sama menjawab pertanyaan berbeda untuk
+    // pemilik dan pengelola (REV-SEC-06), jadi satu label tidak bisa benar
+    // untuk keduanya.
+    .map((m) =>
+      sesi.user.value?.peran === 'pengelola' && m.labelPengelola
+        ? { ...m, label: m.labelPengelola, ket: m.ketPengelola }
+        : m,
+    ),
 )
 
 /**

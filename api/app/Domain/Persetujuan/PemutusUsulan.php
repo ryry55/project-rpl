@@ -74,6 +74,10 @@ class PemutusUsulan
                     $usulan->payload,
                     JenisUsulan::aksiSetujui($usulan->tipe),
                 ),
+                UsulanPerubahan::TIPE_KOMPONEN => $this->penerap->komponen(
+                    $usulan->payload,
+                    JenisUsulan::aksiSetujui($usulan->tipe),
+                ),
                 default => throw new \UnexpectedValueException(
                     "Tipe usulan \"{$usulan->tipe}\" tidak dikenal."
                 ),

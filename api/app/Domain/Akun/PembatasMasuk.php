@@ -46,6 +46,13 @@ class PembatasMasuk
     public const DETIK_PER_JAM = 3600;
 
     /**
+     * Batas pemeriksaan tautan per IP (REV-SEC-05).
+     *
+     * @see bolehPeriksaToken()
+     */
+    public const MAKS_PERIKSA_PER_MENIT = 20;
+
+    /**
      * Hash tiruan untuk menyamakan waktu, dibuat sekali per proses.
      *
      * @see userTidakDikenal()
@@ -156,6 +163,45 @@ class PembatasMasuk
     public function tungguTautan(string $email): int
     {
         return RateLimiter::availableIn('tautan:'.Str::lower($email));
+    }
+
+    /**
+     * Pembatas pemeriksaan tautan (REV-SEC-05).
+     *
+     * `POST /periksa-token` adalah satu-satunya endpoint tanpa autentikasi yang
+     * menjawab pertanyaan tentang sebuah akun: "token ini sah, dan pemiliknya
+     * bernama X". Sebelum ini ia boleh dipanggil tanpa batas.
+     *
+     * Kuncinya **IP saja**, berbeda dari pembatas masuk yang memakai email+IP.
+     * Alasannya: di sini tidak ada email yang bisa dipakai sebagai kunci -
+     * email justru yang sedang dicari penebak - dan yang dibatasi bukan
+     * menebak sandi seseorang, melainkan laju percobaan token dari satu tempat.
+     * Membatasi per IP memang menghukum kos yang berbagi satu alamat IP publik,
+     * tetapi batasnya cukup longgar untuk itu: satu halaman "atur sandi" hanya
+     * memanggil endpoint ini sekali saat dibuka.
+     *
+     * Angkanya 20 per menit, bukan 5. Penghuni yang tautannya gagal biasanya
+     * membuka ulang halaman beberapa kali berturut-turut, dan menolak mereka
+     * pada percobaan kelima menghasilkan keluhan "tautannya rusak" - padahal
+     * yang rusak adalah pembatasnya. Dua puluh percobaan per menit masih jauh
+     * di bawah laju yang dibutuhkan untuk menebak token 64 karakter acak.
+     */
+    public function bolehPeriksaToken(string $ip): bool
+    {
+        $kunci = 'periksa-token:'.$ip;
+
+        if (RateLimiter::tooManyAttempts($kunci, self::MAKS_PERIKSA_PER_MENIT)) {
+            return false;
+        }
+
+        RateLimiter::hit($kunci, self::DETIK_PER_MENIT);
+
+        return true;
+    }
+
+    public function tungguPeriksaToken(string $ip): int
+    {
+        return RateLimiter::availableIn('periksa-token:'.$ip);
     }
 
     /**

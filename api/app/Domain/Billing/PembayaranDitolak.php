@@ -74,4 +74,37 @@ class PembayaranDitolak extends \RuntimeException
             .'supaya setoran yang masih di tangan pengelola bisa dilacak.',
         );
     }
+
+    // --- Pembalik pembayaran (REV-FIN-01) ---------------------------------
+
+    /**
+     * Pembalikan wajib beralasan.
+     *
+     * Sama alasannya dengan penolakan pemeriksaan: baris negatif di rekap
+     * tanpa keterangan adalah pertanyaan baru, bukan jawaban. Yang membacanya
+     * enam bulan lagi harus bisa tahu kenapa uang itu ditarik.
+     */
+    public static function pembalikTanpaAlasan(): self
+    {
+        return new self(
+            'Pembalikan pembayaran harus menyebutkan alasannya, '
+            .'supaya angka yang berkurang di rekap bisa dijelaskan.',
+        );
+    }
+
+    public static function pembalikTidakBisaDibalik(): self
+    {
+        return new self(
+            'Baris ini adalah pembalik, bukan pembayaran. Pembalik tidak bisa dibalik lagi; '
+            .'catat pembayaran baru bila uangnya memang diterima.',
+        );
+    }
+
+    public static function sudahDibalik(int $jumlah): self
+    {
+        return new self(sprintf(
+            'Pembayaran Rp %s sudah dibalik sebelumnya. Satu pembayaran hanya bisa dibalik sekali.',
+            number_format($jumlah, 0, ',', '.'),
+        ));
+    }
 }

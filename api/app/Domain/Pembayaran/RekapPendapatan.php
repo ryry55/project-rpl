@@ -60,9 +60,25 @@ class RekapPendapatan
         // Satu query agregat untuk seluruh rekap, bukan satu query per metode.
         // Empat metode berarti empat query kalau dikerjakan terpisah, dan
         // jumlahnya bertambah setiap kali ada metode baru.
+        //
+        // Sejak REV-FIN-01 tabel ini juga berisi baris pembalik bernilai
+        // negatif. `SUM(jumlah)` karena itu sudah berarti **uang bersih**, dan
+        // itulah yang dilaporkan sebagai pendapatan. Yang dipisah hanya
+        // hitungan transaksinya: pembalik bukan transaksi penerimaan, jadi
+        // `transaksi` menghitung baris masuk saja, sementara `pembalik_*`
+        // melaporkan berapa banyak uang yang ditarik pada rentang ini. Tanpa
+        // pemisahan itu, rekap bulan yang berisi satu koreksi akan melaporkan
+        // "13 transaksi" untuk 12 pembayaran, dan selisih satu itu tidak bisa
+        // dijelaskan siapa pun yang membacanya.
         $baris = Pembayaran::query()
             ->whereBetween('tanggal_pembayaran', [$awal, $akhir])
-            ->selectRaw('metode, sumber, diterima_oleh, COUNT(*) AS transaksi, SUM(jumlah) AS jumlah')
+            ->selectRaw(
+                'metode, sumber, diterima_oleh,
+                 COUNT(*) FILTER (WHERE pembalik_id IS NULL) AS transaksi,
+                 COUNT(*) FILTER (WHERE pembalik_id IS NOT NULL) AS pembalik_transaksi,
+                 SUM(jumlah) AS jumlah,
+                 COALESCE(SUM(jumlah) FILTER (WHERE pembalik_id IS NOT NULL), 0) AS pembalik_jumlah'
+            )
             ->groupBy('metode', 'sumber', 'diterima_oleh')
             ->get();
 
@@ -71,6 +87,14 @@ class RekapPendapatan
             'sampai' => $akhir,
             'total' => (int) $baris->sum('jumlah'),
             'jumlah_transaksi' => (int) $baris->sum('transaksi'),
+            // Uang yang ditarik kembali pada rentang ini. Dilaporkan terpisah
+            // supaya pemilik yang membandingkan rekap dengan mutasi rekening
+            // bisa melihat sendiri bahwa selisihnya berasal dari koreksi, bukan
+            // dari uang yang hilang. Nilainya negatif - sama seperti barisnya.
+            'pembalik' => [
+                'jumlah' => (int) $baris->sum('pembalik_jumlah'),
+                'transaksi' => (int) $baris->sum('pembalik_transaksi'),
+            ],
             'per_metode' => $this->perMetode($baris),
             'per_sumber' => $this->perSumber($baris),
             'tanpa_metode' => $this->tanpaMetode($baris),
@@ -189,6 +213,58 @@ class RekapPendapatan
             ->sortByDesc('jumlah')
             ->values()
             ->all();
+    }
+
+    /**
+     * Uang tunai yang masih di tangan **satu orang**, pada rentang ini
+     * (REV-SEC-06).
+     *
+     * Endpoint `/rekap` sejak R2 hanya untuk pemilik, karena rekap adalah
+     * gambaran utuh keuangan kos - dan pengelola yang bisa membacanya bisa
+     * mengetahui pendapatan pemiliknya tanpa pernah diminta. Tetapi menutup
+     * rekap seluruhnya akan membuat pengelola kehilangan satu pertanyaan yang
+     * memang miliknya: "berapa uang tunai yang masih saya pegang?"
+     *
+     * Karena itu yang dibuka bukan rekap yang dipersempit, melainkan pertanyaan
+     * yang berbeda: angka milik pemanggil sendiri, tanpa rincian pendapatan kos.
+     * Yang dikembalikan hanya total dan jumlah transaksi; tidak ada nama
+     * penghuni, tidak ada metode lain, dan tidak ada piutang.
+     *
+     * @return array<string, mixed>
+     */
+    public function tunaiSaya(int $userId, CarbonInterface $dari, CarbonInterface $sampai): array
+    {
+        $awal = $dari->toDateString();
+        $akhir = $sampai->toDateString();
+
+        $baris = Pembayaran::query()
+            ->where('metode', MetodePembayaran::TUNAI)
+            ->where('diterima_oleh', $userId)
+            ->whereBetween('tanggal_pembayaran', [$awal, $akhir])
+            ->selectRaw(
+                'COUNT(*) FILTER (WHERE pembalik_id IS NULL) AS transaksi,
+                 COUNT(*) FILTER (WHERE pembalik_id IS NOT NULL) AS pembalik_transaksi,
+                 COALESCE(SUM(jumlah), 0) AS jumlah,
+                 COALESCE(SUM(jumlah) FILTER (WHERE pembalik_id IS NOT NULL), 0) AS pembalik_jumlah'
+            )
+            ->first();
+
+        return [
+            'dari' => $awal,
+            'sampai' => $akhir,
+            'jumlah' => (int) ($baris->jumlah ?? 0),
+            'transaksi' => (int) ($baris->transaksi ?? 0),
+            'pembalik' => [
+                'jumlah' => (int) ($baris->pembalik_jumlah ?? 0),
+                'transaksi' => (int) ($baris->pembalik_transaksi ?? 0),
+            ],
+            // Disebutkan apa adanya: angka ini adalah uang yang **tercatat**
+            // diterima orang ini, bukan hasil pencocokan dengan setoran fisik.
+            // Sistem belum punya pencatatan setoran, jadi klaim "sudah disetor"
+            // tidak bisa dibuat di sini.
+            'catatan' => 'Uang tunai yang tercatat Anda terima pada rentang ini. Sistem belum mencatat setoran, '
+                .'jadi angka ini belum dikurangi setoran apa pun.',
+        ];
     }
 
     /**

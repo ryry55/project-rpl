@@ -41,6 +41,15 @@ final class Peristiwa
     /** Kebijakan kos berubah. */
     public const KEBIJAKAN_DIUBAH = 'kebijakan.diubah';
 
+    /**
+     * Komponen biaya kamar ditambah atau diubah (REV-SEC-07).
+     *
+     * Peristiwa tersendiri, bukan menumpang `kebijakan.diubah`: komponen biaya
+     * masuk ke tagihan sebagai baris rupiah, sedangkan kebijakan mengatur cara
+     * kos menagih. Yang membaca email perlu tahu bedanya tanpa membuka aplikasi.
+     */
+    public const KOMPONEN_DIUBAH = 'komponen.diubah';
+
     /** Tagihan sebulan diterbitkan sekaligus untuk semua kontrak aktif. */
     public const TAGIHAN_MASSAL = 'tagihan.massal';
 
@@ -65,6 +74,7 @@ final class Peristiwa
         self::USULAN_DIPUTUSKAN,
         self::TARIF_DIUBAH,
         self::KEBIJAKAN_DIUBAH,
+        self::KOMPONEN_DIUBAH,
         self::TAGIHAN_MASSAL,
         self::TAGIHAN_TERBIT,
         self::PEMBAYARAN_DICATAT,
@@ -83,10 +93,11 @@ final class Peristiwa
             self::USULAN_DIPUTUSKAN,
             self::TARIF_DIUBAH,
             self::KEBIJAKAN_DIUBAH,
+            self::KOMPONEN_DIUBAH,
             self::TAGIHAN_MASSAL,
             self::TAGIHAN_TERBIT => [self::KANAL_IN_APP, self::KANAL_EMAIL],
 
-            // Tiga yang tersisa terjadi berkali-kali sehari. In-app saja.
+            // Sisanya terjadi berkali-kali sehari. In-app saja.
             default => [self::KANAL_IN_APP],
         };
     }
@@ -111,6 +122,7 @@ final class Peristiwa
             self::USULAN_DIPUTUSKAN => 'Usulan diputuskan',
             self::TARIF_DIUBAH => 'Tarif sewa diubah',
             self::KEBIJAKAN_DIUBAH => 'Kebijakan kos diubah',
+            self::KOMPONEN_DIUBAH => 'Komponen biaya diubah',
             self::TAGIHAN_MASSAL => 'Tagihan sebulan diterbitkan',
             self::TAGIHAN_TERBIT => 'Tagihan baru terbit',
             self::PEMBAYARAN_DICATAT => 'Pembayaran dicatat',

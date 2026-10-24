@@ -69,6 +69,23 @@ class PencatatAudit
     public const AKSI_KEBIJAKAN_TOLAK = 'kebijakan.tolak';
 
     /**
+     * Komponen biaya kamar (REV-SEC-07).
+     *
+     * Empat aksi, bukan tiga: selain usul/setujui/tolak, ada `komponen.tambah`
+     * untuk jalur pemilik yang menetapkan langsung. Tanpa konstanta tersendiri,
+     * jalur itu akan memakai `kebijakan.tambah` - dan log yang menyebut aksi
+     * yang salah lebih buruk daripada log yang tidak ada, karena ia tampak
+     * benar.
+     */
+    public const AKSI_KOMPONEN_TAMBAH = 'komponen.tambah';
+
+    public const AKSI_KOMPONEN_USUL = 'komponen.usul';
+
+    public const AKSI_KOMPONEN_SETUJUI = 'komponen.setujui';
+
+    public const AKSI_KOMPONEN_TOLAK = 'komponen.tolak';
+
+    /**
      * Satu pemeriksaan atas satu pembayaran (T20).
      *
      * Entitasnya `pembayaran`, bukan `tagihan`: yang diperiksa adalah baris uang
@@ -77,6 +94,15 @@ class PencatatAudit
      * tidak bisa menunjuk baris mana yang ditolak.
      */
     public const AKSI_PEMBAYARAN_VERIFIKASI = 'pembayaran.verifikasi';
+
+    /**
+     * Satu pembayaran ditarik kembali (REV-FIN-01).
+     *
+     * Entitasnya `pembayaran` dengan id baris pembalik yang baru terbentuk.
+     * Yang dicatat adalah penarikan uangnya, dan id asalnya ikut di `nilai_baru`
+     * supaya riwayat bisa dirunut tanpa membuka tabel.
+     */
+    public const AKSI_PEMBAYARAN_BALIK = 'pembayaran.balik';
 
     public function catat(
         string $aksi,

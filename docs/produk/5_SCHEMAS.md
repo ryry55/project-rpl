@@ -312,6 +312,7 @@ tidak mengubah rincian tagihan lama.
 |---|---|---|---|
 | `id` | bigint | tidak | |
 | `tagihan_id` | bigint | tidak | FK |
+| `pembalik_id` | bigint | ya | FK `pembayaran` RESTRICT, **unik** |
 | `jumlah` | numeric(14,0) | tidak | |
 | `tanggal_pembayaran` | date | tidak | |
 | `catatan` | varchar(255) | ya | |
@@ -326,6 +327,9 @@ tidak mengubah rincian tagihan lama.
 - `pembayaran_sumber_dikenal`
 - `pembayaran_tunai_ada_pemegang` — **NOT VALID**: bila metode `tunai`,
   `diterima_oleh` wajib terisi
+- `pembayaran_tanda_jumlah` — `(pembalik_id IS NULL AND jumlah > 0) OR
+  (pembalik_id IS NOT NULL AND jumlah < 0)`
+- `pembalik_ada_alasan` — baris pembalik wajib punya `catatan` tidak kosong
 
 **Kenapa `metode` boleh NULL di database.** Baris lama (sebelum T20) tidak punya
 metode. `NOT VALID` pada CHECK tunai melakukan hal yang sama: baris lama tidak
@@ -335,7 +339,22 @@ diperiksa, baris baru diperiksa. Di API, `metode` **wajib**.
 Jejak uang tidak boleh menjadi yatim. Konsekuensinya: akun yang pernah menangani
 uang tidak bisa dihapus — dan itu disengaja.
 
-**TRIGGER:** `pembayaran_append_only`
+**Baris pembalik (REV-FIN-01).** Sejak R2 `jumlah` boleh negatif, tetapi hanya
+untuk baris yang punya `pembalik_id`. Baris seperti itu adalah **pembalik**:
+pernyataan bahwa uang yang pernah tercatat ditarik kembali, lengkap dengan
+alasannya di `catatan`. Yang salah tetap terbaca sebagai salah; yang
+ditambahkan adalah koreksinya. Karena tandanya ikut ke `SUM(jumlah)`,
+`totalDibayar()`, rekap, sisa piutang, dan uang tunai di tangan semuanya tetap
+benar tanpa satu pun agregat diubah.
+
+Aturan yang dijaga basis data, bukan hanya domain:
+- **satu pembayaran hanya bisa dibalik sekali** — unique index `pembalik_id`
+- **pembalik tidak bisa dibalik** — trigger `pembayaran_tolak_pembalik_bertingkat`
+  (CHECK tidak boleh berisi subquery)
+- **pembalikan selalu penuh** — tidak ada kolom "sebagian"; koreksi nominal
+  berarti balik lalu catat ulang
+
+**TRIGGER:** `pembayaran_append_only`, `pembayaran_tolak_pembalik_bertingkat`
 
 ---
 
@@ -511,11 +530,16 @@ tanpa menghapus catatan persetujuan versi lama.
 | `aktif` | boolean | tidak |
 
 **UNIQUE:** `(user_id, peristiwa, kanal)`
-**CHECK:** delapan `peristiwa`, dua `kanal`
+**CHECK:** sembilan `peristiwa`, dua `kanal`
 
-Delapan peristiwa: `usulan.diajukan`, `usulan.diputuskan`, `tarif.diubah`,
-`kebijakan.diubah`, `tagihan.massal`, `tagihan.terbit`, `pembayaran.dicatat`,
-`pembayaran.diverifikasi`.
+Sembilan peristiwa: `usulan.diajukan`, `usulan.diputuskan`, `tarif.diubah`,
+`kebijakan.diubah`, `komponen.diubah`, `tagihan.massal`, `tagihan.terbit`,
+`pembayaran.dicatat`, `pembayaran.diverifikasi`.
+
+`komponen.diubah` menyusul di R2 (REV-SEC-07). Sebelumnya komponen biaya adalah
+satu-satunya angka uang yang bisa berubah tanpa meninggalkan pemberitahuan -
+padahal menambah komponen berarti menaikkan tagihan SETIAP penghuni bulan
+berikutnya.
 
 **Tidak adanya baris = pakai bawaan kode** (`Peristiwa::kanalBawaan()`), bukan
 "mati". Ini disengaja: pengguna baru tidak perlu diberi 16 baris bawaan, dan

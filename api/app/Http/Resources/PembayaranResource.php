@@ -45,6 +45,19 @@ class PembayaranResource extends JsonResource
         return [
             'id' => $this->id,
             'tagihan_id' => $this->tagihan_id,
+
+            // Sejak REV-FIN-01 satu baris bisa berupa pembalik: uang yang
+            // ditarik kembali, bukan diterima. Layar wajib bisa membedakannya -
+            // baris negatif tanpa keterangan di daftar pembayaran akan dibaca
+            // sebagai salah hitung, bukan sebagai koreksi.
+            'pembalik_id' => $this->pembalik_id,
+            'adalah_pembalik' => $this->adalahPembalik(),
+            // `null` berarti pemanggil tidak memuat relasinya; `false` berarti
+            // sudah diperiksa dan baris ini belum ditarik. Membedakan keduanya
+            // penting: layar yang menampilkan tombol "Balik" hanya boleh
+            // melakukannya saat nilainya benar-benar `false`.
+            'sudah_dibalik' => $this->whenLoaded('pembalik', fn () => $this->pembalik !== null),
+
             'jumlah' => (int) $this->jumlah,
             'tanggal_pembayaran' => $this->tanggal_pembayaran?->toDateString(),
 

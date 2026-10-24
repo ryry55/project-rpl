@@ -88,9 +88,9 @@ Penanda memuat selalu lebih dulu ada.
 |---|---|---|
 | `TerbitkanTagihanMassal` tidak terjadwal | Tagihan bulanan harus diterbitkan manual lewat layar | Disengaja; penjadwalan butuh cron yang tidak tersedia di Render free |
 | Deposit dibaca saat kontrak dibuat, tidak dipakai lagi | Deposit tidak pernah mengurangi tagihan akhir | Perlu keputusan produk, bukan perbaikan kode |
-| Tidak ada baris pembayaran pembalik | Salah catat pembayaran hanya bisa dikoreksi dengan pembayaran negatif | Sengaja: `pembayaran` tidak *append-only* tetapi tidak punya jalur koreksi resmi |
 | Akun yang pernah menangani uang tidak bisa dihapus | `RESTRICT` pada FK `dicatat_oleh`/`diterima_oleh` | Disengaja: jejak uang tidak boleh yatim |
 | Terbit massal mengirim satu email per penghuni, `QUEUE_CONNECTION=sync` | 30 penghuni = 30 email berurutan dalam satu permintaan | Perlu antrean; Render free tidak punya worker persisten |
+| Pembalik pembayaran belum punya tombol di layar | Koreksi salah catat masih lewat API (`POST /pembayaran/{id}/pembalik`) | Endpoint dan penjaganya sudah ada dan teruji; tinggal tombol + formulir alasan di `TagihanView` |
 
 ---
 
@@ -141,3 +141,28 @@ Penanda memuat selalu lebih dulu ada.
 **Catatan penting.** Luberan mendatar di 360px **sudah** diperbaiki (commit
 `f2c73f0`) dan dijaga `uji-tata-letak.mjs` 88/88. Jadi aplikasi sekarang *muat*
 di ponsel; yang belum adalah *nyaman*.
+
+---
+
+## 7. Temuan audit yang DITOLAK, beserta alasannya
+
+`revisi.md` memuat 36 temuan. Empat di antaranya tidak benar dan tidak
+dikerjakan. Dicatat di sini supaya tidak ada yang mengusulkannya lagi tanpa
+memeriksa ulang.
+
+| Kode | Klaim | Kenapa ditolak |
+|---|---|---|
+| **REV-FIN-06** | Ada status tagihan `perbaikan` yang tidak pernah ditangani | **Status itu tidak ada.** Tidak ada satu pun kemunculan `perbaikan` di `api/`: tidak di `Tagihan::STATUS_*`, tidak di CHECK `tagihan_status_dikenal`, tidak di seeder, tidak di frontend. Status yang benar-benar ada: `belum_bayar`, `sebagian`, `lunas`, `dibatalkan`. Sprint 3.7 dibatalkan seluruhnya. |
+| **REV-ACA-03** | Berkas `~$oject_Charter_Kos-Kosan.docx` ter-commit | **Tidak ter-commit.** `.gitignore` sudah memuat `~$*` sejak awal, dan `git ls-files` tidak memuatnya. Tidak ada yang perlu diperbaiki. |
+| **REV-SEC-05** (sebagian) | Kebocoran nama+email adalah lubang serius | **Terlalu keras.** Endpoint hanya membocorkan PII bila pemanggil sudah memegang token 64 karakter acak yang sah — dan pemegang token itu bisa langsung menetapkan sandi baru lewat `/atur-sandi` tanpa membaca emailnya sama sekali. Tetap dikeraskan (batas 20/menit per IP + penyamaran email), tetapi sebagai pertahanan berlapis, bukan penutupan lubang kritis. |
+| **REV-UI-02** (premis) | Ada rujukan ke rute `komponen-biaya` yang sudah tidak ada | **Premisnya salah.** Tidak ada rujukan `komponen-biaya` di `web/src` sama sekali. Celah yang dilaporkan (tidak ada layar untuk komponen biaya) memang nyata, tetapi bukan karena rujukan yang rusak. |
+
+## 8. Keputusan lama yang DIBATALKAN atas permintaan pemilik
+
+Dua keputusan di dokumen ini sempat diambil dengan alasan yang masuk akal, lalu
+dibatalkan. Yang lama tetap dicatat supaya alasan pembatalannya terbaca.
+
+| Keputusan lama | Diganti menjadi | Alasan pembatalan |
+|---|---|---|
+| `GET /rekap` terbuka untuk pengelola — "membaca uang yang sudah masuk bukan tindakan yang merugikan siapa pun, dan pengelola yang mencatat pembayaran perlu memeriksa catatannya sendiri" | `/rekap` **`peran:pemilik`**; pengelola mendapat `GET /pembayaran/tunai-saya` | Alasan lama tidak bertahan setelah diperiksa: rekap adalah satu-satunya tempat seluruh pendapatan kos terlihat sebagai satu angka, dan pengelola yang memegangnya bisa menyimpulkan penghasilan pemiliknya. Yang dibutuhkan pekerjaannya sudah tersedia di tempat lain — daftar pembayaran tetap terbuka, dan uang tunai di tangannya punya endpoint sendiri. |
+| Verifikasi pembayaran menerima catatan sendiri | Ditolak **403** `verifikasi_catatan_sendiri` bila pelakunya `pengelola`; **pemilik tetap boleh** | Pemisahan wewenang pencatatan dan pemeriksaan hanya berlaku di atas kertas bila orang yang sama boleh melakukan keduanya. Pengecualian pemilik disengaja: pada kos kecil ia sering satu-satunya orang yang memegang uang, dan melarangnya memeriksa catatannya sendiri berarti tidak ada yang bisa memeriksa sama sekali. |

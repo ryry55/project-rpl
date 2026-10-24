@@ -151,6 +151,22 @@ Route::middleware('auth:sanctum')->group(function () {
                 ->name('usulan.setujui');
             Route::post('/usulan/{usulan}/tolak', [UsulanController::class, 'tolak'])
                 ->name('usulan.tolak');
+
+            // Rekap pendapatan (T21). Sejak REV-SEC-06 hanya pemilik.
+            //
+            // Rekap adalah gambaran utuh keuangan kos: pendapatan per metode,
+            // piutang denda, dan setoran tiap pemegang uang. Pengelola yang
+            // membacanya mengetahui penghasilan pemiliknya tanpa pernah diminta,
+            // dan itu bukan pengetahuan yang dibutuhkan untuk mencatat
+            // pembayaran. Yang dibutuhkan pengelola adalah "berapa uang tunai
+            // yang saya pegang", dan itu disediakan `/pembayaran/tunai-saya`
+            // dengan cakupan yang jauh lebih sempit.
+            //
+            // `peran:pemilik`, bukan `wewenang:`: tidak ada wewenang yang bisa
+            // diberikan untuk membuka rekap, karena rekap bukan tugas yang bisa
+            // didelegasikan - ia adalah hak pemilik atas usahanya sendiri.
+            Route::get('/rekap', [PembayaranController::class, 'rekap'])
+                ->name('rekap.index');
         });
 
         // --- Kotak masuk dan pengaturan notifikasi (T25) -------------------
@@ -184,10 +200,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/tunggakan', [TunggakanController::class, 'index'])
                 ->name('tunggakan.index');
 
-            // Rekap dan daftar pembayaran (T20, T21). Terbuka untuk semua yang
-            // mengurus kos, sama seperti daftar tagihan: membaca uang yang sudah
-            // masuk bukan tindakan yang merugikan siapa pun, dan pengelola yang
-            // mencatat pembayaran memang perlu memeriksa catatannya sendiri.
+            // Daftar pembayaran (T20). Terbuka untuk semua yang mengurus kos,
+            // sama seperti daftar tagihan: pengelola yang mencatat pembayaran
+            // memang perlu memeriksa catatannya sendiri, dan tanpa daftar ini
+            // ia tidak bisa menemukan baris yang perlu diperiksa.
             Route::get('/pembayaran', [PembayaranController::class, 'index'])
                 ->name('pembayaran.index');
             // Daftar pemegang uang tunai yang mungkin. Didaftarkan SEBELUM
@@ -195,8 +211,11 @@ Route::middleware('auth:sanctum')->group(function () {
             // metode HTTP - melainkan supaya letaknya berdekatan dengan pemakainya.
             Route::get('/pembayaran/penerima', [PembayaranController::class, 'penerima'])
                 ->name('pembayaran.penerima');
-            Route::get('/rekap', [PembayaranController::class, 'rekap'])
-                ->name('rekap.index');
+            // Uang tunai milik pemanggil sendiri (REV-SEC-06). Pengganti sempit
+            // untuk pengelola setelah `/rekap` ditutup: yang dibuka bukan rekap
+            // yang dipersempit, melainkan pertanyaan yang memang miliknya.
+            Route::get('/pembayaran/tunai-saya', [PembayaranController::class, 'tunaiSaya'])
+                ->name('pembayaran.tunai-saya');
 
             // Usulan perubahan (T26). Dibaca oleh pemilik dan pengelola - pengelola
             // perlu tahu nasib usulannya sendiri. Yang tidak boleh dibaca pengelola
@@ -297,9 +316,24 @@ Route::middleware('auth:sanctum')->group(function () {
         // memeriksa pekerjaan pengelolanya tanpa memeriksa catatan bank sendiri.
         // Akun yang punya keduanya tetap bisa melakukan keduanya - yang dicegah
         // adalah memberi satu wewenang lalu diam-diam mendapat yang lain.
+        //
+        // Sejak REV-FIN-03 pemisahan itu juga berlaku untuk akun yang sama:
+        // pengelola yang mencatat sebuah pembayaran tidak boleh memeriksanya
+        // sendiri. Tanpa batas itu, "pemisahan wewenang" hanya berlaku bagi
+        // pengelola yang kebetulan tidak punya wewenang kedua.
         Route::middleware(PastikanWewenang::class.':verifikasi_pembayaran')->group(function () {
             Route::post('/pembayaran/{pembayaran}/verifikasi', [PembayaranController::class, 'verifikasi'])
                 ->name('pembayaran.verifikasi');
+
+            // Menarik kembali pembayaran yang salah catat (REV-FIN-01).
+            //
+            // Wewenangnya sama dengan memeriksa, karena keduanya sama-sama
+            // tindakan koreksi atas uang yang sudah tercatat - dan orang yang
+            // menemukan angkanya tidak cocok justru orang yang memeriksa. Yang
+            // membedakan hanya akibatnya: pemeriksaan menempelkan label,
+            // pembalikan mengubah angka. Karena itu endpointnya terpisah.
+            Route::post('/pembayaran/{pembayaran}/pembalik', [PembayaranController::class, 'balik'])
+                ->name('pembayaran.pembalik');
         });
 
         Route::middleware(PastikanWewenang::class.':baca_audit')->group(function () {

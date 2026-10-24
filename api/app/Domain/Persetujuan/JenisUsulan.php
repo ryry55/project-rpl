@@ -9,7 +9,7 @@ use App\Models\Kamar;
 use App\Models\UsulanPerubahan;
 
 /**
- * Dua hal yang boleh diusulkan pengelola (T26).
+ * Tiga hal yang boleh diusulkan pengelola (T26, REV-SEC-07).
  *
  * Daftar tertutup, seperti {@see Wewenang}. Menambah tipe usulan berarti
  * menambah cara baru untuk menyentuh angka uang, dan itu harus lewat kode yang
@@ -28,9 +28,20 @@ final class JenisUsulan
     public const KEBIJAKAN = UsulanPerubahan::TIPE_KEBIJAKAN;
 
     /**
+     * Komponen biaya kamar (REV-SEC-07).
+     *
+     * Wewenangnya `ubah_tarif`, bukan wewenang baru. Komponen biaya adalah
+     * angka uang yang ditagihkan setiap bulan - pekerjaan yang sama dengan
+     * tarif, pada kolom yang berbeda. Membuat wewenang `ubah_komponen` berarti
+     * semua akun pengelola yang sudah ada kehilangan haknya setelah migrasi,
+     * dan kegagalan seperti itu tidak menimbulkan galat apa pun.
+     */
+    public const KOMPONEN = UsulanPerubahan::TIPE_KOMPONEN;
+
+    /**
      * @var list<string>
      */
-    public const SEMUA = [self::TARIF, self::KEBIJAKAN];
+    public const SEMUA = [self::TARIF, self::KEBIJAKAN, self::KOMPONEN];
 
     public static function dikenal(string $tipe): bool
     {
@@ -52,6 +63,9 @@ final class JenisUsulan
         return match ($tipe) {
             self::TARIF => Wewenang::UBAH_TARIF,
             self::KEBIJAKAN => Wewenang::UBAH_KEBIJAKAN,
+            // Komponen biaya ikut `ubah_tarif`: keduanya menetapkan berapa
+            // rupiah yang ditagihkan, hanya pada kolom yang berbeda.
+            self::KOMPONEN => Wewenang::UBAH_TARIF,
             default => throw new \UnexpectedValueException("Tipe usulan \"{$tipe}\" tidak dikenal."),
         };
     }
@@ -69,6 +83,7 @@ final class JenisUsulan
         return match ($tipe) {
             self::TARIF => PencatatAudit::AKSI_TARIF_USUL,
             self::KEBIJAKAN => PencatatAudit::AKSI_KEBIJAKAN_USUL,
+            self::KOMPONEN => PencatatAudit::AKSI_KOMPONEN_USUL,
             default => throw new \UnexpectedValueException("Tipe usulan \"{$tipe}\" tidak dikenal."),
         };
     }
@@ -78,6 +93,7 @@ final class JenisUsulan
         return match ($tipe) {
             self::TARIF => PencatatAudit::AKSI_TARIF_SETUJUI,
             self::KEBIJAKAN => PencatatAudit::AKSI_KEBIJAKAN_SETUJUI,
+            self::KOMPONEN => PencatatAudit::AKSI_KOMPONEN_SETUJUI,
             default => throw new \UnexpectedValueException("Tipe usulan \"{$tipe}\" tidak dikenal."),
         };
     }
@@ -87,6 +103,7 @@ final class JenisUsulan
         return match ($tipe) {
             self::TARIF => PencatatAudit::AKSI_TARIF_TOLAK,
             self::KEBIJAKAN => PencatatAudit::AKSI_KEBIJAKAN_TOLAK,
+            self::KOMPONEN => PencatatAudit::AKSI_KOMPONEN_TOLAK,
             default => throw new \UnexpectedValueException("Tipe usulan \"{$tipe}\" tidak dikenal."),
         };
     }
@@ -96,6 +113,7 @@ final class JenisUsulan
         return match ($tipe) {
             self::TARIF => 'Tarif sewa',
             self::KEBIJAKAN => 'Kebijakan kos',
+            self::KOMPONEN => 'Komponen biaya',
             default => $tipe,
         };
     }
@@ -115,6 +133,7 @@ final class JenisUsulan
         return match ($tipe) {
             self::TARIF => self::ringkasanTarif($payload),
             self::KEBIJAKAN => self::ringkasanKebijakan($payload),
+            self::KOMPONEN => self::ringkasanKomponen($payload),
             default => throw new \UnexpectedValueException("Tipe usulan \"{$tipe}\" tidak dikenal."),
         };
     }
@@ -132,6 +151,17 @@ final class JenisUsulan
             number_format((int) ($payload['nilai'] ?? 0), 0, ',', '.'),
             self::tanggalIndonesia($payload['berlaku_dari'] ?? null),
         );
+    }
+
+    private static function nomorKamar(mixed $kamarId): string
+    {
+        if ($kamarId === null) {
+            return '—';
+        }
+
+        // Dibaca apa adanya, tanpa cache: ini hanya dipanggil sekali saat usulan
+        // dibuat, bukan di dalam perulangan.
+        return Kamar::query()->whereKey($kamarId)->value('nomor') ?? "id {$kamarId}";
     }
 
     /**
@@ -156,15 +186,30 @@ final class JenisUsulan
         );
     }
 
-    private static function nomorKamar(mixed $kamarId): string
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private static function ringkasanKomponen(array $payload): string
     {
-        if ($kamarId === null) {
-            return '—';
-        }
+        $nama = (string) ($payload['nama'] ?? '');
+        $nilai = (int) ($payload['nilai'] ?? 0);
+        $satuan = trim((string) ($payload['satuan'] ?? ''));
 
-        // Dibaca apa adanya, tanpa cache: ini hanya dipanggil sekali saat usulan
-        // dibuat, bukan di dalam perulangan.
-        return Kamar::query()->whereKey($kamarId)->value('nomor') ?? "id {$kamarId}";
+        // Cakupan disebut eksplisit. "Biaya kebersihan Rp 50.000" tanpa
+        // keterangan kamar mana akan dibaca pemilik sebagai biaya untuk seluruh
+        // kos - dan itu perbedaan yang menentukan berapa tagihan yang berubah.
+        $cakupan = isset($payload['kamar_id']) && $payload['kamar_id'] !== null
+            ? 'kamar '.self::nomorKamar($payload['kamar_id'])
+            : 'seluruh kamar';
+
+        return sprintf(
+            'Komponen biaya "%s" sebesar Rp %s%s untuk %s mulai %s.',
+            $nama,
+            number_format($nilai, 0, ',', '.'),
+            $satuan !== '' ? ' per '.$satuan : '',
+            $cakupan,
+            self::tanggalIndonesia($payload['berlaku_dari'] ?? null),
+        );
     }
 
     /**

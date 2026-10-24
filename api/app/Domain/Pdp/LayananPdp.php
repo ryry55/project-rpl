@@ -4,6 +4,7 @@ namespace App\Domain\Pdp;
 
 use App\Models\LogAudit;
 use App\Models\Penghuni;
+use App\Models\Tagihan;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -201,6 +202,29 @@ class LayananPdp
 
         if ($penghuni && $penghuni->kontrak()->where('status', 'aktif')->exists()) {
             return 'Anda masih punya kontrak aktif. Ajukan penghapusan setelah kontrak berakhir.';
+        }
+
+        // REV-SEC-04: tunggakan juga menghalangi, bukan hanya kontrak aktif.
+        //
+        // Sebelumnya pemeriksaan berhenti di status kontrak. Penghuni yang
+        // kontraknya sudah selesai tetapi masih punya tagihan belum lunas bisa
+        // menghapus akunnya - dan sesudah itu tidak ada lagi yang bisa ditagih
+        // atas namanya, karena namanya sudah menjadi "pengguna dihapus".
+        //
+        // Tagihan yang dibatalkan sengaja tidak ikut: pembatalan berarti
+        // tagihan itu memang tidak ditagihkan lagi, jadi tidak ada utang yang
+        // hilang. Yang dihitung hanya `belum_bayar` dan `sebagian` - dua status
+        // yang berarti masih ada rupiah yang belum diterima.
+        if ($penghuni !== null) {
+            $masihMenunggak = Tagihan::query()
+                ->whereIn('kontrak_id', $penghuni->kontrak()->select('id'))
+                ->whereIn('status', [Tagihan::STATUS_BELUM_BAYAR, Tagihan::STATUS_SEBAGIAN])
+                ->exists();
+
+            if ($masihMenunggak) {
+                return 'Anda masih punya tagihan yang belum lunas. Selesaikan pembayarannya '
+                    .'sebelum mengajukan penghapusan akun.';
+            }
         }
 
         return null;

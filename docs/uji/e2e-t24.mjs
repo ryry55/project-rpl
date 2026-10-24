@@ -386,6 +386,54 @@ jalankan(async () => {
     const bacaTagihan = await panggilApi(ws, '/tagihan')
     lapor('GET /tagihan tetap boleh untuk pengelola', bacaTagihan.status === 200, `status ${bacaTagihan.status}`)
 
+    // --- Rekap ditutup, tunai-saya dibuka (REV-SEC-06) --------------------
+    //
+    // Batasnya sengaja asimetris. Rekap adalah gambaran utuh keuangan kos -
+    // pendapatan per metode, piutang denda, setoran tiap pemegang - dan
+    // pengelola yang membacanya mengetahui penghasilan pemiliknya tanpa pernah
+    // diminta. Yang dibutuhkan pekerjaannya adalah "berapa uang tunai yang saya
+    // pegang", dan itu dijawab endpoint yang jauh lebih sempit.
+    const bacaRekap = await panggilApi(ws, '/rekap?dari=2026-01-01&sampai=2026-12-31')
+    lapor('GET /rekap ditolak 403 untuk pengelola', bacaRekap.status === 403, `status ${bacaRekap.status}`)
+
+    const bacaTunaiSaya = await panggilApi(ws, '/pembayaran/tunai-saya?dari=2026-01-01&sampai=2026-12-31')
+    lapor(
+      'GET /pembayaran/tunai-saya tetap boleh untuk pengelola',
+      bacaTunaiSaya.status === 200,
+      `status ${bacaTunaiSaya.status}`,
+    )
+    lapor(
+      'tunai-saya hanya memuat angka milik pemanggil, bukan rekap kos',
+      bacaTunaiSaya.status === 200 &&
+        bacaTunaiSaya.data?.data?.per_metode === undefined &&
+        bacaTunaiSaya.data?.data?.piutang === undefined,
+      JSON.stringify(bacaTunaiSaya.data?.data ?? {}).slice(0, 90),
+    )
+
+    const bacaPembayaran = await panggilApi(ws, '/pembayaran?dari=2026-01-01&sampai=2026-12-31')
+    lapor(
+      'GET /pembayaran tetap boleh untuk pengelola',
+      bacaPembayaran.status === 200,
+      `status ${bacaPembayaran.status}`,
+    )
+
+    // Halaman Rekap tetap terbuka untuk pengelola, tetapi dengan wajah yang
+    // berbeda: judulnya menyebut uang tunai miliknya, bukan pendapatan kos.
+    // Menu yang menjanjikan "Rekap" lalu menampilkan halaman kosong akan
+    // membuat pengelola mengira aplikasinya rusak.
+    await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/rekap` })
+    const judulRekapSempit = await tungguSampai(
+      ws,
+      `document.querySelector('h1')?.textContent.includes('Uang tunai saya')`,
+    )
+    lapor('halaman rekap pengelola berjudul "Uang tunai saya"', judulRekapSempit)
+
+    const adaMenuTunaiSaya = await evaluasi(
+      ws,
+      `[...document.querySelectorAll('nav a')].some((a) => a.textContent.includes('Tunai saya'))`,
+    )
+    lapor('menu untuk pengelola berbunyi "Tunai saya", bukan "Rekap"', adaMenuTunaiSaya)
+
     // --- Kebijakan hanya-baca ---------------------------------------------
     await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/kebijakan` })
     const kebijakanTerbuka = await tungguSampai(

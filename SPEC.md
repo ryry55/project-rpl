@@ -320,10 +320,10 @@ mendemokan "hari ke-37" berarti menunggu 37 hari. Endpoint dan header ini tidak 
 | Aturan yang butuh data tagihan | di `PencatatPembayaran`, **bukan** di `FormRequest` | Kalau diperiksa di `FormRequest`, pemeriksaan berjalan di luar kunci baris dan hasilnya bisa basi sebelum sempat menulis |
 | Denda saat memutuskan sisa | dihitung pada **tanggal acuan sistem**, bukan `tanggal_pembayaran` | Denda adalah fungsi "sudah berapa hari terlambat sekarang". Memakai tanggal pembayaran berarti denda bisa dihapus dengan menulis tanggal mundur |
 | Kelebihan bayar | **ditolak 422**, tidak disimpan sebagai saldo negatif | Saldo negatif membuat `SUM(jumlah)` berhenti bermakna sebagai "uang yang diterima", dan status yang diturunkan dari situ bisa dibuat apa saja |
-| `pembayaran.jumlah` | selalu **positif**; `integer` di validasi menolak `1500000.5` | Uang disimpan sebagai rupiah bulat. Menerima desimal berarti membulatkannya diam-diam di suatu tempat nanti |
-| `total_final` di `tagihan` | dibekukan **sekali** saat status menjadi `lunas` | Denda berhenti berjalan saat lunas. Tanpa pembekuan, tagihan lunas menampilkan "total Rp 1.500.000" dan "dibayar Rp 1.950.000" sekaligus — dua angka yang bertentangan di satu layar |
+| `pembayaran.jumlah` | **positif** untuk uang masuk; **negatif hanya** untuk baris pembalik yang punya `pembalik_id` | Uang disimpan sebagai rupiah bulat. Tanda negatif dikunci CHECK `pembayaran_tanda_jumlah` supaya tidak ada baris positif yang bisa menyamar sebagai pembalik atau sebaliknya |
+| `total_final` di `tagihan` | dibekukan **sekali** saat status menjadi `lunas`; dilepas kembali bila pembalikannya membatalkan pelunasan | Denda berhenti berjalan saat lunas. Tanpa pembekuan, tagihan lunas menampilkan "total Rp 1.500.000" dan "dibayar Rp 1.950.000" sekaligus — dua angka yang bertentangan di satu layar |
 | `sisa` di respons | `max(0, total − dibayar)` | Kelebihan bayar sudah ditolak, jadi negatif hanya mungkin karena bug; menampilkannya sebagai nol lebih jujur daripada sebagai utang terbalik |
-| Tabel `pembayaran` | **append-only** lewat trigger `BEFORE UPDATE OR DELETE` | Catatan uang yang bisa diedit diam-diam tidak berguna untuk mempertanggungjawabkan saldo. Koreksi salah input butuh baris pembalik, dan fitur itu **belum ada** — dicatat sebagai batasan |
+| Tabel `pembayaran` | **append-only** lewat trigger `BEFORE UPDATE OR DELETE` | Catatan uang yang bisa diedit diam-diam tidak berguna untuk mempertanggungjawabkan saldo. Koreksi salah input memakai **baris pembalik** (REV-FIN-01): baris baru bernilai negatif yang menunjuk baris asalnya, sehingga yang salah tetap terbaca sebagai salah |
 | `tanggal_pembayaran` vs `created_at` | dua kolom terpisah | Yang pertama tanggal uang diterima menurut pemilik, yang kedua kapan baris dicatat. Selisihnya sendiri informasi yang berguna |
 | Penjumlahan `dibayar` di daftar | `withSum('pembayaran as total_dibayar')`, satu query untuk satu halaman | Tanpa ini, daftar 30 tagihan menjalankan 30 query penjumlahan; halaman daftar jadi lambat justru karena fitur pembayaran |
 | Rumus `pokok + denda` | satu tempat: `HasilDenda::total()` | Tiga salinan rumus yang sama pasti akan menyimpang |
@@ -548,11 +548,13 @@ commit lalu membaca ulang, yang membuktikan `FOR UPDATE` benar-benar bekerja. Ko
 ditambahkan supaya angka `total`, `dibayar`, dan `sisa` tidak saling bertentangan pada tagihan
 yang sudah lunas.
 
-**Batasan yang dicatat jujur.** `pembayaran` bersifat append-only dan belum ada fitur baris
-pembalik. Salah input jumlah karena itu **tidak bisa diperbaiki lewat aplikasi**; satu-satunya
-jalan adalah intervensi langsung ke basis data, yang meninggalkan jejak di `log_audit` bila
-dilakukan lewat aplikasi. Koreksi pembayaran dirancang sebagai entri balik bertanda, bukan
-penyuntingan baris lama — dan itu pekerjaan tersendiri, di luar cakupan T5.
+**Batasan yang dicatat jujur.** `pembayaran` bersifat append-only. Koreksi salah input
+memakai **baris pembalik** (REV-FIN-01): baris baru bernilai negatif yang menunjuk baris
+asalnya lewat `pembalik_id`, bukan penyuntingan baris lama. Yang salah tetap terbaca sebagai
+salah, dan karena tandanya ikut ke `SUM(jumlah)`, saldo tagihan, rekap, dan uang tunai di
+tangan semuanya tetap benar tanpa satu pun agregat diubah. Sampai R2 fitur ini belum ada;
+sejak R2 endpoint-nya (`POST /pembayaran/{id}/pembalik`) tersedia, tetapi belum punya tombol
+di layar.
 
 ### US-6 — Melihat denda yang benar (T6)
 
@@ -669,7 +671,7 @@ Ditunda dengan sadar, bukan terlupa.
 | Deposit & kerusakan (R-05) | Butuh alur foto kerusakan dan negosiasi; kolom sudah disiapkan | T8, tabel manual di laporan |
 | Laporan & rekap lengkap (proses 5.0) | Bisa dihitung manual dari data yang ada | T10, tabel manual di laporan |
 | Pembatalan tagihan | Tidak dibutuhkan untuk demo | enum ada, UI tidak |
-| Koreksi pembayaran | Butuh baris pembalik bertanda dan alur persetujuan; bukan sekadar hapus baris | Di luar cakupan demo; `pembayaran` append-only dan batasannya dicatat di §5 |
+| Koreksi pembayaran | **Sudah dikerjakan di R2** (REV-FIN-01): baris pembalik bertanda lewat `POST /pembayaran/{id}/pembalik` | Endpoint teruji; tombol layar menyusul |
 | Notifikasi WhatsApp/email | Di luar kendali anggaran | — |
 | Multi-kos / multi-pemilik | Satu kos, satu pemilik | — |
 | Impor data historis | Kos baru, tidak ada data lama | — |

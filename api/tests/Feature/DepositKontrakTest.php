@@ -6,6 +6,7 @@ use App\Domain\Kebijakan\PilihanKebijakan;
 use App\Models\Kamar;
 use App\Models\KebijakanKos;
 use App\Models\Kontrak;
+use App\Models\LogAudit;
 use App\Models\Penghuni;
 use App\Models\TarifSewa;
 use App\Models\User;
@@ -247,5 +248,99 @@ class DepositKontrakTest extends TestCase
         $this->buatKontrak($kamar, $penghuni, ['deposit' => -1])
             ->assertStatus(422)
             ->assertJsonStructure(['errors' => ['deposit']]);
+    }
+
+    // --- Penetapan tarif saat kontrak (REV-SEC-02) -------------------------
+
+    public function test_pemilik_menetapkan_tarif_kamar_baru_lewat_kontrak(): void
+    {
+        // Kamar baru belum punya tarif sama sekali. Pemilik menetapkannya dalam
+        // satu langkah bersama kontraknya - itu alur yang wajar dan tetap boleh.
+        $kamar = Kamar::create(['nomor' => 'B1', 'status_huni' => 'kosong']);
+        $penghuni = Penghuni::create(['nama' => 'Budi Santoso', 'email' => 'b1@kos.test']);
+
+        $this->buatKontrak($kamar, $penghuni, ['tarif' => 1_750_000])
+            ->assertCreated()
+            ->assertJsonPath('data.tarif_awal', 1_750_000);
+
+        $this->assertDatabaseHas('tarif_sewa', [
+            'kamar_id' => $kamar->id,
+            'nilai' => 1_750_000,
+        ]);
+    }
+
+    public function test_penetapan_tarif_lewat_kontrak_meninggalkan_jejak_audit(): void
+    {
+        // REV-SEC-02: baris tarif pertama dulu ditulis dengan `TarifSewa::create`
+        // langsung, sehingga tarif termahal yang pernah ditetapkan - yang
+        // menentukan tagihan setiap bulan - tidak meninggalkan jejak apa pun.
+        $kamar = Kamar::create(['nomor' => 'B2', 'status_huni' => 'kosong']);
+        $penghuni = Penghuni::create(['nama' => 'Budi Santoso', 'email' => 'b2@kos.test']);
+
+        $this->buatKontrak($kamar, $penghuni, ['tarif' => 1_750_000])
+            ->assertCreated();
+
+        $jejak = LogAudit::query()
+            ->where('entitas', 'tarif_sewa')
+            ->firstOrFail();
+
+        $this->assertSame($this->pemilik->id, (int) $jejak->aktor_id);
+        $this->assertSame(1_750_000, (int) $jejak->nilai_baru['nilai']);
+    }
+
+    public function test_pengelola_tidak_boleh_menetapkan_tarif_lewat_kontrak(): void
+    {
+        // Jalur yang tidak dijaga selalu menjadi jalur yang dipakai. Tanpa
+        // pemeriksaan ini, pengelola yang hanya berhak MENGUSULKAN tarif bisa
+        // menetapkannya sendiri cukup dengan membuat kontrak untuk kamar yang
+        // belum bertarif.
+        $pengelola = User::create([
+            'name' => 'Sari Pengelola',
+            'email' => 'sari@kos.test',
+            'password' => Hash::make('password'),
+            'peran' => User::PERAN_PENGELOLA,
+            'pemilik_id' => $this->pemilik->id,
+        ]);
+        $pengelola->kewenangan()->create(['wewenang' => 'kelola_penghuni']);
+        $pengelola->load('kewenangan');
+
+        $kamar = Kamar::create(['nomor' => 'B3', 'status_huni' => 'kosong']);
+        $penghuni = Penghuni::create(['nama' => 'Budi Santoso', 'email' => 'b3@kos.test']);
+
+        $this->actingAs($pengelola, 'sanctum')
+            ->postJson('/api/kontrak', [
+                'kamar_id' => $kamar->id,
+                'penghuni_id' => $penghuni->id,
+                'tgl_masuk' => '2026-10-01',
+                'tarif' => 1_750_000,
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('kode', 'tarif_perlu_pemilik');
+
+        // Tidak ada baris tarif dan tidak ada kontrak yang lahir.
+        $this->assertSame(0, TarifSewa::query()->where('kamar_id', $kamar->id)->count());
+        $this->assertSame(0, Kontrak::query()->where('kamar_id', $kamar->id)->count());
+    }
+
+    public function test_tarif_yang_berbeda_dari_yang_berlaku_ditolak_422(): void
+    {
+        // Tarif yang sudah ada tidak boleh "dikoreksi" lewat pembuatan kontrak:
+        // itu jalan pintas mengubah tarif tanpa usulan, tanpa persetujuan, dan
+        // tanpa jejak.
+        [$kamar, $penghuni] = $this->siapkan(tarif: 1_500_000);
+
+        $this->buatKontrak($kamar, $penghuni, ['tarif' => 1_900_000])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('tarif');
+    }
+
+    public function test_tarif_yang_sama_dengan_yang_berlaku_diterima(): void
+    {
+        // Mengirim tarif yang sama bukan percobaan mengubah apa pun - layar
+        // boleh mengirim ulang angka yang ditampilkannya tanpa ditolak.
+        [$kamar, $penghuni] = $this->siapkan(tarif: 1_500_000);
+
+        $this->buatKontrak($kamar, $penghuni, ['tarif' => 1_500_000])
+            ->assertCreated();
     }
 }

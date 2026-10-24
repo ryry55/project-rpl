@@ -6,7 +6,7 @@
 > Sumber kebenaran tetap `api/routes/api.php` dan kelas `Resource`. Dokumen ini
 > diambil dari `php artisan route:list --json` pada aplikasi yang berjalan.
 
-Versi 1.0 · 26 Oktober 2026 · **69 endpoint**
+Versi 1.0 · 26 Oktober 2026 · **71 endpoint**
 
 ---
 
@@ -113,7 +113,7 @@ menerapkan. Lihat §6.
 |---|---|---|
 | `POST` | `/api/login` | `{ email, password }` → `{ data: { token, user } }` |
 | `POST` | `/api/lupa-sandi` | `{ email }` → `200` selalu, **apa pun** hasilnya; `429` bila terlalu sering |
-| `POST` | `/api/periksa-token` | `{ token, jenis? }` → `{ data: { berlaku, nama, email } }` |
+| `POST` | `/api/periksa-token` | `{ token, jenis? }` → `{ data: { berlaku, nama, email } }`; `429` bila terlalu sering |
 | `POST` | `/api/atur-sandi` | `{ token, jenis, password, password_confirmation }` |
 | `GET` | `/api/health` | `200 { data: { status: "ok", database, zona_waktu, waktu } }` atau `503` dengan `status: "down"` |
 
@@ -128,6 +128,16 @@ galat. Pemantau uptime tidak butuh lebih, dan pesan galat di endpoint publik
 adalah peta jalan bagi penyerang. Pemeriksaannya menyentuh tabel `users`, bukan
 `SELECT 1`: koneksi bisa hidup sementara migrasi belum jalan, dan dalam keadaan
 itu setiap layar gagal walau koneksinya sehat.
+
+**`/periksa-token` dibatasi 20 kali per menit per IP dan menyamarkan email
+(REV-SEC-05).** Endpoint ini publik dan menjawab "token ini sah" untuk token acak
+64 karakter; tanpa batas ia adalah mesin penebak. Kuncinya IP saja karena email
+justru yang sedang dicari. `nama` tetap dikirim utuh — itulah satu-satunya guna
+layar ini, dan orang yang memegang tokennya memang sudah membuka kotak surat akun
+itu — sedangkan `email` menjadi `bu***@kos.test`. Ini pengerasan, bukan penutupan
+lubang kritis: token 64 karakter acak sudah di luar jangkauan tebak-menebak, dan
+pemegang token yang sah bisa langsung menetapkan sandi baru lewat `/atur-sandi`
+tanpa perlu membaca alamat emailnya.
 
 ### 3.2 Butuh token
 
@@ -161,6 +171,17 @@ tidak boleh diberi tahu bahwa akunnya sebenarnya tidak boleh dihapus.
 
 Penghapusan **menganonimkan**, bukan menghapus baris. Akun yang pernah menangani
 uang tidak bisa dihapus sama sekali (FK `RESTRICT`) — dan itu disengaja.
+
+**Penghuni yang masih punya tagihan belum lunas juga ditahan (REV-SEC-04).**
+Sebelum R2 pemeriksaan berhenti di status kontrak. Penghuni yang kontraknya sudah
+selesai tetapi masih menunggak bisa menghapus akunnya — dan sesudah itu tidak ada
+lagi yang bisa ditagih atas namanya, karena namanya sudah menjadi "pengguna
+dihapus". Tagihan `belum_bayar` dan `sebagian` menghalangi; tagihan `dibatalkan`
+tidak, karena pembatalan berarti memang tidak ditagihkan lagi dan memblokir
+karenanya akan mengunci orang selamanya pada kesalahan yang sudah diperbaiki.
+
+Jawabannya **409** dengan alasan yang bisa dibaca, bukan 403: pengguna berhak
+meminta, hanya waktunya belum tepat.
 
 ---
 
@@ -196,6 +217,15 @@ permintaan yang sah.
 |---|---|---|
 | Pemilik | `201` | `meta.diajukan = false`, tarif langsung berlaku |
 | Pengelola | `202` | `meta.diajukan = true`, baris `usulan_perubahan` dibuat |
+
+**`POST /komponen-biaya` memakai aturan yang sama (REV-SEC-07).** Sebelumnya
+endpoint itu menulis baris untuk kedua peran, sehingga `ubah_tarif` yang
+seharusnya berarti "boleh mengusulkan" menjadi "boleh menambah biaya bulanan ke
+seluruh kamar tanpa persetujuan" — dan menambah komponen berarti menaikkan
+tagihan **setiap** penghuni bulan berikutnya. Sekarang: pemilik `201`, pengelola
+`202` + baris usulan bertipe `komponen`. Tidak ada wewenang baru; `ubah_tarif`
+dipakai kembali supaya pengelola yang sudah memilikinya tidak diam-diam
+kehilangan hak.
 
 `berlaku_dari` tidak boleh bertabrakan dengan baris yang sudah ada
 (`UNIQUE (kamar_id, berlaku_dari)`). Dua lapis: `Rule::unique` menolak lebih
@@ -259,6 +289,21 @@ menetapkan sandinya sendiri lewat tautan email.
 
 `email` boleh kosong (penghuni tanpa akun), tetapi bila ada harus unik.
 
+**Email akun yang sudah aktif tidak bisa diubah lewat `PUT` (REV-SEC-01).**
+Sebelumnya endpoint ini mengganti kolom email lalu menghapus `email_verified_at`
+dan seluruh sesi. Niatnya benar — tautan lama harus batal — tetapi akibatnya
+jalan pengambilalihan yang rapi: pemilik mengubah email penghuni menjadi alamat
+yang ia kuasai, akun itu kembali "belum aktif", pemilik menekan "kirim ulang
+aktivasi" dan menetapkan sandinya sendiri sebagai pemegang kotak surat. Penghuni
+aslinya tidak pernah menerima apa pun, dan R-07 runtuh dari dalam.
+
+Penolakan dijawab **409** pada bidang `email`. Alamat yang salah ketik **hanya
+bisa ada pada akun yang belum aktif** — email diverifikasi justru dengan membuka
+tautan yang dikirim ke alamat itu — jadi akun aktif pasti punya alamat yang bisa
+dihubungi, dan penghuninya sendiri yang memakai alur "lupa sandi" bila perlu.
+Nama tetap boleh diubah; yang dikunci hanya alamatnya. Untuk akun yang belum
+aktif, mengganti email tetap bekerja dan mengirim tautan baru ke alamat baru.
+
 ### 4.6 Kontrak
 
 | Metode | Path | Middleware |
@@ -276,6 +321,15 @@ mengambilnya dari `PencariTarif` dan **menolak `tarif` yang berbeda** dengan
 `422` pada bidang `tarif` — bukan menimpanya. Kalau klien boleh menang, akan ada
 dua sumber kebenaran untuk tarif dan tidak ada yang bisa menjelaskan selisihnya.
 
+**Penetapan tarif pertama lewat kontrak hanya untuk pemilik (REV-SEC-02).**
+Sebelum R2 jalur ini menulis `tarif_sewa` dengan `create()` langsung, sehingga
+pengelola yang hanya berhak *mengusulkan* tarif bisa menetapkannya sendiri cukup
+dengan membuat kontrak untuk kamar yang belum bertarif — tanpa usulan, tanpa
+persetujuan, dan tanpa jejak. Sekarang pengelola yang mencoba dijawab **422**
+dengan `kode: 'tarif_perlu_pemilik'`; pemilik tetap boleh, dan barisnya ditulis
+lewat `PenerapPerubahan` sehingga meninggalkan `log_audit` seperti perubahan
+tarif lainnya.
+
 `deposit` memakai `filled()`, bukan `integer()`: `integer()` mengembalikan `0`
 baik untuk "tidak diisi" maupun "diisi nol", sehingga deposit kosong akan
 terbaca sebagai "tanpa deposit" dan mengabaikan kebijakan kos.
@@ -285,7 +339,7 @@ Satu kamar hanya boleh punya satu kontrak aktif (indeks parsial). Melanggar →
 
 ---
 
-## 5. Tagihan dan pembayaran (12 endpoint)
+## 5. Tagihan dan pembayaran (14 endpoint)
 
 ### 5.1 Tagihan
 
@@ -351,7 +405,9 @@ sebagai utang teknis.
 |---|---|---|
 | `GET` | `/api/pembayaran` | `peran:pemilik,pengelola` |
 | `GET` | `/api/pembayaran/penerima` | `peran:pemilik,pengelola` |
+| `GET` | `/api/pembayaran/tunai-saya` | `peran:pemilik,pengelola` |
 | `POST` | `/api/pembayaran/{pembayaran}/verifikasi` | `wewenang:verifikasi_pembayaran` |
+| `POST` | `/api/pembayaran/{pembayaran}/pembalik` | `wewenang:verifikasi_pembayaran` |
 
 `POST /tagihan/{tagihan}/pembayaran` — `{ jumlah, tanggal_pembayaran, metode, catatan?, diterima_oleh? }`
 
@@ -389,16 +445,81 @@ berlaku.
 yang tidak bisa membedakan keduanya akan menandai uang yang belum sempat
 diperiksa sebagai uang bermasalah.
 
+**Pengelola tidak boleh memeriksa catatannya sendiri** (REV-FIN-03). Pemilik
+dikecualikan: pada kos kecil ia sering satu-satunya orang yang memegang uang, dan
+melarangnya memeriksa catatannya sendiri berarti tidak ada yang bisa memeriksa
+sama sekali. Penolakan dijawab **403** dengan `kode: 'verifikasi_catatan_sendiri'`.
+
+### 5.3.1 Pembalik pembayaran (REV-FIN-01)
+
+`POST /pembayaran/{pembayaran}/pembalik` — `{ alasan }`
+
+Menulis **baris baru bernilai negatif** yang menunjuk baris asalnya lewat
+`pembalik_id`, bukan menyunting atau menghapus baris lama. Respons:
+
+```json
+{
+  "data": {
+    "pembalik": { "id": 9, "jumlah": -600000, "adalah_pembalik": true, … },
+    "pembayaran": { "id": 4, "sudah_dibalik": true, … },
+    "status_tagihan": "belum_bayar"
+  }
+}
+```
+
+Kenapa baris negatif, bukan tabel pembalik tersendiri: seluruh laporan
+menjumlahkan `SUM(pembayaran.jumlah)`. Dengan tanda negatif, `totalDibayar()`,
+rekap, sisa piutang, dan uang tunai di tangan semuanya tetap benar **tanpa satu
+pun agregat diubah** — dan agregat yang tidak perlu diubah adalah agregat yang
+tidak bisa lupa diubah.
+
+Batasan yang dijaga basis data, bukan hanya domain:
+
+| Aturan | Penjaga | Jawaban HTTP |
+|---|---|---|
+| `alasan` wajib | CHECK `pembalik_ada_alasan` | 422 |
+| Jumlah pembalik selalu negatif | CHECK `pembayaran_tanda_jumlah` | 422 |
+| Satu pembayaran dibalik sekali | unique index `pembalik_id` | 422 |
+| Pembalik tidak bisa dibalik | trigger `pembayaran_tolak_pembalik_bertingkat` | 422 |
+
+**Pembalikan selalu penuh.** Koreksi nominal berarti balik lalu catat ulang —
+dua baris yang bisa dibaca, bukan satu baris yang berubah tanpa jejak.
+
+**Tanggal pembalikan = hari ini**, bukan tanggal pembayaran asalnya. Membalik
+bukan mengubah buku bulan yang sudah ditutup. Karena itu pula demo yang memakai
+`X-Simulasi-Tanggal` harus mengirim header itu pada panggilan pembalikan juga;
+tanpa itu baris negatifnya jatuh di luar rentang rekap yang sedang ditampilkan.
+
+### 5.3.2 Uang tunai milik sendiri (REV-SEC-06)
+
+`GET /pembayaran/tunai-saya?dari=&sampai=` — keduanya opsional, bawaan bulan
+berjalan.
+
+Mengembalikan **angka saja** (`dari`, `sampai`, `jumlah`, `transaksi`,
+`pembalik`, `catatan`) untuk baris tunai yang `diterima_oleh`-nya adalah
+pemanggil. Tidak ada `per_metode`, tidak ada `piutang`, tidak ada nama penghuni.
+
+Endpoint ini ada karena `/rekap` ditutup untuk pengelola: yang dibutuhkan
+pekerjaannya adalah "berapa uang tunai yang masih saya pegang", bukan
+"berapa pendapatan kos". Rincian transaksinya tetap tersedia di
+`GET /pembayaran`, yang sengaja tetap terbuka.
+
 ### 5.4 Tunggakan, rekap, audit
 
 | Metode | Path | Middleware |
 |---|---|---|
 | `GET` | `/api/tunggakan` | `peran:pemilik,pengelola` |
-| `GET` | `/api/rekap` | `peran:pemilik,pengelola` |
+| `GET` | `/api/rekap` | `peran:pemilik` |
 | `GET` | `/api/audit-log` | `wewenang:baca_audit` |
 
 `GET /tunggakan` mengelompokkan ke `belum_jatuh_tempo` / `0_30` / `31_60` /
 `lebih_60` (R-04).
+
+**`/rekap` hanya untuk pemilik (REV-SEC-06).** Rekap adalah satu-satunya tempat
+seluruh pendapatan kos terlihat sebagai satu angka; pengelola yang memegang angka
+itu bisa menyimpulkan penghasilan pemiliknya tanpa pernah diminta. Batasnya
+sengaja asimetris: yang ditutup agregatnya, yang dibuka rinciannya
+(`GET /pembayaran`) dan uang tunai miliknya sendiri (`GET /pembayaran/tunai-saya`).
 
 `GET /rekap?dari=&sampai=` — keduanya opsional, dan **bawaannya bulan
 berjalan** (`dari` = awal bulan, `sampai` = hari ini), bukan "seluruhnya".
@@ -409,6 +530,12 @@ kunjungan pertama.
 Pendapatan = `SUM(pembayaran.jumlah)` pada `tanggal_pembayaran` (basis kas).
 Denda yang belum dibayar dilaporkan **terpisah** sebagai
 `piutang.denda_belum_dibayar` — ia bukan pendapatan sampai ada uang masuk.
+
+**Pembalik dilaporkan terpisah dari transaksi.** `jumlah_transaksi` menghitung
+baris masuk saja, dan `pembalik: { jumlah, transaksi }` menghitung baris negatif.
+`total` tetap `SUM(jumlah)` sehingga angkanya bersih, tetapi keduanya bisa
+dibaca sebagai dua peristiwa: menampilkan hanya angka nol akan menyembunyikan
+bahwa ada uang yang pernah tercatat lalu dibatalkan.
 
 `GET /pembayaran` **mewajibkan** `dari` dan `sampai`; `/rekap` tidak. Daftar
 pembayaran tanpa rentang bisa mengembalikan ribuan baris, sedangkan rekap tanpa
@@ -453,11 +580,18 @@ mati sebagai "masih bisa diputuskan".
 
 | Kejadian | `aksi` | `entitas` |
 |---|---|---|
-| Pengelola mengajukan | `tarif.usul` | `usulan_perubahan` |
-| Pemilik menyetujui | `tarif.setujui` | `tarif_sewa` |
-| Pemilik menolak | `tarif.tolak` | `usulan_perubahan` |
+| Pengelola mengajukan | `tarif.usul` / `kebijakan.usul` / `komponen.usul` | `usulan_perubahan` |
+| Pemilik menyetujui | `tarif.setujui` / `kebijakan.setujui` / `komponen.setujui` | `tarif_sewa` / `kebijakan_kos` / `komponen_biaya` |
+| Pemilik menolak | `tarif.tolak` / `kebijakan.tolak` / `komponen.tolak` | `usulan_perubahan` |
 
-Persetujuan yang gagal karena `23505` (tarif untuk tanggal itu sudah ada)
+**Tiga tipe usulan**, daftar tertutup di `JenisUsulan`: `tarif`, `kebijakan`,
+`komponen`. Ketiganya memakai `wewenang:ubah_tarif` (untuk `komponen` juga),
+karena menambah wewenang baru akan diam-diam mencabut hak pengelola yang sudah
+memilikinya. Menambah tipe berarti menambah cara baru menyentuh angka uang, dan
+itu harus lewat kode yang memeriksanya — bukan lewat baris di tabel yang tampil
+di layar tetapi tidak dipahami siapa pun.
+
+Persetujuan yang gagal karena `23505` (baris untuk tanggal itu sudah ada)
 mengembalikan `409` dan **membiarkan usulan tetap `menunggu`**. Usulan yang
 gagal diterapkan bukan usulan yang ditolak.
 
@@ -568,14 +702,14 @@ tidak pernah dijalankan.
 | Aturan | 4 | `/aturan*` |
 | Penghuni & kontrak | 9 | `/penghuni*`, `/kontrak*` |
 | Tagihan | 6 | `/tagihan*` |
-| Pembayaran | 3 | `/pembayaran*` |
+| Pembayaran | 5 | `/pembayaran*` |
 | Laporan | 3 | `/tunggakan`, `/rekap`, `/audit-log` |
 | Usulan | 3 | `/usulan*` |
 | Pengelola | 6 | `/pengelola*` |
 | Portal penghuni | 2 | `/penghuni/tagihan`, `/penghuni/aturan` |
 | Notifikasi | 5 | `/notifikasi*`, `/pengaturan-notifikasi` |
 | Infrastruktur | 2 | `/health` (§3.1), `/pemilik/saja` |
-| **Total** | **69** | |
+| **Total** | **71** | |
 
 ---
 

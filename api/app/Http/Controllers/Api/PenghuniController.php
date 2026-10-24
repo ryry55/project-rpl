@@ -75,7 +75,38 @@ class PenghuniController extends Controller
 
     public function update(SimpanPenghuniRequest $request, Penghuni $penghuni): JsonResponse
     {
-        $penghuni->update($request->validated());
+        $data = $request->validated();
+        $user = $penghuni->user;
+
+        // REV-SEC-01: email akun yang SUDAH AKTIF tidak boleh diubah dari sini.
+        //
+        // Sebelumnya endpoint ini mengganti kolom email akun lalu menghapus
+        // `email_verified_at` dan seluruh sesi. Niatnya benar - tautan lama
+        // harus batal - tetapi akibatnya jalan pengambilalihan yang rapi:
+        // pemilik mengubah email penghuni menjadi alamat yang ia kuasai, akun
+        // itu kembali "belum aktif", lalu pemilik menekan "kirim ulang
+        // aktivasi" dan menetapkan sandinya sendiri sebagai pemegang kotak
+        // surat. Penghuni aslinya tidak pernah menerima apa pun, dan R-07
+        // (isolasi data per penghuni) runtuh dari dalam.
+        //
+        // Menolak seluruhnya tidak merugikan siapa pun, karena alamat email
+        // yang salah ketik HANYA bisa ada pada akun yang belum aktif: email
+        // diverifikasi justru dengan membuka tautan yang dikirim ke alamat itu.
+        // Jadi akun aktif pasti punya alamat yang bisa dihubungi, dan
+        // penghuninya sendiri yang memakai alur "lupa sandi" bila perlu -
+        // bukan pemilik yang mengetik alamat baru untuknya.
+        if ($user !== null && ! $user->belumAktif() && $data['email'] !== $user->email) {
+            throw ValidationException::withMessages([
+                'email' => [
+                    'Email akun yang sudah aktif tidak bisa diubah dari sini, karena itu '
+                    .'memindahkan akun ke alamat lain tanpa sepengetahuan pemiliknya. '
+                    .'Minta penghuni mengganti sendiri lewat menu akun, atau gunakan '
+                    .'"Lupa sandi" bila ia kehilangan akses ke email lamanya.',
+                ],
+            ])->status(409);
+        }
+
+        $penghuni->update($data);
 
         // Nama dan email di akun login ikut disesuaikan supaya tidak berbeda
         // dari data induknya.
@@ -84,7 +115,6 @@ class PenghuniController extends Controller
         // dikirim ke alamat yang mungkin bukan milik penghuni ini, jadi ia
         // tidak boleh lagi bisa dipakai. Akunnya dikembalikan ke keadaan belum
         // aktif, dan tautan baru dikirim ke alamat yang baru.
-        $user = $penghuni->user;
         $emailBerubah = $user && $user->email !== $penghuni->email;
 
         if ($user) {

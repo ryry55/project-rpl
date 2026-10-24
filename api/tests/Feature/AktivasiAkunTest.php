@@ -391,7 +391,8 @@ class AktivasiAkunTest extends TestCase
         ])
             ->assertOk()
             ->assertJsonPath('data.berlaku', true)
-            ->assertJsonPath('data.email', 'budi@kos.test')
+            // REV-SEC-05: email disamarkan, namanya tidak.
+            ->assertJsonPath('data.email', 'bu***@kos.test')
             ->assertJsonPath('data.nama', 'Budi Santoso');
 
         // Token asal-asalan dijawab sama seperti token kedaluwarsa: tidak ada
@@ -400,6 +401,48 @@ class AktivasiAkunTest extends TestCase
             'token' => str_repeat('a', 64),
             'jenis' => 'aktivasi',
         ])->assertOk()->assertJsonPath('data.berlaku', false);
+    }
+
+    public function test_periksa_token_dibatasi_per_ip(): void
+    {
+        // REV-SEC-05: endpoint ini publik dan menjawab "token ini sah" untuk
+        // token acak 64 karakter. Tanpa batas, ia adalah mesin penebak.
+        Mail::fake();
+        $this->buatPenghuni();
+
+        $token = $this->tokenDari($this->tautanTerakhir('budi@kos.test'));
+
+        // Batasnya 20 per menit; 20 percobaan pertama lolos.
+        for ($i = 0; $i < 20; $i++) {
+            $this->postJson('/api/periksa-token', ['token' => $token['token']])
+                ->assertOk();
+        }
+
+        $this->postJson('/api/periksa-token', ['token' => $token['token']])
+            ->assertStatus(429)
+            ->assertJsonValidationErrors('token');
+    }
+
+    public function test_periksa_token_tetap_membedakan_berlaku_tanpa_membocorkan_email_lengkap(): void
+    {
+        // Email lengkap tidak pernah muncul di respons; yang tersisa hanya dua
+        // huruf pertama dan domainnya.
+        Mail::fake();
+        $this->buatPenghuni('siti.aminah@kos.test');
+
+        $token = $this->tokenDari($this->tautanTerakhir('siti.aminah@kos.test'));
+
+        $email = $this->postJson('/api/periksa-token', [
+            'token' => $token['token'],
+            'jenis' => $token['jenis'],
+        ])
+            ->assertOk()
+            ->json('data.email');
+
+        $this->assertNotSame('siti.aminah@kos.test', $email);
+        $this->assertStringStartsWith('si', $email);
+        $this->assertStringEndsWith('@kos.test', $email);
+        $this->assertStringContainsString('*', $email);
     }
 
     // --- Lupa sandi --------------------------------------------------------
@@ -830,13 +873,16 @@ class AktivasiAkunTest extends TestCase
             ->assertJsonValidationErrors('penghuni');
     }
 
-    public function test_mengganti_email_penghuni_membatalkan_aktivasi_sebelumnya(): void
+    public function test_mengganti_email_penghuni_belum_aktif_mengirim_tautan_baru(): void
     {
+        // REV-SEC-01 mempersempit jalur ini, tidak menutupnya: alamat yang
+        // salah ketik memang hanya bisa ada pada akun yang belum aktif, dan
+        // untuk akun seperti itu mengganti alamatnya justru satu-satunya jalan
+        // keluar. Yang ditutup adalah penggantian alamat pada akun AKTIF.
         Mail::fake();
         $this->buatPenghuni();
 
         $user = User::where('email', 'budi@kos.test')->firstOrFail();
-        $user->forceFill(['email_verified_at' => now()])->save();
         $user->createToken('spa');
 
         $penghuni = Penghuni::where('email', 'budi@kos.test')->firstOrFail();
@@ -852,10 +898,48 @@ class AktivasiAkunTest extends TestCase
         $baru = $user->fresh();
 
         // Tautan lama dikirim ke alamat yang mungkin bukan milik penghuni ini,
-        // jadi ia tidak boleh lagi bisa dipakai.
+        // jadi ia tidak boleh lagi bisa dipakai - dan sesi lama ikut diputus.
         $this->assertNull($baru->email_verified_at);
         $this->assertSame(0, $baru->tokens()->count());
         $this->assertSame('aktivasi', $this->tokenDari($this->tautanTerakhir('budi-baru@kos.test'))['jenis']);
+    }
+
+    public function test_mengganti_email_penghuni_aktif_ditolak(): void
+    {
+        // REV-SEC-01 - jalan pengambilalihan yang ditutup.
+        //
+        // Sebelum perbaikan ini, pemilik cukup mengubah email penghuni menjadi
+        // alamat yang ia kuasai; akun kembali "belum aktif", lalu "kirim ulang
+        // aktivasi" mengirim tautan ke kotak surat pemilik sendiri. Pemilik
+        // menetapkan sandi, masuk sebagai penghuni, dan R-07 runtuh.
+        Mail::fake();
+        $this->buatPenghuni();
+
+        $user = User::where('email', 'budi@kos.test')->firstOrFail();
+        $user->forceFill(['email_verified_at' => now()])->save();
+
+        $penghuni = Penghuni::where('email', 'budi@kos.test')->firstOrFail();
+
+        $this->sebagaiPemilik()
+            ->putJson("/api/penghuni/{$penghuni->id}", [
+                'nama' => 'Budi Santoso',
+                'email' => 'milik-pemilik@kos.test',
+            ])
+            ->assertStatus(409)
+            ->assertJsonValidationErrors('email');
+
+        // Tidak ada yang berubah: alamatnya tetap, aktivasi tetap, sesi tetap.
+        $this->assertSame('budi@kos.test', $user->fresh()->email);
+        $this->assertNotNull($user->fresh()->email_verified_at);
+        $this->assertSame('budi@kos.test', $penghuni->fresh()->email);
+
+        // Nama tetap boleh diubah - yang dikunci hanya alamat emailnya.
+        $this->sebagaiPemilik()
+            ->putJson("/api/penghuni/{$penghuni->id}", [
+                'nama' => 'Budi Santoso Wibowo',
+                'email' => 'budi@kos.test',
+            ])
+            ->assertOk();
     }
 
     public function test_mengganti_email_pengelola_membatalkan_aktivasi_sebelumnya(): void

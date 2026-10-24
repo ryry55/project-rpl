@@ -60,7 +60,7 @@ class VerifikasiPembayaranTest extends TestCase
         $this->siapkanKebijakanDenda();
     }
 
-    private function buatPembayaran(): Pembayaran
+    private function buatPembayaran(?int $dicatatOleh = null): Pembayaran
     {
         $kamar = Kamar::create(['nomor' => 'A1', 'status_huni' => 'terisi']);
         $penghuni = Penghuni::create(['nama' => 'Budi', 'email' => 'budi@kos.test']);
@@ -95,7 +95,7 @@ class VerifikasiPembayaranTest extends TestCase
             'jumlah' => 500_000,
             'metode' => 'tunai',
             'sumber' => 'dicatat_pemilik',
-            'dicatat_oleh' => $this->pengelola->id,
+            'dicatat_oleh' => $dicatatOleh ?? $this->pengelola->id,
             'diterima_oleh' => $this->pengelola->id,
             'tanggal_pembayaran' => '2026-11-10',
         ]);
@@ -304,9 +304,13 @@ class VerifikasiPembayaranTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_pengelola_dengan_verifikasi_boleh(): void
+    public function test_pengelola_dengan_verifikasi_boleh_untuk_catatan_orang_lain(): void
     {
-        $pembayaran = $this->buatPembayaran();
+        // REV-FIN-03: wewenang verifikasi TIDAK lagi berarti boleh memeriksa
+        // catatan sendiri. Barisnya dibuat dengan pencatat pemilik lebih dulu -
+        // `pembayaran` append-only, jadi pencatatnya tidak bisa diubah sesudah
+        // tersimpan, dan itulah yang membuat jejaknya bermakna.
+        $pembayaran = $this->buatPembayaran($this->pemilik->id);
 
         $this->pengelola->kewenangan()->create(['wewenang' => 'verifikasi_pembayaran']);
         $this->pengelola->load('kewenangan');
@@ -314,6 +318,35 @@ class VerifikasiPembayaranTest extends TestCase
         $this->actingAs($this->pengelola, 'sanctum')
             ->postJson("/api/pembayaran/{$pembayaran->id}/verifikasi", ['keputusan' => 'terima'])
             ->assertCreated();
+    }
+
+    public function test_pengelola_tidak_boleh_memeriksa_catatannya_sendiri(): void
+    {
+        // Justifikasi REV-FIN-03, dalam satu kalimat: pemisahan wewenang
+        // pencatatan dan pemeriksaan hanya berlaku di atas kertas bila orang
+        // yang sama boleh melakukan keduanya.
+        $pembayaran = $this->buatPembayaran();
+
+        $this->pengelola->kewenangan()->create(['wewenang' => 'verifikasi_pembayaran']);
+        $this->pengelola->load('kewenangan');
+
+        $this->actingAs($this->pengelola, 'sanctum')
+            ->postJson("/api/pembayaran/{$pembayaran->id}/verifikasi", ['keputusan' => 'terima'])
+            ->assertForbidden()
+            ->assertJsonPath('kode', 'verifikasi_catatan_sendiri');
+
+        // Tidak ada baris verifikasi yang lahir dari percobaan yang ditolak.
+        $this->assertDatabaseCount('verifikasi_pembayaran', 0);
+    }
+
+    public function test_pemilik_boleh_memeriksa_catatannya_sendiri(): void
+    {
+        // Pengecualian untuk pemilik disengaja: pada kos kecil ia sering
+        // satu-satunya orang yang memegang uang, dan melarangnya memeriksa
+        // catatannya sendiri berarti tidak ada yang bisa memeriksa sama sekali.
+        $pembayaran = $this->buatPembayaran($this->pemilik->id);
+
+        $this->verifikasi($pembayaran, ['keputusan' => 'terima'])->assertCreated();
     }
 
     public function test_penghuni_tidak_boleh_memverifikasi(): void

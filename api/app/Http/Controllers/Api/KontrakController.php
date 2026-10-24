@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\Kebijakan\PenentuDeposit;
 use App\Domain\Kebijakan\PenyelesaiKebijakan;
+use App\Domain\Persetujuan\PenerapPerubahan;
 use App\Domain\Tarif\PencariTarif;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SimpanKontrakRequest;
@@ -11,7 +12,6 @@ use App\Http\Resources\KontrakResource;
 use App\Models\Kamar;
 use App\Models\KebijakanKos;
 use App\Models\Kontrak;
-use App\Models\TarifSewa;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -22,6 +22,7 @@ class KontrakController extends Controller
     public function __construct(
         private readonly PencariTarif $pencari,
         private readonly PenyelesaiKebijakan $penyelesai,
+        private readonly PenerapPerubahan $penerap,
     ) {}
 
     public function index(): JsonResponse
@@ -65,16 +66,51 @@ class KontrakController extends Controller
             ], 422);
         }
 
+        // REV-SEC-02: menetapkan tarif pertama sebuah kamar adalah penetapan
+        // tarif, bukan pelengkap formulir kontrak.
+        //
+        // Sebelum batas ini, pengelola dengan wewenang `kelola_penghuni` bisa
+        // menetapkan tarif kamar apa pun lewat formulir kontrak - melewati
+        // seluruh alur usulan T26 tanpa pernah menyentuh layar Atur tarif.
+        // Akibatnya `ubah_tarif` yang "hanya boleh mengusulkan" tidak berarti
+        // apa-apa: jalur yang tidak dijaga selalu menjadi jalur yang dipakai.
+        //
+        // Pemilik tetap boleh, karena di sinilah tarif kamar baru wajar
+        // ditetapkan - saat penghuni pertama masuk, dalam satu langkah.
+        if ($tarifBerlaku === null && $tarifDiminta !== null && ! $request->user()->isPemilik()) {
+            return response()->json([
+                'message' => sprintf(
+                    'Kamar %s belum punya tarif. Penetapan tarif adalah wewenang pemilik: '
+                    .'minta pemilik menetapkannya lewat menu Atur tarif, atau ajukan usulan tarif dari menu itu.',
+                    $kamar->nomor,
+                ),
+                'kode' => 'tarif_perlu_pemilik',
+                'errors' => ['tarif' => ['Kamar ini belum punya tarif, dan Anda bukan pemilik yang berwenang menetapkannya.']],
+            ], 422);
+        }
+
         try {
             $kontrak = DB::transaction(function () use ($request, $tglMasuk, $tarifBerlaku, $tarifDiminta, $kamar) {
                 // Kamar belum punya tarif: baris pertama riwayat dibuat dari
                 // angka yang diketik pemilik.
+                //
+                // Ditulis lewat `PenerapPerubahan`, bukan `TarifSewa::create`,
+                // supaya penetapan tarif ini ikut meninggalkan jejak audit
+                // seperti penetapan tarif dari menu Atur tarif. Sebelumnya baris
+                // tarif lahir di sini tanpa satu pun catatan - dan tarif yang
+                // muncul tanpa jejak adalah tarif yang tidak bisa
+                // dipertanggungjawabkan saat ditanyakan.
+                //
+                // `beritahu: false` karena pemberitahuan "tarif diubah" untuk
+                // setiap kontrak baru akan menjadi kabar yang selalu sama dan
+                // akhirnya berhenti dibaca. Yang perlu diketahui pengurus sudah
+                // tampak di daftar kamar dan kontrak.
                 if ($tarifBerlaku === null) {
-                    $tarifBerlaku = TarifSewa::create([
+                    $tarifBerlaku = $this->penerap->tarif([
                         'kamar_id' => $request->integer('kamar_id'),
                         'nilai' => $tarifDiminta,
                         'berlaku_dari' => $tglMasuk->toDateString(),
-                    ]);
+                    ], beritahu: false)->baris;
                 }
 
                 $kontrak = Kontrak::create([

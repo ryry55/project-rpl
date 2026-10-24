@@ -15,7 +15,7 @@ Versi 1.0 · 26 Oktober 2026 · Status: diserahkan
 Aplikasi web untuk pemilik kos kecil (5-30 kamar) mengelola kamar, penghuni,
 tagihan, dan pembayaran. Dibangun sebagai tugas besar mata kuliah Rekayasa
 Perangkat Lunak: Laravel 11 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah
-Docker Compose untuk menjalankan, 599 tes PHP dan 22 skrip browser untuk
+Docker Compose untuk menjalankan, 636 tes PHP dan 22 skrip browser untuk
 menjaganya. Yang membedakannya dari aplikasi sejenis: **setiap kos boleh punya
 cara kerja sendiri** — satuan sewa, jatuh tempo, dan bentuk dendanya dipilih dari
 menu, bukan dipaksa mengikuti satu pola.
@@ -86,19 +86,19 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 
 | Hal | Angka |
 |---|---|
-| Endpoint API | **69** |
+| Endpoint API | **71** |
 | Tabel (di luar infrastruktur Laravel) | **21** |
-| Migrasi | **28** |
+| Migrasi | **31** |
 | Model Eloquent | **19** |
-| Kelas domain | **40** (10 folder) |
+| Kelas domain | **41** (10 folder) |
 | Pengendali | **21** |
 | Middleware | **6** |
-| Trigger append-only | **7** |
-| Tes PHP | **599** (2912 asersi) di **29** berkas |
-| Skrip browser | **22** (628 langkah) |
+| Trigger basis data | **8** (7 append-only + 1 penjaga pembalik) |
+| Tes PHP | **636** (3089 asersi) di **31** berkas |
+| Skrip browser | **22** (641 langkah) |
 | Halaman SPA | **25** komponen view · 21 rute bernama |
 | Wewenang pengelola | **8** |
-| Peristiwa notifikasi | **8** |
+| Peristiwa notifikasi | **9** |
 
 Seluruh rangkaian browser: **SEMUA LULUS (299 detik)**.
 
@@ -238,8 +238,8 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 ├── 3_ARCHITECTURE.md     Lapisan, 9 keputusan besar + alternatif yang ditolak
 ├── 4_AGENTS.md           Cara mengubah kode tanpa merusak apa pun
 ├── 5_SCHEMAS.md          21 tabel, CHECK, indeks, trigger (dari DB nyata)
-├── 6_TOOLS_CONTRACTS.md  69 endpoint, middleware, bentuk request/response
-├── 7_TESTING_EVALS.md    599 tes, 22 skrip, prinsip "buktikan bisa gagal"
+├── 6_TOOLS_CONTRACTS.md  71 endpoint, middleware, bentuk request/response
+├── 7_TESTING_EVALS.md    636 tes, 22 skrip, prinsip "buktikan bisa gagal"
 └── 8_OPERATIONS_SOP.md   Deploy, backup, pemulihan, insiden, batas gratis
 ```
 

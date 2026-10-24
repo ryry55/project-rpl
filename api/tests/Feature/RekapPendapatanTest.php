@@ -395,13 +395,31 @@ class RekapPendapatanTest extends TestCase
             ->assertJsonValidationErrors('sampai');
     }
 
-    public function test_pengelola_boleh_membaca_rekap(): void
+    public function test_pengelola_tidak_boleh_membaca_rekap(): void
     {
-        // Membaca uang yang sudah masuk bukan tindakan yang merugikan siapa
-        // pun, dan pengelola yang mencatat pembayaran memang perlu memeriksa
-        // catatannya sendiri. Yang dibatasi wewenang adalah MENULIS.
+        // REV-SEC-06: rekap ditutup untuk pengelola.
+        //
+        // Sebelumnya dibuka, dengan alasan "membaca uang yang sudah masuk bukan
+        // tindakan yang merugikan". Alasannya tidak bertahan setelah diperiksa:
+        // rekap adalah satu-satunya tempat seluruh pendapatan kos terlihat
+        // sebagai satu angka, dan pengelola yang memegang angka itu bisa
+        // memakainya untuk hal yang tidak ada hubungannya dengan pencatatan
+        // pembayaran - termasuk menyimpulkan berapa penghasilan pemiliknya.
+        // Yang dibutuhkan pengelola untuk pekerjaannya sudah tersedia di tempat
+        // lain: daftar pembayaran (tetap terbuka) dan `GET /pembayaran/tunai-saya`
+        // untuk uang tunai yang masih ada di tangannya.
         $this->actingAs($this->pengelola, 'sanctum')
             ->getJson('/api/rekap?dari=2026-11-01&sampai=2026-11-30')
+            ->assertForbidden();
+    }
+
+    public function test_pengelola_tetap_boleh_membaca_daftar_pembayaran(): void
+    {
+        // Batasnya sengaja asimetris: MENUTUP rekap, tetapi MEMBUKA daftar
+        // pembayaran. Pengelola yang mencatat pembayaran harus bisa memeriksa
+        // catatannya sendiri; yang ditutup hanya agregat pendapatan kos.
+        $this->actingAs($this->pengelola, 'sanctum')
+            ->getJson('/api/pembayaran?dari=2026-11-01&sampai=2026-11-30')
             ->assertOk();
     }
 

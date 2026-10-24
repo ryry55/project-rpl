@@ -3,8 +3,8 @@
 > Dokumen ini menjawab: **apa yang dibuktikan tes, bagaimana menjalankannya, dan
 > bagaimana menambah tes yang benar-benar menahan.**
 >
-> Angka diambil dari aplikasi yang berjalan: **599 tes PHP (2912 asersi)** dalam
-> 29 berkas, dan **22 skrip browser** dengan **628 langkah**.
+> Angka diambil dari aplikasi yang berjalan: **636 tes PHP (3089 asersi)** dalam
+> 31 berkas, dan **22 skrip browser** dengan **641 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -70,15 +70,15 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
 
 ```
         ┌─────────────────────────────────┐
-        │  22 skrip browser · 628 langkah  │  lambat (~299 dtk), tetapi
+        │  22 skrip browser · 641 langkah  │  lambat (~299 dtk), tetapi
         │  (E2E + tata letak + PWA)        │  satu-satunya yang melihat
         └─────────────────────────────────┘  peramban sungguhan
       ┌───────────────────────────────────────┐
-      │  25 tes Feature · HTTP + database      │  ~20 dtk, jalur penuh
+      │  27 tes Feature · HTTP + database      │  ~25 dtk, jalur penuh
       │  (validasi, izin, isolasi, balapan)    │  lewat middleware nyata
       └───────────────────────────────────────┘
     ┌───────────────────────────────────────────┐
-    │  4 tes Unit · 599 tes total, 2912 asersi   │  cepat, murni logika
+    │  4 tes Unit · 636 tes total, 3089 asersi   │  cepat, murni logika
     │  (prorata, denda, umur tunggakan)          │  tanpa database
     └───────────────────────────────────────────┘
 ```
@@ -89,7 +89,7 @@ menguji implementasi, bukan perilaku.
 
 ---
 
-## 3. Tes PHP — 599 tes, 2912 asersi
+## 3. Tes PHP — 636 tes, 3089 asersi
 
 ### 3.1 Menjalankan
 
@@ -127,7 +127,8 @@ Dikelompokkan menurut apa yang dijaga:
 | `RekapPendapatanTest` | Basis kas, denda terpisah sebagai piutang |
 | `TunggakanHttpTest` | Empat keranjang R-04 lewat HTTP |
 | `DendaHttpTest` | Denda dihitung saat dibaca, `denda_ringkas` konsisten |
-| `DepositKontrakTest` | Penentu deposit: tanpa, nominal, satu bulan |
+| `DepositKontrakTest` | Penentu deposit: tanpa, nominal, satu bulan; penetapan tarif pertama lewat kontrak hanya untuk pemilik |
+| `PembalikPembayaranTest` | Baris pembalik negatif; saldo tagihan pulih; `total_final` dilepas; rekap memisahkan pembalik |
 
 **Kebijakan dan tarif**
 
@@ -146,8 +147,10 @@ Dikelompokkan menurut apa yang dijaga:
 | `IsolasiDanAuditTest` | **R-07**: 404 bukan 403; `log_audit` append-only |
 | `PengelolaTest` | Wewenang per tindakan; tidak bisa didelegasikan |
 | `UsulanPersetujuanTest` | 201 vs 202; kedaluwarsa dihitung; dua baris audit |
-| `AktivasiAkunTest` | Tanpa sandi awal; token hash; `wajib_ganti_sandi` |
+| `KomponenUsulanTest` | **REV-SEC-07**: komponen biaya ikut jalur usulan; 409 saat bentrok tanggal |
+| `AktivasiAkunTest` | Tanpa sandi awal; token hash; `wajib_ganti_sandi`; email aktif terkunci; periksa-token dibatasi per IP |
 | `PdpTest` | Persetujuan per versi; anonimisasi; 409 untuk akun terikat |
+| `VerifikasiPembayaranTest` | Pemeriksaan terakhir yang berlaku; pengelola tidak memeriksa catatan sendiri |
 
 **Data induk**
 
@@ -157,7 +160,7 @@ Dikelompokkan menurut apa yang dijaga:
 | `FasilitasTest` | `PUT /fasilitas` mengganti seluruh daftar |
 | `AturanKosTest` | `aktif` bukan hapus; kategori string bebas |
 | `OperasionalTest` | `/health`, logging permintaan gagal |
-| `NotifikasiTest` | Delapan peristiwa; bawaan kode; tidak memberi tahu pelaku |
+| `NotifikasiTest` | Sembilan peristiwa; bawaan kode; tidak memberi tahu pelaku |
 
 ### 3.4 Jebakan menulis tes PHP
 
@@ -171,7 +174,7 @@ Dikelompokkan menurut apa yang dijaga:
 
 ---
 
-## 4. Tes browser — 22 skrip, 628 langkah
+## 4. Tes browser — 22 skrip, 641 langkah
 
 ### 4.1 Menjalankan
 
@@ -203,8 +206,8 @@ Prasyarat: `docker compose up`, Chrome dengan `--remote-debugging-port=9222`,
 | `e2e-t9.mjs` | 26 | Isolasi penghuni, log audit |
 | `e2e-t18.mjs` | 26 | Fasilitas vs komponen biaya |
 | `e2e-t19.mjs` | 23 | Aturan kos, portal penghuni |
-| `e2e-t20.mjs` | 28 | Metode pembayaran, verifikasi |
-| `e2e-t24.mjs` | 37 | Pengelola, wewenang, menu tersembunyi |
+| `e2e-t20.mjs` | 35 | Metode pembayaran, verifikasi, pembalik, rekap |
+| `e2e-t24.mjs` | 43 | Pengelola, wewenang, menu tersembunyi, rekap vs tunai-saya |
 | `e2e-t25.mjs` | 30 | Notifikasi in-app + email |
 | `e2e-t26.mjs` | 38 | Usulan, persetujuan, kedaluwarsa |
 | `e2e-t27.mjs` | 28 | Aktivasi, lupa sandi, wajib ganti sandi |
@@ -291,7 +294,7 @@ Dari `1_PRD.md` §6, dan bagaimana masing-masing dibuktikan.
 | U-6 | Halaman meluber di 360px | 0 | `uji-tata-letak.mjs` | Lulus 88/88 |
 | U-7 | Tabel tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` | Lulus 65/65 |
 | U-8 | Kepala pemilik sebelum konten | < 220px | Terukur | 203px |
-| U-9 | Cakupan tes PHP | 599 tes | CI | Lulus 2912 asersi |
+| U-9 | Cakupan tes PHP | 636 tes | CI | Lulus 3089 asersi |
 
 ---
 

@@ -317,6 +317,79 @@ class PdpTest extends TestCase
             ->assertJsonPath('message', fn ($m) => str_contains($m, 'kontrak aktif'));
     }
 
+    public function test_penghuni_dengan_tagihan_belum_lunas_tidak_bisa_menghapus(): void
+    {
+        // REV-SEC-04: tunggakan menghalangi, bukan hanya kontrak aktif.
+        //
+        // Sebelum perbaikan ini pemeriksaan berhenti di status kontrak. Penghuni
+        // yang kontraknya sudah selesai tetapi masih punya tagihan belum lunas
+        // bisa menghapus akunnya - dan sesudah itu tidak ada lagi yang bisa
+        // ditagih atas namanya, karena namanya sudah menjadi "pengguna dihapus".
+        $kamar = Kamar::create(['nomor' => 'A3']);
+        $kontrak = Kontrak::create([
+            'kamar_id' => $kamar->id,
+            'penghuni_id' => $this->penghuni->id,
+            'tgl_masuk' => '2026-01-01',
+            'tarif_awal' => 1500000,
+            'deposit' => 0,
+            // Kontrak SUDAH selesai: satu-satunya penghalang di sini adalah
+            // tagihannya, bukan kontraknya.
+            'status' => 'selesai',
+        ]);
+
+        Tagihan::create([
+            'kontrak_id' => $kontrak->id,
+            'periode' => '2026-11-01',
+            'pokok' => 1500000,
+            'jatuh_tempo' => '2026-11-15',
+            'status' => Tagihan::STATUS_BELUM_BAYAR,
+            'tarif_terpakai' => ['prorata' => false],
+            'kebijakan_terpakai' => ['denda' => ['tipe' => 'tanpa_denda']],
+            'terbit_pada' => now(),
+        ]);
+
+        $this->sebagaiPenghuni()
+            ->deleteJson('/api/pdp/data-saya', ['konfirmasi' => 'HAPUS'])
+            ->assertStatus(409)
+            ->assertJsonPath('message', fn ($m) => str_contains($m, 'belum lunas'));
+
+        // Tidak ada yang berubah: baris users dan penghuni utuh.
+        $this->assertSame('budi@kos.test', $this->akunPenghuni->fresh()->email);
+        $this->assertSame('Budi Santoso', $this->penghuni->fresh()->nama);
+    }
+
+    public function test_tagihan_yang_dibatalkan_tidak_menghalangi_penghapusan(): void
+    {
+        // Pembatalan berarti tagihan itu memang tidak ditagihkan lagi, jadi
+        // tidak ada utang yang hilang bila akunnya dihapus. Memblokir karena
+        // tagihan yang sudah dibatalkan akan mengunci orang selamanya pada
+        // kesalahan yang sudah diperbaiki.
+        $kamar = Kamar::create(['nomor' => 'A4']);
+        $kontrak = Kontrak::create([
+            'kamar_id' => $kamar->id,
+            'penghuni_id' => $this->penghuni->id,
+            'tgl_masuk' => '2026-01-01',
+            'tarif_awal' => 1500000,
+            'deposit' => 0,
+            'status' => 'selesai',
+        ]);
+
+        Tagihan::create([
+            'kontrak_id' => $kontrak->id,
+            'periode' => '2026-11-01',
+            'pokok' => 1500000,
+            'jatuh_tempo' => '2026-11-15',
+            'status' => Tagihan::STATUS_DIBATALKAN,
+            'tarif_terpakai' => ['prorata' => false],
+            'kebijakan_terpakai' => ['denda' => ['tipe' => 'tanpa_denda']],
+            'terbit_pada' => now(),
+        ]);
+
+        $this->sebagaiPenghuni()
+            ->deleteJson('/api/pdp/data-saya', ['konfirmasi' => 'HAPUS'])
+            ->assertOk();
+    }
+
     public function test_penghapusan_menuntut_konfirmasi_tertulis(): void
     {
         $this->sebagaiPenghuni()

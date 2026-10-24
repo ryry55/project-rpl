@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Billing\PembayaranDitolak;
 use App\Domain\Notifikasi\Pemberitahu;
 use App\Domain\Pembayaran\MetodePembayaran;
+use App\Domain\Pembayaran\PembalikPembayaran;
 use App\Domain\Pembayaran\PencatatVerifikasi;
 use App\Domain\Pembayaran\RekapPendapatan;
 use App\Domain\Pembayaran\VerifikasiDitolak;
@@ -28,6 +30,7 @@ class PembayaranController extends Controller
 {
     public function __construct(
         private readonly PencatatVerifikasi $verifikator,
+        private readonly PembalikPembayaran $pembalik,
         private readonly RekapPendapatan $rekap,
         private readonly WaktuSistem $waktu,
         private readonly Pemberitahu $pemberitahu,
@@ -53,6 +56,11 @@ class PembayaranController extends Controller
                 'verifikasi',
                 'pencatat',
                 'penerima',
+                // Menandai baris yang sudah ditarik kembali (REV-FIN-01).
+                // Dimuat sekali untuk seluruh halaman, bukan satu query per
+                // baris - dan tanpa ini layar akan menawarkan tombol "Balik"
+                // untuk pembayaran yang sudah dibalik.
+                'pembalik',
                 // Nama penghuni dan nomor kamar ikut dimuat: daftar uang tanpa
                 // "dari siapa" tidak bisa dipakai untuk menjawab pertanyaan
                 // pertama saat rekonsiliasi.
@@ -132,6 +140,90 @@ class PembayaranController extends Controller
     }
 
     /**
+     * Uang tunai yang tercatat diterima **pemanggil sendiri** (REV-SEC-06).
+     *
+     * Ada karena `/rekap` ditutup untuk pengelola. Menutup rekap tanpa
+     * menyediakan pengganti berarti pengelola kehilangan satu-satunya cara
+     * menjawab pertanyaan yang memang tanggung jawabnya: berapa uang tunai yang
+     * masih ia pegang. Yang dibuka di sini bukan rekap yang dipersempit,
+     * melainkan pertanyaan yang berbeda - dan tanpa nama penghuni, tanpa metode
+     * lain, tanpa piutang.
+     */
+    public function tunaiSaya(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'dari' => ['nullable', 'date_format:Y-m-d'],
+            'sampai' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:dari'],
+        ]);
+
+        $hariIni = $this->waktu->hariIni();
+        $dari = isset($data['dari'])
+            ? CarbonImmutable::createFromFormat('!Y-m-d', $data['dari'])
+            : $hariIni->startOfMonth();
+        $sampai = isset($data['sampai'])
+            ? CarbonImmutable::createFromFormat('!Y-m-d', $data['sampai'])
+            : $hariIni;
+
+        $user = $request->user();
+
+        return response()->json([
+            'data' => $this->rekap->tunaiSaya((int) $user->getKey(), $dari, $sampai),
+            'meta' => [
+                'penerima_id' => (int) $user->getKey(),
+                'penerima_nama' => $user->name,
+                'simulasi' => $this->waktu->sedangSimulasi(),
+                'demo_mode' => (bool) config('app.demo_mode'),
+            ],
+        ]);
+    }
+
+    /**
+     * Tarik kembali satu pembayaran yang ternyata salah catat (REV-FIN-01).
+     *
+     * Kenapa endpoint tersendiri, bukan bagian dari `verifikasi`. Pemeriksaan
+     * dan pembalikan menjawab dua pertanyaan yang berbeda: "apakah uang ini
+     * cocok dengan mutasi rekening?" dan "apakah uang ini memang pernah
+     * diterima?". Pemeriksaan hanya menempelkan label dan sengaja tidak
+     * menyentuh angka; pembalikan mengubah angka. Menggabungkannya akan membuat
+     * satu tombol berbuat dua hal yang berbeda tanpa pemakainya tahu.
+     *
+     * Alasan wajib diisi, karena baris negatif di rekap tanpa keterangan adalah
+     * pertanyaan baru, bukan jawaban.
+     */
+    public function balik(Request $request, Pembayaran $pembayaran): JsonResponse
+    {
+        $data = $request->validate([
+            'alasan' => ['required', 'string', 'max:255'],
+        ]);
+
+        try {
+            $baris = $this->pembalik->balik(
+                $pembayaran,
+                $data['alasan'],
+                (int) $request->user()->getKey(),
+            );
+        } catch (PembayaranDitolak $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'errors' => ['alasan' => [$e->getMessage()]],
+            ], 422);
+        }
+
+        // `pembalik` ikut dimuat supaya `sudah_dibalik` benar-benar dikirim:
+        // resource itu memakai `whenLoaded('pembalik')`, dan tanpa relasinya
+        // kuncinya hilang sama sekali dari respons - bukan bernilai `false`.
+        $pembayaran->refresh()->load(['verifikasi', 'pencatat', 'penerima', 'tagihan', 'pembalik']);
+
+        return response()->json([
+            'data' => [
+                'pembalik' => new PembayaranResource($baris),
+                'pembayaran' => new PembayaranResource($pembayaran),
+                'status_tagihan' => $pembayaran->tagihan?->status,
+            ],
+        ], 201);
+    }
+
+    /**
      * Periksa satu pembayaran: terima atau tolak, dengan catatan.
      *
      * Pembayaran diambil lewat `pembayaran`, bukan `tagihan`: yang diperiksa
@@ -140,6 +232,22 @@ class PembayaranController extends Controller
      */
     public function verifikasi(VerifikasiPembayaranRequest $request, Pembayaran $pembayaran): JsonResponse
     {
+        // REV-FIN-03: pengelola tidak boleh memeriksa catatannya sendiri.
+        //
+        // Tanpa batas ini, pemisahan wewenang pencatatan dan pemeriksaan hanya
+        // berlaku di atas kertas: pengelola dengan kedua wewenang mencatat
+        // angka apa pun lalu mengesahkannya sendiri. Pemilik dikecualikan -
+        // pada kos kecil ia sering satu-satunya orang yang memegang uang, dan
+        // melarangnya memeriksa catatannya sendiri berarti tidak ada yang bisa
+        // memeriksa sama sekali.
+        if ($request->user()->isPengelola() && (int) $pembayaran->dicatat_oleh === (int) $request->user()->getKey()) {
+            return response()->json([
+                'message' => 'Anda tidak bisa memeriksa pembayaran yang Anda catat sendiri. '
+                    .'Minta pemilik atau pengelola lain yang memeriksanya.',
+                'kode' => 'verifikasi_catatan_sendiri',
+            ], 403);
+        }
+
         $keputusan = $request->string('keputusan')->value();
         $catatan = $request->filled('catatan') ? $request->string('catatan')->value() : null;
 

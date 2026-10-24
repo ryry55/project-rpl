@@ -9,13 +9,14 @@ use App\Domain\Notifikasi\Pemberitahu;
 use App\Domain\Notifikasi\Penerima;
 use App\Domain\Notifikasi\Peristiwa;
 use App\Models\KebijakanKos;
+use App\Models\KomponenBiaya;
 use App\Models\TarifSewa;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Satu-satunya tempat baris tarif dan kebijakan ditulis.
+ * Satu-satunya tempat baris tarif, kebijakan, dan komponen biaya ditulis.
  *
  * Kenapa dipisah dari controller, padahal sebelumnya blok yang sama hidup di
  * sana. Sejak T26 ada DUA jalan menuju baris yang sama:
@@ -28,6 +29,10 @@ use Illuminate\Support\Facades\DB;
  * persen ke dua desimal, yang lain tidak. Bedanya tidak akan terlihat sampai
  * laporan "dari berapa menjadi berapa" menampilkan baris kosong untuk
  * perubahan yang disetujui. Satu kelas, dua pemanggil.
+ *
+ * Sejak REV-SEC-07 komponen biaya ikut di sini, karena alasan yang sama:
+ * endpoint-nya dulu menulis `KomponenBiaya::create()` langsung, tanpa jejak
+ * audit dan tanpa jalan usulan untuk pengelola.
  *
  * `$aksi` dioper, bukan disimpulkan di sini. Barisnya sama, tetapi pertanyaan
  * yang dijawab jejak berbeda: "pemilik menetapkan tarif" dan "pemilik
@@ -186,8 +191,90 @@ class PenerapPerubahan
     }
 
     /**
-     * Kosongkan kolom angka yang tidak dipakai bentuk kebijakan ini.
+     * Tulis satu baris komponen biaya baru beserta jejak dan pemberitahuannya
+     * (REV-SEC-07).
      *
+     * Komponen biaya tetap append-only seperti tarif: baris lama dipertahankan
+     * supaya tagihan bulan lalu bisa dijelaskan dengan angka yang berlaku saat
+     * itu. Karena itu menambah biaya baru berarti menulis baris baru dengan
+     * `berlaku_dari` baru, bukan menyunting yang lama.
+     *
+     * @param  array<string, mixed>  $data  hasil `validated()` SimpanKomponenBiayaRequest
+     *
+     * @throws QueryException SQLSTATE 23505 bila kombinasi
+     *                        nama, kamar, dan tanggal sudah ada
+     */
+    public function komponen(array $data, string $aksi = PencatatAudit::AKSI_KOMPONEN_TAMBAH, bool $beritahu = true): HasilPenerapan
+    {
+        return DB::transaction(function () use ($data, $aksi, $beritahu) {
+            // Baris yang digantikan: komponen dengan nama dan kamar yang sama,
+            // berlaku sebelum tanggal yang baru. `kamar_id` dibandingkan
+            // eksplisit seperti pada kebijakan - `= null` tidak pernah cocok di
+            // SQL, sehingga komponen global akan selalu tampak "belum pernah
+            // ada" dan nilai lamanya hilang dari jejak.
+            $sebelumnya = KomponenBiaya::query()
+                ->where('nama', $data['nama'])
+                ->where('berlaku_dari', '<', $data['berlaku_dari'])
+                ->when(
+                    ($data['kamar_id'] ?? null) === null,
+                    fn ($q) => $q->whereNull('kamar_id'),
+                    fn ($q) => $q->where('kamar_id', $data['kamar_id']),
+                )
+                ->orderByDesc('berlaku_dari')
+                ->orderByDesc('id')
+                ->first();
+
+            $komponen = KomponenBiaya::create($data);
+
+            $this->audit->catat(
+                aksi: $aksi,
+                entitas: 'komponen_biaya',
+                entitasId: $komponen->id,
+                nilaiLama: $sebelumnya === null ? null : [
+                    'id' => $sebelumnya->id,
+                    'nama' => $sebelumnya->nama,
+                    'nilai' => (int) $sebelumnya->nilai,
+                    'satuan' => $sebelumnya->satuan,
+                    'kamar_id' => $sebelumnya->kamar_id,
+                    'berlaku_dari' => $sebelumnya->berlaku_dari->toDateString(),
+                ],
+                nilaiBaru: [
+                    'nama' => $komponen->nama,
+                    'nilai' => (int) $komponen->nilai,
+                    'satuan' => $komponen->satuan,
+                    'kamar_id' => $komponen->kamar_id,
+                    'berlaku_dari' => $komponen->berlaku_dari->toDateString(),
+                ],
+            );
+
+            $surat = null;
+            $pelaku = auth()->user();
+
+            if ($beritahu && $pelaku instanceof User) {
+                $surat = $this->pemberitahu->dalamTransaksi(
+                    peristiwa: Peristiwa::KOMPONEN_DIUBAH,
+                    penerima: Penerima::pengurus($pelaku),
+                    judul: 'Komponen biaya diubah',
+                    pesan: sprintf(
+                        '%s menetapkan komponen biaya "%s" sebesar Rp %s untuk %s mulai %s.',
+                        $pelaku->name,
+                        $komponen->nama,
+                        number_format((int) $komponen->nilai, 0, ',', '.'),
+                        $komponen->kamar_id === null
+                            ? 'seluruh kamar'
+                            : 'kamar '.($komponen->kamar?->nomor ?? "id {$komponen->kamar_id}"),
+                        $komponen->berlaku_dari->toDateString(),
+                    ),
+                    tautan: '/pemilik/kebijakan',
+                );
+            }
+
+            return new HasilPenerapan($komponen, $surat);
+        });
+    }
+
+    /**
+     * Kosongkan kolom angka yang tidak dipakai bentuk kebijakan ini.
      * Validasi sudah melarangnya, tetapi menormalkan di sini membuat perilaku
      * tetap benar bila aturan itu dilonggarkan nanti - dan, sejak T26, karena
      * payload usulan datang dari basis data, bukan langsung dari permintaan

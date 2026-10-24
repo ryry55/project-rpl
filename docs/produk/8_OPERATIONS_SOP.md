@@ -198,7 +198,7 @@ tag v*  →  rilis.yml  →  bangun image → dorong ke GHCR
                       →  deploy.yml (produksi)
 ```
 
-`uji.yml` berjalan pada setiap push: lint → 599 tes PHP → skrip browser di Chrome
+`uji.yml` berjalan pada setiap push: lint → 636 tes PHP → skrip browser di Chrome
 headless.
 
 | Workflow | Pemicu |

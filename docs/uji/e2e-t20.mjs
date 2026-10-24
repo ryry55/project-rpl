@@ -603,5 +603,83 @@ jalankan(async () => {
 
   await tangkapLayar(ws, 'T21-rekap-pendapatan')
 
+  // --- Pembalik pembayaran (REV-FIN-01) ---------------------------------
+  //
+  // Sampai R2 satu-satunya cara membetulkan salah catat adalah menyunting
+  // barisnya, dan itu menghapus fakta bahwa angka salah pernah tercatat. Yang
+  // dibuktikan di sini: baris negatif lahir, saldo tagihan kembali, dan rekap
+  // memisahkan pembalik dari transaksi - sehingga "12 transaksi" tidak menjadi
+  // "13 transaksi" hanya karena ada satu koreksi.
+  const idPembayaran = await evaluasi(ws, `
+    (async () => {
+      const res = await fetch('${API}/pembayaran?dari=2026-11-01&sampai=2026-11-30', {
+        headers: {
+          Accept: 'application/json',
+          Authorization: 'Bearer ' + localStorage.getItem('kos.token'),
+        },
+      })
+      const isi = await res.json()
+      const baris = (isi.data || []).find((p) => !p.adalah_pembalik)
+      return baris ? baris.id : null
+    })()
+  `)
+
+  lapor('pembayaran yang akan dibalik ditemukan', Number.isInteger(idPembayaran), `id ${idPembayaran}`)
+
+  const tanpaAlasan = await panggilApi(ws, `/pembayaran/${idPembayaran}/pembalik`, 'POST', { alasan: '' })
+  lapor(
+    'pembalikan tanpa alasan ditolak 422',
+    tanpaAlasan.status === 422,
+    `status ${tanpaAlasan.status}`,
+  )
+
+  // Pembalikan bertanggal HARI INI, bukan tanggal pembayaran asalnya - itu
+  // keputusan yang disengaja (membalik bukan mengubah buku bulan lalu). Karena
+  // pembayaran di atas dicatat pada tanggal simulasi 10 November, pembalikannya
+  // juga digeser ke tanggal simulasi supaya keduanya jatuh di rentang yang sama.
+  // Di produksi hal ini tidak perlu: pembayaran tidak pernah bertanggal masa
+  // depan, jadi pembalikan selalu jatuh pada atau setelah tanggal asalnya.
+  const balik = await panggilApi(
+    ws,
+    `/pembayaran/${idPembayaran}/pembalik`,
+    'POST',
+    { alasan: 'Salah ketik nominal, seharusnya 300.000' },
+    { 'X-Simulasi-Tanggal': '2026-11-20' },
+  )
+  lapor(
+    'pembalikan tersimpan sebagai baris negatif',
+    balik.status === 201 && balik.data?.data?.pembalik?.jumlah === -600_000,
+    `status ${balik.status}, jumlah ${balik.data?.data?.pembalik?.jumlah}`,
+  )
+  lapor(
+    'status tagihan turun kembali setelah pembalikan',
+    balik.data?.data?.status_tagihan === 'belum_bayar',
+    `status ${balik.data?.data?.status_tagihan}`,
+  )
+
+  const balikLagi = await panggilApi(ws, `/pembayaran/${idPembayaran}/pembalik`, 'POST', {
+    alasan: 'Coba dua kali',
+  })
+  lapor(
+    'satu pembayaran hanya bisa dibalik sekali',
+    balikLagi.status === 422,
+    `status ${balikLagi.status}`,
+  )
+
+  const rekapSetelahBalik = await panggilApi(ws, '/rekap?dari=2026-11-01&sampai=2026-11-30')
+  const dataSetelah = rekapSetelahBalik.data?.data || {}
+  lapor(
+    'pendapatan bersih kembali nol setelah pembalikan',
+    dataSetelah.total === 0,
+    `total ${dataSetelah.total}`,
+  )
+  lapor(
+    'pembalik dilaporkan terpisah, bukan sebagai transaksi',
+    dataSetelah.jumlah_transaksi === 1 &&
+      dataSetelah.pembalik?.transaksi === 1 &&
+      dataSetelah.pembalik?.jumlah === -600_000,
+    `transaksi ${dataSetelah.jumlah_transaksi}, pembalik ${JSON.stringify(dataSetelah.pembalik)}`,
+  )
+
   await uji.selesai()
 })

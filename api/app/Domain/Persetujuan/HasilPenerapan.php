@@ -4,6 +4,7 @@ namespace App\Domain\Persetujuan;
 
 use App\Domain\Notifikasi\Surat;
 use App\Models\KebijakanKos;
+use App\Models\KomponenBiaya;
 use App\Models\TarifSewa;
 
 /**
@@ -22,7 +23,7 @@ use App\Models\TarifSewa;
 final class HasilPenerapan
 {
     public function __construct(
-        public readonly TarifSewa|KebijakanKos $baris,
+        public readonly TarifSewa|KebijakanKos|KomponenBiaya $baris,
         public readonly ?Surat $surat = null,
     ) {}
 }

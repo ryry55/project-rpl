@@ -21,6 +21,17 @@ class UsulanPerubahan extends Model
 
     public const TIPE_KEBIJAKAN = 'kebijakan';
 
+    /**
+     * Komponen biaya kamar (REV-SEC-07).
+     *
+     * Tipe ketiga ini ada karena komponen biaya adalah angka uang yang sama
+     * sensitifnya dengan tarif - ia masuk ke setiap tagihan - tetapi punya
+     * endpoint sendiri yang dulu menulis langsung tanpa alur usulan. Hasilnya
+     * pengelola dengan `ubah_tarif` bisa menambah biaya bulanan ke semua kamar
+     * tanpa persetujuan siapa pun.
+     */
+    public const TIPE_KOMPONEN = 'komponen';
+
     public const STATUS_MENUNGGU = 'menunggu';
 
     public const STATUS_DISETUJUI = 'disetujui';

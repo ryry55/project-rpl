@@ -204,10 +204,27 @@ class AuthController extends Controller
      * Tanpa endpoint ini, tautan yang sudah kedaluwarsa baru ketahuan setelah
      * pengguna mengetik sandi baru dua kali - dan galatnya muncul setelah
      * usaha, bukan sebelum.
+     *
+     * **Dibatasi 20 kali per menit per IP (REV-SEC-05).** Endpoint ini publik,
+     * tanpa autentikasi, dan menjawab "token ini sah" untuk sebuah token acak
+     * 64 karakter. Tanpa batas, ia adalah mesin penebak yang boleh berjalan
+     * sesuka hati; dengan batas, jumlah percobaan yang mungkin dalam masa
+     * berlaku tautan (60 menit untuk reset) jauh di bawah jumlah kemungkinan
+     * token. Kuncinya IP saja karena email justru yang sedang dicari - lihat
+     * catatan di {@see PembatasMasuk::bolehPeriksaToken()}.
      */
     public function periksaToken(Request $request): JsonResponse
     {
         $request->validate(['token' => ['required', 'string']]);
+
+        $ip = (string) $request->ip();
+
+        if (! $this->pembatas->bolehPeriksaToken($ip)) {
+            throw ValidationException::withMessages([
+                'token' => ['Terlalu banyak pemeriksaan tautan. Coba lagi dalam '
+                    .$this->pembatas->tungguPeriksaToken($ip).' detik.'],
+            ])->status(429);
+        }
 
         $jenis = $request->string('jenis')->value() ?: TokenAkun::JENIS_RESET;
         $token = $this->tautan->pakai($request->string('token')->value(), $jenis);
@@ -217,11 +234,46 @@ class AuthController extends Controller
                 'berlaku' => $token !== null,
                 // Nama pemilik akun ditampilkan supaya orang yang membuka
                 // tautan dari kotak masuk bersama tahu akun siapa yang sedang
-                // diatur - dan bukan akun orang lain.
+                // diatur - dan bukan akun orang lain. Namanya tidak disamarkan:
+                // itulah satu-satunya gunanya layar ini, dan orang yang
+                // memegang tokennya memang sudah membuka kotak surat akun itu.
                 'nama' => $token?->user?->name,
-                'email' => $token?->user?->email,
+                // Emailnya disamarkan (REV-SEC-05). Alamat lengkap di sini
+                // menambah satu tempat lagi yang menyimpan PII tanpa menambah
+                // kegunaan: yang perlu dikenali hanya "akun siapa", dan itu
+                // sudah dijawab namanya. Sisanya cukup untuk memastikan
+                // alamatnya memang milik orang yang membuka layar.
+                'email' => $token?->user?->email === null
+                    ? null
+                    : $this->samarkanEmail($token->user->email),
             ],
         ]);
+    }
+
+    /**
+     * Samarkan bagian lokal sebuah email: `budi@kos.test` -> `bu***@kos.test`.
+     *
+     * Domainnya dibiarkan utuh. Kalau ikut disamarkan, satu-satunya petunjuk
+     * yang tersisa adalah dua huruf pertama - dan itu terlalu sedikit untuk
+     * membedakan akun kantor dari akun pribadi saat seseorang punya dua
+     * alamat di domain berbeda.
+     */
+    private function samarkanEmail(string $email): string
+    {
+        $bagian = explode('@', $email, 2);
+
+        if (count($bagian) === 1) {
+            return str_repeat('*', max(3, mb_strlen($email)));
+        }
+
+        [$lokal, $domain] = $bagian;
+
+        // Dua huruf pertama dipertahankan supaya orangnya masih bisa
+        // mengenalinya; sisanya diganti bintang. Minimal tiga bintang agar
+        // panjang aslinya tidak terbaca dari jumlah bintang pada alamat pendek.
+        $awal = mb_substr($lokal, 0, 2);
+
+        return $awal.str_repeat('*', max(3, mb_strlen($lokal) - mb_strlen($awal))).'@'.$domain;
     }
 
     /**
