@@ -48,7 +48,10 @@ class PemberitahuanKos extends Mailable
                 'pesan' => $this->pesan,
                 'label' => Peristiwa::label($this->peristiwa),
                 'tautan' => $this->tautan,
-                'alamat' => rtrim((string) config('app.url'), '/'),
+                // Sama seperti `TautanAkunKos`: `tautan` adalah jalur halaman
+                // SPA, jadi alamatnya harus alamat SPA. Di produksi satu
+                // layanan nilainya sama dengan `app.url`.
+                'alamat' => rtrim((string) config('app.url_spa'), '/'),
             ],
         );
     }

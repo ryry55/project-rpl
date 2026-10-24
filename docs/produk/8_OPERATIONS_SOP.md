@@ -29,8 +29,10 @@ Versi 1.0 · 26 Oktober 2026
 | `9222` | Chrome DevTools Protocol (untuk uji) |
 | `5432` | PostgreSQL (internal, tidak diekspos) |
 
-`APP_URL` = `http://localhost:8081` (origin API), sehingga tautan di email
-menunjuk ke host API. Uji E2E memindahkan path-nya ke `APP` (port 3000).
+`APP_URL` = `http://localhost:8081` (origin API). Tautan di email **tidak**
+memakai nilai ini; ia memakai `APP_URL_SPA` = `http://localhost:3000`, karena
+`/atur-sandi` hanya ada di SPA. Sebelum R7 tautan email memakai `APP_URL` dan
+menjawab 404 saat diklik - lihat `docs/utang-teknis.md` bagian 3.
 
 ### 1.2 Menyalakan
 
@@ -198,7 +200,7 @@ tag v*  →  rilis.yml  →  bangun image → dorong ke GHCR
                       →  deploy.yml (produksi)
 ```
 
-`uji.yml` berjalan pada setiap push: lint → 713 tes PHP → skrip browser di Chrome
+`uji.yml` berjalan pada setiap push: lint → 715 tes PHP → skrip browser di Chrome
 headless.
 
 | Workflow | Pemicu |
@@ -347,7 +349,8 @@ diabaikan orang.
 | Variabel | Bawaan | Catatan |
 |---|---|---|
 | `APP_ENV` | `local` | `production` mematikan seeder |
-| `APP_URL` | `http://localhost:8081` | Origin API; dipakai tautan email |
+| `APP_URL` | `http://localhost:8081` | Origin API; juga dipakai CORS di produksi |
+| `APP_URL_SPA` | ikut `APP_URL` | Alamat SPA untuk tautan di email. Di laptop `http://localhost:3000`. **Kosongkan di produksi** - satu layanan berarti satu origin |
 | `DB_*` | `kos`/`kos`/`kos` | |
 | `APP_DEMO_MODE` | `false` | `true` menggeser "hari ini" untuk demo denda |
 | `RUN_MIGRATIONS` | `true` | Entrypoint menjalankan `migrate --force` |

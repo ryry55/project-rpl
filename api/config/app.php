@@ -56,6 +56,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Alamat Aplikasi (SPA) untuk Tautan Email
+    |--------------------------------------------------------------------------
+    |
+    | `url` di atas adalah alamat API. Di laptop keduanya berbeda port: API
+    | di 8081, SPA di 3000. Tautan aktivasi dan reset sandi menuju HALAMAN,
+    | bukan endpoint, jadi keduanya harus memakai alamat SPA - kalau tidak,
+    | penghuni mengklik tautan dan menerima 404 dari API.
+    |
+    | Bawaannya jatuh ke `url` supaya produksi satu layanan tidak perlu
+    | mengisi apa pun: di sana SPA dan API memang satu origin.
+    |
+    */
+
+    'url_spa' => env('APP_URL_SPA') ?: env('APP_URL', 'http://localhost'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

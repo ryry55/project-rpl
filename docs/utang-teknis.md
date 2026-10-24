@@ -21,7 +21,7 @@ karena uji gagal.
 | pint, eslint, vite build | lulus |
 | Paritas daftar E2E `periksa.ps1` vs `periksa.sh` | lulus |
 | Profil produksi (`periksa-profil-produksi.sh`) | lulus |
-| 713 tes PHP di dalam container | lulus |
+| 715 tes PHP di dalam container | lulus |
 | Chrome headless membuka port 9222 | lulus |
 | `periksa.sh` benar-benar dijalankan (`bash periksa.sh`) | lulus |
 
@@ -83,6 +83,15 @@ Penanda memuat selalu lebih dulu ada.
 ---
 
 ## 3. Cacat fungsional yang diketahui, belum diperbaiki
+
+**Sudah ditutup:** **REV-SEC-03** - tautan email menunjuk ke alamat API, bukan
+alamat SPA, sehingga tautan aktivasi dan reset sandi menjawab 404 saat diklik di
+laptop. Kini ada `config('app.url_spa')` yang bawaannya jatuh ke `APP_URL`
+(aman untuk produksi satu layanan, yang memang satu origin), dan `.env`
+lokal mengisinya `http://localhost:3000`. Dijaga dua tes di
+`AktivasiAkunTest`: satu memeriksa alamat LENGKAP di badan email, satu
+memeriksa rantai `?:` saat variabelnya kosong. Keduanya dibuktikan bisa gagal
+dengan mengembalikan `url_spa` menjadi `url`.
 
 | Cacat | Akibat | Catatan |
 |---|---|---|

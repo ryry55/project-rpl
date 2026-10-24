@@ -91,7 +91,7 @@ urutan langkahnya menentukan, dan salah urutan menghasilkan hijau yang menyesatk
 
 ### CI/CD
 
-Tiga workflow di `.github/workflows/`: `uji.yml` (kebenaran kode - lint lalu 713
+Tiga workflow di `.github/workflows/`: `uji.yml` (kebenaran kode - lint lalu 715
 tes PHP lalu 24 skrip uji di Chrome headless), `rilis.yml` (bangun image,
 dorong ke GHCR, staging lalu produksi), dan `deploy.yml` (satu lingkungan,
 dipanggil dua kali). Rinciannya di `docs/ci-cd.md`.
@@ -175,7 +175,7 @@ Fungsinya tidak melakukan apa pun bila gerbangnya tidak muncul.
 **Backtick di dalam komentar pun memutus template literal.** Seluruh pemeriksaan
 DOM dikirim sebagai template literal, jadi satu backtick di komentar membuat
 `node --check` gagal dengan pesan yang menunjuk baris yang salah - dan baru
-ketahuan setelah build, 713 tes PHP, pint, dan eslint selesai. `periksa.ps1`
+ketahuan setelah build, 715 tes PHP, pint, dan eslint selesai. `periksa.ps1`
 sekarang menjalankan `node --check` pada semua `.mjs` lebih dulu, tetapi jalankan
 sendiri saat menyunting satu berkas: `node --check docs/uji/<berkas>.mjs`.
 

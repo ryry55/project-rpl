@@ -53,7 +53,10 @@ class TautanAkunKos extends Mailable
                 'nama' => $this->nama,
                 'tautan' => $this->tautan,
                 'berlakuSampai' => $this->berlakuSampai,
-                'alamat' => rtrim((string) config('app.url'), '/'),
+                // Alamat SPA, bukan alamat API. Tautan di email menuju halaman
+                // `/atur-sandi`, yang hanya ada di SPA; API menjawab 404 untuk
+                // jalur itu. Lihat `config('app.url_spa')`.
+                'alamat' => rtrim((string) config('app.url_spa'), '/'),
             ],
         );
     }

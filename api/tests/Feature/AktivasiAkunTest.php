@@ -9,6 +9,8 @@ use App\Models\PengelolaKewenangan;
 use App\Models\Penghuni;
 use App\Models\TokenAkun;
 use App\Models\User;
+use Dotenv\Dotenv;
+use Dotenv\Repository\RepositoryBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -194,6 +196,82 @@ class AktivasiAkunTest extends TestCase
     }
 
     // --- Gerbang aktivasi --------------------------------------------------
+
+    /**
+     * Tautan di email harus menunjuk ke SPA, bukan ke API.
+     *
+     * Inilah REV-SEC-03. Di laptop API dan SPA beda port (8081 vs 3000), dan
+     * tautan `/atur-sandi` hanya ada di SPA. Selama alamatnya diambil dari
+     * `app.url`, penghuni yang mengklik tautan menerima 404 dari API - dan
+     * tidak ada satu pun layar yang memberi tahu pemilik bahwa itu terjadi.
+     *
+     * Tes ini membaca alamat LENGKAP dari badan email, bukan hanya tokennya.
+     * Tes-tes lain di berkas ini sengaja hanya memeriksa jalur `/atur-sandi`
+     * karena itulah yang mereka butuhkan; akibatnya cacat alamat ini lolos
+     * dari 713 tes yang sudah ada.
+     */
+    public function test_tautan_email_memakai_alamat_spa_bukan_alamat_api(): void
+    {
+        Mail::fake();
+
+        config([
+            'app.url' => 'http://localhost:8081',
+            'app.url_spa' => 'http://localhost:3000',
+        ]);
+
+        $this->buatPenghuni();
+
+        $badan = null;
+        Mail::assertSent(TautanAkunKos::class, function (TautanAkunKos $satu) use (&$badan) {
+            $badan = $satu->render();
+
+            return true;
+        });
+
+        $this->assertStringContainsString('http://localhost:3000/atur-sandi?', $badan);
+        $this->assertStringNotContainsString('http://localhost:8081/atur-sandi', $badan);
+    }
+
+    /**
+     * Di produksi satu layanan SPA dan API satu origin, jadi `APP_URL_SPA`
+     * boleh kosong dan nilainya harus ikut `APP_URL`.
+     *
+     * Tanpa penyangga ini, deploy yang lupa mengisi satu variabel baru akan
+     * menghasilkan email bertautan rusak - dan itu justru kesalahan yang
+     * sedang diperbaiki. Nilai bawaan yang aman tidak bisa terlupa.
+     *
+     * Diuji dengan memuat ulang `config/app.php` memakai DOTENV yang
+     * diarahkan ke berkas sementara, bukan `putenv`. Laravel membaca `.env`
+     * lebih dulu daripada environment proses, jadi `putenv` tidak akan
+     * mengubah apa pun dan tesnya akan lulus secara palsu.
+     */
+    public function test_alamat_spa_jatuh_ke_app_url_bila_tidak_diisi(): void
+    {
+        $berkas = tempnam(sys_get_temp_dir(), 'env').'.env';
+        file_put_contents($berkas, "APP_URL=https://kos-kosan.my.id\n");
+        file_put_contents($berkas, "APP_URL_SPA=\n", FILE_APPEND);
+
+        try {
+            // Muat ulang melalui Dotenv, persis cara Laravel memuat `.env`.
+            // Repositori dibuat MUTABLE: container sudah mengisi APP_URL_SPA
+            // lewat docker-compose, dan repositori immutable akan menolak
+            // menimpanya sehingga tes membaca nilai container, bukan berkas
+            // sementara - dan lulus tanpa menguji apa pun.
+            $dotenv = Dotenv::create(
+                RepositoryBuilder::createWithDefaultAdapters()->make(),
+                dirname($berkas),
+                basename($berkas),
+            );
+            $dotenv->load();
+
+            $segar = require config_path('app.php');
+
+            $this->assertSame('https://kos-kosan.my.id', $segar['url_spa']);
+            $this->assertSame('https://kos-kosan.my.id', $segar['url']);
+        } finally {
+            @unlink($berkas);
+        }
+    }
 
     /**
      * Gerbang aktivasi hanya bisa dicapai SETELAH sandi benar.

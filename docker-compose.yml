@@ -50,6 +50,9 @@ services:
       # menimpa isi .env, dan Laravel lalu menganggap kuncinya tidak diset.
       # Entrypoint yang membuatkan kunci ke dalam .env bila masih kosong.
       APP_URL: ${APP_URL:-http://localhost:8081}
+      # Alamat SPA untuk tautan di email. Di laptop berbeda port dari APP_URL;
+      # di produksi satu layanan keduanya sama sehingga bawaannya ikut APP_URL.
+      APP_URL_SPA: ${APP_URL_SPA:-http://localhost:3000}
       APP_TIMEZONE: Asia/Jakarta
       APP_DEMO_MODE: ${APP_DEMO_MODE:-true}
       APP_LOCALE: id
