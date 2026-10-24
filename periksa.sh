@@ -260,6 +260,9 @@ if [ "$CEPAT" -eq 0 ]; then
             # 360px selalu lolos. `uji-pwa` memeriksa manifest, service worker,
             # dan pagar R-07 (tidak ada respons `/api` yang masuk cache).
             uji-kartu-tabel.mjs uji-pwa.mjs
+            # R5: "Belum ada ..." tidak boleh muncul saat pemuatan gagal
+            # (REV-UI-04). Blokade 500 dipasang lewat CDP, bukan database.
+            uji-galat-muat.mjs
         )
 
         tutup_tab() {

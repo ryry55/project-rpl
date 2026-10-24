@@ -499,7 +499,14 @@ jalankan(async () => {
 
   await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/tagihan` })
   await tungguSampai(ws, `document.querySelector('#app')?.children.length > 0`, 15000)
-  await tungguSampai(ws, `document.querySelectorAll('tbody tr').length > 0`, 10000)
+  // Menunggu `tbody tr` apa pun tidak cukup: baris "Memuat tagihan..." juga
+  // berupa `tr`, jadi penantian ini puas sebelum data tiba dan pencarian baris
+  // Februari di bawahnya lalu gagal. Tunggu baris yang benar-benar dicari.
+  await tungguSampai(
+    ws,
+    `[...document.querySelectorAll('tbody tr')].some((tr) => /Feb 2027/.test(tr.textContent))`,
+    15000,
+  )
 
   // Tagihan Februari dibuka: satu-satunya yang punya denda dan sudah dimaafkan,
   // sehingga teks yang disusun memuat cabang pemaafan sekaligus.

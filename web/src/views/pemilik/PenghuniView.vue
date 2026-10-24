@@ -249,7 +249,10 @@ onMounted(muat)
                 </template>
               </td>
             </tr>
-            <BarisKosong v-if="!memuat && tersaring.length === 0" :kolom="6">
+            <BarisKosong
+              v-if="!memuat && !galatMuat && tersaring.length === 0"
+              :kolom="6"
+            >
               {{ cari ? 'Tidak ada penghuni yang cocok dengan pencarian.' : 'Belum ada penghuni terdaftar.' }}
             </BarisKosong>
             <BarisKosong v-if="memuat" :kolom="6">Memuat…</BarisKosong>

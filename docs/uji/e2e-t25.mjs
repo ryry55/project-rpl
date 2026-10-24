@@ -394,9 +394,15 @@ jalankan(async () => {
 
     // --- Pengaturan notifikasi -------------------------------------------
     await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/pengaturan-notifikasi` })
+    // Menunggu `h1` saja tidak cukup: judul muncul sebelum tabel terisi, dan
+    // pembacaan berikutnya lalu melihat 0 baris. Tunggu elemen yang membuktikan
+    // datanya sudah tiba - baris tabel hasil `v-for` dari `meta.peristiwa`.
+    // Jebakan ini sudah tercatat di AGENTS.md dan sudah menggigit di T9/T19.
     const halamanNotif = await tungguSampai(
       ws,
-      `document.querySelector('h1')?.textContent.includes('Pengaturan notifikasi')`,
+      `document.querySelector('h1')?.textContent.includes('Pengaturan notifikasi')
+        && document.querySelectorAll('.tabel-notifikasi tbody tr').length > 0`,
+      15000,
     )
     lapor('halaman Pengaturan notifikasi terbuka', halamanNotif)
 

@@ -26,6 +26,12 @@ const props = defineProps({
     type: String,
     default: 'Belum ada tagihan. Terbitkan tagihan pertama lewat tombol di atas.',
   },
+  /**
+   * Pemuatan gagal (REV-UI-04). Saat `true`, baris "belum ada" ditekan supaya
+   * layar tidak menyatakan datanya kosong padahal yang terjadi adalah gagal
+   * ambil - dua keadaan yang sangat berbeda bagi pemilik.
+   */
+  galatMuat: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['buka'])
@@ -74,7 +80,10 @@ const KOLOM = 11
               <button class="halus mungil" @click="emit('buka', t)">Rincian</button>
             </td>
           </tr>
-          <BarisKosong v-if="!props.memuat && props.daftar.length === 0" :kolom="KOLOM">
+          <BarisKosong
+            v-if="!props.memuat && !props.galatMuat && props.daftar.length === 0"
+            :kolom="KOLOM"
+          >
             {{ props.pesanKosong }}
           </BarisKosong>
           <BarisKosong v-if="props.memuat" :kolom="KOLOM">Memuat…</BarisKosong>

@@ -389,7 +389,10 @@ onMounted(muat)
                   </span>
                 </td>
               </tr>
-              <BarisKosong v-if="!memuat && pembayaran.length === 0" :kolom="5">
+              <BarisKosong
+                v-if="!memuat && !galatMuat && pembayaran.length === 0"
+                :kolom="5"
+              >
                 Tidak ada uang masuk pada periode ini.
               </BarisKosong>
             </tbody>

@@ -370,7 +370,14 @@ onMounted(muatRekening)
               </tr>
             </template>
 
-            <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="9">
+            <!-- `!galatMuat` wajib ada (REV-UI-04): tanpa itu, kegagalan memuat
+                 tampil sebagai "Belum ada tagihan" - dua keadaan yang sangat
+                 berbeda bagi penghuni. Yang gagal dimuat bisa saja berisi
+                 tagihan yang sudah jatuh tempo. -->
+            <BarisKosong
+              v-if="!memuat && !galatMuat && daftar.length === 0"
+              :kolom="9"
+            >
               Belum ada tagihan untuk Anda. Tagihan muncul setelah pemilik menerbitkannya.
             </BarisKosong>
             <BarisKosong v-if="memuat" :kolom="9">Memuat tagihan…</BarisKosong>

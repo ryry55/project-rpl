@@ -240,7 +240,10 @@ onMounted(muat)
                 <span v-else class="lemah mungil">Hanya lihat</span>
               </td>
             </tr>
-            <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="5">
+            <BarisKosong
+              v-if="!memuat && !galatMuat && daftar.length === 0"
+              :kolom="5"
+            >
               Belum ada fasilitas. Tambahkan yang benar-benar dimiliki kamar kos ini.
             </BarisKosong>
             <BarisKosong v-if="memuat" :kolom="5">Memuat fasilitas...</BarisKosong>

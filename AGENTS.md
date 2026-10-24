@@ -92,11 +92,11 @@ urutan langkahnya menentukan, dan salah urutan menghasilkan hijau yang menyesatk
 ### CI/CD
 
 Tiga workflow di `.github/workflows/`: `uji.yml` (kebenaran kode - lint lalu 599
-tes PHP lalu 18 skrip browser di Chrome headless), `rilis.yml` (bangun image,
+tes PHP lalu 19 skrip browser di Chrome headless), `rilis.yml` (bangun image,
 dorong ke GHCR, staging lalu produksi), dan `deploy.yml` (satu lingkungan,
 dipanggil dua kali). Rinciannya di `docs/ci-cd.md`.
 
-Uji browser **tidak** ditulis ulang dengan Playwright. Delapan belas skrip di
+Uji browser **tidak** ditulis ulang dengan Playwright. Sembilan belas skrip di
 `docs/uji/` berbicara CDP mentah, dan endpoint CDP-nya dapat diatur lewat
 `CDP_BASE`/`APP_URL`/`API_URL`/`MAILPIT_URL` - jadi skrip yang sama berjalan di
 Chrome berjendela di laptop dan di Chrome headless di runner tanpa satu baris pun

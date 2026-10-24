@@ -96,6 +96,31 @@ Penanda memuat selalu lebih dulu ada.
 
 ---
 
+## 3b. Temuan turunan REV-UI-04 yang ditemukan saat R5
+
+REV-UI-04 aslinya hanya menunjuk satu layar (`DashboardPenghuni.vue`). Saat
+memperbaikinya, pola cacat yang sama ditemukan di **sembilan layar pemilik**:
+`AturanView`, `KamarView`, `KontrakView`, `FasilitasView`, `PengelolaView`,
+`PenghuniView`, `RekeningView`, `AuditLogView`, `RekapView`, ditambah
+`komponen/TabelTagihan.vue` yang dipakai `TagihanView`.
+
+Cacatnya satu bentuk: baris "Belum ada ..." hanya bergantung pada
+`!memuat && daftar.length === 0`, tanpa memeriksa `galatMuat`. Saat pemuatan
+gagal, layar memberi tahu pemilik bahwa datanya kosong — padahal yang terjadi
+adalah gagal ambil. Pada layar tagihan, itu bisa menyembunyikan tagihan yang
+sudah jatuh tempo.
+
+**Kesepuluhnya sudah diperbaiki di R5** dengan menambahkan `&& !galatMuat`.
+`TabelTagihan` mendapat prop baru `galatMuat` karena ia komponen bersama dan
+tidak punya akses ke state induk.
+
+Dijaga `docs/uji/uji-galat-muat.mjs` — 30 langkah, 10 layar × 3 asersi. Blokade
+500 dipasang lewat CDP `Fetch.fulfillRequest`, jadi tidak mengubah database.
+Pagar ini **sudah dibuktikan bisa gagal**: satu layar sengaja dikembalikan ke
+kondisi lama, dan tepat satu asersi menjadi merah.
+
+---
+
 ## 4. Kesiapan produksi yang belum dikerjakan (LANGKAH 11)
 
 | Kurang | Akibat bila live sekarang |

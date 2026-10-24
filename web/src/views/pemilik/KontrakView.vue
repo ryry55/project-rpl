@@ -271,7 +271,10 @@ onMounted(muat)
                 </button>
               </td>
             </tr>
-            <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="8">
+            <BarisKosong
+              v-if="!memuat && !galatMuat && daftar.length === 0"
+              :kolom="8"
+            >
               Belum ada kontrak. Buat kontrak untuk menempatkan penghuni di kamar.
             </BarisKosong>
             <BarisKosong v-if="memuat" :kolom="8">Memuat…</BarisKosong>

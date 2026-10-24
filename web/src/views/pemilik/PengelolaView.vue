@@ -389,7 +389,10 @@ onMounted(muat)
                 <button class="halus mungil" @click="mintaCabut(p)">Cabut akses</button>
               </td>
             </tr>
-            <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="4">
+            <BarisKosong
+              v-if="!memuat && !galatMuat && daftar.length === 0"
+              :kolom="4"
+            >
               Belum ada pengelola. Kos ini hanya diurus pemilik.
             </BarisKosong>
             <BarisKosong v-if="memuat" :kolom="4">Memuat pengelola...</BarisKosong>

@@ -1,9 +1,10 @@
 # Skrip uji
 
-Dua puluh berkas di folder ini menguji aplikasi dari luar: delapan belas lewat
-browser sungguhan (termasuk satu yang menyapu seluruh halaman dan satu yang
-mengukur tata letak di lebar ponsel), dua menguji balapan HTTP, dan satu berkas
-bersama yang dipakai semuanya.
+Dua puluh satu berkas di folder ini menguji aplikasi dari luar: sembilan belas
+lewat browser sungguhan (termasuk satu yang menyapu seluruh halaman, satu yang
+mengukur tata letak di lebar ponsel, dan satu yang mensimulasikan pemuatan
+gagal), dua menguji balapan HTTP, dan satu berkas bersama yang dipakai
+semuanya.
 
 Semuanya memakai **database demo** (`kos`), bukan `kos_test`. Kecuali dinyatakan
 lain, tiap skrip **mengubah** isinya.
@@ -64,6 +65,7 @@ per tiket tidak pernah membuka halaman itu.
 | `uji-tata-letak.mjs` | Sepuluh halaman pemilik dan portal penghuni tidak meluber mendatar pada 360px, 390px, dan 768px; emulasi lebarnya diperiksa lebih dulu supaya asersinya tidak lulus tanpa mengukur | Chrome, seed |
 | `uji-kartu-tabel.mjs` | Tabel 4+ kolom berubah menjadi kartu di 360px dan 390px: setiap sel berlabel sesuai `<th>`-nya, `thead` tidak terlihat, dan kartunya tidak meluber. Di layar lebar tabelnya kembali normal | Chrome, seed |
 | `uji-pwa.mjs` | Manifest terbaca dan semua ikonnya tersaji; service worker terdaftar, aktif, dan mengendalikan halaman; **tidak ada respons `/api/` yang masuk cache** (R-07) | Chrome, build produksi, seed |
+| `uji-galat-muat.mjs` | Sepuluh layar yang memuat daftar: saat endpointnya dijawab 500, pesan galat tampil dan baris "Belum ada ..." **tidak** tampil. Kontrol negatif mencabut blokade dan memastikan galatnya hilang, supaya asersi tidak lulus karena halaman tidak pernah dimuat (REV-UI-04) | Chrome, seed |
 
 `uji-kartu-tabel.mjs` menutup celah yang sengaja ditinggalkan
 `uji-tata-letak.mjs`. Uji itu melewati elemen di dalam `.tabel-bungkus`, karena

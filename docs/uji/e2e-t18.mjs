@@ -143,7 +143,12 @@ jalankan(async () => {
     const kamarId = kamar.data?.data?.id
 
     await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/kamar` })
-    await tungguSampai(ws, `document.querySelector('h1')?.textContent.includes('Kamar')`)
+    await tungguSampai(
+      ws,
+      `document.querySelector('h1')?.textContent.includes('Kamar')
+        && [...document.querySelectorAll('table.tabel tbody tr')].some(tr => tr.textContent.includes('T18-A'))`,
+      15000,
+    )
 
     const dibuka = await evaluasi(
       ws,
@@ -274,7 +279,15 @@ jalankan(async () => {
 
     // --- Melepas centang ---------------------------------------------------
     await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/kamar` })
-    await tungguSampai(ws, `document.querySelector('h1')?.textContent.includes('Kamar')`)
+    // Menunggu `h1` saja tidak cukup: judul muncul sebelum baris tabel terisi,
+    // dan evaluasi berikutnya lalu mencari baris kamar uji yang belum ada.
+    // Tunggu baris yang benar-benar dicari.
+    await tungguSampai(
+      ws,
+      `document.querySelector('h1')?.textContent.includes('Kamar')
+        && [...document.querySelectorAll('table.tabel tbody tr')].some(tr => tr.textContent.includes('T18-A'))`,
+      15000,
+    )
 
     const dilepas = await evaluasi(
       ws,

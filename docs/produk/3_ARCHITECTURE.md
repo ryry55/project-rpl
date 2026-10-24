@@ -420,7 +420,7 @@ web/
 
 docs/
   produk/                9 dokumen ini
-  uji/                   23 skrip E2E + perkakas
+  uji/                   24 skrip E2E + perkakas
   dfd/                   4 diagram (Gane-Sarson, Yourdon)
   charter/               Project Charter
 ```

@@ -4,7 +4,7 @@
 > bagaimana menambah tes yang benar-benar menahan.**
 >
 > Angka diambil dari aplikasi yang berjalan: **713 tes PHP (3389 asersi)** dalam
-> 36 berkas, dan **23 skrip browser** dengan **700 langkah**.
+> 36 berkas, dan **24 skrip browser** dengan **730 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -70,7 +70,7 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
 
 ```
         ┌─────────────────────────────────┐
-        │  23 skrip browser · 700 langkah  │  lambat (~300 dtk), tetapi
+        │  24 skrip browser · 730 langkah  │  lambat (~300 dtk), tetapi
         │  (E2E + tata letak + PWA)        │  satu-satunya yang melihat
         └─────────────────────────────────┘  peramban sungguhan
       ┌───────────────────────────────────────┐
@@ -176,7 +176,7 @@ Dikelompokkan menurut apa yang dijaga:
 
 ---
 
-## 4. Tes browser — 23 skrip, 700 langkah
+## 4. Tes browser — 24 skrip, 730 langkah
 
 ### 4.1 Menjalankan
 
@@ -219,6 +219,7 @@ Prasyarat: `docker compose up`, Chrome dengan `--remote-debugging-port=9222`,
 | `uji-tata-letak.mjs` | 94 | Tidak meluber di 360/390/768px |
 | `uji-kartu-tabel.mjs` | 65 | Tabel 4+ kolom jadi kartu; label sesuai `<th>`; desktop kembali normal |
 | `uji-pwa.mjs` | 22 | Manifest, service worker, **pagar R-07** |
+| `uji-galat-muat.mjs` | 30 | Pemuatan gagal tidak menyamar sebagai "Belum ada" (REV-UI-04) |
 | `uji-balapan-t4.mjs` | 10 | 10 permintaan terbit paralel → satu 201, sisanya 409 |
 | `uji-balapan-t5.mjs` | 12 | Pembayaran paralel tidak melebihi sisa |
 
@@ -298,6 +299,7 @@ Dari `1_PRD.md` §6, dan bagaimana masing-masing dibuktikan.
 | U-7 | Tabel tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` | Lulus 65/65 |
 | U-8 | Kepala pemilik sebelum konten | < 220px | Terukur | 203px |
 | U-9 | Cakupan tes PHP | 713 tes | CI | Lulus 3389 asersi |
+| U-10 | Pemuatan gagal menyamar sebagai data kosong | 0 layar | `uji-galat-muat.mjs` — **dibuktikan bisa gagal** | Lulus 30/30 |
 
 ---
 

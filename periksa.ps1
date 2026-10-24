@@ -237,7 +237,10 @@ if (-not $Cepat) {
             'e2e-r3.mjs',
             'asap-semua-halaman.mjs', 'uji-tata-letak.mjs',
             # U2 (mobile/PWA) - lihat catatan di periksa.sh.
-            'uji-kartu-tabel.mjs', 'uji-pwa.mjs'
+            'uji-kartu-tabel.mjs', 'uji-pwa.mjs',
+            # R5: "Belum ada ..." tidak boleh muncul saat pemuatan gagal
+            # (REV-UI-04). Blokade 500 dipasang lewat CDP, bukan database.
+            'uji-galat-muat.mjs'
         )
 
         foreach ($s in $e2e) {

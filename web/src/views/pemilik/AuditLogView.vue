@@ -261,7 +261,10 @@ onMounted(muat)
                 </ul>
               </td>
             </tr>
-            <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="5">
+            <BarisKosong
+              v-if="!memuat && !galatMuat && daftar.length === 0"
+              :kolom="5"
+            >
               {{ jumlahSaring > 0 ? 'Tidak ada kejadian yang cocok dengan saringan.' : 'Belum ada kejadian tercatat.' }}
             </BarisKosong>
           </tbody>

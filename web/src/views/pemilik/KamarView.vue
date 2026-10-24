@@ -474,7 +474,10 @@ onMounted(muat)
                 </span>
               </td>
             </tr>
-            <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="7">
+            <BarisKosong
+              v-if="!memuat && !galatMuat && daftar.length === 0"
+              :kolom="7"
+            >
               Belum ada kamar. Tambahkan kamar pertama lewat tombol di atas.
             </BarisKosong>
             <BarisKosong v-if="memuat" :kolom="7">Memuat…</BarisKosong>

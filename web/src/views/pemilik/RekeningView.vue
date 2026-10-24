@@ -346,7 +346,10 @@ onMounted(muat)
                 <button type="button" class="halus mungil" @click="hapus(r)">Hapus</button>
               </td>
             </tr>
-            <BarisKosong v-if="!memuat && daftar.length === 0" :kolom="6">
+            <BarisKosong
+              v-if="!memuat && !galatMuat && daftar.length === 0"
+              :kolom="6"
+            >
               Belum ada rekening. Tambahkan lewat formulir di atas supaya penghuni tahu ke
               mana harus mentransfer.
             </BarisKosong>

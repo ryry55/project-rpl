@@ -278,6 +278,7 @@ onMounted(muat)
       :daftar="daftar"
       :memuat="memuat"
       :memuat-detail="memuatDetail"
+      :galat-muat="Boolean(galatMuat)"
       :pesan-kosong="pesanKosong"
       @buka="bukaDetail"
     />
