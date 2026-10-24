@@ -37,6 +37,45 @@ Berkas serah-terima memuat perintah untuk memverifikasi klaimnya sendiri. Kalau
 angkanya tidak cocok dengan kenyataan, berkas itu basi — perbarui dulu, baru
 bekerja.
 
+### Kalau sesi butuh keputusan pemilik
+
+Sesi tanpa ingatan punya satu cara gagal yang lebih berbahaya daripada lupa:
+**menebak**. Tebakan yang masuk ke kode terlihat seperti pekerjaan selesai, dan
+pemilik baru tahu saat sidang. Karena itu bertanya bukan kegagalan, menebak
+adalah.
+
+**Wajib bertanya** bila jawabannya menyentuh salah satu dari ini:
+
+| Menyentuh | Contoh |
+|---|---|
+| Uang | Rumus, pembulatan, kapan denda berhenti, apa yang boleh diubah setelah terbit |
+| Perilaku yang dilihat pengguna | Tombol baru, status baru, pesan galat, siapa boleh melihat apa |
+| Cakupan | Menambah/mengurangi fitur, endpoint, tabel, atau use case |
+| Keputusan terkunci | Apa pun di `SPEC.md` §4-§7 dan `docs/serah-terima.md` §3 |
+
+**Boleh memutuskan sendiri** bila menyangkut cara, bukan apa: nama variabel,
+urutan kueri, bentuk internal fungsi, cara menulis tes. Putuskan, lalu sebutkan
+di pesan commit.
+
+**Tidak boleh** mengubah `SPEC.md`, `revisi.md`, atau keputusan terkunci atas
+inisiatif sendiri. Menemukan alasan kuat bahwa keputusan itu salah = bahan
+pertanyaan, bukan izin.
+
+**Salurannya tergantung moda:**
+
+- **Moda berantai** (sesi induk melepas sub-sesi): sub-sesi **berhenti** dan
+  melaporkan pertanyaannya di jawaban akhir. Sesi induk meneruskannya ke pemilik
+  dan melanjutkan sub-sesi itu lewat `sessionID`. Tidak perlu menulis berkas.
+- **Moda sesi baru** (opencode baru tanpa sesi induk): tidak ada yang
+  meneruskan, jadi tulis pertanyaannya ke **`docs/keputusan-terbuka.md`**, commit
+  berkas itu sendirian (`docs: keputusan terbuka K-xx`), lalu berhenti. Jangan
+  menunggu di dalam sesi — tidak ada yang akan menjawab.
+
+**Jawaban pemilik juga harus menetap.** Setelah dijawab, tulis jawabannya ke
+entri yang sama di `docs/keputusan-terbuka.md` dengan status `dijawab` dan
+tanggalnya, lalu commit. Tanpa itu pertanyaan yang sama akan ditanyakan ulang
+oleh sesi berikutnya, dan pemilik akan menjawab dua kali.
+
 ## Menjalankan dan memeriksa
 
 Satu perintah memeriksa seluruh repo:
