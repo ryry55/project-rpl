@@ -8,7 +8,7 @@
 > kedua dan gunanya hilang. Keputusan yang terkunci **dirujuk**, tidak disalin —
 > salinan akan menyimpang dari sumbernya.
 
-Terakhir diperbarui: fase R5 selesai · 6 November 2026
+Terakhir diperbarui: fase R7 selesai · 25 Oktober 2026
 
 ---
 
@@ -16,8 +16,8 @@ Terakhir diperbarui: fase R5 selesai · 6 November 2026
 
 | Hal | Nilai |
 |---|---|
-| Fase terakhir yang selesai | **R5** (`ba708fe`) |
-| Fase yang sedang dikerjakan | **R6** — artefak akademik |
+| Fase terakhir yang selesai | **R7** (`4dca0b1`) |
+| Fase yang sedang dikerjakan | — (tidak ada; R1–R7 tuntas) |
 | Suite PHP | **713 lulus / 3389 asersi**, 36 berkas tes |
 | Pint / ESLint | bersih |
 | Migrasi | **36** |
@@ -29,26 +29,24 @@ Terakhir diperbarui: fase R5 selesai · 6 November 2026
 **Working tree bersih** kecuali `revisi.md` dan `docs/revisi.md`, yang **sengaja
 tidak di-commit**: keduanya masukan audit, bukan deliverable.
 
-R5 selesai: REV-UI-04 diperbaiki di **10 layar** (1 temuan asli + 9 turunan,
-dicatat di `docs/utang-teknis.md` §3b). REV-UI-01 dan REV-UI-02 **tidak
-dikerjakan karena temuannya salah** — lihat §3. Tiga E2E yang flaky
-(`e2e-t25`, `e2e-r3`, `e2e-t18`) diperbaiki: ketiganya menunggu elemen yang
-muncul sebelum data tiba. Dibuktikan bukan regresi R5 dengan menjalankan kode
-lama lebih dulu.
+R6 selesai di `4dca0b1`: `docs/akademik/` berisi diagram use case (3 aktor,
+14 use case), matriks hak akses, laporan narasi 7 bab, dan DFD Konteks Level 0 —
+semuanya dibangkitkan dari sumber. R7 mengaudit angka: Laravel 12.70.1
+dikonfirmasi dari tiga sumber, angka tes usang diperbaiki. Tiga sebutan
+"Laravel 11" **sengaja dipertahankan** sebagai catatan keputusan.
 
 ---
 
 ## 2. Tiga aksi berikutnya
 
-1. **Baca `revisi.md` bagian REV-ACA-01 dan REV-ACA-02**, lalu periksa apa yang
-   sudah ada di `docs/charter/`, `docs/dfd/`, dan `Template Laporan/`. Jangan
-   menulis ulang yang sudah ada — R1 sudah membereskan DFD, dan sembilan
-   dokumen produk sudah ditulis di `docs/produk/`.
-2. **Buat artefak yang memang belum ada:** diagram use case UML (3 aktor,
-   14 use case, final dan tidak boleh diubah), matriks hak akses, dan dua
-   dokumen laporan sesuai template dosen (7 bab).
-3. **Tutup fase**: perbarui `docs/serah-terima.md` untuk R7, lalu commit dengan
-   kode temuan di judul (REV-ACA-01/02).
+1. **Periksa apakah pemilik masih menuntut 3 halaman.** Narasi sekarang
+   **4 halaman** terukur: template memuat 10 aliran dan 5 entitas, sedangkan
+   sistem ini wajib 14 aliran, 12 entitas, dan 7 aturan — lantai jujurnya ~3,6
+   halaman. Memotong ke 3 berarti membuang isi yang diminta template.
+2. **Ekspor `.docx` / `.pdf` final bila diminta.** Jangan menyunting `.md` hasil
+   bangkitan — ubah `usecase-data.js` / `dokumen-data.js` lalu bangun ulang.
+3. **Tinjau dua kolom mati** (`gerbang`, `konsekuensi`): keduanya tidak pernah
+   dicetak. Bukan bug — calon pembersihan, bukan perbaikan mendesak.
 
 ---
 
@@ -65,39 +63,41 @@ Jangan menyimpang dari ini tanpa keputusan pemilik. Rujukannya:
 | 14 use case, sudah final | `docs/produk/1_PRD.md`, `revisi.md` REV-ACA-01 |
 
 **Empat temuan `revisi.md` salah** — jangan diimplementasikan. Daftarnya di
-`docs/utang-teknis.md` §7. Untuk R6 yang paling menggoda: **REV-ACA-03**
-(berkas lock `~$oject_Charter_Kos-Kosan.docx`) — berkas itu **tidak di-track**,
-`.gitignore` sudah memuat `~$*`. Tidak ada yang perlu dihapus.
+`docs/utang-teknis.md` §7. Termasuk **REV-ACA-03** (berkas lock
+`~$oject_Charter_Kos-Kosan.docx`): berkas itu **tidak di-track**, `.gitignore`
+sudah memuat `~$*`. Tidak ada yang perlu dihapus.
 
-**Jangan menambah atau mengurangi use case.** 14 sudah final dan diterima
-pemilik, termasuk UC-11 dan UC-14 yang sengaja berupa grab-bag.
+**Jangan menambah atau mengurangi use case.** 14 sudah final, termasuk UC-11 dan
+UC-14 yang sengaja grab-bag. Pemetaannya tertutup: 78 endpoint terpakai habis,
+tidak ada yang dipakai dua use case.
+
+**Jangan menyunting berkas hasil bangkitan di `docs/akademik/`.** Tiga `.md` dan
+kedua SVG ditulis ulang setiap build; ubah sumbernya (`usecase-data.js`,
+`dokumen-data.js`), lalu jalankan
+`node docs/akademik/build.js && node docs/akademik/build-dokumen.js`.
 
 **Jangan menulis ulang DFD.** R1 sudah menjadikannya bersumber tunggal
-(`dfd-data.js` + `dfd-gambar.js`) dengan 20+ penjaga. Menambah level bukan
-perbaikan: dosen hanya menuntut Konteks Level 0.
+(`dfd-data.js` + `dfd-gambar.js`). `dfd-konteks-gambar.js` memanggilnya, tidak
+menyalinnya — pertahankan itu.
 
 ---
 
 ## 4. Jebakan untuk fase berikutnya
 
 Umum, berlaku selamanya — sudah ada di `AGENTS.md` §"Jebakan yang sudah
-menggigit". **Baca bagian itu, bukan bagian ini.** Yang khusus R6:
+menggigit". **Baca bagian itu, bukan bagian ini.** Yang khusus R6/R7:
 
-- **Template dosen = tepat 7 bab.** Deskripsi use case berbentuk
-  `UC-01 Nama: penjelasan`; matriks akses berbentuk
-  `Aktor: Mengakses UC-xx, ...`. Menyimpang dari bentuk ini membuat dokumen
-  dinilai tidak sesuai template walau isinya benar.
-- **Bahasa Indonesia untuk seluruh narasi.** Istilah teknis boleh Inggris
-  (endpoint, migration, webhook), narasi tidak.
-- **Jangan mengarang angka.** Semua angka ada di §1 dan bisa diverifikasi
-  dengan perintah di §5. Laporan yang menyebut angka berbeda dari sistem akan
-  langsung terlihat saat sidang.
-- **Diagram harus bisa diregenerasi.** Kalau membuat diagram baru, ikuti pola
-  R1: data di satu berkas, penggambar di berkas lain, jangan gambar tangan.
-  Diagram tangan tidak bisa diperbaiki saat angkanya berubah.
-- **Dokumen `.docx`/`.pdf` tidak bisa diverifikasi dengan `git diff`.** Kalau
-  menghasilkan berkas biner, simpan sumbernya (`.md` atau skrip) di repo
-  supaya perubahannya bisa ditelusuri.
+- **Keanggotaan aktor diturunkan dari middleware**, bukan diketik. `build.js`
+  membaca `peran:` / `wewenang:` di `api/routes/api.php`; mengubah matriks tanpa
+  mengubah rute akan menggagalkan build — itu memang tujuannya.
+- **`uji-validator.js` harus tetap 4/4.** Kalau gagal, pemeriksanya yang rusak,
+  bukan datanya.
+- **Halaman diukur, jangan dikira-kira.** `ukur-halaman.ps1` memakai Times New
+  Roman 11pt dan margin 2,5 cm supaya sebanding dengan template; teks template
+  menghasilkan 3 halaman dengan alat yang sama.
+- **`rute-api.json` peka encoding.** Pengalihan `>` milik PowerShell menulis
+  UTF-16LE ber-BOM dan `JSON.parse` menolaknya. Pakai `cmd /c` (perintahnya di
+  `docs/akademik/README.md`).
 
 ---
 
@@ -112,6 +112,8 @@ git status --short          # hanya revisi.md + docs/revisi.md?
 (Get-ChildItem api\tests -Recurse -Filter *Test.php).Count   # 36
 (Get-ChildItem docs\uji\*.mjs).Count                         # 25 (24 + _cdp)
 docker compose exec -T api php artisan test                  # 713 lulus
+node docs/akademik/build.js && node docs/akademik/build-dokumen.js   # 0 masalah
+node docs/akademik/uji-validator.js                          # 4/4
 ```
 
 Kalau salah satu tidak cocok, berkas ini basi — perbarui dulu, baru bekerja.
