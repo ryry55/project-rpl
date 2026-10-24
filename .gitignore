@@ -64,3 +64,8 @@ docs/uji/pesan-*.txt
 docs/uji/komentar-*.md
 docs/uji/_cek.*
 docs/uji/_open.json
+
+# Keluaran sementara pengukur halaman dan pengekspor PDF. Dibangkitkan ulang
+# tiap kali dijalankan, jadi tidak boleh masuk riwayat.
+docs/akademik/_ukur/
+docs/akademik/_*.html

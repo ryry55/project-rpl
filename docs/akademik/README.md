@@ -6,7 +6,9 @@ suntingan akan hilang pada build berikutnya.
 
 | Berkas | Isi |
 |---|---|
-| `Proses_Bisnis_Kos_Kosan.md` | Laporan narasi 7 bab (3–4 halaman) |
+| `Proses_Bisnis_Kos_Kosan.md` | Laporan narasi 7 bab (4 halaman) |
+| `Proses_Bisnis_Kos_Kosan.pdf` | Versi cetak narasi, 4 halaman (Times 11pt, A4) |
+| `Kos_Kosan_Diagrams_Pertemuan_4.pdf` | Dua halaman diagram, bentuk sama dengan template dosen |
 | `use-case-diagram.md` | Halaman 1: diagram use case, aktor, matriks, catatan kaki |
 | `dfd-konteks.md` | Halaman 2: DFD Konteks Level 0 dan matriks 14 aliran |
 | `01-use-case.svg` / `.png` | Diagram use case (vektor + PNG 2x) |
@@ -34,6 +36,8 @@ lain.** Diagram tangan tidak bisa diperbaiki saat angkanya berubah.
 node docs/akademik/build.js           # SVG
 node docs/akademik/build-dokumen.js   # tiga berkas .md
 powershell -ExecutionPolicy Bypass -File docs/akademik/export-png.ps1   # PNG 2x
+powershell -ExecutionPolicy Bypass -File docs/akademik/export-pdf.ps1        # narasi -> PDF
+powershell -ExecutionPolicy Bypass -File docs/akademik/export-diagram-pdf.ps1  # diagram -> PDF 2 hal
 node docs/akademik/uji-validator.js   # buktikan pemeriksa benar-benar menolak
 ```
 
