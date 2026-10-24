@@ -141,6 +141,50 @@ class PencatatAudit
 
     public const AKSI_REKENING_HAPUS = 'rekening.hapus';
 
+    /**
+     * Data induk: kamar, penghuni, kontrak, fasilitas, aturan kos
+     * (REV-DAT-05).
+     *
+     * Sebelum ini hanya uang dan tarif yang berjejak. Akibatnya pertanyaan
+     * "siapa yang mengubah nomor kamar ini" dan "kapan penghuni ini pindah
+     * kamar" tidak bisa dijawab sama sekali - padahal keduanya mengubah tagihan
+     * bulan berikutnya.
+     *
+     * **Kenapa `tambah`/`ubah`/`hapus` seragam, bukan satu aksi per entitas.**
+     * Entitasnya sudah dibedakan kolom `entitas`, jadi `kamar.ubah` dan
+     * `penghuni.ubah` akan menyimpan hal yang sama dua kali. Yang perlu dibaca
+     * manusia adalah "apa yang berubah", dan itu ada di `nilai_lama`/
+     * `nilai_baru`.
+     *
+     * **Yang TIDAK dicatat sebagai `ubah`: perpindahan status huni.** Status
+     * `kamar.status_huni` berubah otomatis saat kontrak dibuat/diakhiri, dan
+     * mencatatnya akan menghasilkan dua baris untuk satu kejadian. Jejaknya ada
+     * di `kontrak.tambah`/`kontrak.akhir`.
+     */
+    public const AKSI_KAMAR_TAMBAH = 'kamar.tambah';
+
+    public const AKSI_KAMAR_UBAH = 'kamar.ubah';
+
+    public const AKSI_PENGHUNI_TAMBAH = 'penghuni.tambah';
+
+    public const AKSI_PENGHUNI_UBAH = 'penghuni.ubah';
+
+    public const AKSI_KONTRAK_TAMBAH = 'kontrak.tambah';
+
+    public const AKSI_KONTRAK_AKHIR = 'kontrak.akhir';
+
+    public const AKSI_FASILITAS_TAMBAH = 'fasilitas.tambah';
+
+    public const AKSI_FASILITAS_UBAH = 'fasilitas.ubah';
+
+    public const AKSI_FASILITAS_HAPUS = 'fasilitas.hapus';
+
+    public const AKSI_ATURAN_TAMBAH = 'aturan.tambah';
+
+    public const AKSI_ATURAN_UBAH = 'aturan.ubah';
+
+    public const AKSI_ATURAN_HAPUS = 'aturan.hapus';
+
     public function catat(
         string $aksi,
         string $entitas,

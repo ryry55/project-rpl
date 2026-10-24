@@ -370,6 +370,10 @@ kontrak          id, kamar_id, penghuni_id, tgl_masuk (date), tgl_keluar (date|n
 tarif_sewa       id, kamar_id, nilai (numeric 14,0), berlaku_dari (date)
                  UNIQUE (kamar_id, berlaku_dari)
                  -- append-only: tidak pernah UPDATE
+                 -- kamar_id ON DELETE RESTRICT sejak R4 (REV-DAT-01). Dulu CASCADE,
+                 -- dan cascade itu tidak pernah bisa berjalan: trigger append-only
+                 -- menolaknya di tengah transaksi dengan pesan yang menyebut
+                 -- tarif_sewa, bukan kamar. RESTRICT menolak lebih awal dan jujur.
 
 komponen_biaya   id, nama, nilai (numeric 14,0), satuan (rupiah/bulan), berlaku_dari (date),
                  kamar_id (bigint|null -- NULL = berlaku untuk seluruh kos)
@@ -380,6 +384,9 @@ komponen_biaya   id, nama, nilai (numeric 14,0), satuan (rupiah/bulan), berlaku_
                  -- NULLS NOT DISTINCT penting: tanpa itu dua baris "listrik untuk
                  -- seluruh kos" pada tanggal yang sama sama-sama lolos, karena
                  -- NULL tidak pernah sama dengan NULL di UNIQUE biasa.
+                 -- kamar_id ON DELETE RESTRICT sejak R4 (REV-DAT-01), sama seperti
+                 -- tarif_sewa. kamar_fasilitas sengaja tetap CASCADE: ia bukan
+                 -- riwayat, dan pemasangan fasilitas wajar hilang bersama kamarnya.
 
 kebijakan_kos    id, tipe, nilai (varchar 30), kamar_id (bigint|null),
                  persen, nominal, masa_tenggang, tanggal, berlaku_dari (date)
@@ -388,6 +395,7 @@ kebijakan_kos    id, tipe, nilai (varchar 30), kamar_id (bigint|null),
                  -- bergantung pada `tipe`, sisanya NULL. Denda tidak lagi punya
                  -- tabel parameter sendiri: ia salah satu `tipe` di sini, supaya
                  -- snapshot tagihan hanya perlu menyalin satu tabel.
+                 -- kamar_id ON DELETE RESTRICT sejak R4 (REV-DAT-01).
 
 tagihan          id, kontrak_id, periode (date, tanggal 1), pokok (numeric 14,0),
                  total_final (numeric 14,0|null), jatuh_tempo (date),
@@ -411,6 +419,13 @@ tagihan          id, kontrak_id, periode (date, tanggal 1), pokok (numeric 14,0)
                  -- yang pernah disebut ke penghuni harus tetap bisa dijawab.
                  -- denda_dimaafkan adalah kolom, bukan tabel: satu kolom pada baris
                  -- yang sama tidak bisa terlupa saat menjumlahkan (R3, REV-FIN-07).
+                 -- Index tagihan_kontrak_status_index (kontrak_id, status) sejak R4
+                 -- (REV-DAT-04): setiap penagihan satu kontrak dan setiap
+                 -- pemeriksaan duplikat terbit-massal menyaring kontrak_id lebih
+                 -- dulu, dan (status, jatuh_tempo) tidak menolongnya. Urutan
+                 -- kolomnya sengaja kontrak_id dulu - satu kontrak puluhan baris,
+                 -- satu status ratusan. Index lama TIDAK dihapus: ia melayani
+                 -- daftar tunggakan yang menyaring status lalu mengurutkan tempo.
 
 rekening         id, jenis (transfer|qris), nama, nomor (string|null),
                  atas_nama (string|null), catatan (string|null),

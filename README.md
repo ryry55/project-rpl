@@ -382,8 +382,10 @@ mencoba id berurutan.
 
 Setiap tagihan yang terbit, setiap pembayaran yang tercatat, setiap tarif baru, dan setiap parameter
 denda baru dicatat di tabel `log_audit` — aktor, aksi, entitas, id, waktu, nilai lama, dan nilai
-baru. Tabel itu **append-only**: trigger basis data menolak UPDATE dan DELETE, jadi riwayatnya tidak
-bisa diubah lewat SQL langsung sekalipun.
+baru. Sejak R4 hal yang sama berlaku untuk **data induk**: kamar, penghuni, kontrak, fasilitas, dan
+aturan kos (`kamar.tambah`, `kontrak.akhir`, `fasilitas.hapus`, dan seterusnya). Tabel itu
+**append-only**: trigger basis data menolak UPDATE dan DELETE, jadi riwayatnya tidak bisa diubah
+lewat SQL langsung sekalipun.
 
 Halaman **Jejak audit** di sisi pemilik menampilkan log itu, bisa disaring per entitas, id entitas,
 dan jenis aksi. Tidak ada tombol ubah maupun hapus — bukan karena belum dibuat, tetapi karena

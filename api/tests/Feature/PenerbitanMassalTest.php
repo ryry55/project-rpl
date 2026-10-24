@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Domain\Audit\PencatatAudit;
+use App\Domain\Notifikasi\Peristiwa;
 use App\Models\Kamar;
 use App\Models\Kontrak;
 use App\Models\LogAudit;
@@ -14,6 +15,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Tests\Concerns\MenyiapkanKebijakan;
 use Tests\TestCase;
 
@@ -439,6 +441,175 @@ class PenerbitanMassalTest extends TestCase
 
         // Dijalankan dua kali, tetapi R-02 tetap utuh.
         $this->assertSame(1, Tagihan::count());
+    }
+
+    // --- Penghuni ikut diberi tahu (REV-DAT-02) ---------------------------
+
+    /**
+     * Kontrak yang penghuninya punya akun login.
+     *
+     * Dipisahkan dari `buatKontrak()` karena sebagian besar tes di berkas ini
+     * tidak peduli pada akun, dan membuat akun untuk semuanya hanya menambah
+     * baris yang tidak dibaca siapa pun.
+     */
+    private function buatKontrakBerakun(string $nomor, ?int $tarif = 1_500_000): array
+    {
+        $kontrak = $this->buatKontrak($nomor, tarif: $tarif);
+
+        $akun = User::create([
+            'name' => $kontrak->penghuni->nama,
+            'email' => strtolower($nomor).'@kos.test',
+            'password' => Hash::make('password'),
+            'peran' => User::PERAN_PENGHUNI,
+            'penghuni_id' => $kontrak->penghuni_id,
+        ]);
+
+        return [$kontrak, $akun];
+    }
+
+    /**
+     * Setiap penghuni yang tagihannya terbit menerima satu pemberitahuan.
+     *
+     * Sebelum REV-DAT-02 tidak ada satu pun: tagihan lahir di basis data dan
+     * penghuni baru tahu kalau kebetulan membuka portal. Itu membuat
+     * penerbitan massal - satu-satunya cara wajar menagih sebulan sekaligus -
+     * justru jalan yang paling senyap.
+     *
+     * Yang dikirim ke penghuni adalah nominal dan jatuh tempo tagihannya
+     * sendiri, bukan ringkasan batch: "30 tagihan terbit" tidak memberi tahu
+     * siapa pun berapa yang harus ia bayar.
+     */
+    public function test_setiap_penghuni_menerima_pemberitahuan_tagihannya_sendiri(): void
+    {
+        Mail::fake();
+
+        [, $akunA] = $this->buatKontrakBerakun('R1');
+        [, $akunB] = $this->buatKontrakBerakun('R2');
+
+        $this->sebagaiPemilik()
+            ->postJson('/api/tagihan/terbitkan', ['periode' => '2026-11-01'])
+            ->assertCreated()
+            ->assertJsonPath('data.terbit', 2);
+
+        foreach ([$akunA, $akunB] as $akun) {
+            $notifikasi = $akun->notifications()->sole();
+
+            $this->assertSame(Peristiwa::TAGIHAN_TERBIT, $notifikasi->data['peristiwa']);
+            // Nominalnya harus ada: pemberitahuan yang tidak menyebut angka
+            // memaksa penghuni membuka portal untuk tahu apa yang harus
+            // dibayar, dan itu sama saja dengan tidak memberitahu.
+            $this->assertStringContainsString('Rp 1.500.000', $notifikasi->data['pesan']);
+            $this->assertSame('/penghuni', $notifikasi->data['tautan']);
+        }
+    }
+
+    /**
+     * Akun pengelola, untuk membuktikan ringkasan batch sampai ke pengurus
+     * LAIN.
+     *
+     * Pemilik yang menekan tombolnya tidak menerima ringkasan itu -
+     * `Penerima::pengurus` mengecualikan pelaku - sehingga tanpa akun kedua di
+     * sini tidak ada satu pun penerima, dan tes akan lulus karena alasan yang
+     * salah.
+     */
+    private function buatPengelola(): User
+    {
+        return User::create([
+            'name' => 'Sari Pengelola',
+            'email' => 'sari@kos.test',
+            'password' => Hash::make('password'),
+            'peran' => User::PERAN_PENGELOLA,
+            'pemilik_id' => $this->pemilik->id,
+        ]);
+    }
+
+    /**
+     * Pelaku tidak menerima pemberitahuan "tagihan massal", dan pengelola lain
+     * menerima tepat SATU ringkasan batch.
+     *
+     * Pemilik yang menekan tombolnya sudah tahu apa yang terjadi. Yang
+     * penting: ringkasan itu SATU, bukan satu baris per kamar - 30 kamar akan
+     * menenggelamkan kotak masuk pemilik, dan yang ingin ia tahu hanya "bulan
+     * ini sudah tertagih semua".
+     */
+    public function test_pengelola_menerima_satu_ringkasan_batch_dan_pelaku_tidak(): void
+    {
+        Mail::fake();
+
+        $pengelola = $this->buatPengelola();
+
+        $this->buatKontrakBerakun('S1');
+        $this->buatKontrakBerakun('S2');
+        $this->buatKontrakBerakun('S3');
+
+        $this->sebagaiPemilik()
+            ->postJson('/api/tagihan/terbitkan', ['periode' => '2026-11-01'])
+            ->assertCreated();
+
+        $notifikasi = $pengelola->notifications()->get();
+
+        $this->assertCount(1, $notifikasi);
+        $this->assertSame(Peristiwa::TAGIHAN_MASSAL, $notifikasi->first()->data['peristiwa']);
+        $this->assertStringContainsString('3 tagihan', $notifikasi->first()->data['pesan']);
+
+        // Pelakunya sendiri tidak diberi tahu perbuatannya.
+        $this->assertSame(0, $this->pemilik->notifications()->count());
+    }
+
+    /**
+     * Kontrak yang gagal tidak memberi tahu penghuninya.
+     *
+     * Tidak ada tagihan yang bisa disebut nominal maupun jatuh temponya, jadi
+     * pemberitahuan apa pun akan mengarang angka. Penghuni yang menerima
+     * "tagihan terbit" untuk tagihan yang tidak ada akan membayar sesuatu yang
+     * tidak tercatat - dan itu kerugian yang jauh lebih besar daripada tidak
+     * diberi tahu.
+     */
+    public function test_kontrak_yang_gagal_tidak_memberi_tahu_penghuninya(): void
+    {
+        Mail::fake();
+
+        $pengelola = $this->buatPengelola();
+
+        // Kamar tanpa tarif: `PenerbitTagihan` menolaknya, jadi baris ini
+        // berstatus gagal.
+        [, $akunGagal] = $this->buatKontrakBerakun('T1', tarif: null);
+
+        $this->sebagaiPemilik()
+            ->postJson('/api/tagihan/terbitkan', ['periode' => '2026-11-01'])
+            ->assertStatus(200)
+            ->assertJsonPath('data.terbit', 0)
+            ->assertJsonPath('data.gagal', 1);
+
+        $this->assertSame(0, $akunGagal->notifications()->count());
+        // Ringkasan batch tetap dikirim: pengurus perlu tahu ada yang gagal.
+        $this->assertSame(1, $pengelola->notifications()->count());
+    }
+
+    /**
+     * Penghuni tanpa akun tidak menghalangi batch.
+     *
+     * Penghuni yang datanya dicatat pemilik tetapi belum pernah dibuatkan akun
+     * tidak punya kotak masuk. `Penerima::akunPenghuni` mengembalikan koleksi
+     * kosong, dan itu bukan galat - penghuninya memang belum punya tempat
+     * untuk menerima apa pun.
+     */
+    public function test_penghuni_tanpa_akun_tidak_menggagalkan_batch(): void
+    {
+        Mail::fake();
+
+        $pengelola = $this->buatPengelola();
+
+        $this->buatKontrak('U1');
+        $this->buatKontrak('U2');
+
+        $this->sebagaiPemilik()
+            ->postJson('/api/tagihan/terbitkan', ['periode' => '2026-11-01'])
+            ->assertCreated()
+            ->assertJsonPath('data.terbit', 2);
+
+        // Hanya ringkasan batch untuk pengurus.
+        $this->assertSame(1, $pengelola->notifications()->count());
     }
 
     // --- Validasi dan akses -----------------------------------------------

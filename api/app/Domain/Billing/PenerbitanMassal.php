@@ -117,6 +117,7 @@ class PenerbitanMassal
     {
         $dasar = [
             'kontrak_id' => $kontrak->id,
+            'penghuni_id' => $kontrak->penghuni_id,
             'penghuni' => $kontrak->penghuni?->nama,
             'kamar' => $kontrak->kamar?->nomor,
         ];

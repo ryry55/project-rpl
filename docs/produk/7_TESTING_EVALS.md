@@ -3,8 +3,8 @@
 > Dokumen ini menjawab: **apa yang dibuktikan tes, bagaimana menjalankannya, dan
 > bagaimana menambah tes yang benar-benar menahan.**
 >
-> Angka diambil dari aplikasi yang berjalan: **687 tes PHP (3266 asersi)** dalam
-> 34 berkas, dan **23 skrip browser** dengan **700 langkah**.
+> Angka diambil dari aplikasi yang berjalan: **713 tes PHP (3389 asersi)** dalam
+> 36 berkas, dan **23 skrip browser** dengan **700 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -74,11 +74,11 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
         │  (E2E + tata letak + PWA)        │  satu-satunya yang melihat
         └─────────────────────────────────┘  peramban sungguhan
       ┌───────────────────────────────────────┐
-      │  30 tes Feature · HTTP + database      │  ~25 dtk, jalur penuh
+      │  32 tes Feature · HTTP + database      │  ~25 dtk, jalur penuh
       │  (validasi, izin, isolasi, balapan)    │  lewat middleware nyata
       └───────────────────────────────────────┘
     ┌───────────────────────────────────────────┐
-    │  4 tes Unit · 687 tes total, 3266 asersi   │  cepat, murni logika
+    │  4 tes Unit · 713 tes total, 3389 asersi   │  cepat, murni logika
     │  (prorata, denda, umur tunggakan)          │  tanpa database
     └───────────────────────────────────────────┘
 ```
@@ -89,7 +89,7 @@ menguji implementasi, bukan perilaku.
 
 ---
 
-## 3. Tes PHP — 687 tes, 3266 asersi
+## 3. Tes PHP — 713 tes, 3389 asersi
 
 ### 3.1 Menjalankan
 
@@ -119,7 +119,7 @@ Dikelompokkan menurut apa yang dijaga:
 | Berkas | Menjaga |
 |---|---|
 | `TagihanTest` | Terbit, snapshot R-06, status `belum_bayar`→`sebagian`→`lunas` |
-| `PenerbitanMassalTest` | Yang sudah ada dilewati, bukan digagalkan |
+| `PenerbitanMassalTest` | Yang sudah ada dilewati, bukan digagalkan; **REV-DAT-02**: tiap penghuni yang tertagih menerima notifikasi tagihannya sendiri, yang gagal tidak |
 | `PenerbitanBalapanTest` | R-02 di bawah permintaan bersamaan (SQLSTATE 23505 → 409) |
 | `PembayaranTest` | Jumlah tidak boleh melebihi sisa; tunai wajib ada penerima |
 | `PembayaranMetodeTest` | `metode` wajib di API, boleh NULL di baris lama |
@@ -157,6 +157,8 @@ Dikelompokkan menurut apa yang dijaga:
 | Berkas | Menjaga |
 |---|---|
 | `DataIndukTest` | Kamar, penghuni, kontrak; satu kontrak aktif per kamar |
+| `SkemaRiwayatKamarTest` | **REV-DAT-01/04**: `RESTRICT` pada tiga FK riwayat menolak `DELETE` **lewat foreign key**, bukan lewat pesan trigger append-only; kamar tanpa riwayat tetap bisa dihapus; `kamar_fasilitas` tetap ikut terlepas; index `(kontrak_id, status)` ada dan index `(status, jatuh_tempo)` lama tidak hilang |
+| `JejakDataIndukTest` | **REV-DAT-05**: kamar, penghuni, kontrak, fasilitas, dan aturan kos menulis `log_audit`; hanya kolom yang berubah yang dicatat; menyimpan tanpa perubahan tidak menghasilkan jejak; jejak menyebut pengelola yang bertindak |
 | `FasilitasTest` | `PUT /fasilitas` mengganti seluruh daftar |
 | `AturanKosTest` | `aktif` bukan hapus; kategori string bebas |
 | `OperasionalTest` | `/health`, logging permintaan gagal |
@@ -295,7 +297,7 @@ Dari `1_PRD.md` §6, dan bagaimana masing-masing dibuktikan.
 | U-6 | Halaman meluber di 360px | 0 | `uji-tata-letak.mjs` | Lulus 94/94 |
 | U-7 | Tabel tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` | Lulus 65/65 |
 | U-8 | Kepala pemilik sebelum konten | < 220px | Terukur | 203px |
-| U-9 | Cakupan tes PHP | 687 tes | CI | Lulus 3266 asersi |
+| U-9 | Cakupan tes PHP | 713 tes | CI | Lulus 3389 asersi |
 
 ---
 

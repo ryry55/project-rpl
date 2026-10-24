@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Audit\PencatatAudit;
 use App\Domain\Kebijakan\PenentuDeposit;
 use App\Domain\Kebijakan\PenyelesaiKebijakan;
 use App\Domain\Persetujuan\PenerapPerubahan;
@@ -23,6 +24,7 @@ class KontrakController extends Controller
         private readonly PencariTarif $pencari,
         private readonly PenyelesaiKebijakan $penyelesai,
         private readonly PenerapPerubahan $penerap,
+        private readonly PencatatAudit $audit,
     ) {}
 
     public function index(): JsonResponse
@@ -127,6 +129,31 @@ class KontrakController extends Controller
                     Kamar::whereKey($kontrak->kamar_id)->update(['status_huni' => 'terisi']);
                 }
 
+                // REV-DAT-05: kontrak berjejak. Ini baris yang menentukan
+                // berapa yang ditagih setiap bulan, jadi "sejak kapan ia
+                // menempati kamar ini dan dengan tarif berapa" harus bisa
+                // dijawab tanpa membaca tabel yang bisa berubah.
+                //
+                // `tarif_awal` dan `deposit` di-cast ke int karena kolomnya
+                // ber-cast `decimal:0` dan Eloquent mengembalikannya sebagai
+                // string. Membiarkannya berarti satu baris jejak memuat
+                // `"1500000"` sementara baris tarif di sebelahnya memuat
+                // `1500000` - dua bentuk untuk angka yang sama, dan pembaca
+                // log tidak punya cara tahu mana yang disengaja.
+                $this->audit->catat(
+                    aksi: PencatatAudit::AKSI_KONTRAK_TAMBAH,
+                    entitas: 'kontrak',
+                    entitasId: $kontrak->id,
+                    nilaiBaru: [
+                        'kamar_id' => $kontrak->kamar_id,
+                        'penghuni_id' => $kontrak->penghuni_id,
+                        'tgl_masuk' => $kontrak->tgl_masuk->toDateString(),
+                        'tarif_awal' => (int) $kontrak->tarif_awal,
+                        'deposit' => (int) $kontrak->deposit,
+                        'status' => $kontrak->status,
+                    ],
+                );
+
                 return $kontrak;
             });
         } catch (QueryException $e) {
@@ -198,6 +225,8 @@ class KontrakController extends Controller
         }
 
         DB::transaction(function () use ($kontrak) {
+            $sebelum = $kontrak->only(['status', 'tgl_keluar']);
+
             $kontrak->update([
                 'status' => 'selesai',
                 'tgl_keluar' => $kontrak->tgl_keluar ?? now()->toDateString(),
@@ -211,6 +240,28 @@ class KontrakController extends Controller
             if (! $masihAktif) {
                 Kamar::whereKey($kontrak->kamar_id)->update(['status_huni' => 'kosong']);
             }
+
+            // REV-DAT-05: berakhirnya kontrak adalah kejadian yang mengubah
+            // tagihan berikutnya - kamar itu berhenti ditagih mulai bulan
+            // depan. Tanggal keluarnya ikut dicatat karena itulah yang dipakai
+            // menghitung bulan terakhir yang masih harus dibayar.
+            //
+            // Tanggalnya ditulis sebagai `Y-m-d`, bukan objek tanggal: jejak
+            // audit dibaca manusia dan disimpan sebagai JSON, dan
+            // `2026-10-31T00:00:00.000000Z` di sana hanya menambah kebisingan.
+            $this->audit->catat(
+                aksi: PencatatAudit::AKSI_KONTRAK_AKHIR,
+                entitas: 'kontrak',
+                entitasId: $kontrak->id,
+                nilaiLama: [
+                    'status' => $sebelum['status'],
+                    'tgl_keluar' => $sebelum['tgl_keluar']?->toDateString(),
+                ],
+                nilaiBaru: [
+                    'status' => $kontrak->status,
+                    'tgl_keluar' => $kontrak->tgl_keluar?->toDateString(),
+                ],
+            );
         });
 
         return response()->json(['data' => new KontrakResource($kontrak->fresh(['kamar', 'penghuni']))]);

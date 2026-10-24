@@ -220,12 +220,31 @@ class Pemberitahu
     /**
      * Tagihan sebulan diterbitkan sekaligus.
      *
-     * Satu pemberitahuan untuk seluruh batch, bukan satu per tagihan. Batch 30
-     * kamar yang menghasilkan 30 baris akan menenggelamkan kotak masuk pemilik,
-     * dan yang ingin ia tahu hanya "bulan ini sudah tertagih semua".
+     * Dua pemberitahuan dengan penerima berbeda, dan pembagiannya disengaja:
+     *
+     *   - **Pengurus** menerima SATU ringkasan untuk seluruh batch. Batch 30
+     *     kamar yang menghasilkan 30 baris akan menenggelamkan kotak masuk
+     *     pemilik, dan yang ingin ia tahu hanya "bulan ini sudah tertagih
+     *     semua".
+     *   - **Setiap penghuni** menerima SATU baris untuk tagihannya sendiri
+     *     (REV-DAT-02). Sebelumnya mereka tidak menerima apa pun: tagihan
+     *     terbit di basis data dan penghuni baru tahu kalau kebetulan membuka
+     *     portal. Itu membuat penerbitan massal - satu-satunya cara wajar
+     *     menagih sebulan sekaligus - justru jalan yang paling senyap.
+     *
+     * Yang dikirim ke penghuni bukan ringkasan batch melainkan nominal dan
+     * jatuh tempo tagihannya sendiri: angka agregat "30 tagihan terbit" tidak
+     * memberi tahu siapa pun berapa yang harus ia bayar.
+     *
+     * @param  array<int, array{penghuni_id: int|null, ringkasan: string, jatuh_tempo: string}>  $perPenghuni
      */
-    public function tagihanMassal(User $pelaku, string $periode, int $terbit, int $gagal): void
-    {
+    public function tagihanMassal(
+        User $pelaku,
+        string $periode,
+        int $terbit,
+        int $gagal,
+        array $perPenghuni = [],
+    ): void {
         $this->kirimSekarang(
             peristiwa: Peristiwa::TAGIHAN_MASSAL,
             penerima: Penerima::pengurus($pelaku),
@@ -235,6 +254,16 @@ class Pemberitahu
                 : sprintf('%d tagihan periode %s terbit, %d gagal dan perlu diperiksa.', $terbit, $periode, $gagal),
             tautan: '/pemilik/tagihan',
         );
+
+        foreach ($perPenghuni as $satu) {
+            $this->kirimSekarang(
+                peristiwa: Peristiwa::TAGIHAN_TERBIT,
+                penerima: Penerima::akunPenghuni($satu['penghuni_id']),
+                judul: 'Tagihan baru terbit',
+                pesan: sprintf('%s. Jatuh tempo %s.', $satu['ringkasan'], $satu['jatuh_tempo']),
+                tautan: '/penghuni',
+            );
+        }
     }
 
     /**

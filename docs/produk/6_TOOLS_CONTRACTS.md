@@ -467,9 +467,11 @@ sudah ada akan memblokir seluruh bulan.
 { "data": [ … ], "meta": { "diterbitkan": 11, "dilewati": 1 } }
 ```
 
-Setiap penghuni menerima satu email. Dengan `QUEUE_CONNECTION=sync`, 30
-penghuni berarti 30 pengiriman berurutan di dalam satu permintaan — dicatat
-sebagai utang teknis.
+Setiap penghuni menerima satu pemberitahuan untuk **tagihannya sendiri** — nominal
+dan jatuh temponya, bukan ringkasan batch (REV-DAT-02). Yang dilewati atau gagal
+tidak dikirimi: tidak ada tagihan yang bisa disebut nominalnya. Dengan
+`QUEUE_CONNECTION=sync`, 30 penghuni berarti 30 pengiriman berurutan di dalam
+satu permintaan — dicatat sebagai utang teknis (DAT-03).
 
 ### 5.3 Pembayaran
 

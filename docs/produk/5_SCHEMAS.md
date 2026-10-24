@@ -152,8 +152,17 @@ manual. Diisi manual berarti bisa berbeda dari kenyataan.
 | `berlaku_dari` | date | tidak |
 
 **UNIQUE:** `(kamar_id, berlaku_dari)`
-**FK:** `kamar_id` → `kamar` CASCADE
+**FK:** `kamar_id` → `kamar` **RESTRICT** (sejak R4, REV-DAT-01)
 **TRIGGER:** `tarif_sewa_append_only` — menolak UPDATE dan DELETE
+
+`RESTRICT`, bukan `CASCADE`. Cascade-nya dulu **tidak pernah bisa berjalan**:
+trigger append-only menolak `DELETE` di tengah transaksi, sehingga
+`DELETE FROM kamar` gagal dengan pesan yang menyebut `tarif_sewa` alih-alih
+kamar. `RESTRICT` menolak lebih awal dan menyebut tabel yang benar. Yang lebih
+penting, cascade pada tabel riwayat adalah janji yang bohong — ia menyatakan
+"menghapus kamar membersihkan riwayatnya", padahal yang terjadi adalah
+transaksi gagal. Kamar yang sudah punya riwayat tarif karena itu **tidak bisa
+dihapus**; nomor yang salah ketik diperbaiki lewat `PUT /kamar/{kamar}`.
 
 Tarif berlaku adalah baris dengan `berlaku_dari` terbesar yang ≤ tanggal yang
 diminta. Tidak ada kolom "berlaku sampai" — ia **diturunkan** dari baris
@@ -179,6 +188,11 @@ dianggap sama. Tanpa ini, unique index tidak menahan duplikat untuk komponen
 global — dan duplikat berarti tagihan ganda.
 
 **TRIGGER:** `komponen_biaya_append_only`
+
+**FK:** `kamar_id` → `kamar` **RESTRICT** (sejak R4, REV-DAT-01). Sama seperti
+`tarif_sewa`. `kamar_fasilitas` sengaja tetap `CASCADE`: ia bukan tabel riwayat,
+tidak punya trigger append-only, dan pemasangan fasilitas memang wajar hilang
+bersama kamarnya.
 
 ---
 
@@ -223,6 +237,10 @@ Tabel terpenting di aplikasi ini. Satu baris per dimensi kebijakan.
    `(tipe, kamar_id, berlaku_dari)`.
 
 **TRIGGER:** `kebijakan_kos_append_only`
+
+**FK:** `kamar_id` → `kamar` **RESTRICT** (sejak R4, REV-DAT-01). Kebijakan yang
+berlaku untuk seluruh kos (`kamar_id` NULL) tidak terpengaruh — hanya baris yang
+menunjuk satu kamar yang menahan penghapusan kamar itu.
 
 **Kenapa satu baris per dimensi, bukan satu baris lebar.** Dengan satu baris
 lebar, setiap perubahan satu dimensi (mis. hanya plafon denda) berarti menulis
@@ -297,7 +315,17 @@ tagihan yang salah terbit mengunci periode itu selamanya.
 IS NOT NULL`, `NOT VALID`), `tagihan_denda_dimaafkan_tidak_negatif`,
 `tagihan_maaf_denda_ada_alasan`, `tagihan_batal_tanpa_pemaafan`.
 
-**Indeks:** `(status, jatuh_tempo)` untuk daftar tunggakan.
+**Indeks:** `(status, jatuh_tempo)` untuk daftar tunggakan; `(kontrak_id, status)`
+— `tagihan_kontrak_status_index` — sejak R4 (REV-DAT-04).
+
+**Kenapa `(kontrak_id, status)` ditambahkan, dan kenapa urutannya begitu.** Dua
+query terpanas menyaring `kontrak_id` lebih dulu: penagihan satu kontrak
+(`where kontrak_id = ? and status <> 'dibatalkan'`) dan pemeriksaan duplikat
+terbit-massal. Indeks `(status, jatuh_tempo)` tidak menolong keduanya — ia
+menyaring ke seluruh baris berstatus sama lalu memindai. Kolom pertama harus yang
+paling selektif: satu kontrak punya puluhan baris, satu status ratusan. Indeks
+lama **tidak dihapus** karena ia melayani query yang berbeda — daftar tunggakan
+menyaring status lalu mengurutkan jatuh tempo.
 
 **Kenapa pemaafan denda berupa kolom, bukan tabel tersendiri.** Satu kolom pada
 baris yang sama tidak bisa terlupa saat menjumlahkan. Tabel `pemaafan_denda`
@@ -491,6 +519,16 @@ berubah sendiri. `statusEfektif()` di model mengembalikan
 **`aktor_nama` dibekukan.** Nama disimpan saat aksi terjadi, bukan diambil lewat
 join. Kalau akun dihapus atau berganti nama, catatan sejarah tetap menyebut nama
 yang berbuat saat itu.
+
+**Sejak R4 (REV-DAT-05) data induk ikut berjejak.** Sebelumnya hanya uang dan
+tarif yang tercatat, sehingga "siapa yang mengubah nomor kamar ini" tidak bisa
+dijawab padahal perubahan itu menentukan tagihan bulan berikutnya. Kamar,
+penghuni, kontrak, fasilitas, dan aturan kos kini menulis `log_audit` dengan pola
+`<entitas>.tambah` / `.ubah` / `.hapus`. Entitasnya sudah dibedakan kolom
+`entitas`, jadi yang perlu dibaca manusia adalah `nilai_lama`/`nilai_baru`.
+Perpindahan `kamar.status_huni` **tidak** dicatat terpisah: ia berubah otomatis
+saat kontrak dibuat atau diakhiri, dan jejaknya sudah ada di `kontrak.tambah` /
+`kontrak.akhir` — mencatatnya lagi menghasilkan dua baris untuk satu kejadian.
 
 **Pengecualian UPDATE (UU PDP).** Trigger `log_audit_append_only` mengizinkan
 UPDATE **hanya** bila **semua** syarat ini terpenuhi:
@@ -731,13 +769,20 @@ uang dari JSON berarti parsing di jalur yang menghitung uang.
 
 ## 6. Migrasi
 
-**28 migrasi**, dijalankan berurutan. Tiga yang paling perlu dipahami:
+**36 migrasi**, dijalankan berurutan. Tiga yang paling perlu dipahami:
 
 | Migrasi | Isi |
 |---|---|
 | `..._create_kebijakan_kos_table` | Empat CHECK yang menegakkan bentuk kebijakan |
 | `..._add_snapshot_to_tagihan` | Kolom snapshot R-06 |
 | `..._create_append_only_triggers` | Tujuh trigger, plus pengecualian anonimisasi |
+
+Dua migrasi R4 mengubah **kunci dan indeks**, bukan kolom:
+
+| Migrasi | Isi |
+|---|---|
+| `2026_11_06_090300_restrict_delete_on_riwayat_kamar` | `tarif_sewa`, `komponen_biaya`, dan `kebijakan_kos` dilepas lalu dipasang ulang dengan `ON DELETE RESTRICT` pada `kamar_id` (REV-DAT-01). PostgreSQL tidak punya `ALTER CONSTRAINT ... ON DELETE`, jadi constraint-nya di-drop lalu dibuat ulang; namanya mengikuti konvensi Laravel. `down()` mengembalikan `CASCADE` |
+| `2026_11_06_090400_add_kontrak_status_index_to_tagihan` | `tagihan_kontrak_status_index` pada `(kontrak_id, status)` (REV-DAT-04). Tidak ada backfill dan tidak ada kolom baru — aman dijalankan pada database berisi data |
 
 **Aturan migrasi di repo ini:**
 

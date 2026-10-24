@@ -393,11 +393,35 @@ class TagihanController extends Controller
         // dijalankan. Yang perlu diketahui pemilik adalah "tombolnya sudah
         // ditekan dan inilah hasilnya" - termasuk hasil yang kosong. Diam saja
         // saat 0 terbit akan membuatnya menekan tombol yang sama sekali lagi.
+        //
+        // Penghuni diberi tahu satu per satu (REV-DAT-02): sebelum ini mereka
+        // tidak menerima apa pun, sehingga penerbitan massal - satu-satunya cara
+        // wajar menagih sebulan sekaligus - justru jalan yang paling senyap.
+        // Yang gagal tidak ikut: tidak ada tagihan yang bisa disebut nominalnya.
+        $perPenghuni = [];
+
+        foreach ($hasil['rincian'] as $baris) {
+            if ($baris['status'] !== PenerbitanMassal::TERBIT) {
+                continue;
+            }
+
+            $perPenghuni[] = [
+                'penghuni_id' => $baris['penghuni_id'] ?? null,
+                'ringkasan' => sprintf(
+                    'Tagihan periode %s sebesar Rp %s sudah terbit',
+                    $periode->copy()->startOfMonth()->translatedFormat('F Y'),
+                    number_format($baris['pokok'], 0, ',', '.'),
+                ),
+                'jatuh_tempo' => $baris['jatuh_tempo'],
+            ];
+        }
+
         $this->pemberitahu->tagihanMassal(
             pelaku: $request->user(),
             periode: $periode->copy()->startOfMonth()->translatedFormat('F Y'),
             terbit: $hasil['terbit'],
             gagal: $hasil['gagal'],
+            perPenghuni: $perPenghuni,
         );
 
         return response()->json([

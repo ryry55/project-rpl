@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\Akun\PembuatAkun;
 use App\Domain\Akun\TautanAkun;
+use App\Domain\Audit\PencatatAudit;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SimpanPenghuniRequest;
 use App\Http\Resources\PenghuniResource;
@@ -27,6 +28,7 @@ class PenghuniController extends Controller
     public function __construct(
         private readonly PembuatAkun $pembuat,
         private readonly TautanAkun $tautan,
+        private readonly PencatatAudit $audit,
     ) {}
 
     public function index(): JsonResponse
@@ -43,6 +45,18 @@ class PenghuniController extends Controller
         [$penghuni, $user] = DB::transaction(function () use ($request) {
             $penghuni = Penghuni::create($request->validated());
             $user = $this->pembuat->untukPenghuni($penghuni);
+
+            // REV-DAT-05: data induk penghuni berjejak sejak sekarang. Nama,
+            // nomor HP, dan email di sini adalah data yang muncul di tagihan
+            // dan di portal, jadi "siapa mengubahnya" harus bisa dijawab.
+            // Email tidak ikut ke `nilai_baru`: ia ada di `users`, dan
+            // menyalinnya ke sini berarti dua tempat yang bisa berbeda.
+            $this->audit->catat(
+                aksi: PencatatAudit::AKSI_PENGHUNI_TAMBAH,
+                entitas: 'penghuni',
+                entitasId: $penghuni->id,
+                nilaiBaru: $penghuni->only(['nama', 'no_hp']),
+            );
 
             return [$penghuni, $user];
         });
@@ -106,7 +120,36 @@ class PenghuniController extends Controller
             ])->status(409);
         }
 
+        // Disalin SEBELUM `update()`: sesudah simpan, Eloquent menyinkronkan
+        // `original` ke nilai baru, sehingga membacanya belakangan menghasilkan
+        // "tidak ada yang berubah" untuk setiap perubahan.
+        $sebelum = $penghuni->only(['nama', 'no_hp']);
+
         $penghuni->update($data);
+
+        // REV-DAT-05: perubahannya berjejak, dan hanya kolom yang berubah yang
+        // dikirim. Nama dan nomor HP adalah dua kolom yang paling sering
+        // dikoreksi, dan pertanyaan "sebelumnya namanya apa" hanya bisa
+        // dijawab kalau nilai lamanya disimpan.
+        //
+        // Perubahan email sengaja TIDAK ikut dicatat di sini: ia urusan akun
+        // login, dan jejaknya ada pada `users` lewat alur aktivasi. Mencatatnya
+        // dua kali akan menghasilkan dua baris untuk satu kejadian.
+        $sesudah = $penghuni->only(['nama', 'no_hp']);
+        $berubah = array_keys(array_diff_assoc(
+            array_map('strval', $sesudah),
+            array_map('strval', $sebelum),
+        ));
+
+        if ($berubah !== []) {
+            $this->audit->catat(
+                aksi: PencatatAudit::AKSI_PENGHUNI_UBAH,
+                entitas: 'penghuni',
+                entitasId: $penghuni->id,
+                nilaiLama: array_intersect_key($sebelum, array_flip($berubah)),
+                nilaiBaru: array_intersect_key($sesudah, array_flip($berubah)),
+            );
+        }
 
         // Nama dan email di akun login ikut disesuaikan supaya tidak berbeda
         // dari data induknya.
