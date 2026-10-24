@@ -1,6 +1,6 @@
 # Skrip uji
 
-Dua puluh satu berkas di folder ini menguji aplikasi dari luar: sembilan belas
+Dua puluh lima berkas di folder ini menguji aplikasi dari luar: dua puluh dua
 lewat browser sungguhan (termasuk satu yang menyapu seluruh halaman, satu yang
 mengukur tata letak di lebar ponsel, dan satu yang mensimulasikan pemuatan
 gagal), dua menguji balapan HTTP, dan satu berkas bersama yang dipakai

@@ -21,7 +21,7 @@ karena uji gagal.
 | pint, eslint, vite build | lulus |
 | Paritas daftar E2E `periksa.ps1` vs `periksa.sh` | lulus |
 | Profil produksi (`periksa-profil-produksi.sh`) | lulus |
-| 599 tes PHP di dalam container | lulus |
+| 713 tes PHP di dalam container | lulus |
 | Chrome headless membuka port 9222 | lulus |
 | `periksa.sh` benar-benar dijalankan (`bash periksa.sh`) | lulus |
 
@@ -142,7 +142,7 @@ kondisi lama, dan tepat satu asersi menjadi merah.
 | ~~`SPEC.md` §6 L374~~ | **Sudah diperbaiki di R3.** Kini menulis `UNIQUE (nama, berlaku_dari, kamar_id) NULLS NOT DISTINCT` |
 | ~~`SPEC.md` L259/281/380, `docs/uji/audit-ketertelusuran.md`~~ | **Sudah diperbaiki di R3.** Seluruh sebutan `parameter_denda` diganti `kebijakan_kos`, termasuk nama tes di `pemetaan-kriteria.md` |
 | ~~DFD + SPEC menyebut 6 data store~~ | **Bukan cacat.** Memang 6 store; yang salah adalah sebutan `parameter_denda` di dalamnya, dan itu sudah diganti |
-| ~~`3_ARCHITECTURE.md:30` dan `KONTEKS_PROYEK.md:17` menulis Laravel 11~~ | **Diperbaiki di R7.** Versi sebenarnya Laravel 12.70.1 / PHP 8.3.36 |
+| ~~`3_ARCHITECTURE.md:30` dan `KONTEKS_PROYEK.md:17` menulis Laravel 11~~ | **Diverifikasi di R7.** Keduanya kini menulis Laravel 12.70.1 / PHP 8.3.36, cocok dengan `composer.lock` (`v12.70.1`) dan `php artisan --version` di container. Tiga sebutan "Laravel 11" yang tersisa (`docs/build-plan.md:11`, `README.md:496`, `docs/utang-teknis.md:145`) semuanya menceritakan riwayat keputusan, bukan klaim versi yang salah |
 | `revisi.md` dan `docs/revisi.md` | Masih di repo tetapi **tidak di-commit** — keduanya masukan audit, bukan deliverable |
 | Laporan | Menunggu format dari dosen |
 

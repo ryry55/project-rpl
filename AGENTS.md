@@ -91,12 +91,12 @@ urutan langkahnya menentukan, dan salah urutan menghasilkan hijau yang menyesatk
 
 ### CI/CD
 
-Tiga workflow di `.github/workflows/`: `uji.yml` (kebenaran kode - lint lalu 599
-tes PHP lalu 19 skrip browser di Chrome headless), `rilis.yml` (bangun image,
+Tiga workflow di `.github/workflows/`: `uji.yml` (kebenaran kode - lint lalu 713
+tes PHP lalu 24 skrip browser di Chrome headless), `rilis.yml` (bangun image,
 dorong ke GHCR, staging lalu produksi), dan `deploy.yml` (satu lingkungan,
 dipanggil dua kali). Rinciannya di `docs/ci-cd.md`.
 
-Uji browser **tidak** ditulis ulang dengan Playwright. Sembilan belas skrip di
+Uji browser **tidak** ditulis ulang dengan Playwright. Dua puluh empat skrip di
 `docs/uji/` berbicara CDP mentah, dan endpoint CDP-nya dapat diatur lewat
 `CDP_BASE`/`APP_URL`/`API_URL`/`MAILPIT_URL` - jadi skrip yang sama berjalan di
 Chrome berjendela di laptop dan di Chrome headless di runner tanpa satu baris pun
@@ -175,7 +175,7 @@ Fungsinya tidak melakukan apa pun bila gerbangnya tidak muncul.
 **Backtick di dalam komentar pun memutus template literal.** Seluruh pemeriksaan
 DOM dikirim sebagai template literal, jadi satu backtick di komentar membuat
 `node --check` gagal dengan pesan yang menunjuk baris yang salah - dan baru
-ketahuan setelah build, 594 tes PHP, pint, dan eslint selesai. `periksa.ps1`
+ketahuan setelah build, 713 tes PHP, pint, dan eslint selesai. `periksa.ps1`
 sekarang menjalankan `node --check` pada semua `.mjs` lebih dulu, tetapi jalankan
 sendiri saat menyunting satu berkas: `node --check docs/uji/<berkas>.mjs`.
 

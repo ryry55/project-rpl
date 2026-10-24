@@ -8,7 +8,7 @@
 #           kesalahan format dan variabel mati dijawab dalam hitungan detik,
 #           bukan setelah sepuluh menit membangun image.
 #
-#   uji   - membangun image, menjalankan 594 tes PHP di dalam container, lalu
+#   uji   - membangun image, menjalankan 713 tes PHP di dalam container, lalu
 #           seluruh skrip uji browser terhadap Chrome headless.
 #
 # Kenapa uji browser TIDAK ditulis ulang memakai Playwright, padahal rencana
@@ -286,7 +286,7 @@ jobs:
       # dan setelah diabaikan ia tidak menjaga apa pun.
       #
       # Yang tetap MENAHAN di CI: pint, eslint, vite build, paritas daftar E2E,
-      # profil produksi, dan 599 tes PHP. Jadi kebenaran kode masih dijaga.
+      # profil produksi, dan 713 tes PHP. Jadi kebenaran kode masih dijaga.
       # Rincian dan rencana penutupan: docs/utang-teknis.md bagian 1.
       - name: Uji browser dan uji balapan
         continue-on-error: true
