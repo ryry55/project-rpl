@@ -31,11 +31,12 @@ if (-not $browser) {
 Write-Host "Memakai: $browser"
 
 # --- daftar gambar: berkas svg, lebar, tinggi ---
+# Ukuran harus sama dengan KANVAS di dfd-data.js, kalau tidak gambar terpotong.
 $targets = @(
-    @{ Svg = '01-dfd-konteks.svg'; Png = '01-dfd-konteks.png'; W = 1600; H = 900 },
-    @{ Svg = '02-dfd-level-1.svg'; Png = '02-dfd-level-1.png'; W = 2000; H = 1450 },
-    @{ Svg = '01-dfd-konteks-yourdon.svg'; Png = '01-dfd-konteks-yourdon.png'; W = 1600; H = 680 },
-    @{ Svg = '02-dfd-level-1-yourdon.svg'; Png = '02-dfd-level-1-yourdon.png'; W = 2000; H = 1400 }
+    @{ Svg = '01-dfd-konteks.svg'; Png = '01-dfd-konteks.png'; W = 1900; H = 1000 },
+    @{ Svg = '02-dfd-level-1.svg'; Png = '02-dfd-level-1.png'; W = 2500; H = 2030 },
+    @{ Svg = '01-dfd-konteks-yourdon.svg'; Png = '01-dfd-konteks-yourdon.png'; W = 1900; H = 1000 },
+    @{ Svg = '02-dfd-level-1-yourdon.svg'; Png = '02-dfd-level-1-yourdon.png'; W = 2500; H = 2030 }
 )
 
 $scale = 2
@@ -53,7 +54,12 @@ foreach ($t in $targets) {
     $w = $t.W * $scale
     $h = $t.H * $scale
 
+    # Chrome menulis pesan kemajuan ke stderr; dengan $ErrorActionPreference = 'Stop'
+    # PowerShell menganggapnya galat dan menghentikan skrip. Diredupkan sementara.
+    $galatSebelumnya = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
     & $browser --headless=new --disable-gpu --hide-scrollbars --default-background-color=FFFFFFFF "--force-device-scale-factor=$scale" "--window-size=$($t.W),$($t.H)" "--screenshot=$pngPath" $uri 2>&1 | Out-Null
+    $ErrorActionPreference = $galatSebelumnya
 
     # Chrome headless kadang menulis berkas setelah proses utama selesai.
     $waited = 0

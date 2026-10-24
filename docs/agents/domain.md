@@ -62,7 +62,7 @@ mechanics (`Invoice`, `Tenant`, `Payment` as class names, `repository`, `seam`, 
 
 - `docs/dfd/README.md` — the data dictionary, the flow tables, and the business rules R-01..R-07.
   This is the project's real domain documentation today.
-- `docs/dfd/03-dfd-level-2.md` — process decomposition 3.1..3.4 and 4.1..4.4.
+- `docs/dfd/03-dfd-level-2.md` — process decomposition 3.1..3.5 and 4.1..4.4.
 
 When a skill needs to know what a process or a rule means, read those two before inventing an
 interpretation. The glossary's job is to compress them, not to replace them.
