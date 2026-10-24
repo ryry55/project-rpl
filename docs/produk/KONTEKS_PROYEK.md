@@ -14,8 +14,8 @@ Versi 1.0 · 26 Oktober 2026 · Status: diserahkan
 
 Aplikasi web untuk pemilik kos kecil (5-30 kamar) mengelola kamar, penghuni,
 tagihan, dan pembayaran. Dibangun sebagai tugas besar mata kuliah Rekayasa
-Perangkat Lunak: Laravel 11 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah
-Docker Compose untuk menjalankan, 636 tes PHP dan 22 skrip browser untuk
+Perangkat Lunak: Laravel 12.70.1 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah
+Docker Compose untuk menjalankan, 687 tes PHP dan 23 skrip browser untuk
 menjaganya. Yang membedakannya dari aplikasi sejenis: **setiap kos boleh punya
 cara kerja sendiri** — satuan sewa, jatuh tempo, dan bentuk dendanya dipilih dari
 menu, bukan dipaksa mengikuti satu pola.
@@ -87,16 +87,16 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 | Hal | Angka |
 |---|---|
 | Endpoint API | **71** |
-| Tabel (di luar infrastruktur Laravel) | **21** |
-| Migrasi | **31** |
-| Model Eloquent | **19** |
-| Kelas domain | **41** (10 folder) |
-| Pengendali | **21** |
+| Tabel (di luar infrastruktur Laravel) | **22** |
+| Migrasi | **34** |
+| Model Eloquent | **20** |
+| Kelas domain | **43** (10 folder) |
+| Pengendali | **22** |
 | Middleware | **6** |
 | Trigger basis data | **8** (7 append-only + 1 penjaga pembalik) |
-| Tes PHP | **636** (3089 asersi) di **31** berkas |
-| Skrip browser | **22** (641 langkah) |
-| Halaman SPA | **25** komponen view · 21 rute bernama |
+| Tes PHP | **687** (3266 asersi) di **34** berkas |
+| Skrip browser | **23** (700 langkah) |
+| Halaman SPA | **26** komponen view · 22 rute bernama |
 | Wewenang pengelola | **8** |
 | Peristiwa notifikasi | **9** |
 
@@ -237,9 +237,9 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 ├── 2_DESIGN_SYSTEM.md    Token, komponen, tabel→kartu, PWA, a11y
 ├── 3_ARCHITECTURE.md     Lapisan, 9 keputusan besar + alternatif yang ditolak
 ├── 4_AGENTS.md           Cara mengubah kode tanpa merusak apa pun
-├── 5_SCHEMAS.md          21 tabel, CHECK, indeks, trigger (dari DB nyata)
-├── 6_TOOLS_CONTRACTS.md  71 endpoint, middleware, bentuk request/response
-├── 7_TESTING_EVALS.md    636 tes, 22 skrip, prinsip "buktikan bisa gagal"
+├── 5_SCHEMAS.md          22 tabel, CHECK, indeks, trigger (dari DB nyata)
+├── 6_TOOLS_CONTRACTS.md  78 endpoint, middleware, bentuk request/response
+├── 7_TESTING_EVALS.md    687 tes, 23 skrip, prinsip "buktikan bisa gagal"
 └── 8_OPERATIONS_SOP.md   Deploy, backup, pemulihan, insiden, batas gratis
 ```
 
@@ -250,7 +250,7 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 | `AGENTS.md` | Pintu masuk singkat untuk agen; menunjuk ke `4_AGENTS.md` |
 | `SPEC.md` | Spesifikasi 42 KB; sumber kebenaran aturan bisnis |
 | `docs/utang-teknis.md` | Register utang teknis — **baca ini sebelum mengeluh** |
-| `docs/uji/README.md` | Katalog 22 skrip uji dan jebakannya |
+| `docs/uji/README.md` | Katalog 23 skrip uji dan jebakannya |
 | `docs/ci-cd.md` | Tiga workflow, rinci |
 | `docs/dfd/` | Diagram alir data dan kamus data |
 | `docs/charter/` | Project Charter (docx + pdf) |

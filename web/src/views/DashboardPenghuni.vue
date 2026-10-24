@@ -15,6 +15,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { sesi } from '../sesi.js'
 import { rupiah, tanggal, pesanGalat } from '../format.js'
+import { salinTeks } from '../bagikan.js'
 import { simulasiTanggal } from '../simulasi.js'
 import LencanaStatus from '../komponen/ui/LencanaStatus.vue'
 import BarisKosong from '../komponen/ui/BarisKosong.vue'
@@ -38,6 +39,13 @@ const galatDetail = ref('')
 const aturan = ref([])
 const memuatAturan = ref(false)
 const galatAturan = ref('')
+
+// Rekening tujuan pembayaran (REV-UI-05). Hanya yang aktif yang dikirim server:
+// penghuni yang mentransfer ke rekening lama yang sudah tidak dipakai kehilangan
+// uangnya, dan tidak ada kode yang bisa mengembalikannya.
+const rekening = ref([])
+const galatRekening = ref('')
+const tersalinId = ref(null)
 
 const ringkasan = computed(() => {
   const belum = daftar.value.filter((t) => t.status !== 'lunas' && t.status !== 'dibatalkan')
@@ -135,8 +143,53 @@ async function muatAturan() {
   }
 }
 
+/**
+ * Rekening tujuan pembayaran (REV-UI-05).
+ *
+ * Kegagalannya diperlakukan sama dengan aturan: tidak ditampilkan sebagai galat
+ * halaman. Penghuni yang datang untuk melihat tagihan tidak boleh melihat layar
+ * merah hanya karena daftar rekening belum diisi.
+ *
+ * Tidak memakai `simulasiTanggal.header()`: rekening bukan angka yang bergantung
+ * pada tanggal, dan mengirim header itu akan menyiratkan sebaliknya.
+ */
+async function muatRekening() {
+  try {
+    const hasil = await sesi.panggil('/penghuni/rekening')
+    rekening.value = hasil.data || []
+  } catch (e) {
+    galatRekening.value = pesanGalat(e)
+  }
+}
+
+/**
+ * Salin satu nomor rekening.
+ *
+ * Yang disalin hanya nomornya, bukan seluruh baris: penghuni menempelkannya ke
+ * aplikasi bank, dan "BCA · 1234567890 · a.n. Budi" di kolom nomor rekening
+ * akan ditolak aplikasi itu.
+ */
+async function salinNomor(r) {
+  const berhasil = await salinTeks(r.nomor)
+
+  if (!berhasil) {
+    return
+  }
+
+  tersalinId.value = r.id
+
+  // Penanda "tersalin" hilang sendiri. Tanpa ini, dua rekening bisa sama-sama
+  // bertanda tersalin dan penghuni tidak tahu mana yang barusan disalin.
+  setTimeout(() => {
+    if (tersalinId.value === r.id) {
+      tersalinId.value = null
+    }
+  }, 2500)
+}
+
 onMounted(muat)
 onMounted(muatAturan)
+onMounted(muatRekening)
 </script>
 
 <template>
@@ -325,6 +378,52 @@ onMounted(muatAturan)
         </table>
       </div>
     </section>
+
+    <!-- Rekening tujuan pembayaran (REV-UI-05). Ditempatkan tepat setelah
+         tagihan, bukan sebelumnya: penghuni membuka portal ini untuk melihat
+         berapa yang harus dibayar, dan pertanyaan berikutnya selalu sama -
+         "transfer ke mana". Menaruhnya di atas akan mendorong angka tagihannya
+         ke bawah lipatan. -->
+    <section
+      v-if="rekening.length > 0"
+      class="kartu panel rekening"
+      aria-labelledby="judul-rekening"
+    >
+      <h2 id="judul-rekening">Cara membayar</h2>
+      <p class="lemah mungil">
+        Transfer ke salah satu tujuan di bawah ini, lalu beri tahu pemilik kos
+        beserta bukti transfernya.
+      </p>
+
+      <ul class="daftar-rekening">
+        <li v-for="r in rekening" :key="r.id" class="satu-rekening">
+          <div class="isi-rekening">
+            <span class="lencana-jenis mungil">{{ r.jenis_label }}</span>
+            <strong class="nama-rekening">{{ r.nama }}</strong>
+            <p v-if="r.nomor" class="nomor-rekening">{{ r.nomor }}</p>
+            <p v-if="r.atas_nama" class="mungil lemah">a.n. {{ r.atas_nama }}</p>
+            <p v-if="r.catatan" class="mungil lemah">{{ r.catatan }}</p>
+          </div>
+          <!-- Tombol salin hanya muncul bila ada nomornya. QRIS yang hanya
+               berupa gambar tidak punya apa pun untuk disalin, dan tombol yang
+               menyalin teks kosong akan tampak berhasil padahal tidak. -->
+          <button
+            v-if="r.nomor"
+            type="button"
+            class="halus mungil"
+            @click="salinNomor(r)"
+          >
+            {{ tersalinId === r.id ? 'Tersalin' : 'Salin nomor' }}
+          </button>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Kegagalan memuat rekening juga hanya catatan kecil, dengan alasan yang
+         sama seperti aturan: tagihan tetap terbaca. -->
+    <p v-if="galatRekening" class="lemah mungil">
+      Tujuan pembayaran tidak dapat dimuat saat ini. Tanyakan langsung ke pemilik kos.
+    </p>
 
     <p class="lemah mungil kaki">
       Anda hanya dapat melihat tagihan milik Anda sendiri. Membuka tagihan penghuni lain
@@ -572,6 +671,63 @@ onMounted(muatAturan)
   color: var(--teks-lemah);
 }
 
+/* --- Rekening tujuan pembayaran (REV-UI-05) ----------------------------- */
+
+.rekening {
+  margin-top: 22px;
+}
+
+.daftar-rekening {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Satu baris per tujuan bayar, dengan tombol salin di kanan. Nomor rekening
+   adalah teks yang akan disalin penghuni ke aplikasi banknya, jadi ia diberi
+   huruf tabular dan ukuran lebih besar daripada keterangan di sekitarnya. */
+.satu-rekening {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  background: #fbfcfe;
+  border: 1px solid var(--garis);
+  border-radius: 10px;
+}
+
+.isi-rekening {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.lencana-jenis {
+  justify-self: start;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 550;
+  color: var(--teks-lemah);
+  background: #eef0f3;
+  border-radius: 999px;
+}
+
+.nama-rekening {
+  margin-top: 4px;
+  font-size: 13.5px;
+}
+
+.nomor-rekening {
+  margin: 1px 0 0;
+  font-size: 16px;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
 @media (max-width: 820px) {
   .ringkas {
     grid-template-columns: 1fr;
@@ -579,6 +735,14 @@ onMounted(muatAturan)
 
   .rincian {
     grid-template-columns: 1fr;
+  }
+
+  /* Pada layar sempit, tombol salin pindah ke bawah nomornya: berjajar
+     menyamping memaksa nomor rekening terpotong, dan nomor yang terpotong
+     adalah nomor yang salah transfer. */
+  .satu-rekening {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>

@@ -72,7 +72,7 @@ rusak. Kriteria yang hanya "ada kodenya" tanpa tes tidak dicentang.
 | 30 | Hari terlambat 37 → denda 30% (plafon) | `DendaTest::test_plafon_tercapai_tepat_di_hari_terlambat_37`, `DendaHttpTest::test_denda_plafon_tepat_di_hari_ke_37` |
 | 31 | Hari terlambat 100 → tetap 30% | `DendaHttpTest::test_denda_tetap_plafon_walau_setahun_kemudian`, `DendaTest::test_denda_tidak_pernah_melebihi_plafon_untuk_banyak_pokok` |
 | 32 | Pembayaran sebagian tidak menurunkan plafon | `DendaHttpTest::test_pembayaran_sebagian_tidak_menurunkan_dasar_denda`, `PembayaranTest::test_pembayaran_sebagian_tidak_menurunkan_dasar_denda` |
-| 33 | Ubah parameter denda setelah terbit → tagihan lama tidak berubah | `DendaHttpTest::test_mengubah_parameter_denda_tidak_mengubah_tagihan_lama`, `TagihanTest::test_parameter_denda_dibekukan_di_tagihan` |
+| 33 | Ubah kebijakan denda setelah terbit → tagihan lama tidak berubah | `DendaHttpTest::test_mengubah_kebijakan_denda_tidak_mengubah_tagihan_lama`, `TagihanTest::test_kebijakan_denda_dibekukan_di_tagihan` |
 | 34 | `X-Simulasi-Tanggal` menggeser hari ini, hanya saat mode demo | `DendaHttpTest::test_header_simulasi_dipakai_saat_mode_demo_aktif`, `DendaHttpTest::test_header_simulasi_diabaikan_saat_mode_demo_mati` |
 
 ## Umur tunggakan

@@ -43,6 +43,16 @@ const semuaMenu = [
   // Fasilitas dan Aturan menyusul di sini karena alasan yang sama - keduanya
   // diisi sekali saat kos dibuka, bukan setiap bulan.
   { nama: 'kebijakan', label: 'Kebijakan', ket: 'Satuan sewa dan jatuh tempo kos ini', wewenang: 'ubah_kebijakan' },
+  // Rekening diletakkan tepat setelah Kebijakan: keduanya menjawab "bagaimana
+  // kos ini menagih", dan rekening adalah pertanyaan lanjutannya - "ke mana
+  // uangnya dikirim".
+  //
+  // `hanyaPemilik`, bukan `wewenang`. Nomor rekening adalah alamat uang masuk:
+  // pengelola yang boleh menggantinya bisa mengarahkan seluruh setoran penghuni
+  // ke rekeningnya sendiri, lalu menandai tagihannya lunas dengan wewenang
+  // `catat_pembayaran` yang memang ia punya. Tidak ada pemeriksaan lain yang
+  // menangkapnya, jadi tidak ada wewenang yang bisa membukanya.
+  { nama: 'rekening', label: 'Rekening', ket: 'Ke mana penghuni mentransfer', hanyaPemilik: true },
   { nama: 'fasilitas', label: 'Fasilitas', ket: 'Apa saja yang dimiliki tiap kamar', wewenang: 'kelola_kamar' },
   { nama: 'aturan', label: 'Aturan kos', ket: 'Yang dibaca penghuni di portalnya', wewenang: 'kelola_kamar' },
   { nama: 'audit', label: 'Jejak audit', ket: 'Siapa mengubah apa, kapan', wewenang: 'baca_audit' },

@@ -71,6 +71,10 @@ const HALAMAN_PEMILIK = [
   ['/pemilik/rekap', 'Rekap pendapatan'],
   ['/pemilik/tunggakan', 'Tunggakan'],
   ['/pemilik/kebijakan', 'Kebijakan kos'],
+  // Rekening (REV-UI-05). Tabelnya memuat nomor rekening panjang yang tidak
+  // boleh terpotong, dan tombol aksinya berjajar tiga di satu sel - bentuk yang
+  // paling mudah meluber di layar 360px.
+  ['/pemilik/rekening', 'Rekening tujuan pembayaran'],
   ['/pemilik/fasilitas', 'Fasilitas'],
   ['/pemilik/aturan', 'Aturan kos'],
   ['/pemilik/audit', 'Jejak audit'],

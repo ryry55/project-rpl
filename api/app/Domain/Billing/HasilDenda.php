@@ -27,7 +27,19 @@ final class HasilDenda
         public readonly int $hariTerlambat,
         public readonly int $masaTenggang,
         public readonly int $hariDenda,
+        /** Denda yang masih harus dibayar: sudah dikurangi pemaafan. */
         public readonly int $denda,
+        /**
+         * Denda sebelum pemaafan dikurangkan (REV-FIN-07).
+         *
+         * Dikirim terpisah supaya layar bisa menulis "denda Rp 450.000,
+         * dimaafkan Rp 450.000" alih-alih hanya "Rp 0". Angka nol tanpa
+         * penjelasan membuat penghuni mengira dendanya tidak pernah ada, dan
+         * pemilik tidak bisa menunjukkan bahwa ia sudah memaafkan.
+         */
+        public readonly int $dendaSebelumMaaf,
+        /** Jumlah yang dimaafkan, dibaca dari `tagihan.denda_dimaafkan`. */
+        public readonly int $dimaafkan,
         /** null berarti bentuk denda ini tidak berplafon. */
         public readonly ?int $plafon,
         /** null berarti tidak bermakna untuk bentuk denda ini. */
@@ -38,7 +50,7 @@ final class HasilDenda
     ) {}
 
     /**
-     * Yang harus dibayar penghuni: pokok plus denda berjalan.
+     * Yang harus dibayar penghuni: pokok plus denda setelah pemaafan.
      *
      * Ditulis sebagai method dan dipakai juga oleh `toArray()` supaya rumusnya
      * hanya ada di satu tempat. Pemanggil lain — termasuk `PencatatPembayaran` —
@@ -47,6 +59,12 @@ final class HasilDenda
     public function total(): int
     {
         return $this->pokok + $this->denda;
+    }
+
+    /** Apakah tagihan ini punya pemaafan denda yang perlu dijelaskan. */
+    public function adaPemaafan(): bool
+    {
+        return $this->dimaafkan > 0;
     }
 
     /**
@@ -92,6 +110,12 @@ final class HasilDenda
             'masa_tenggang' => $this->masaTenggang,
             'hari_denda' => $this->hariDenda,
             'denda' => $this->denda,
+            // Dua angka tambahan (REV-FIN-07): yang dimaafkan dan denda
+            // sebelum pemaafan. Tanpa keduanya, layar hanya bisa menampilkan
+            // "Rp 0" dan tidak bisa menjelaskan bahwa pemilik sudah memaafkan.
+            'denda_sebelum_maaf' => $this->dendaSebelumMaaf,
+            'dimaafkan' => $this->dimaafkan,
+            'ada_pemaafan' => $this->adaPemaafan(),
             'plafon' => $this->plafon,
             'sisa_hari_ke_plafon' => $this->sisaHariKePlafon,
             'total' => $this->total(),

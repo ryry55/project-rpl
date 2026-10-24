@@ -253,10 +253,10 @@ bukan karena lebih mudah dikerjakan:
 | `komponen_biaya.aktif` | ada kolom `aktif (bool)` | **kolom tidak dibuat** | Kolom yang bisa di-UPDATE bertentangan dengan append-only. Menghentikan komponen = baris baru bernilai 0 |
 | Email penghuni | tidak ada | `penghuni.email` unik | Setiap penghuni harus bisa login (R-07), dan login butuh email |
 | Relasi penghuni–user | `penghuni.user_id` | `users.penghuni_id` | Satu arah saja; kolom di `users` sudah ada sejak T1 dan dipakai `auth` |
-| Parameter denda | `GET/PUT /parameter-denda` | `GET`, `GET /berlaku`, `POST` | PUT yang menambah baris menyesatkan; `POST` menyatakan "berlakukan parameter baru" dengan jujur |
+| Parameter denda | `GET/PUT /parameter-denda` | satu `tipe` di `kebijakan_kos` | Tabel `parameter_denda` dihapus: denda adalah salah satu dimensi kebijakan, dan memisahkannya berarti snapshot tagihan harus menyalin dua tabel |
 
 **Append-only ditegakkan basis data, bukan hanya aplikasi.** `tarif_sewa`, `komponen_biaya`, dan
-`parameter_denda` punya trigger yang menolak `UPDATE` dan `DELETE`. Endpoint yang tidak ada hanya
+`kebijakan_kos` punya trigger yang menolak `UPDATE` dan `DELETE`. Endpoint yang tidak ada hanya
 menahan lewat aplikasi; trigger menahan lewat `psql` juga — termasuk bagi superuser, yang tidak
 tertahan oleh `REVOKE`.
 
@@ -278,7 +278,7 @@ mendemokan "hari ke-37" berarti menunggu 37 hari. Endpoint dan header ini tidak 
 | Pengumuman status simulasi | di **`meta` badan respons**, bukan hanya header | `exposed_headers` CORS default kosong, jadi `fetch()` tidak bisa membaca header lintas-origin. Header tetap dikirim dan didaftarkan di `exposed_headers` |
 | Denda disimpan? | **tidak**, dihitung saat dibaca | Nilainya bergantung pada "hari ini"; kolom akan selalu basi dan butuh job penyegar |
 | Dasar denda | `tagihan.pokok` yang dibekukan, bukan sisa tagihan | Bila dasarnya sisa, penghuni bisa menurunkan denda dengan membayar Rp 1 |
-| Parameter denda | dibaca dari **kolom snapshot di baris `tagihan`**, bukan `parameter_denda` terkini | Itu inti R-06 lapis 2. Membaca parameter terkini membuat denda tagihan lama berubah saat parameter diubah |
+| Parameter denda | dibaca dari **kolom snapshot di baris `tagihan`**, bukan `kebijakan_kos` terkini | Itu inti R-06 lapis 2. Membaca parameter terkini membuat denda tagihan lama berubah saat parameter diubah |
 | Tarif 0% | sah, berarti tanpa denda | Cara mematikan denda tanpa mengubah skema; tidak boleh menjadi pembagian dengan nol |
 | Persentase | diurai dari **teks**, bukan di-cast ke float | 1,15% tidak bisa direpresentasikan eksak sebagai float; pembulatan denda bisa meleset Rp 1 |
 
@@ -371,32 +371,74 @@ tarif_sewa       id, kamar_id, nilai (numeric 14,0), berlaku_dari (date)
                  UNIQUE (kamar_id, berlaku_dari)
                  -- append-only: tidak pernah UPDATE
 
-komponen_biaya   id, nama, nilai (numeric 14,0), satuan (rupiah/bulan), berlaku_dari (date)
-                 UNIQUE (nama, berlaku_dari)
+komponen_biaya   id, nama, nilai (numeric 14,0), satuan (rupiah/bulan), berlaku_dari (date),
+                 kamar_id (bigint|null -- NULL = berlaku untuk seluruh kos)
+                 UNIQUE (nama, berlaku_dari, kamar_id) NULLS NOT DISTINCT
                  -- append-only. Kolom `aktif` TIDAK dibuat: menonaktifkan lewat
                  -- UPDATE akan merusak riwayat R-06. Menghentikan komponen =
                  -- baris baru bernilai 0 dengan berlaku_dari baru.
+                 -- NULLS NOT DISTINCT penting: tanpa itu dua baris "listrik untuk
+                 -- seluruh kos" pada tanggal yang sama sama-sama lolos, karena
+                 -- NULL tidak pernah sama dengan NULL di UNIQUE biasa.
 
-parameter_denda  id, tarif_persen (numeric 5,2), plafon_persen (numeric 5,2),
-                 masa_tenggang (int), berlaku_dari (date)
-                 UNIQUE (berlaku_dari)
-                 -- append-only: mengubah parameter = baris baru
+kebijakan_kos    id, tipe, nilai (varchar 30), kamar_id (bigint|null),
+                 persen, nominal, masa_tenggang, tanggal, berlaku_dari (date)
+                 UNIQUE (tipe, kamar_id, berlaku_dari) NULLS NOT DISTINCT
+                 -- append-only. Satu baris per dimensi; kolom angka yang dipakai
+                 -- bergantung pada `tipe`, sisanya NULL. Denda tidak lagi punya
+                 -- tabel parameter sendiri: ia salah satu `tipe` di sini, supaya
+                 -- snapshot tagihan hanya perlu menyalin satu tabel.
 
 tagihan          id, kontrak_id, periode (date, tanggal 1), pokok (numeric 14,0),
                  total_final (numeric 14,0|null), jatuh_tempo (date),
                  status (belum_bayar|sebagian|lunas|dibatalkan),
-                 tarif_terpakai (json), tarif_denda_persen, plafon_persen, masa_tenggang,
-                 terbit_pada (timestamp)
-                 UNIQUE (kontrak_id, periode)
+                 tarif_terpakai (json), kebijakan_terpakai (jsonb),
+                 tarif_denda_persen, plafon_persen, masa_tenggang,
+                 terbit_pada (timestamp),
+                 alasan_batal (text|null), dibatalkan_oleh (bigint|null),
+                 dibatalkan_pada (timestamp|null),
+                 denda_dimaafkan (numeric 14,0, default 0),
+                 alasan_maaf_denda (text|null), denda_dimaafkan_oleh (bigint|null),
+                 denda_dimaafkan_pada (timestamp|null)
+                 UNIQUE (kontrak_id, periode) WHERE status <> 'dibatalkan'
                  -- total_final: diisi sekali saat status menjadi lunas. Null selama
                  -- tagihan belum lunas karena angkanya masih bergerak.
+                 -- UNIQUE-nya PARSIAL sejak R3 (REV-FIN-02): dua tagihan hidup untuk
+                 -- satu periode tetap ditolak, tetapi periode yang tagihannya sudah
+                 -- dibatalkan boleh diterbitkan ulang. Index penuh membuat satu
+                 -- tagihan yang salah terbit mengunci periode itu selamanya.
+                 -- Pembatalan mengubah status, TIDAK menghapus baris: nomor tagihan
+                 -- yang pernah disebut ke penghuni harus tetap bisa dijawab.
+                 -- denda_dimaafkan adalah kolom, bukan tabel: satu kolom pada baris
+                 -- yang sama tidak bisa terlupa saat menjumlahkan (R3, REV-FIN-07).
+
+rekening         id, jenis (transfer|qris), nama, nomor (string|null),
+                 atas_nama (string|null), catatan (string|null),
+                 aktif (boolean, default true), urutan (smallint)
+                 -- TIDAK append-only: tidak ada angka tagihan yang dihitung dari
+                 -- baris ini. Setiap tambah/ubah/hapus menulis log_audit dengan
+                 -- salinan baris lengkap, termasuk nomor lama saat nomor diganti.
+                 -- nomor boleh null: QRIS statis bisa hanya berupa gambar.
 
 tagihan_rincian  id, tagihan_id, nama, nilai (numeric 14,0), urutan
 
 pembayaran       id, tagihan_id, jumlah (numeric 14,0), tanggal_pembayaran (date),
-                 catatan (string|null), created_at
+                 catatan (varchar 255|null), metode (varchar 20|null),
+                 sumber (varchar 30, default 'dicatat_pemilik'),
+                 referensi (varchar 100|null),
+                 dicatat_oleh (bigint|null), diterima_oleh (bigint|null),
+                 pembalik_id (bigint|null), created_at
                  -- append-only lewat trigger BEFORE UPDATE OR DELETE
-                 -- jumlah selalu > 0; kelebihan bayar ditolak sebelum tersimpan
+                 -- jumlah > 0 untuk uang masuk; jumlah < 0 HANYA untuk baris
+                 -- pembalik (pembalik_id terisi). CHECK pembayaran_tanda_jumlah.
+                 -- metode ∈ tunai|transfer|qris|gateway, wajib diisi klien sejak T20.
+                 -- sumber ∈ dicatat_pemilik|gateway_webhook.
+                 -- diterima_oleh wajib untuk tunai, ditegakkan CHECK
+                 -- pembayaran_tunai_ada_pemegang (NOT VALID supaya baris lama
+                 -- tidak perlu diisi ulang).
+                 -- pembalik_id UNIQUE: satu baris hanya boleh dibalik sekali.
+                 -- Trigger pembalik_tolak_pembalik_bertingkat: pembalik tidak
+                 -- boleh punya pembalik (CHECK tidak bisa subquery).
 
 log_audit        id, aktor_id, aktor_nama, aksi, entitas, entitas_id, dibuat_pada,
                  nilai_lama (json), nilai_baru (json)
@@ -407,68 +449,126 @@ log_audit        id, aktor_id, aktor_nama, aksi, entitas, entitas_id, dibuat_pad
 `tagihan.denda` dan `tagihan.sisa` **tidak ada sebagai kolom** — keduanya turunan, dihitung dari
 `pokok`, `jatuh_tempo`, parameter yang dibekukan, dan `SUM(pembayaran.jumlah)`.
 
-**Deviasi sadar dari SPEC awal, dicatat saat T5.** `pembayaran` dirumuskan di §6 sebagai
-`tanggal, jumlah, metode, bukti, dicatat_oleh`. Implementasi memakai `tanggal_pembayaran`,
-`catatan`, dan `created_at`:
+**Deviasi sadar dari SPEC awal, dicatat saat T5 dan diperbarui di T20.** `pembayaran` dirumuskan
+di §6 sebagai `tanggal, jumlah, metode, bukti, dicatat_oleh`:
 
 | Hal | SPEC awal | Implementasi | Alasan |
 |---|---|---|---|
 | Tanggal | `tanggal` | `tanggal_pembayaran` | Nama kolom yang menyebut apa tanggalnya; `tanggal` sendirian ambigu di tabel yang punya `created_at` |
-| Metode & bukti | dua kolom | **tidak dibuat** | Tidak ada tiket yang memakainya, dan kolom yang tidak dipakai akan diisi asal-asalan. Metode pembayaran masuk `catatan` bila perlu |
-| Pencatat | `dicatat_oleh` (user_id) | **tidak dibuat** | Sudah dicatat `log_audit` beserta nama penyalinnya. Menyimpannya dua kali berarti dua sumber yang bisa berbeda |
+| Metode | `metode` | **ada** sejak T20 (`tunai`/`transfer`/`qris`/`gateway`) | Sempat tidak dibuat karena belum ada tiket yang memakainya. T20 membuktikan sebaliknya: rekap per metode tidak mungkin dihitung tanpa kolom ini, dan menyimpannya di `catatan` berarti membaca teks bebas |
+| Bukti | `bukti` | **tidak dibuat** | Butuh penyimpanan berkas, dan Render free tidak punya disk persisten. Bukti transfer dikirim lewat WhatsApp dan diperiksa mata pemilik sebelum ia menekan "verifikasi" |
+| Pencatat | `dicatat_oleh` (user_id) | **ada** sejak T20, FK RESTRICT | Sempat tidak dibuat. T20 menambahkannya karena pertanyaan "siapa yang mencatat uang ini" harus bisa dijawab tanpa membaca `log_audit`, dan `diterima_oleh` (pemegang uang tunai) adalah orang yang berbeda dari pencatat |
+| Sumber | — | `sumber` ∈ `dicatat_pemilik` ∥ `gateway_webhook` | Uang yang masuk lewat webhook Midtrans tidak punya pencatat manusia. Tanpa kolom ini, `dicatat_oleh` harus dibiarkan kosong tanpa menjelaskan kenapa |
 
 ---
 
 ## 7. Permukaan API
 
 Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
+Daftar lengkap **78 endpoint**; rincian bentuk request/response ada di
+`docs/produk/6_TOOLS_CONTRACTS.md`.
 
-| Method | Path | Peran | Tiket |
-|---|---|---|---|
-| POST | `/login` | publik | T1 |
-| POST | `/logout` | semua | T1 |
-| GET | `/me` | semua | T1 |
-| GET/POST | `/kamar` | pemilik | T2 |
-| GET | `/kamar/{id}` | pemilik | T2 |
-| PUT | `/kamar/{id}` | pemilik | T2 |
-| GET/POST | `/penghuni` | pemilik | T2 |
-| GET | `/penghuni/{id}` | pemilik | T2 |
-| PUT | `/penghuni/{id}` | pemilik | T2 |
-| GET/POST | `/kontrak` | pemilik | T2 |
-| GET | `/kontrak/{id}` | pemilik | T2 |
-| POST | `/kontrak/{id}/akhiri` | pemilik | T2 |
-| GET/POST | `/tarif` | pemilik | T2 |
-| GET | `/kamar/{id}/tarif-berlaku?periode=` | pemilik | T2 |
-| GET/POST | `/komponen-biaya` | pemilik | T2 |
-| GET | `/parameter-denda` | pemilik | T2 |
-| GET | `/parameter-denda/berlaku` | pemilik | T2 |
-| POST | `/parameter-denda` | pemilik | T2 |
-| GET/POST | `/tagihan` | pemilik | T3 |
-| POST | `/tagihan/terbitkan` | pemilik | T4 |
-| GET | `/tagihan/{id}` | pemilik (semua), penghuni (miliknya) | T3 |
-| POST | `/tagihan/{id}/pembayaran` | pemilik | T5 |
-| GET | `/tagihan/{id}/denda` | pemilik, penghuni (miliknya) | T6 |
-| GET | `/tunggakan` | pemilik | T7 |
-| GET | `/audit-log` | pemilik | T9 |
-| GET | `/penghuni/tagihan` | penghuni | T9 |
+### 7.1 Autentikasi, akun, dan PDP
 
-**Dua jalur baca yang terbuka untuk kedua peran.** `/tagihan/{id}` dan `/tagihan/{id}/denda`
-disaring scope `Tagihan::terlihatOleh`: pemilik melihat semuanya, penghuni hanya miliknya, dan id
-milik orang lain dijawab **404 yang tidak bisa dibedakan** dari id yang tidak ada.
+| Method | Path | Middleware |
+|---|---|---|
+| POST | `/login` | publik |
+| POST | `/logout` | `auth` |
+| GET | `/me` | `auth` |
+| POST | `/ganti-sandi` | `auth` |
+| POST | `/lupa-sandi` | publik |
+| POST | `/periksa-token` | publik |
+| POST | `/atur-sandi` | publik |
+| POST | `/persetujuan-pdp` | `auth` |
+| GET | `/pdp/data-saya` | `auth` |
+| DELETE | `/pdp/data-saya` | `auth` |
+
+### 7.2 Data kos
+
+| Method | Path | Middleware |
+|---|---|---|
+| GET/POST | `/kamar` | `peran:pemilik,pengelola` / `wewenang:kelola_kamar` |
+| GET/PUT | `/kamar/{kamar}` | `peran:pemilik,pengelola` / `wewenang:kelola_kamar` |
+| GET | `/kamar/{kamar}/tarif-berlaku` | `peran:pemilik,pengelola` |
+| PUT | `/kamar/{kamar}/fasilitas` | `wewenang:kelola_kamar` |
+| GET/POST | `/tarif` | `peran:pemilik,pengelola` / `wewenang:ubah_tarif` |
+| GET/POST | `/komponen-biaya` | `peran:pemilik,pengelola` / `wewenang:ubah_tarif` |
+| GET/POST | `/kebijakan` | `peran:pemilik,pengelola` / `wewenang:ubah_kebijakan` |
+| GET | `/fasilitas` | `peran:pemilik,pengelola` |
+| POST/PUT/DELETE | `/fasilitas[/{fasilitas}]` | `wewenang:kelola_kamar` |
+| GET | `/aturan` | `peran:pemilik,pengelola` |
+| POST/PUT/DELETE | `/aturan[/{aturan}]` | `wewenang:kelola_kamar` |
+| GET | `/rekening` | `peran:pemilik,pengelola` |
+| POST/PUT/DELETE | `/rekening[/{rekening}]` | `peran:pemilik` |
+| GET/POST | `/penghuni` | `peran:pemilik,pengelola` / `wewenang:kelola_penghuni` |
+| GET/PUT | `/penghuni/{penghuni}` | `peran:pemilik,pengelola` / `wewenang:kelola_penghuni` |
+| POST | `/penghuni/{penghuni}/kirim-ulang-aktivasi` | `wewenang:kelola_penghuni` |
+| GET/POST | `/kontrak` | `peran:pemilik,pengelola` / `wewenang:kelola_penghuni` |
+| GET | `/kontrak/{kontrak}` | `peran:pemilik,pengelola` |
+| POST | `/kontrak/{kontrak}/akhiri` | `wewenang:kelola_penghuni` |
+
+### 7.3 Tagihan dan pembayaran
+
+| Method | Path | Middleware |
+|---|---|---|
+| GET | `/tagihan` | `peran:pemilik,pengelola` |
+| GET | `/tagihan/{tagihan}` | `auth` (difilter scope, R-07) |
+| POST | `/tagihan` | `wewenang:terbitkan_tagihan` |
+| POST | `/tagihan/terbitkan` | `wewenang:terbitkan_tagihan` |
+| POST | `/tagihan/{tagihan}/batal` | `wewenang:terbitkan_tagihan` |
+| POST | `/tagihan/{tagihan}/maaf-denda` | `peran:pemilik` |
+| GET | `/tagihan/{tagihan}/denda` | `auth` (difilter scope) |
+| POST | `/tagihan/{tagihan}/pembayaran` | `wewenang:catat_pembayaran` |
+| GET | `/pembayaran` | `peran:pemilik,pengelola` |
+| GET | `/pembayaran/penerima` | `wewenang:catat_pembayaran` |
+| GET | `/pembayaran/tunai-saya` | `wewenang:catat_pembayaran` |
+| POST | `/pembayaran/{pembayaran}/pembalik` | `wewenang:catat_pembayaran` |
+| POST | `/pembayaran/{pembayaran}/verifikasi` | `wewenang:verifikasi_pembayaran` |
+| GET | `/tunggakan` | `peran:pemilik,pengelola` |
+| GET | `/rekap` | `peran:pemilik` |
+| GET | `/audit-log` | `peran:pemilik` |
+
+### 7.4 Usulan, pengelola, notifikasi, portal
+
+| Method | Path | Middleware |
+|---|---|---|
+| GET | `/usulan` | `peran:pemilik` |
+| POST | `/usulan/{usulan}/setujui` | `peran:pemilik` |
+| POST | `/usulan/{usulan}/tolak` | `peran:pemilik` |
+| GET/POST | `/pengelola` | `peran:pemilik` |
+| GET/PUT/DELETE | `/pengelola/{pengelola}` | `peran:pemilik` |
+| POST | `/pengelola/{pengelola}/kirim-ulang-aktivasi` | `peran:pemilik` |
+| GET | `/notifikasi` | `auth` |
+| POST | `/notifikasi/{notifikasi}/baca` | `auth` |
+| POST | `/notifikasi/baca-semua` | `auth` |
+| GET/PUT | `/pengaturan-notifikasi` | `auth` |
+| GET | `/penghuni/tagihan` | `peran:penghuni` |
+| GET | `/penghuni/aturan` | `peran:penghuni` |
+| GET | `/penghuni/rekening` | `peran:penghuni` |
+| GET | `/health` | publik |
+| GET | `/pemilik/saja` | `peran:pemilik` |
+
+**Dua jalur baca yang terbuka untuk ketiga peran.** `/tagihan/{id}` dan `/tagihan/{id}/denda`
+disaring scope `Tagihan::terlihatOleh`: pemilik dan pengelola melihat semuanya, penghuni hanya
+miliknya, dan id milik orang lain dijawab **404 yang tidak bisa dibedakan** dari id yang tidak ada.
 
 **Urutan pendaftaran rute ikut menentukan perilaku.** Laravel mencocokkan rute sesuai urutan
-deklarasi, jadi `/penghuni/tagihan` harus didaftarkan **sebelum** `apiResource('penghuni')` —
-kalau tidak, "tagihan" ditangkap sebagai `{penghuni}` dan PostgreSQL menolaknya dengan `22P02`.
-Kelas kesalahan yang sama sudah dua kali terjadi (`/tagihan/terbitkan` di T4).
+deklarasi, jadi `/penghuni/tagihan`, `/penghuni/aturan`, dan `/penghuni/rekening` harus didaftarkan
+**sebelum** `apiResource('penghuni')` — kalau tidak, "tagihan" ditangkap sebagai `{penghuni}` dan
+PostgreSQL menolaknya dengan `22P02`. Kelas kesalahan yang sama sudah dua kali terjadi
+(`/tagihan/terbitkan` di T4).
 
 **Konvensi status code.**
 
 | Kode | Kapan |
 |---|---|
+| 200 | Berhasil (baca, ubah, aksi yang tidak membuat baris) |
+| 201 | Berhasil membuat baris baru |
+| 202 | Usulan perubahan diterima tetapi belum berlaku (T26) |
 | 401 | Belum login / token tidak valid |
 | 403 | Peran tidak berhak (penghuni memanggil endpoint pemilik) |
 | 404 | Resource tidak ada **atau** bukan miliknya (R-07) |
-| 409 | Duplikat periode (R-02) |
+| 409 | Duplikat periode (R-02), atau bentrok yang tidak bisa diselesaikan pengirim |
 | 422 | Validasi gagal, dengan `errors` per field; juga pembayaran yang melebihi sisa, berjumlah ≤ 0, atau pada tagihan yang dibatalkan |
 
 Bentuk respons sukses: `{ "data": ... }`. Error: `{ "message": "...", "errors": {...} }`.
@@ -670,9 +770,11 @@ Ditunda dengan sadar, bukan terlupa.
 |---|---|---|
 | Deposit & kerusakan (R-05) | Butuh alur foto kerusakan dan negosiasi; kolom sudah disiapkan | T8, tabel manual di laporan |
 | Laporan & rekap lengkap (proses 5.0) | Bisa dihitung manual dari data yang ada | T10, tabel manual di laporan |
-| Pembatalan tagihan | Tidak dibutuhkan untuk demo | enum ada, UI tidak |
+| Pembatalan tagihan | **Sudah dikerjakan di R3** (REV-FIN-02): status berubah, baris tidak dihapus, periode bisa diterbitkan ulang | `POST /tagihan/{id}/batal`, tombol di panel rincian |
+| Pemaafan denda | **Sudah dikerjakan di R3** (REV-FIN-07): denda dibekukan pada hari pokok lunas, bukan dinolkan | `POST /tagihan/{id}/maaf-denda`, `peran:pemilik` |
+| Rekening tujuan pembayaran | **Sudah dikerjakan di R3** (REV-UI-05): transfer dan QRIS statis, tulisan hanya pemilik | Tabel `rekening`, halaman Rekening, kartu "Cara membayar" di portal |
 | Koreksi pembayaran | **Sudah dikerjakan di R2** (REV-FIN-01): baris pembalik bertanda lewat `POST /pembayaran/{id}/pembalik` | Endpoint teruji; tombol layar menyusul |
-| Notifikasi WhatsApp/email | Di luar kendali anggaran | — |
+| Notifikasi WhatsApp | Di luar kendali anggaran; R3 hanya menyediakan tautan `wa.me` yang dibuka pemilik sendiri | — |
 | Multi-kos / multi-pemilik | Satu kos, satu pemilik | — |
 | Impor data historis | Kos baru, tidak ada data lama | — |
 | Sub-metering listrik/air | Sewa all-in | — |
@@ -681,23 +783,33 @@ Ditunda dengan sadar, bukan terlupa.
 
 ## 12. Data demo (seed)
 
-Supaya demo tidak perlu mengetik: 1 kos, **8 kamar** (6 terisi), **6 penghuni** dengan tanggal
-masuk berbeda-beda — termasuk **satu yang masuk tanggal 31** untuk memamerkan jepit tanggal, dan
-**satu yang masuk tanggal 1** untuk memamerkan tarif penuh.
+Seeder **sengaja tidak** mengisi kamar, kontrak, tagihan, maupun kebijakan kos. Yang disemai
+hanya:
 
-Skenario tagihan yang harus ada setelah seed:
-
-| Penghuni | Kondisi | Untuk memamerkan |
+| Disemai | Isi | Kenapa |
 |---|---|---|
-| A | Masuk tanggal 1, lunas | Tarif penuh tanpa selisih |
-| B | Masuk tanggal 15, belum bayar, terlambat 8 hari | Denda mulai |
-| C | Terlambat 30 hari | Kelompok 0–30 |
-| D | Terlambat 45 hari | Kelompok 31–60 |
-| E | Terlambat 90 hari | Kelompok > 60, denda sudah di plafon |
-| F | Masuk tanggal 31 | Jepit jatuh tempo |
+| Akun | `pemilik@kos.test`, `pengelola@kos.test`, `penghuni@kos.test` — semuanya `password`, sudah terverifikasi, `wajib_ganti_sandi = false` | Demo harus bisa dimulai tanpa membaca dokumentasi |
+| Penghuni | Satu baris `Budi Santoso` dengan `no_hp` terisi | Kontrak butuh penghuni, dan tombol WhatsApp butuh nomor |
+| Wewenang pengelola | Empat wewenang harian: `catat_pembayaran`, `kelola_kamar`, `kelola_penghuni`, `terbitkan_tagihan` | Justru **tanpa** `ubah_tarif`/`ubah_kebijakan`, supaya pembatasannya bisa didemokan |
+| Fasilitas | Enam baris katalog (AC, kamar mandi dalam, lemari, meja belajar, Wi-Fi, parkir motor) | Katalog, bukan pemasangan; pemasangan per kamar tetap manual |
+| Aturan kos | Beberapa aturan aktif | Portal penghuni harus punya isi saat pertama dibuka |
 
-Seed memakai `APP_DEMO_MODE=true` supaya tanggalnya relatif terhadap hari demo, bukan tanggal
-mati yang cepat basi.
+**Kenapa kebijakan kos tidak disemai.** Kebijakan kosong adalah **gerbang** yang harus terlihat
+di demo: tanpa satuan sewa, jatuh tempo, dan denda, penerbitan tagihan ditolak dengan pesan
+"Wajib diisi dulu". Membuatkan kebijakan bawaan akan menyembunyikan gerbang itu — dan berarti
+menebak kebijakan kos orang lain.
+
+**Kenapa kamar, kontrak, dan tagihan tidak disemai.** Setiap kos berbeda; nomor kamar dan
+tarifnya adalah data pemilik, bukan data contoh. Untuk mengisi data contoh tanpa mengetik:
+
+```bash
+node docs/uji/e2e-t2.mjs   # kamar, penghuni, kontrak lewat layar sungguhan
+node docs/uji/e2e-r3.mjs   # tagihan, pembayaran, pembatalan, pemaafan denda
+```
+
+**Tanggal relatif.** `APP_DEMO_MODE=true` membuat tanggal sistem bisa digeser lewat header
+`X-Simulasi-Tanggal`, sehingga denda bisa diperagakan tanpa menunggu berbulan-bulan. Di mode
+normal header itu diabaikan sepenuhnya.
 
 ---
 

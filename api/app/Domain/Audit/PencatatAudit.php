@@ -27,6 +27,15 @@ class PencatatAudit
 
     public const AKSI_TAGIHAN_BAYAR = 'tagihan.bayar';
 
+    /**
+     * Satu tagihan dibatalkan (REV-FIN-02).
+     *
+     * Entitasnya `tagihan` dengan `entitas_id` baris yang dibatalkan. Alasannya
+     * ikut di `nilai_baru` supaya pertanyaan "kenapa tagihan ini batal" bisa
+     * dijawab dari log saja, tanpa membuka tabel.
+     */
+    public const AKSI_TAGIHAN_BATAL = 'tagihan.batal';
+
     public const AKSI_TARIF_TAMBAH = 'tarif.tambah';
 
     public const AKSI_KEBIJAKAN_TAMBAH = 'kebijakan.tambah';
@@ -86,6 +95,18 @@ class PencatatAudit
     public const AKSI_KOMPONEN_TOLAK = 'komponen.tolak';
 
     /**
+     * Denda sebuah tagihan dimaafkan, atau pemaafannya ditarik kembali
+     * (REV-FIN-07).
+     *
+     * Dua aksi terpisah, bukan satu aksi dengan nilai nol. Membaca "denda
+     * dimaafkan Rp 0" di jejak audit tidak bisa dibedakan dari kesalahan tulis;
+     * "pemaafan denda dibatalkan" bisa.
+     */
+    public const AKSI_DENDA_MAAFKAN = 'denda.maafkan';
+
+    public const AKSI_DENDA_MAAF_DIBATALKAN = 'denda.maaf-batal';
+
+    /**
      * Satu pemeriksaan atas satu pembayaran (T20).
      *
      * Entitasnya `pembayaran`, bukan `tagihan`: yang diperiksa adalah baris uang
@@ -103,6 +124,22 @@ class PencatatAudit
      * supaya riwayat bisa dirunut tanpa membuka tabel.
      */
     public const AKSI_PEMBAYARAN_BALIK = 'pembayaran.balik';
+
+    /**
+     * Rekening atau QRIS tujuan pembayaran ditambah, diubah, atau dihapus
+     * (REV-UI-05).
+     *
+     * Entitasnya `rekening`. Nomor rekening yang berubah adalah hal yang paling
+     * sering ditanyakan penghuni lama - "dulu saya transfer ke mana" - dan
+     * jawabannya hanya bisa diberikan kalau perubahan lama tercatat. Nilai lama
+     * ikut dikirim lengkap, bukan hanya id, karena barisnya bisa saja sudah
+     * dihapus saat pertanyaan itu datang.
+     */
+    public const AKSI_REKENING_TAMBAH = 'rekening.tambah';
+
+    public const AKSI_REKENING_UBAH = 'rekening.ubah';
+
+    public const AKSI_REKENING_HAPUS = 'rekening.hapus';
 
     public function catat(
         string $aksi,

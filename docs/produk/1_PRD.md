@@ -235,10 +235,10 @@ atau dari tes.
 | U-3 | Tagihan ganda per periode | 0 (ditolak 409) | `uji-balapan-t4.mjs`, 10 langkah |
 | U-4 | Kebocoran data antar-penghuni | 0 | `IsolasiDanAuditTest`, `e2e-t9.mjs` |
 | U-5 | Respons `/api` yang masuk cache PWA | 0 | `uji-pwa.mjs` — dibuktikan bisa gagal |
-| U-6 | Halaman yang meluber di 360px | 0 | `uji-tata-letak.mjs` 88 langkah |
+| U-6 | Halaman yang meluber di 360px | 0 | `uji-tata-letak.mjs` 94 langkah |
 | U-7 | Tabel yang tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` 65 langkah |
 | U-8 | Bagian kepala pemilik sebelum konten | < 220px | Terukur 203px |
-| U-9 | Cakupan tes PHP | 636 tes, 3089 asersi | CI |
+| U-9 | Cakupan tes PHP | 687 tes, 3266 asersi | CI |
 
 ---
 

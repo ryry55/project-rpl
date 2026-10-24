@@ -10,6 +10,7 @@ import TunggakanView from './views/pemilik/TunggakanView.vue'
 import RekapView from './views/pemilik/RekapView.vue'
 import AuditLogView from './views/pemilik/AuditLogView.vue'
 import KebijakanView from './views/pemilik/KebijakanView.vue'
+import RekeningView from './views/pemilik/RekeningView.vue'
 import FasilitasView from './views/pemilik/FasilitasView.vue'
 import AturanView from './views/pemilik/AturanView.vue'
 import PersetujuanView from './views/pemilik/PersetujuanView.vue'
@@ -114,6 +115,19 @@ const routes = [
       { path: 'rekap', name: 'pemilik-rekap', component: RekapView },
       { path: 'tunggakan', name: 'pemilik-tunggakan', component: TunggakanView },
       { path: 'kebijakan', name: 'pemilik-kebijakan', component: KebijakanView },
+      // Rekening diletakkan tepat setelah Kebijakan: keduanya pertanyaan
+      // "bagaimana kos ini menagih", dan rekening adalah jawaban atas
+      // pertanyaan lanjutannya - "ke mana uangnya dikirim".
+      //
+      // Hanya pemilik: nomor rekening adalah alamat uang masuk, dan pengelola
+      // yang bisa menggantinya bisa mengarahkan setoran penghuni ke rekening
+      // lain lalu menandai tagihannya lunas sendiri.
+      {
+        path: 'rekening',
+        name: 'pemilik-rekening',
+        component: RekeningView,
+        meta: { peranSaja: 'pemilik' },
+      },
       { path: 'fasilitas', name: 'pemilik-fasilitas', component: FasilitasView },
       { path: 'aturan', name: 'pemilik-aturan', component: AturanView },
       { path: 'audit', name: 'pemilik-audit', component: AuditLogView },

@@ -100,6 +100,14 @@ class PembayaranTest extends TestCase
                 ],
             ],
             'terbit_pada' => now(),
+            // Sejak REV-FIN-02, baris berstatus `dibatalkan` wajib beralasan —
+            // dijaga CHECK `tagihan_batal_ada_alasan`. Tagihan batal yang
+            // dibuat tes tanpa alasan sekarang ditolak basis data, persis
+            // seperti yang diinginkan: pembatalan tanpa keterangan tidak boleh
+            // ada, bahkan di data uji.
+            'alasan_batal' => $status === Tagihan::STATUS_DIBATALKAN
+                ? 'Dibatalkan oleh tes: tagihan sengaja dibuat batal.'
+                : null,
         ]);
     }
 

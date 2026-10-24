@@ -20,6 +20,7 @@ import {
   pesanGalat,
   galatPerBidang,
 } from '../../../format.js'
+import { pesanTagihan, tautanWa, salinTeks } from '../../../bagikan.js'
 import { simulasiTanggal } from '../../../simulasi.js'
 import PanelKartu from '../../../komponen/ui/PanelKartu.vue'
 import MedanForm from '../../../komponen/ui/MedanForm.vue'
@@ -30,6 +31,15 @@ const props = defineProps({
   detail: { type: Object, required: true },
   /** Tanggal acuan dari server; dipakai mengisi tanggal formulir pembayaran. */
   tanggalAcuan: { type: String, default: '' },
+  /**
+   * Rekening aktif, dari `/rekening?aktif=1` di induk.
+   *
+   * Dioper, bukan dimuat sendiri: pesan WhatsApp yang menyebut rekening harus
+   * memakai daftar yang sama dengan yang dilihat penghuni di portalnya. Kalau
+   * panel memuat sendiri, dua tempat bisa menampilkan rekening berbeda pada
+   * saat yang sama - dan yang salah adalah yang dikirim ke penghuni.
+   */
+  rekening: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['tutup', 'berubah'])
@@ -249,6 +259,156 @@ function kelasVerifikasi(p) {
   return v.keputusan === 'terima' ? 'verifikasi-terima' : 'verifikasi-tolak'
 }
 
+// --- Bagikan lewat WhatsApp dan salin (REV-UI-03) --------------------------
+
+/** Teks tagihan yang siap dikirim atau disalin. */
+const teksTagihan = computed(() => pesanTagihan(props.detail, { rekening: props.rekening }))
+
+/**
+ * Tautan WhatsApp, atau null bila nomor penghuni tidak bisa dipahami.
+ *
+ * `null` dipakai untuk menyembunyikan tombolnya. Menampilkan tombol yang
+ * membuka WhatsApp tanpa tujuan lebih buruk daripada tidak ada tombol: pemilik
+ * mengira fiturnya rusak, padahal yang kurang hanya nomor telepon penghuni.
+ */
+const waTagihan = computed(() =>
+  tautanWa(props.detail?.kontrak?.penghuni?.no_hp, teksTagihan.value),
+)
+
+const tersalin = ref(false)
+let pewaktuSalin = null
+
+async function salinTagihan() {
+  const berhasil = await salinTeks(teksTagihan.value)
+
+  tersalin.value = berhasil
+
+  // Pesan "tersalin" hilang sendiri. Tanpa ini, ia menetap dan pemilik yang
+  // menyalin ulang tidak tahu apakah yang kedua berhasil.
+  clearTimeout(pewaktuSalin)
+  pewaktuSalin = setTimeout(() => {
+    tersalin.value = false
+  }, 2500)
+}
+
+// --- Pembatalan tagihan (REV-FIN-02) --------------------------------------
+
+const batalTerbuka = ref(false)
+const batalProses = ref(false)
+const batalGalat = ref('')
+const batalBidang = ref({})
+const batalAlasan = ref('')
+
+/**
+ * Apakah tagihan ini masih bisa dibatalkan.
+ *
+ * Uang yang sudah masuk menutup jalannya: membatalkan tagihan yang sudah
+ * dibayar akan meninggalkan uang yang tidak menempel pada apa pun. Server
+ * menolaknya 422, dan tombolnya disembunyikan supaya pemilik tidak menempuh
+ * jalan buntu yang tidak dijelaskan.
+ */
+const bisaDibatalkan = computed(
+  () =>
+    props.detail?.status !== 'dibatalkan' &&
+    Number(props.detail?.dibayar || 0) === 0 &&
+    sesi.boleh('terbitkan_tagihan'),
+)
+
+function bukaBatal() {
+  batalAlasan.value = ''
+  batalGalat.value = ''
+  batalBidang.value = {}
+  batalTerbuka.value = true
+}
+
+async function batalkanTagihan() {
+  batalProses.value = true
+  batalGalat.value = ''
+  batalBidang.value = {}
+  try {
+    await sesi.panggil(`/tagihan/${props.detail.id}/batal`, {
+      method: 'POST',
+      headers: simulasiTanggal.header(),
+      body: JSON.stringify({ alasan: batalAlasan.value }),
+    })
+    batalTerbuka.value = false
+    emit('berubah')
+  } catch (e) {
+    batalGalat.value = pesanGalat(e)
+    batalBidang.value = galatPerBidang(e)
+  } finally {
+    batalProses.value = false
+  }
+}
+
+// --- Pemaafan denda (REV-FIN-07) ------------------------------------------
+
+const maafTerbuka = ref(false)
+const maafProses = ref(false)
+const maafGalat = ref('')
+const maafBidang = ref({})
+const maafForm = ref({ jumlah: '', alasan: '' })
+
+/** Denda yang masih ditagihkan hari ini, sebelum pemaafan. */
+const dendaBerjalan = computed(() => Number(props.detail?.denda || 0))
+
+/**
+ * Apakah pemaafan bisa dilakukan.
+ *
+ * Hanya pemilik: memaafkan denda berarti melepaskan uang pemilik pada satu
+ * tagihan satu orang, dan tidak ada catatan operasional yang membutuhkannya.
+ * Server menolak 403 untuk peran lain; tombolnya disembunyikan supaya
+ * pengelola tidak menekan sesuatu yang pasti gagal.
+ *
+ * Tagihan yang dibatalkan tidak menagih denda apa pun, jadi tidak ada yang
+ * bisa dimaafkan. Tagihan lunas juga tidak: dendanya sudah dibayar.
+ */
+const bisaDimaaafkan = computed(
+  () =>
+    sesi.user.value?.peran === 'pemilik' &&
+    props.detail?.status !== 'dibatalkan' &&
+    props.detail?.status !== 'lunas',
+)
+
+function bukaMaaf() {
+  // Denda berjalan diisikan sebagai nilai awal: itulah yang paling sering
+  // dimaafkan seluruhnya, dan membiarkannya kosong memaksa pemilik menyalin
+  // angka dari tabel di atasnya.
+  maafForm.value = {
+    jumlah: dendaBerjalan.value > 0 ? String(dendaBerjalan.value) : '',
+    alasan: '',
+  }
+  maafGalat.value = ''
+  maafBidang.value = {}
+  maafTerbuka.value = true
+}
+
+async function maafkanDenda() {
+  maafProses.value = true
+  maafGalat.value = ''
+  maafBidang.value = {}
+  try {
+    await sesi.panggil(`/tagihan/${props.detail.id}/maaf-denda`, {
+      method: 'POST',
+      headers: simulasiTanggal.header(),
+      body: JSON.stringify({
+        jumlah: Number(maafForm.value.jumlah),
+        // Alasan hanya dikirim bila ada yang dimaafkan. Menarik pemaafan
+        // (`jumlah: 0`) tidak menuntut alasan, karena tidak ada uang yang
+        // dilepas.
+        alasan: Number(maafForm.value.jumlah) > 0 ? maafForm.value.alasan : null,
+      }),
+    })
+    maafTerbuka.value = false
+    emit('berubah')
+  } catch (e) {
+    maafGalat.value = pesanGalat(e)
+    maafBidang.value = galatPerBidang(e)
+  } finally {
+    maafProses.value = false
+  }
+}
+
 onMounted(() => {
   // Daftar pemegang dimuat saat panel dibuka, bukan saat formulir dibuka,
   // supaya pilihannya sudah siap ketika pemilik menekan "Catat pembayaran".
@@ -304,6 +464,61 @@ onMounted(() => {
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Tagihan yang dibatalkan menjelaskan dirinya sendiri. Tanpa ini, layar
+         hanya menampilkan status "dibatalkan" tanpa sebab, dan pemilik yang
+         menemukannya enam bulan kemudian tidak bisa menilai apakah keputusan
+         itu masih sah. -->
+    <div v-if="detail.status === 'dibatalkan'" class="kotak-batal">
+      <p class="mungil">
+        <strong>Tagihan ini dibatalkan.</strong>
+        {{ detail.alasan_batal || 'Alasan tidak tercatat.' }}
+      </p>
+      <p v-if="detail.dibatalkan_pada" class="mungil lemah">
+        Dibatalkan {{ tanggal(detail.dibatalkan_pada) }}
+        <template v-if="detail.dibatalkan_oleh_nama">
+          oleh {{ detail.dibatalkan_oleh_nama }}
+        </template>
+      </p>
+    </div>
+
+    <!-- Pemaafan denda yang sedang berlaku. Dua fakta ditampilkan terpisah:
+         dendanya pernah ada, dan pemilik memaafkannya. Menampilkan nol saja
+         akan membuat penghuni mengira dendanya tidak pernah muncul. -->
+    <div v-if="detail.denda_dimaafkan > 0" class="kotak-maaf">
+      <p class="mungil">
+        Denda {{ rupiah(detail.denda_dimaafkan) }} dimaafkan.
+        {{ detail.alasan_maaf_denda || '' }}
+      </p>
+      <p v-if="detail.denda_dimaafkan_pada" class="mungil lemah">
+        Dimaafkan {{ tanggal(detail.denda_dimaafkan_pada) }}
+        <template v-if="detail.denda_dimaafkan_oleh_nama">
+          oleh {{ detail.denda_dimaafkan_oleh_nama }}
+        </template>
+      </p>
+    </div>
+
+    <!-- Bagikan (REV-UI-03). Ditempatkan tepat setelah angka, karena inilah
+         saat pemilik memutuskan untuk menagih. -->
+    <div class="aksi bagikan">
+      <a
+        v-if="waTagihan"
+        class="tombol-tautan mungil"
+        :href="waTagihan"
+        target="_blank"
+        rel="noopener"
+      >
+        Kirim lewat WhatsApp
+      </a>
+      <!-- Nomor yang tidak terbaca bukan galat: penghuni lama sering didata
+           tanpa nomor. Yang ditampilkan adalah penjelasannya, bukan tombol
+           yang membuka WhatsApp tanpa tujuan. -->
+      <span v-else class="lemah mungil">Nomor WhatsApp penghuni belum tercatat.</span>
+
+      <button type="button" class="halus mungil" @click="salinTagihan">
+        {{ tersalin ? 'Tersalin' : 'Salin rincian' }}
+      </button>
     </div>
 
     <!-- Uraian denda: angka tanpa penjelasan selalu jadi pertanyaan.
@@ -416,6 +631,102 @@ onMounted(() => {
           Catat pembayaran{{ detail.sisa > 0 ? ' — sisa ' + rupiah(detail.sisa) : '' }}
         </button>
       </div>
+
+      <!-- Pemaafan denda (REV-FIN-07) dan pembatalan tagihan (REV-FIN-02).
+           Dua aksi yang mengubah angka tagihan tanpa mencatat uang masuk, jadi
+           keduanya diberi kalimat penjelas dan tidak ditempatkan berdampingan
+           dengan "Catat pembayaran" tanpa pemisah. -->
+      <div v-if="!bayarTerbuka" class="aksi aksi-tindakan">
+        <button v-if="bisaDimaaafkan && !maafTerbuka" class="halus mungil" @click="bukaMaaf">
+          {{ detail.denda_dimaafkan > 0 ? 'Ubah pemaafan denda' : 'Maafkan denda' }}
+        </button>
+        <button v-if="bisaDibatalkan && !batalTerbuka" class="halus mungil" @click="bukaBatal">
+          Batalkan tagihan
+        </button>
+      </div>
+
+      <form v-if="maafTerbuka" class="bidang form-maaf" @submit.prevent="maafkanDenda">
+        <p class="mungil lemah">
+          Pemaafan mengurangi denda yang ditagihkan, tidak mengubah pokok dan tidak
+          mencatat uang masuk. Isi 0 untuk menarik kembali pemaafan yang sudah ada.
+        </p>
+        <div class="baris-bidang">
+          <MedanForm
+            id="maaf-jumlah"
+            label="Denda yang dimaafkan"
+            :galat="maafBidang.jumlah"
+            bantuan="Rupiah bulat. Boleh lebih besar dari denda hari ini — sisanya menutup denda yang akan datang."
+          >
+            <input
+              id="maaf-jumlah"
+              v-model="maafForm.jumlah"
+              type="number"
+              min="0"
+              step="1"
+              required
+              :aria-invalid="Boolean(maafBidang.jumlah)"
+            />
+          </MedanForm>
+          <MedanForm
+            id="maaf-alasan"
+            label="Alasan"
+            :galat="maafBidang.alasan"
+            :bantuan="
+              Number(maafForm.jumlah) > 0
+                ? 'Wajib diisi: denda yang tiba-tiba nol adalah hal pertama yang ditanyakan penghuni.'
+                : 'Tidak perlu diisi saat menarik kembali pemaafan.'
+            "
+          >
+            <input
+              id="maaf-alasan"
+              v-model="maafForm.alasan"
+              type="text"
+              maxlength="500"
+              :required="Number(maafForm.jumlah) > 0"
+            />
+          </MedanForm>
+        </div>
+
+        <PesanBaris v-if="maafGalat" jenis="galat">{{ maafGalat }}</PesanBaris>
+
+        <div class="aksi">
+          <button type="submit" :disabled="maafProses">
+            {{ maafProses ? 'Menyimpan…' : 'Simpan pemaafan' }}
+          </button>
+          <button type="button" class="halus" @click="maafTerbuka = false">Batal</button>
+        </div>
+      </form>
+
+      <form v-if="batalTerbuka" class="bidang form-batal" @submit.prevent="batalkanTagihan">
+        <p class="mungil lemah">
+          Pembatalan tidak menghapus tagihan: statusnya menjadi dibatalkan, alasannya
+          dicatat, dan periodenya dibebaskan sehingga bisa diterbitkan ulang.
+        </p>
+        <MedanForm
+          id="alasan-batal"
+          label="Alasan pembatalan"
+          :galat="batalBidang.alasan"
+          bantuan="Maksimal 500 karakter. Tercatat di jejak audit bersama nama Anda."
+        >
+          <input
+            id="alasan-batal"
+            v-model="batalAlasan"
+            type="text"
+            maxlength="500"
+            required
+            :aria-invalid="Boolean(batalBidang.alasan)"
+          />
+        </MedanForm>
+
+        <PesanBaris v-if="batalGalat" jenis="galat">{{ batalGalat }}</PesanBaris>
+
+        <div class="aksi">
+          <button type="submit" :disabled="batalProses">
+            {{ batalProses ? 'Membatalkan…' : 'Batalkan tagihan' }}
+          </button>
+          <button type="button" class="halus" @click="batalTerbuka = false">Tutup</button>
+        </div>
+      </form>
 
       <form v-if="bayarTerbuka" class="bidang form-bayar" @submit.prevent="catatPembayaran">
         <div class="baris-bidang">
@@ -705,6 +1016,47 @@ onMounted(() => {
   background: #fbfcfe;
   border: 1px solid var(--garis);
   border-radius: 10px;
+}
+
+.form-maaf,
+.form-batal {
+  padding: 14px;
+  background: #fbfcfe;
+  border: 1px solid var(--garis);
+  border-radius: 10px;
+}
+
+/* Tindakan yang mengubah angka tanpa mencatat uang masuk diberi garis atas
+   tipis: ia bukan lanjutan dari "Catat pembayaran", dan menempatkannya tanpa
+   pemisah membuat dua tindakan yang akibatnya berbeda terlihat sederajat. */
+.aksi-tindakan {
+  padding-top: 10px;
+  border-top: 1px dashed var(--garis);
+}
+
+.bagikan {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--garis);
+  align-items: center;
+}
+
+.kotak-batal,
+.kotak-maaf {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #fbfcfe;
+  border-left: 3px solid var(--garis);
+  border-radius: 0 8px 8px 0;
+}
+
+.kotak-batal {
+  border-left-color: var(--bahaya);
+}
+
+.kotak-batal p,
+.kotak-maaf p {
+  margin: 0;
 }
 
 .riwayat-bayar {

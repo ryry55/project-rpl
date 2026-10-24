@@ -27,13 +27,13 @@ Versi 1.0 · 26 Oktober 2026
 └───────────────────────────┬──────────────────────────────────┘
                             │ HTTP internal
 ┌───────────────────────────▼──────────────────────────────────┐
-│  Laravel 11 (API-only) · PHP 8.3                             │
+│  Laravel 12.70.1 (API-only) · PHP 8.3.36                     │
 │  Controller → Domain → Eloquent → PostgreSQL                 │
 └───────────────────────────┬──────────────────────────────────┘
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
 │  PostgreSQL 16                                               │
-│  21 tabel · 8 trigger (7 append-only) · CHECK sebagai pagar  │
+│  22 tabel · 8 trigger (7 append-only) · CHECK sebagai pagar  │
 └──────────────────────────────────────────────────────────────┘
 
   di luar jalur utama:
@@ -73,11 +73,11 @@ return (new TagihanResource($hasil->tagihan))->response()->setStatusCode(201);
 
 ### 2.2 Domain — tempat semua aturan tinggal
 
-41 kelas di `app/Domain/`, dikelompokkan per masalah, bukan per tabel:
+43 kelas di `app/Domain/`, dikelompokkan per masalah, bukan per tabel:
 
 | Folder | Isi | Contoh |
 |---|---|---|
-| `Billing/` | Hitung dan terbitkan tagihan, denda, tunggakan | `Kalkulator`, `PenghitungDenda`, `PenerbitTagihan`, `DaftarTunggakan` |
+| `Billing/` | Hitung dan terbitkan tagihan, denda, tunggakan, pembatalan, pemaafan | `Kalkulator`, `PenghitungDenda`, `PenerbitTagihan`, `DaftarTunggakan`, `PembatalTagihan`, `PemaafDenda` |
 | `Kebijakan/` | Kebijakan kos, deposit | `PenyelesaiKebijakan`, `PenentuDeposit`, `PilihanKebijakan` |
 | `Persetujuan/` | Usulan perubahan dan pemutusnya | `PengajuUsulan`, `PemutusUsulan`, `PenerapPerubahan` |
 | `Pembayaran/` | Catat, balik, dan verifikasi pembayaran; rekap | `PencatatPembayaran`, `PembalikPembayaran`, `PencatatVerifikasi`, `RekapPendapatan` |
@@ -400,26 +400,27 @@ penutupan. Daftar yang tidak dicatat akan terlupakan.
 
 ```
 api/
-  app/Domain/            41 kelas, 10 folder - semua aturan
-  app/Http/Controllers/  21 pengendali — hanya menerjemahkan
+  app/Domain/            43 kelas, 10 folder - semua aturan
+  app/Http/Controllers/  22 pengendali — hanya menerjemahkan
   app/Http/Middleware/   6 middleware
   app/Http/Requests/     validasi
-  app/Http/Resources/    bentuk JSON
-  app/Models/            19 model — hanya bentuk data
-  database/migrations/   31 migrasi
-  tests/                 31 berkas tes, 636 tes
+  app/Http/Resources/    14 resource — bentuk JSON
+  app/Models/            20 model — hanya bentuk data
+  database/migrations/   34 migrasi
+  tests/                 34 berkas tes, 687 tes
 
 web/
-  src/views/             25 view (7 publik + 13 pemilik + 5 panel pemilik)
+  src/views/             26 view (7 publik + 14 pemilik + 5 panel pemilik)
   src/komponen/          6 komponen ui + 3 komponen bersama
   src/direktif/          kartu-tabel.js
   src/style.css          630 baris — seluruh design system
+  src/bagikan.js         pesan WhatsApp & salin papan klip (REV-UI-03)
   public/                manifest, sw.js, ikon
   skrip/                 buat-ikon.mjs, pasang-kartu-tabel.mjs
 
 docs/
   produk/                9 dokumen ini
-  uji/                   22 skrip E2E + perkakas
+  uji/                   23 skrip E2E + perkakas
   dfd/                   4 diagram (Gane-Sarson, Yourdon)
   charter/               Project Charter
 ```

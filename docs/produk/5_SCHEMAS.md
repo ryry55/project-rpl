@@ -14,13 +14,13 @@ Versi 1.0 · 26 Oktober 2026 · PostgreSQL 16
 
 ## 1. Gambaran
 
-**21 tabel** (di luar tabel infrastruktur Laravel: `cache`, `cache_locks`,
+**22 tabel** (di luar tabel infrastruktur Laravel: `cache`, `cache_locks`,
 `jobs`, `job_batches`, `failed_jobs`, `migrations`, `password_reset_tokens`,
-`personal_access_tokens`, `sessions`). Dua puluh di antaranya adalah tabel
-domain yang diuraikan di §2; yang kedua puluh satu adalah `notifications` milik
+`personal_access_tokens`, `sessions`). Dua puluh satu di antaranya adalah tabel
+domain yang diuraikan di §2; yang kedua puluh dua adalah `notifications` milik
 kanal in-app bawaan Laravel.
 
-Total di skema `public`: **30 tabel**.
+Total di skema `public`: **31 tabel**.
 
 ```
                     ┌──────────┐
@@ -56,6 +56,10 @@ Total di skema `public`: **30 tabel**.
    ┌───────────────┐        ┌──────────┐
    │usulan_perubahan│        │log_audit │ (append-only, seluruh entitas)
    └───────────────┘        └──────────┘
+
+   ┌──────────┐
+   │ rekening │  tujuan pembayaran (transfer / QRIS), bukan angka tagihan
+   └──────────┘
 ```
 
 ### 1.1 Pemisahan yang paling mudah salah
@@ -275,10 +279,37 @@ kesepakatan awal.
 | `masa_tenggang` | smallint | ya | **snapshot** |
 | `total_final` | numeric(14,0) | ya | |
 | `terbit_pada` | timestamp(0) | tidak | |
+| `denda_dimaafkan` | numeric(14,0) | tidak | bawaan 0; CHECK ≥ 0 |
+| `alasan_maaf_denda` | varchar(500) | ya | wajib bila `denda_dimaafkan > 0` |
+| `denda_dimaafkan_oleh` | bigint | ya | FK → `users` RESTRICT |
+| `denda_dimaafkan_pada` | timestamp(0) | ya | |
+| `alasan_batal` | varchar(500) | ya | wajib bila `status = 'dibatalkan'` |
+| `dibatalkan_oleh` | bigint | ya | FK → `users` RESTRICT |
+| `dibatalkan_pada` | timestamp(0) | ya | |
 
-**UNIQUE:** `(kontrak_id, periode)` — **R-02**, penjaga tagihan ganda.
+**UNIQUE parsial:** `(kontrak_id, periode) WHERE status <> 'dibatalkan'` —
+**R-02**, penjaga tagihan ganda. Sejak REV-FIN-02 index-nya **parsial**: dua
+tagihan *hidup* untuk satu periode tetap ditolak, tetapi periode yang tagihannya
+sudah dibatalkan bisa diterbitkan ulang. Sebelumnya index penuh membuat satu
+tagihan yang salah terbit mengunci periode itu selamanya.
+
+**CHECK:** `tagihan_batal_ada_alasan` (`status <> 'dibatalkan' OR alasan_batal
+IS NOT NULL`, `NOT VALID`), `tagihan_denda_dimaafkan_tidak_negatif`,
+`tagihan_maaf_denda_ada_alasan`, `tagihan_batal_tanpa_pemaafan`.
 
 **Indeks:** `(status, jatuh_tempo)` untuk daftar tunggakan.
+
+**Kenapa pemaafan denda berupa kolom, bukan tabel tersendiri.** Satu kolom pada
+baris yang sama tidak bisa terlupa saat menjumlahkan. Tabel `pemaafan_denda`
+terpisah akan menuntut setiap penjumlahan denda — `total()`, `totalDibebankan()`,
+rekap, piutang — untuk ikut menjumlahkannya, dan satu tempat yang terlupa
+menghasilkan angka yang salah tanpa galat apa pun. Kolomnya negatif-by-design:
+`denda` yang dibaca layar adalah nilai **neto**, sementara `denda_sebelum_maaf`
+tetap dikirim supaya penghuni bisa melihat dendanya pernah ada.
+
+**Kenapa pembatalan tidak menghapus baris.** Nomor tagihan yang pernah disebut
+ke penghuni harus tetap bisa dijawab. Yang dibebaskan hanya periodenya, lewat
+index parsial di atas.
 
 **Kolom snapshot (R-06).** Menaikkan tarif hari ini tidak boleh mengubah tagihan
 bulan lalu. Karena itu `tarif_terpakai` dan `kebijakan_terpakai` adalah salinan
@@ -579,9 +610,50 @@ Aturan memakai `aktif` sebagai penanda, bukan dihapus. Portal penghuni menyaring
 
 ---
 
+### 2.20 `rekening` — tujuan pembayaran (REV-UI-05)
+
+| Kolom | Tipe | Null | Bawaan |
+|---|---|---|---|
+| `id` | bigint | tidak | |
+| `jenis` | varchar(20) | tidak | `'transfer'` — `transfer` \| `qris` |
+| `nama` | varchar(60) | tidak | nama bank atau penyedia |
+| `nomor` | varchar(60) | ya | nomor rekening / identitas merchant |
+| `atas_nama` | varchar(80) | ya | |
+| `catatan` | varchar(200) | ya | |
+| `aktif` | boolean | tidak | `true` |
+| `urutan` | smallint | tidak | `0` |
+
+**Indeks:** `(aktif, urutan)`.
+
+**Kenapa tabel tersendiri, bukan jenis `kebijakan_kos` baru.** Bentuk
+`kebijakan_kos` adalah satu nilai pilihan ditambah kolom angka bertipe
+(`persen`, `nominal`, `masa_tenggang`, `tanggal`). Nomor rekening adalah teks
+bebas; menaruhnya di sana berarti menambah satu kolom `teks` yang selalu kosong
+di seluruh baris jenis lain. `kebijakan_kos` juga dirancang satu baris per
+dimensi, sedangkan satu kos wajar punya beberapa tujuan bayar sekaligus.
+
+**Kenapa tidak append-only**, berbeda dari `tarif_sewa`/`kebijakan_kos`/
+`komponen_biaya`. Tidak ada angka uang yang dihitung dari baris ini: mengganti
+nomor rekening hari ini tidak mengubah tagihan bulan lalu, karena tagihan tidak
+pernah membacanya. Yang dijaga adalah jejaknya — setiap tambah, ubah, dan hapus
+menulis `log_audit` dengan salinan baris lengkap, dan itulah yang menjawab "dulu
+saya transfer ke mana".
+
+**`nomor` boleh kosong** karena QRIS statis bisa hanya berupa gambar tanpa nomor
+yang perlu dibaca manusia. Memaksa kolom ini terisi membuat pemilik mengarang
+angka supaya formulirnya mau tersimpan.
+
+**Menulis hanya pemilik**, membaca juga pengelola. Nomor rekening adalah alamat
+uang masuk: pengelola yang boleh menggantinya bisa mengarahkan seluruh setoran
+penghuni ke rekeningnya sendiri, lalu menandai tagihannya lunas dengan wewenang
+`catat_pembayaran` yang memang ia punya.
+
+---
+
 ## 3. Trigger append-only
 
-Tujuh trigger, semuanya berpasangan (UPDATE dan DELETE):
+Delapan trigger: tujuh pasang `append_only` (UPDATE dan DELETE) ditambah satu
+trigger penjaga pembalik.
 
 | Tabel | Trigger |
 |---|---|
@@ -592,6 +664,7 @@ Tujuh trigger, semuanya berpasangan (UPDATE dan DELETE):
 | `pembayaran` | `pembayaran_append_only` |
 | `verifikasi_pembayaran` | `verifikasi_pembayaran_append_only` |
 | `persetujuan_pdp` | `persetujuan_pdp_append_only` |
+| `pembayaran` (INSERT) | `pembalik_tolak_pembalik_bertingkat` — pembalik tidak boleh punya pembalik |
 
 **Kenapa trigger, bukan hanya konvensi kode.** Konvensi dilanggar oleh kode baru
 yang tidak tahu konvensinya, oleh `UPDATE` manual di `psql`, dan oleh migrasi
@@ -610,7 +683,7 @@ Indeks ini bukan untuk kecepatan — ia menegakkan aturan bisnis.
 | Indeks | Aturan |
 |---|---|
 | `kontrak_satu_aktif_per_kamar` (partial unique) | Satu kamar = satu kontrak aktif |
-| `tagihan_kontrak_id_periode_unique` | **R-02** — tidak ada tagihan ganda |
+| `tagihan_kontrak_periode_aktif_unique` (partial unique, `WHERE status <> 'dibatalkan'`) | **R-02** — tidak ada dua tagihan *hidup* untuk satu periode; periode yang dibatalkan boleh diterbitkan ulang |
 | `tarif_sewa_kamar_id_berlaku_dari_unique` | Satu tarif per kamar per tanggal |
 | `kebijakan_kos_tipe_kamar_tanggal_unique` (NULLS NOT DISTINCT) | Satu kebijakan per dimensi per tanggal |
 | `komponen_biaya_nama_tanggal_kamar_unique` (NULLS NOT DISTINCT) | Tidak ada komponen ganda |

@@ -155,11 +155,41 @@ bulan depan akan mengubah tagihan bulan lalu lewat join.
 | Titik uji | terbit periode sama dua kali; terbit periode berbeda; terbit setelah tagihan lama dibatalkan |
 
 Diperiksa **dua lapis**: proses ini membaca D4 lebih dulu supaya pelanggaran
-ditolak dengan pesan yang bisa dijelaskan, dan unique index `(kontrak_id,
-periode)` menjadi penjaga terakhir bila dua permintaan tiba bersamaan. Lapis
-kedua penting karena pemeriksaan baca-lalu-tulis selalu punya celah balapan;
-lapis pertama penting karena galat basis data bukan pesan yang bisa dibaca
-pemilik kos.
+ditolak dengan pesan yang bisa dijelaskan, dan unique index parsial
+`(kontrak_id, periode) WHERE status <> 'dibatalkan'` menjadi penjaga terakhir
+bila dua permintaan tiba bersamaan. Lapis kedua penting karena pemeriksaan
+baca-lalu-tulis selalu punya celah balapan; lapis pertama penting karena galat
+basis data bukan pesan yang bisa dibaca pemilik kos.
+
+**Sejak REV-FIN-02 index penjaganya parsial.** Syaratnya bukan lagi "tidak ada
+baris dengan periode itu", melainkan "tidak ada baris **hidup** dengan periode
+itu". Konsekuensinya: periode yang tagihannya sudah dibatalkan bisa diterbitkan
+ulang, sementara dua tagihan hidup untuk satu periode tetap ditolak. Tanpa
+kelonggaran ini, satu tagihan yang salah terbit mengunci periode itu selamanya —
+dan pemilik tidak punya jalan lain selain menghapus baris, yang akan menghapus
+nomor tagihan yang mungkin sudah disebut ke penghuni.
+
+Karena itu **pembatalan tagihan (REV-FIN-02) adalah pasangan dari proses ini**,
+bukan proses tersendiri. Ia tidak dihitung sebagai sub-proses di sini karena
+tidak menerbitkan apa pun; ia hanya membebaskan periode yang dikunci 3.5.
+
+| Aspek | Isi |
+|---|---|
+| Masukan | id tagihan, alasan pembatalan |
+| Keluaran | D4 dengan `status = 'dibatalkan'` |
+| Aturan | **REV-FIN-02** |
+| Perilaku | Status berubah, **baris tidak dihapus**. `alasan_batal`, `dibatalkan_oleh`, dan `dibatalkan_pada` diisi. Tagihan yang sudah menerima uang **ditolak** — jalan yang benar adalah menarik pembayarannya lebih dulu lewat baris pembalik |
+| Titik uji | batal tanpa alasan; batal tagihan berbayar; terbit ulang periode yang sudah dibatalkan; batal dua kali |
+
+Pembatalan bukan penghapusan karena tiga hal yang harus tetap bisa dijawab:
+nomor tagihan yang pernah disebut ke penghuni, alasan kenapa angkanya tidak
+ditagih lagi, dan siapa yang memutuskan. Menghapus baris menjawab ketiganya
+dengan "tidak tahu".
+
+Tagihan yang sudah menerima uang ditolak **bukan karena teknis**, melainkan
+karena membatalkannya akan membuat uang yang sudah tercatat menggantung pada
+tagihan yang tidak lagi ditagih. Urutannya harus: balik pembayaran (uang keluar
+dari tagihan itu, tetap tercatat sebagai baris negatif), lalu batalkan.
 
 ---
 
@@ -272,6 +302,38 @@ Tiga hal yang menentukan kebenaran angka di sini:
 3. **Tagihan lunas atau dibatalkan berhenti berjalan.** Tanpa pemeriksaan ini,
    tagihan yang dibayar pada hari ke-100 akan tetap menampilkan denda 30%.
 
+**Sejak REV-FIN-07 denda juga berhenti pada hari pokoknya lunas, bukan hanya
+pada hari tagihannya lunas.** Ini berbeda dari poin 3 dan perlu dijelaskan
+karena keduanya mudah tertukar:
+
+| Keadaan | Denda |
+|---|---|
+| Tagihan `lunas` (pokok + denda terbayar) | 0, dan `total_final` sudah dibekukan |
+| Tagihan `sebagian`, tetapi **pokoknya** sudah tertutup penuh | **dibekukan** pada tanggal pokok lunas, bukan 0 |
+| Tagihan `dibatalkan` | 0 |
+
+Alasannya: penghuni yang sudah melunasi pokok tetapi belum membayar dendanya
+tidak lagi menunda uang sewa. Membiarkan denda terus bertambah membuat satu
+minggu keterlambatan menjadi utang yang tumbuh selamanya, dan tidak ada angka
+yang bisa disepakati saat pemilik menagih. Karena itu `PenghitungDenda` mencari
+tanggal pokok lunas (`Tagihan::tanggalPokokLunas()`) dan memakai
+`min(hari_ini, tanggal_pokok_lunas)` sebagai acuan — bukan menghapus dendanya.
+
+**Denda yang berhenti bukan denda yang dimaafkan.** Dua hal berbeda:
+
+- **Berhenti** karena pokok lunas — keputusan sistem, tidak butuh persetujuan,
+  dan `denda_sebelum_maaf` tidak berubah.
+- **Dimaafkan** oleh pemilik (`POST /tagihan/{id}/maaf-denda`) — keputusan
+  manusia, `peran:pemilik`, wajib beralasan, dan disimpan di kolom
+  `denda_dimaafkan`. `denda` yang dibaca layar adalah nilai **neto**, sementara
+  `denda_sebelum_maaf` tetap dikirim supaya penghuni bisa melihat dendanya
+  pernah ada.
+
+Memaafkan bukan menghapus jejak: `denda_dimaafkan` adalah kolom pada baris
+tagihan yang sama, sehingga setiap penjumlahan denda (`total()`,
+`totalDibebankan()`, rekap, piutang) otomatis ikut mengurangi tanpa ada tempat
+yang bisa terlupa.
+
 Bentuk denda tidak selalu persen harian. Yang dikenal sistem ada empat:
 `persen_harian`, `persen_bulanan` (persen per bulan keterlambatan, sebulan
 dihitung penuh), `nominal_tetap` (angka rupiah tetap per bulan), dan
@@ -334,11 +396,16 @@ dibuka, angkanya adalah angka hari itu.
 | Sub-proses level 2 | 9 (3.1–3.5, 4.1–4.4) |
 | Penyimpanan data | 6 |
 | Entitas eksternal | 3 |
-| Aturan bisnis | 7 |
+| Aturan bisnis | 7 + 4 temuan audit R3 |
 
 Sembilan sub-proses inilah yang menjadi dasar penyusunan tabel pengujian black
 box: setiap sub-proses menyumbang minimal dua titik batas, sehingga totalnya
 lebih dari cukup untuk membuktikan sistem diuji, bukan hanya didemokan.
+
+**Pembatalan tagihan (REV-FIN-02) sengaja tidak dihitung sebagai sub-proses
+tersendiri.** Ia tidak menerbitkan apa pun — ia hanya membebaskan periode yang
+dikunci 3.5, dan menggambarnya sebagai kotak terpisah akan menyiratkan bahwa ia
+punya aturan hitung sendiri. Uraiannya ada di dalam §3.5 di atas.
 
 ## Yang sengaja tidak didekomposisi
 

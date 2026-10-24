@@ -2,10 +2,10 @@
 /**
  * Pengaturan notifikasi (T25).
  *
- * Satu matriks: delapan peristiwa x dua kanal. Bentuknya sengaja berupa tabel
- * centang, bukan delapan kartu - pertanyaan yang dijawab layar ini adalah
+ * Satu matriks: sembilan peristiwa x dua kanal. Bentuknya sengaja berupa tabel
+ * centang, bukan sembilan kartu - pertanyaan yang dijawab layar ini adalah
  * "peristiwa mana yang mau saya terima lewat apa", dan pertanyaan itu dibaca
- * sebagai perbandingan, bukan sebagai delapan keputusan terpisah.
+ * sebagai perbandingan, bukan sebagai sembilan keputusan terpisah.
  *
  * Dua hal yang ditentukan server dan **tidak** disalin ke sini:
  *
@@ -48,7 +48,7 @@ const kanalWajib = ref([])
  * Dibuat sebagai objek reaktif, bukan dihitung dari respons server setiap kali
  * dirender. Centang harus bisa diubah tanpa memanggil server, dan menyimpan
  * baru terjadi saat tombol ditekan - matriks yang langsung tersimpan per
- * centang akan mengirim delapan permintaan untuk satu kali pengaturan.
+ * centang akan mengirim sembilan permintaan untuk satu kali pengaturan.
  */
 const matriks = ref({})
 
@@ -202,7 +202,7 @@ onMounted(muat)
   text-align: center;
 }
 
-/* Kotak centang diperbesar dan dispusatkan: matriks delapan baris dibaca dengan
+/* Kotak centang diperbesar dan dispusatkan: matriks sembilan baris dibaca dengan
    mata menyapu satu kolom, dan kotak 13px di tengah sel membuat kolomnya sulit
    diikuti. */
 .pilihan-kanal {

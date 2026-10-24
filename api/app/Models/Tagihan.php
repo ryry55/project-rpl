@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -45,6 +46,13 @@ class Tagihan extends Model
         'plafon_persen',
         'masa_tenggang',
         'terbit_pada',
+        'alasan_batal',
+        'dibatalkan_oleh',
+        'dibatalkan_pada',
+        'denda_dimaafkan',
+        'alasan_maaf_denda',
+        'denda_dimaafkan_oleh',
+        'denda_dimaafkan_pada',
     ];
 
     /**
@@ -66,6 +74,9 @@ class Tagihan extends Model
             'plafon_persen' => 'decimal:2',
             'masa_tenggang' => 'integer',
             'terbit_pada' => 'datetime',
+            'dibatalkan_pada' => 'datetime',
+            'denda_dimaafkan' => 'decimal:0',
+            'denda_dimaafkan_pada' => 'datetime',
         ];
     }
 
@@ -127,6 +138,65 @@ class Tagihan extends Model
     public function pembayaran(): HasMany
     {
         return $this->hasMany(Pembayaran::class)->orderBy('tanggal_pembayaran')->orderBy('id');
+    }
+
+    public function pembatal(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'dibatalkan_oleh');
+    }
+
+    public function pemaafDenda(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'denda_dimaafkan_oleh');
+    }
+
+    /**
+     * Tanggal saat pokok tagihan ini terbayar penuh, atau null bila belum.
+     *
+     * Dipakai `PenghitungDenda` untuk membekukan denda pada hari pokoknya lunas
+     * (REV-FIN-07). Sebelum ini denda terus bertambah sampai plafon meski
+     * pokoknya sudah dibayar penuh — dan itu bukan lagi menagih keterlambatan,
+     * itu menagih sesuatu yang sudah dibayar.
+     *
+     * **Denda dibekukan, bukan dinolkan.** Membuatnya nol akan memberi hadiah
+     * kepada penghuni yang menunda pokok 100 hari: ia membayar pokoknya, lalu
+     * seluruh dendanya lenyap. Yang benar adalah denda berhenti bertambah pada
+     * hari pokoknya lunas, sebesar nilai pada hari itu.
+     *
+     * Ditelusuri dari baris pembayaran berurutan tanggal, bukan dari kolom
+     * penanda: penanda bisa basi setelah pembalikan, dan penanda basi tentang
+     * uang lebih buruk daripada satu query tambahan.
+     *
+     * Jalur cepat: bila `totalDibayar()` belum mencapai pokok, tidak perlu
+     * menelusuri apa pun. Itu keadaan hampir semua tagihan, sehingga daftar
+     * tagihan tidak membayar apa-apa untuk fitur ini.
+     */
+    public function tanggalPokokLunas(): ?CarbonImmutable
+    {
+        $pokok = (int) $this->pokok;
+
+        if ($pokok <= 0 || $this->totalDibayar() < $pokok) {
+            return null;
+        }
+
+        // Baris dibaca berurutan tanggal. Pembalik bernilai negatif dan ikut
+        // terjumlah, sehingga pembayaran yang ditarik kembali menunda tanggal
+        // lunasnya — persis seperti yang terjadi sebenarnya.
+        $kumulatif = 0;
+
+        foreach ($this->pembayaran()->get(['jumlah', 'tanggal_pembayaran']) as $baris) {
+            $kumulatif += (int) $baris->jumlah;
+
+            if ($kumulatif >= $pokok) {
+                return CarbonImmutable::parse($baris->tanggal_pembayaran)->startOfDay();
+            }
+        }
+
+        // Jumlahnya sudah cukup tetapi tidak ada baris yang melewatinya: hanya
+        // mungkin bila `pokok` nol atau barisnya hilang. Mengembalikan null
+        // membuat denda tetap berjalan — pilihan yang salah dengan arah yang
+        // aman, karena menagih lebih sedikit tidak bisa dituntut.
+        return null;
     }
 
     /** Total uang yang sudah diterima untuk tagihan ini. */

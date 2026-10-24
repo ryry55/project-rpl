@@ -90,6 +90,12 @@ class TunggakanHttpTest extends TestCase
                 ],
             ],
             'terbit_pada' => now(),
+            // Sejak REV-FIN-02, baris berstatus `dibatalkan` wajib beralasan
+            // (CHECK `tagihan_batal_ada_alasan`). Tes ini membuat tagihan batal
+            // langsung lewat model, jadi alasannya harus ikut diisi.
+            'alasan_batal' => $status === Tagihan::STATUS_DIBATALKAN
+                ? 'Dibatalkan oleh tes: tagihan sengaja dibuat batal.'
+                : null,
         ]);
     }
 

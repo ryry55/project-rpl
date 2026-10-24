@@ -97,6 +97,8 @@ Selektor ini dipakai skrip E2E dan **tidak boleh diganti namanya**:
 .satu-usulan  .aksi-usulan  .lencana-tipe  .lencana-akun  .lencana-versi
 .tautan-data  .pesan-tautan  .daftar-data  .isi-pdp  .kartu-metode
 .kisi-metode  .panel-piutang  .tabel-tunai  .tabel-pembayaran
+.bagikan  .kotak-batal  .kotak-maaf  .form-batal  .form-maaf
+.aksi-tindakan  .daftar-rekening  .satu-rekening  .nomor-rekening
 ```
 
 Id yang dipakai: `#email`, `#password`, `#periode-massal`, `#kontrak`,
@@ -104,7 +106,9 @@ Id yang dipakai: `#email`, `#password`, `#periode-massal`, `#kontrak`,
 `#berlaku-kebijakan`, `#nama-fasilitas`, `#judul-aturan`, `#isi-aturan`,
 `#daftar-kategori`, `#nama-pengelola`, `#email-pengelola`, `#nilai-tarif`,
 `#berlaku-tarif`, `#saring-usulan`, `#alasan-{id}`, `#email-lupa`,
-`#password-lama`, `#password-baru`, `#password-ulang`, `#konfirmasi-hapus`.
+`#password-lama`, `#password-baru`, `#password-ulang`, `#konfirmasi-hapus`,
+`#alasan-batal`, `#maaf-jumlah`, `#maaf-alasan`, `#rekening-jenis`,
+`#rekening-nama`, `#rekening-nomor`, `#rekening-atas-nama`, `#rekening-catatan`.
 
 `PanelKartu` harus tetap `<section class="kartu panel">`.
 

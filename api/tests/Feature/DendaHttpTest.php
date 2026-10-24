@@ -89,6 +89,11 @@ class DendaHttpTest extends TestCase
                 ], $denda),
             ],
             'terbit_pada' => now(),
+            // Baris batal wajib beralasan sejak REV-FIN-02 (CHECK
+            // `tagihan_batal_ada_alasan`), termasuk yang dibuat tes.
+            'alasan_batal' => $status === Tagihan::STATUS_DIBATALKAN
+                ? 'Dibatalkan oleh tes: tagihan sengaja dibuat batal.'
+                : null,
         ]);
     }
 

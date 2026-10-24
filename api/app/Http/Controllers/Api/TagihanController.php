@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Billing\PemaafDenda;
+use App\Domain\Billing\PembatalTagihan;
 use App\Domain\Billing\PembayaranDitolak;
 use App\Domain\Billing\PencatatPembayaran;
 use App\Domain\Billing\PenerbitanMassal;
@@ -23,6 +25,7 @@ use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TagihanController extends Controller
 {
@@ -31,6 +34,8 @@ class TagihanController extends Controller
         private readonly PenerbitanMassal $penerbitanMassal,
         private readonly PencatatPembayaran $pencatatPembayaran,
         private readonly PenyelesaiKebijakan $penyelesaiKebijakan,
+        private readonly PembatalTagihan $pembatal,
+        private readonly PemaafDenda $pemaaf,
         private readonly WaktuSistem $waktu,
         private readonly Pemberitahu $pemberitahu,
     ) {}
@@ -139,6 +144,11 @@ class TagihanController extends Controller
                 'pembayaran.penerima',
                 'kontrak.kamar',
                 'kontrak.penghuni',
+                // Pelaku pembatalan dan pemaafan ikut dimuat: tanpa ini,
+                // `whenLoaded` menghilangkan namanya dan layar hanya bisa
+                // menulis "dibatalkan" tanpa siapa.
+                'pembatal',
+                'pemaafDenda',
             ])
             ->withSum('pembayaran as total_dibayar', 'jumlah')
             ->findOrFail($tagihan->getKey());
@@ -231,6 +241,100 @@ class TagihanController extends Controller
         }
 
         return 'jumlah';
+    }
+
+    /**
+     * Batalkan tagihan yang salah terbit (REV-FIN-02).
+     *
+     * Pembatalan **tidak** menghapus baris: statusnya berubah menjadi
+     * `dibatalkan` dan alasan, waktu, serta pelakunya dicatat. Yang dibebaskan
+     * adalah periodenya — index unik `(kontrak_id, periode)` sejak migrasi ini
+     * parsial terhadap `status <> 'dibatalkan'`, sehingga periode itu bisa
+     * diterbitkan ulang tanpa menabrak tagihan lama.
+     *
+     * Ditolak 422 bila tagihan sudah menerima uang. Membatalkannya akan
+     * meninggalkan uang yang tidak menempel pada tagihan mana pun; jalan yang
+     * benar adalah menarik pembayarannya lebih dulu lewat baris pembalik.
+     */
+    public function batal(Request $request, Tagihan $tagihan): JsonResponse
+    {
+        $data = $request->validate([
+            'alasan' => ['required', 'string', 'min:5', 'max:500'],
+        ], [
+            'alasan.required' => 'Sebutkan alasan pembatalan tagihan ini.',
+            'alasan.min' => 'Alasan pembatalan terlalu pendek. Jelaskan sedikitnya lima karakter.',
+            'alasan.max' => 'Alasan pembatalan terlalu panjang (maksimal 500 karakter).',
+        ]);
+
+        try {
+            $tagihan = $this->pembatal->batalkan($tagihan, $data['alasan']);
+        } catch (PembayaranDitolak $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'errors' => ['alasan' => [$e->getMessage()]],
+            ], 422);
+        }
+
+        $tagihan->load([
+            'rincian',
+            'kontrak.kamar',
+            'kontrak.penghuni',
+            'pembatal',
+        ]);
+
+        return response()->json(['data' => new TagihanResource($tagihan)]);
+    }
+
+    /**
+     * Maafkan sebagian atau seluruh denda sebuah tagihan (REV-FIN-07).
+     *
+     * `jumlah` boleh melebihi denda hari ini: pemilik yang memaafkan Rp 500.000
+     * saat denda baru Rp 300.000 sedang memaafkan denda yang akan datang juga.
+     * Hasil akhirnya dijepit ke nol di `PenghitungDenda`, bukan ditolak di
+     * sini — menolaknya memaksa pemilik menghitung sendiri berapa denda pada
+     * hari pelunasan.
+     *
+     * `jumlah: 0` menarik kembali pemaafan. Itu sengaja diizinkan: pemaafan
+     * yang diberikan keliru harus bisa dibatalkan tanpa menyunting basis data.
+     */
+    public function maafkanDenda(Request $request, Tagihan $tagihan): JsonResponse
+    {
+        $data = $request->validate([
+            'jumlah' => ['required', 'integer', 'min:0'],
+            // Alasan hanya dituntut bila ada yang dimaafkan. `required_if` tidak
+            // bisa menyatakan "lebih besar dari nol", jadi aturannya ditulis
+            // sebagai closure — dan `PemaafDenda` tetap memeriksanya sekali
+            // lagi, karena validator hanya menjaga jalur HTTP.
+            'alasan' => [
+                'nullable',
+                'string',
+                'max:500',
+                Rule::requiredIf(fn () => (int) $request->input('jumlah', 0) > 0),
+            ],
+        ], [
+            'jumlah.required' => 'Sebutkan berapa rupiah denda yang dimaafkan. Isi 0 untuk membatalkan pemaafan.',
+            'jumlah.min' => 'Jumlah yang dimaafkan tidak boleh negatif.',
+            'alasan.required' => 'Sebutkan alasan pemaafan dendanya.',
+            'alasan.max' => 'Alasan pemaafan terlalu panjang (maksimal 500 karakter).',
+        ]);
+
+        try {
+            $tagihan = $this->pemaaf->maafkan(
+                tagihan: $tagihan,
+                jumlah: (int) $data['jumlah'],
+                alasan: (string) ($data['alasan'] ?? ''),
+            );
+        } catch (PembayaranDitolak $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'errors' => ['jumlah' => [$e->getMessage()]],
+            ], 422);
+        }
+
+        $tagihan->load(['rincian', 'pembayaran.verifikasi', 'pembayaran.penerima', 'kontrak.kamar', 'kontrak.penghuni', 'pemaafDenda']);
+        $tagihan->loadSum('pembayaran as total_dibayar', 'jumlah');
+
+        return response()->json(['data' => new TagihanResource($tagihan)]);
     }
 
     /**

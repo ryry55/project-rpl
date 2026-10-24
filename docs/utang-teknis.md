@@ -90,7 +90,9 @@ Penanda memuat selalu lebih dulu ada.
 | Deposit dibaca saat kontrak dibuat, tidak dipakai lagi | Deposit tidak pernah mengurangi tagihan akhir | Perlu keputusan produk, bukan perbaikan kode |
 | Akun yang pernah menangani uang tidak bisa dihapus | `RESTRICT` pada FK `dicatat_oleh`/`diterima_oleh` | Disengaja: jejak uang tidak boleh yatim |
 | Terbit massal mengirim satu email per penghuni, `QUEUE_CONNECTION=sync` | 30 penghuni = 30 email berurutan dalam satu permintaan | Perlu antrean; Render free tidak punya worker persisten |
-| Pembalik pembayaran belum punya tombol di layar | Koreksi salah catat masih lewat API (`POST /pembayaran/{id}/pembalik`) | Endpoint dan penjaganya sudah ada dan teruji; tinggal tombol + formulir alasan di `TagihanView` |
+| Pembalik pembayaran belum punya tombol di layar | Koreksi salah catat masih lewat API (`POST /pembayaran/{id}/pembalik`) | Endpoint dan penjaganya sudah ada dan teruji. R3 menambahkan tombol **batalkan tagihan** dan **maafkan denda**, jadi koreksi uang kini punya layarnya kecuali pembalik pembayaran |
+| Pemaafan denda tidak punya halaman riwayat sendiri | Pemaafan hanya terlihat saat membuka satu tagihan, dan di `log_audit` | Disengaja: pemaafan adalah kolom pada `tagihan`, bukan entitas. Riwayat lengkapnya ada di Jejak audit dengan aksi `denda.maafkan` |
+| Rekening tidak menyimpan gambar QRIS | `jenis: qris` hanya menyimpan teks (nama merchant dan nomor bila ada) | Butuh penyimpanan berkas; Render free tidak punya disk persisten |
 
 ---
 
@@ -112,9 +114,11 @@ Penanda memuat selalu lebih dulu ada.
 
 | Berkas | Masalah |
 |---|---|
-| `SPEC.md` §6 L374 | Masih menulis `komponen_biaya UNIQUE (nama, berlaku_dari)`; kenyataannya `(kamar_id, nama, berlaku_dari)` |
-| `SPEC.md` L259/281/380, `docs/uji/audit-ketertelusuran.md` | Masih menyebut `parameter_denda`, yang sudah dihapus seluruhnya |
-| DFD + SPEC | Masih menyebut 6 data store; `parameter_denda` hilang menyisakan 5 |
+| ~~`SPEC.md` §6 L374~~ | **Sudah diperbaiki di R3.** Kini menulis `UNIQUE (nama, berlaku_dari, kamar_id) NULLS NOT DISTINCT` |
+| ~~`SPEC.md` L259/281/380, `docs/uji/audit-ketertelusuran.md`~~ | **Sudah diperbaiki di R3.** Seluruh sebutan `parameter_denda` diganti `kebijakan_kos`, termasuk nama tes di `pemetaan-kriteria.md` |
+| ~~DFD + SPEC menyebut 6 data store~~ | **Bukan cacat.** Memang 6 store; yang salah adalah sebutan `parameter_denda` di dalamnya, dan itu sudah diganti |
+| ~~`3_ARCHITECTURE.md:30` dan `KONTEKS_PROYEK.md:17` menulis Laravel 11~~ | **Diperbaiki di R7.** Versi sebenarnya Laravel 12.70.1 / PHP 8.3.36 |
+| `revisi.md` dan `docs/revisi.md` | Masih di repo tetapi **tidak di-commit** — keduanya masukan audit, bukan deliverable |
 | Laporan | Menunggu format dari dosen |
 
 ---
@@ -127,7 +131,7 @@ Penanda memuat selalu lebih dulu ada.
 | Tidak ada manifest, service worker, theme-color | **Selesai.** `manifest.webmanifest`, `sw.js`, 4 ikon PNG, `theme-color`; dijaga `uji-pwa.mjs` 22 langkah |
 | Kepala pemilik memakan 360px dari 800px layar | **Selesai.** Terukur turun ke 203px |
 | Target sentuh di bawah 44px | **Selesai** untuk `(pointer: coarse)` |
-| Luberan mendatar di 360px | **Selesai** sejak commit `f2c73f0`, dijaga `uji-tata-letak.mjs` 88/88 |
+| Luberan mendatar di 360px | **Selesai** sejak commit `f2c73f0`, dijaga `uji-tata-letak.mjs` 94/94 |
 
 **Sisa yang belum dikerjakan:**
 
@@ -139,7 +143,7 @@ Penanda memuat selalu lebih dulu ada.
 | `uji-pwa.mjs` memakai build produksi | Service worker tidak didaftarkan saat `npm run dev` | `periksa.sh` sudah memakai image, jadi aman di sana |
 
 **Catatan penting.** Luberan mendatar di 360px **sudah** diperbaiki (commit
-`f2c73f0`) dan dijaga `uji-tata-letak.mjs` 88/88. Jadi aplikasi sekarang *muat*
+`f2c73f0`) dan dijaga `uji-tata-letak.mjs` 94/94. Jadi aplikasi sekarang *muat*
 di ponsel; yang belum adalah *nyaman*.
 
 ---

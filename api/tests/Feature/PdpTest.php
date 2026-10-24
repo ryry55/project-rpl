@@ -383,6 +383,9 @@ class PdpTest extends TestCase
             'tarif_terpakai' => ['prorata' => false],
             'kebijakan_terpakai' => ['denda' => ['tipe' => 'tanpa_denda']],
             'terbit_pada' => now(),
+            // Baris batal wajib beralasan sejak REV-FIN-02 (CHECK
+            // `tagihan_batal_ada_alasan`), termasuk yang dibuat tes.
+            'alasan_batal' => 'Dibatalkan oleh tes: tagihan sengaja dibuat batal.',
         ]);
 
         $this->sebagaiPenghuni()

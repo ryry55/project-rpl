@@ -50,6 +50,17 @@ class TagihanResource extends JsonResource
             'denda' => $denda,
             'total' => $total,
 
+            // Pemaafan denda (REV-FIN-07). Dikirim terpisah dari `denda` supaya
+            // layar bisa menjelaskan angkanya: "denda Rp 450.000, dimaafkan Rp
+            // 450.000" berbeda artinya dari "tidak ada denda", dan hanya angka
+            // nol di `denda` tidak bisa membedakan keduanya.
+            'denda_dimaafkan' => (int) ($this->denda_dimaafkan ?? 0),
+            'alasan_maaf_denda' => $this->alasan_maaf_denda,
+            'denda_dimaafkan_pada' => $this->denda_dimaafkan_pada?->toIso8601String(),
+            'denda_dimaafkan_oleh_nama' => $this->relationLoaded('pemaafDenda')
+                ? $this->pemaafDenda?->name
+                : null,
+
             // Sisa tidak pernah negatif. Kelebihan bayar ditolak sebelum
             // tersimpan, jadi angka negatif di sini hanya akan berarti ada bug —
             // dan `max(0, ...)` membuatnya terlihat sebagai nol, bukan sebagai
@@ -57,6 +68,17 @@ class TagihanResource extends JsonResource
             'dibayar' => $dibayar,
             'sisa' => max(0, $total - $dibayar),
             'lunas_pada_total' => $this->total_final !== null ? (int) $this->total_final : null,
+
+            // Pembatalan tagihan (REV-FIN-02). Baris yang dibatalkan tidak
+            // dihapus, jadi keterangannya harus ikut terbaca: tanpa alasan dan
+            // pelakunya, "dibatalkan" hanya berarti "seseorang memutuskan
+            // sesuatu pada suatu waktu", dan pemilik yang menemukannya enam
+            // bulan kemudian tidak bisa menilai apakah keputusannya masih sah.
+            'alasan_batal' => $this->alasan_batal,
+            'dibatalkan_pada' => $this->dibatalkan_pada?->toIso8601String(),
+            'dibatalkan_oleh_nama' => $this->relationLoaded('pembatal')
+                ? $this->pembatal?->name
+                : null,
 
             // Ringkasan denda ikut dikirim supaya layar tidak perlu memanggil
             // endpoint /denda hanya untuk menampilkan "terlambat 12 hari".
@@ -81,6 +103,12 @@ class TagihanResource extends JsonResource
                 'sisa_hari_ke_plafon' => $hasilDenda->sisaHariKePlafon,
                 'berhenti' => $hasilDenda->berhenti,
                 'alasan_berhenti' => $hasilDenda->alasanBerhenti,
+                // Pemaafan ikut ke ringkasan supaya daftar tagihan bisa
+                // menampilkan "denda Rp 450.000, dimaafkan" tanpa memanggil
+                // `/denda` untuk setiap baris.
+                'denda_sebelum_maaf' => $hasilDenda->dendaSebelumMaaf,
+                'dimaafkan' => $hasilDenda->dimaafkan,
+                'ada_pemaafan' => $hasilDenda->adaPemaafan(),
             ],
 
             'rincian' => $this->whenLoaded('rincian', fn () => $this->rincian->map(fn ($baris) => [
@@ -136,7 +164,22 @@ class TagihanResource extends JsonResource
                         ? ['id' => $this->kontrak->kamar->id, 'nomor' => $this->kontrak->kamar->nomor]
                         : null,
                     'penghuni' => $this->kontrak->penghuni
-                        ? ['id' => $this->kontrak->penghuni->id, 'nama' => $this->kontrak->penghuni->nama]
+                        ? [
+                            'id' => $this->kontrak->penghuni->id,
+                            'nama' => $this->kontrak->penghuni->nama,
+                            // Nomor telepon ikut dikirim (REV-UI-03) karena
+                            // tombol "Kirim lewat WhatsApp" butuh tujuannya.
+                            // Tanpa ini, layar harus memanggil `/penghuni/{id}`
+                            // terpisah hanya untuk satu nomor - satu permintaan
+                            // tambahan per tagihan yang dibuka.
+                            //
+                            // Ini data pribadi, tetapi sudah berada di tangan
+                            // orang yang membacanya: pemilik dan pengelola kos
+                            // melihat nama dan kamar penghuni yang sama di
+                            // baris ini. Penghuni hanya melihat tagihannya
+                            // sendiri (R-07), jadi tidak ada yang bocor.
+                            'no_hp' => $this->kontrak->penghuni->no_hp,
+                        ]
                         : null,
                 ]
                 : null),

@@ -8,7 +8,7 @@ adalah **sumber primer** untuk spec: `/to-spec` membaca ini, bukan mengarang ula
 | Hal | Keputusan | Alasan |
 |---|---|---|
 | Cakupan | **T1–T7 + T9** (8 tiket) | Semua R-01..R-04 dan R-07 terdemokan. T8 (deposit) dan T10 (laporan) ditunda jadi tabel manual di laporan. |
-| Backend | Laravel 11 API-only + PostgreSQL + Sanctum | Sesuai rencana awal, dokumentasi banyak, cocok untuk tugas kampus. |
+| Backend | Laravel 12.70.1 API-only + PostgreSQL + Sanctum | Rencana awal Laravel 11; Composer memasang 12.70.1 karena itu rilis stabil saat proyek dimulai. Selisihnya tidak menyentuh kode aplikasi. |
 | Frontend | Vue 3 + Vite SPA, **modern product feel** | Menggunakan skill desain di fase frontend. Anggaran ~2–3 sesi tambahan. |
 | Notasi DFD | Gane-Sarson (utama), Yourdon tersedia | Lihat `docs/dfd/README.md` bagian 6. |
 | Batas waktu | 22 Desember 2026 (sesuai charter) | ~9 minggu dari sekarang. |

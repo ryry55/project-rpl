@@ -369,6 +369,110 @@ jalankan(async () => {
     const akhiri = await panggilApi(ws, `/kontrak/${siap.kontrakId}/akhiri`, 'POST')
     lapor('pemilik mengakhiri kontrak penghuni uji', akhiri.status === 200, `status ${akhiri.status}`)
 
+    // --- Anonimisasi jejak: pengelola yang dicabut -------------------------
+    //
+    // Inilah satu-satunya jalan yang benar-benar menghasilkan baris jejak
+    // berisi nama orang yang kemudian meminta penghapusan. Urutannya disengaja:
+    // pengelola mencatat pembayaran DULU (supaya namanya masuk jejak), baru
+    // dicabut, baru menghapus akunnya sendiri.
+    //
+    // Blok ini dijalankan SEBELUM penghapusan penghuni pertama, bukan sesudah,
+    // karena ia mencatat pembayaran pada tagihan yang sama. Sejak REV-SEC-04
+    // tagihan yang belum lunas menghalangi penghapusan, jadi urutan lama -
+    // hapus dulu, catat pembayaran kemudian - tidak mungkin lagi: penghapusan
+    // yang dijalankan lebih dulu akan ditolak 409.
+    const EMAIL_MANTAN = 'uji-t28-mantan@kos.test'
+    const NAMA_MANTAN = 'Uji T28 Mantan Pengelola'
+    const SANDI_MANTAN = 'sandi-t28-mantan'
+
+    const buatMantan = await panggilApi(ws, '/pengelola', 'POST', {
+      nama: NAMA_MANTAN,
+      email: EMAIL_MANTAN,
+      wewenang: ['catat_pembayaran'],
+    })
+    lapor('pengelola uji dibuat untuk jalur anonimisasi', buatMantan.status === 201, `status ${buatMantan.status}`)
+    if (buatMantan.status !== 201) throw new Error('pengelola uji gagal dibuat')
+
+    const idMantan = buatMantan.data?.data?.id
+    const aktifMantan = await aktifkanAkun(ws, EMAIL_MANTAN, SANDI_MANTAN, SEJAK)
+    lapor('pengelola uji mengaktifkan akunnya', aktifMantan)
+    if (!aktifMantan) throw new Error('aktivasi pengelola gagal')
+
+    await masukSebagai(ws, EMAIL_MANTAN, SANDI_MANTAN)
+    await tungguSampai(ws, `location.pathname === '/persetujuan-pdp'`, 12000)
+    await evaluasi(
+      ws,
+      `
+      (async () => {
+        const tombol = [...document.querySelectorAll('button')]
+          .find(b => /saya setuju/i.test(b.textContent))
+        if (tombol) tombol.click()
+        await new Promise(r => setTimeout(r, 1500))
+        return location.pathname
+      })()
+    `,
+    )
+
+    const catat = await panggilApi(ws, `/tagihan/${siap.tagihanId}/pembayaran`, 'POST', {
+      jumlah: 1000,
+      tanggal_pembayaran: '2026-02-05',
+      metode: 'tunai',
+    })
+    lapor(
+      'pengelola mencatat pembayaran sehingga namanya masuk jejak audit',
+      catat.status === 201 || catat.status === 200,
+      `status ${catat.status}`,
+    )
+
+    // Pemilik mencabut aksesnya. Sesudah ini ia berperan penghuni - dan
+    // karenanya berhak meminta penghapusan data pribadinya sendiri.
+    await masukSebagai(ws, 'pemilik@kos.test')
+    const cabut = await panggilApi(ws, `/pengelola/${idMantan}`, 'DELETE')
+    lapor('pemilik mencabut akses pengelola uji', cabut.status === 200, `status ${cabut.status}`)
+
+    const auditSebelum = await panggilApi(ws, '/audit-log')
+    const jejakSebelum = (auditSebelum.data?.data || []).filter(
+      (j) => j.aktor_nama === NAMA_MANTAN,
+    )
+    lapor(
+      'jejak audit memuat nama pengelola sebelum ia menghapus akunnya',
+      jejakSebelum.length > 0,
+      `${jejakSebelum.length} baris`,
+    )
+
+    // --- Lunasi tagihan penghuni yang akan dihapus -------------------------
+    //
+    // Sejak REV-SEC-04 penghuni yang masih punya tagihan `belum_bayar` atau
+    // `sebagian` TIDAK boleh menghapus akunnya: sesudah namanya menjadi
+    // "pengguna dihapus" tidak ada lagi yang bisa ditagih atas namanya, dan
+    // utangnya ikut lenyap bersama identitasnya. Karena itu utangnya
+    // diselesaikan lebih dulu - dan itu justru membuat uji ini lebih kuat:
+    // yang dihapus adalah penghuni yang catatan keuangannya sudah tuntas.
+    //
+    // Nominalnya dibaca dari `sisa`, bukan dihitung ulang di sini: `sisa`
+    // sudah memperhitungkan denda berjalan, dan menebaknya di skrip berarti
+    // menguji salinan rumus, bukan rumusnya.
+    const tagihanKini = await panggilApi(ws, '/tagihan')
+    const baris = (tagihanKini.data?.data || []).find((t) => t.id === siap.tagihanId)
+    lapor(
+      'tagihan uji masih ada dan bisa dibaca sebelum pelunasan',
+      Boolean(baris),
+      baris ? `status ${baris.status}, sisa ${baris.sisa}` : 'tidak ditemukan',
+    )
+
+    if (baris && Number(baris.sisa) > 0) {
+      const lunasi = await panggilApi(ws, `/tagihan/${siap.tagihanId}/pembayaran`, 'POST', {
+        jumlah: Number(baris.sisa),
+        tanggal_pembayaran: '2026-02-06',
+        metode: 'transfer',
+      })
+      lapor(
+        'pemilik melunasi sisa tagihan sebelum penghapusan',
+        lunasi.status === 201,
+        `status ${lunasi.status}, jumlah ${baris.sisa}`,
+      )
+    }
+
     // Nilai tagihan dicatat SEBELUM penghapusan, supaya bisa dibandingkan
     // sesudahnya. Angka yang tidak berubah adalah inti dari T28.
     const tagihanSebelum = await panggilApi(ws, '/tagihan')
@@ -475,73 +579,12 @@ jalankan(async () => {
 
     await tangkapLayar(ws, 'T28-audit-anonim')
 
-    // --- Anonimisasi jejak: pengelola yang dicabut -------------------------
+    // --- Anonimisasi jejak sudah terjadi di atas --------------------------
     //
-    // Inilah satu-satunya jalan yang benar-benar menghasilkan baris jejak
-    // berisi nama orang yang kemudian meminta penghapusan. Urutannya disengaja:
-    // pengelola mencatat pembayaran DULU (supaya namanya masuk jejak), baru
-    // dicabut, baru menghapus akunnya sendiri.
-    const EMAIL_MANTAN = 'uji-t28-mantan@kos.test'
-    const NAMA_MANTAN = 'Uji T28 Mantan Pengelola'
-    const SANDI_MANTAN = 'sandi-t28-mantan'
-
-    const buatMantan = await panggilApi(ws, '/pengelola', 'POST', {
-      nama: NAMA_MANTAN,
-      email: EMAIL_MANTAN,
-      wewenang: ['catat_pembayaran'],
-    })
-    lapor('pengelola uji dibuat untuk jalur anonimisasi', buatMantan.status === 201, `status ${buatMantan.status}`)
-    if (buatMantan.status !== 201) throw new Error('pengelola uji gagal dibuat')
-
-    const idMantan = buatMantan.data?.data?.id
-    const aktifMantan = await aktifkanAkun(ws, EMAIL_MANTAN, SANDI_MANTAN, SEJAK)
-    lapor('pengelola uji mengaktifkan akunnya', aktifMantan)
-    if (!aktifMantan) throw new Error('aktivasi pengelola gagal')
-
-    await masukSebagai(ws, EMAIL_MANTAN, SANDI_MANTAN)
-    await tungguSampai(ws, `location.pathname === '/persetujuan-pdp'`, 12000)
-    await evaluasi(
-      ws,
-      `
-      (async () => {
-        const tombol = [...document.querySelectorAll('button')]
-          .find(b => /saya setuju/i.test(b.textContent))
-        if (tombol) tombol.click()
-        await new Promise(r => setTimeout(r, 1500))
-        return location.pathname
-      })()
-    `,
-    )
-
-    const catat = await panggilApi(ws, `/tagihan/${siap.tagihanId}/pembayaran`, 'POST', {
-      jumlah: 1000,
-      tanggal_pembayaran: '2026-02-05',
-      metode: 'tunai',
-    })
-    lapor(
-      'pengelola mencatat pembayaran sehingga namanya masuk jejak audit',
-      catat.status === 201 || catat.status === 200,
-      `status ${catat.status}`,
-    )
-
-    // Pemilik mencabut aksesnya. Sesudah ini ia berperan penghuni - dan
-    // karenanya berhak meminta penghapusan data pribadinya sendiri.
-    await masukSebagai(ws, 'pemilik@kos.test')
-    const cabut = await panggilApi(ws, `/pengelola/${idMantan}`, 'DELETE')
-    lapor('pemilik mencabut akses pengelola uji', cabut.status === 200, `status ${cabut.status}`)
-
-    const auditSebelum = await panggilApi(ws, '/audit-log')
-    const jejakSebelum = (auditSebelum.data?.data || []).filter(
-      (j) => j.aktor_nama === NAMA_MANTAN,
-    )
-    lapor(
-      'jejak audit memuat nama pengelola sebelum ia menghapus akunnya',
-      jejakSebelum.length > 0,
-      `${jejakSebelum.length} baris`,
-    )
-
-    // Ia masuk lagi - sekarang sebagai penghuni tanpa kamar - lalu menghapus
-    // akunnya sendiri lewat layar yang sama dengan penghuni lain.
+    // Pengelola uji sudah dicabut dan namanya sudah masuk jejak sebelum
+    // penghapusan penghuni pertama; urutannya dibalik demi REV-SEC-04.
+    // Yang tersisa: ia masuk lagi - sekarang sebagai penghuni tanpa kamar -
+    // lalu menghapus akunnya sendiri lewat layar yang sama.
     const masukMantan = await masukSebagai(ws, EMAIL_MANTAN, SANDI_MANTAN)
     lapor('akun yang dicabut tetap bisa masuk sebagai penghuni', masukMantan)
     if (!masukMantan) throw new Error('login mantan pengelola gagal')

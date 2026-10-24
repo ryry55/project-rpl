@@ -3,8 +3,8 @@
 > Dokumen ini menjawab: **apa yang dibuktikan tes, bagaimana menjalankannya, dan
 > bagaimana menambah tes yang benar-benar menahan.**
 >
-> Angka diambil dari aplikasi yang berjalan: **636 tes PHP (3089 asersi)** dalam
-> 31 berkas, dan **22 skrip browser** dengan **641 langkah**.
+> Angka diambil dari aplikasi yang berjalan: **687 tes PHP (3266 asersi)** dalam
+> 34 berkas, dan **23 skrip browser** dengan **700 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -70,15 +70,15 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
 
 ```
         ┌─────────────────────────────────┐
-        │  22 skrip browser · 641 langkah  │  lambat (~299 dtk), tetapi
+        │  23 skrip browser · 700 langkah  │  lambat (~300 dtk), tetapi
         │  (E2E + tata letak + PWA)        │  satu-satunya yang melihat
         └─────────────────────────────────┘  peramban sungguhan
       ┌───────────────────────────────────────┐
-      │  27 tes Feature · HTTP + database      │  ~25 dtk, jalur penuh
+      │  30 tes Feature · HTTP + database      │  ~25 dtk, jalur penuh
       │  (validasi, izin, isolasi, balapan)    │  lewat middleware nyata
       └───────────────────────────────────────┘
     ┌───────────────────────────────────────────┐
-    │  4 tes Unit · 636 tes total, 3089 asersi   │  cepat, murni logika
+    │  4 tes Unit · 687 tes total, 3266 asersi   │  cepat, murni logika
     │  (prorata, denda, umur tunggakan)          │  tanpa database
     └───────────────────────────────────────────┘
 ```
@@ -89,7 +89,7 @@ menguji implementasi, bukan perilaku.
 
 ---
 
-## 3. Tes PHP — 636 tes, 3089 asersi
+## 3. Tes PHP — 687 tes, 3266 asersi
 
 ### 3.1 Menjalankan
 
@@ -174,7 +174,7 @@ Dikelompokkan menurut apa yang dijaga:
 
 ---
 
-## 4. Tes browser — 22 skrip, 641 langkah
+## 4. Tes browser — 23 skrip, 700 langkah
 
 ### 4.1 Menjalankan
 
@@ -211,9 +211,10 @@ Prasyarat: `docker compose up`, Chrome dengan `--remote-debugging-port=9222`,
 | `e2e-t25.mjs` | 30 | Notifikasi in-app + email |
 | `e2e-t26.mjs` | 38 | Usulan, persetujuan, kedaluwarsa |
 | `e2e-t27.mjs` | 28 | Aktivasi, lupa sandi, wajib ganti sandi |
-| `e2e-t28.mjs` | 37 | PDP: persetujuan, akses, anonimisasi |
-| `asap-semua-halaman.mjs` | 22 | Semua halaman terbuka tanpa galat konsol/5xx |
-| `uji-tata-letak.mjs` | 88 | Tidak meluber di 360/390/768px |
+| `e2e-t28.mjs` | 39 | PDP: persetujuan, akses, anonimisasi |
+| `e2e-r3.mjs` | 50 | Pembatalan tagihan, pemaafan denda, bagikan WhatsApp, rekening |
+| `asap-semua-halaman.mjs` | 23 | Semua halaman terbuka tanpa galat konsol/5xx |
+| `uji-tata-letak.mjs` | 94 | Tidak meluber di 360/390/768px |
 | `uji-kartu-tabel.mjs` | 65 | Tabel 4+ kolom jadi kartu; label sesuai `<th>`; desktop kembali normal |
 | `uji-pwa.mjs` | 22 | Manifest, service worker, **pagar R-07** |
 | `uji-balapan-t4.mjs` | 10 | 10 permintaan terbit paralel → satu 201, sisanya 409 |
@@ -291,10 +292,10 @@ Dari `1_PRD.md` §6, dan bagaimana masing-masing dibuktikan.
 | U-3 | Tagihan ganda per periode | 0 | `uji-balapan-t4.mjs` | Lulus 10/10 |
 | U-4 | Kebocoran data antar-penghuni | 0 | `IsolasiDanAuditTest`, `e2e-t9.mjs` | Lulus |
 | U-5 | Respons `/api` di cache PWA | 0 | `uji-pwa.mjs` — **dibuktikan bisa gagal** | Lulus 22/22 |
-| U-6 | Halaman meluber di 360px | 0 | `uji-tata-letak.mjs` | Lulus 88/88 |
+| U-6 | Halaman meluber di 360px | 0 | `uji-tata-letak.mjs` | Lulus 94/94 |
 | U-7 | Tabel tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` | Lulus 65/65 |
 | U-8 | Kepala pemilik sebelum konten | < 220px | Terukur | 203px |
-| U-9 | Cakupan tes PHP | 636 tes | CI | Lulus 3089 asersi |
+| U-9 | Cakupan tes PHP | 687 tes | CI | Lulus 3266 asersi |
 
 ---
 

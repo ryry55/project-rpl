@@ -95,6 +95,28 @@ class WaktuSistem
     }
 
     /**
+     * "Sekarang" untuk kolom waktu yang butuh jam, bukan hanya tanggal.
+     *
+     * Dipakai kolom seperti `tagihan.dibatalkan_pada` yang tipenya timestamp:
+     * mengisinya dengan `now()` langsung akan mengabaikan simulasi tanggal, dan
+     * di mode demo pembatalan akan tercatat pada tanggal nyata sementara
+     * pembayaran di sekitarnya tercatat pada tanggal simulasi.
+     *
+     * Saat simulasi aktif, jamnya diambil dari jam nyata dan tanggalnya dari
+     * simulasi. Jam tetap nyata karena tidak ada yang mensimulasikan jam, dan
+     * mengarang jam 00.00 akan membuat dua pembatalan di hari yang sama terlihat
+     * terjadi pada saat yang persis sama.
+     */
+    public function sekarang(): CarbonImmutable
+    {
+        if ($this->simulasi === null) {
+            return CarbonImmutable::now();
+        }
+
+        return $this->simulasi->setTimeFrom(CarbonImmutable::now());
+    }
+
+    /**
      * Selisih hari kalender antara dua tanggal, bertanda.
      *
      * Positif berarti `$sampai` setelah `$awal`. Dihitung dari selisih epoch

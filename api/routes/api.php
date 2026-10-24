@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\PengaturanNotifikasiController;
 use App\Http\Controllers\Api\PengelolaController;
 use App\Http\Controllers\Api\PenghuniController;
 use App\Http\Controllers\Api\PortalPenghuniController;
+use App\Http\Controllers\Api\RekeningController;
 use App\Http\Controllers\Api\TagihanController;
 use App\Http\Controllers\Api\TarifController;
 use App\Http\Controllers\Api\TunggakanController;
@@ -121,6 +122,16 @@ Route::middleware('auth:sanctum')->group(function () {
             // dinonaktifkan pemilik tidak boleh pernah sampai ke peramban penghuni.
             Route::get('/penghuni/aturan', [PortalPenghuniController::class, 'aturan'])
                 ->name('penghuni.aturan');
+
+            // Rekening tujuan pembayaran (REV-UI-05). Endpoint terpisah dari
+            // `/rekening` karena dua alasan. Pertama, penghuni hanya boleh
+            // melihat yang aktif - rekening lama yang sudah tidak dipakai tidak
+            // boleh muncul, sebab penghuni yang mentransfer ke sana uangnya
+            // hilang. Kedua, `/rekening` mengirim `meta.jenis` dan
+            // `label_jenis` untuk layar pengelolaan, dan respons yang berbentuk
+            // berbeda menurut peran adalah kelas kebocoran yang sulit terlihat.
+            Route::get('/penghuni/rekening', [PortalPenghuniController::class, 'rekening'])
+                ->name('penghuni.rekening');
         });
 
         // --- Akun dan izin: hanya pemilik ----------------------------------
@@ -167,6 +178,36 @@ Route::middleware('auth:sanctum')->group(function () {
             // didelegasikan - ia adalah hak pemilik atas usahanya sendiri.
             Route::get('/rekap', [PembayaranController::class, 'rekap'])
                 ->name('rekap.index');
+
+            // Pemaafan denda (REV-FIN-07).
+            //
+            // `peran:pemilik`, bukan `wewenang:`: memaafkan denda berarti
+            // melepaskan uang yang seharusnya diterima pemilik. Pengelola yang
+            // boleh melakukannya bisa memaafkan denda temannya sendiri tanpa
+            // ada yang mengetahui, dan tidak ada satu pun catatan operasional
+            // yang membutuhkannya. Sama seperti `/rekap`, ini hak pemilik atas
+            // usahanya sendiri, bukan tugas yang bisa didelegasikan.
+            //
+            // Berbeda dari tarif dan kebijakan: keduanya pengaturan yang
+            // berlaku untuk semua penghuni, jadi pengelola yang menemukan
+            // keadaan lapangan berhak mengusulkannya. Pemaafan menyangkut satu
+            // tagihan satu orang, dan usulannya tidak akan lebih cepat daripada
+            // pemilik mengerjakannya sendiri.
+            Route::post('/tagihan/{tagihan}/maaf-denda', [TagihanController::class, 'maafkanDenda'])
+                ->name('tagihan.maaf-denda');
+
+            // Rekening tujuan pembayaran (REV-UI-05).
+            //
+            // `peran:pemilik`, bukan `wewenang:` — dan ini yang paling tegas di
+            // antara semuanya. Nomor rekening adalah alamat uang masuk. Pengelola
+            // yang boleh mengubahnya bisa mengarahkan seluruh setoran penghuni ke
+            // rekeningnya sendiri, dan tidak ada satu pun pemeriksaan lain yang
+            // menangkapnya: uangnya masuk, tagihannya ditandai lunas oleh orang
+            // yang sama, dan tidak ada yang perlu disetujui siapa pun. Membaca
+            // tetap dibuka untuk pengelola dan penghuni; yang ditutup hanya
+            // menulis.
+            Route::apiResource('rekening', RekeningController::class)
+                ->only(['store', 'update', 'destroy']);
         });
 
         // --- Kotak masuk dan pengaturan notifikasi (T25) -------------------
@@ -186,6 +227,12 @@ Route::middleware('auth:sanctum')->group(function () {
                 ->only(['index'])
                 ->parameters(['fasilitas' => 'fasilitas']);
             Route::apiResource('aturan', AturanController::class)->only(['index']);
+
+            // Rekening tujuan pembayaran (REV-UI-05). Dibaca semua yang
+            // mengurus kos: pengelola yang menagih perlu tahu ke mana penghuni
+            // harus mentransfer, dan itu pertanyaan yang sama dengan yang
+            // ditanyakan penghuni.
+            Route::apiResource('rekening', RekeningController::class)->only(['index']);
 
             Route::get('/tarif', [TarifController::class, 'index'])->name('tarif.index');
             Route::get('/kamar/{kamar}/tarif-berlaku', [TarifController::class, 'berlaku'])
@@ -300,6 +347,16 @@ Route::middleware('auth:sanctum')->group(function () {
             // menghasilkan 404 dari route model binding.
             Route::post('/tagihan/terbitkan', [TagihanController::class, 'terbitkan'])
                 ->name('tagihan.terbitkan');
+
+            // Pembatalan tagihan (REV-FIN-02).
+            //
+            // Wewenangnya sama dengan menerbitkan, karena membatalkan adalah
+            // kebalikan langsung dari menerbitkan: orang yang boleh membuat
+            // tagihan yang salah harus boleh membereskannya. Memberi wewenang
+            // terpisah hanya untuk itu akan membuat pengelola yang menemukan
+            // salah terbit menunggu pemilik, sementara periodenya tetap terkunci.
+            Route::post('/tagihan/{tagihan}/batal', [TagihanController::class, 'batal'])
+                ->name('tagihan.batal');
         });
 
         Route::middleware(PastikanWewenang::class.':catat_pembayaran')->group(function () {

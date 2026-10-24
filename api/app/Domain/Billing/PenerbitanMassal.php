@@ -140,8 +140,16 @@ class PenerbitanMassal
         // Pemeriksaan duplikat di aplikasi. Ini bukan pengaman utama — unique
         // index di bawah yang mengamankan balapan — tetapi memberi alasan yang
         // terbaca, bukan pesan constraint.
+        //
+        // `status <> dibatalkan` wajib ada di sini (REV-FIN-02): index uniknya
+        // kini parsial, jadi tagihan yang dibatalkan memang tidak lagi memegang
+        // periode itu. Tanpa syarat ini, pemeriksaan di aplikasi akan menolak
+        // penerbitan ulang yang justru sudah diizinkan basis data — dan pemilik
+        // melihat "sudah pernah diterbitkan" untuk periode yang sudah ia
+        // batalkan sendiri.
         $sudahAda = Tagihan::query()
             ->where('kontrak_id', $kontrak->id)
+            ->where('status', '<>', Tagihan::STATUS_DIBATALKAN)
             ->whereDate('periode', $awalPeriode)
             ->exists();
 

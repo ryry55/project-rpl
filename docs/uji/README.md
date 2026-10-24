@@ -113,7 +113,8 @@ halaman baru dimuat, jadi harus dipasang ulang setelah `Page.navigate`.
 | `e2e-t25.mjs` | Notifikasi: tiap peristiwa sampai ke kotak masuk penerima yang benar dan **tidak** ke pelakunya sendiri; mematikan satu kanal hanya mematikan kanal itu; email benar-benar terkirim (diperiksa lewat Mailpit) dan kegagalan kirim tidak membatalkan transaksinya | Chrome, seed, Mailpit |
 | `e2e-t26.mjs` | Usulan perubahan: pengelola mengajukan tarif/kebijakan dan menerima **202** dengan `meta.diajukan`, bukan 201; pemilik menyetujui atau menolak; usulan yang kedaluwarsa tidak bisa diputuskan walau statusnya masih `menunggu` | Chrome, seed |
 | `e2e-t27.mjs` | Aktivasi akun: formulir penghuni tidak punya kolom sandi, akun baru tidak bisa masuk sebelum tautannya dibuka, tautan mati setelah dipakai, lupa sandi menjawab sama untuk email terdaftar dan tidak, dan akun lama dipaksa mengganti sandi sebelum boleh bekerja | Chrome, seed, Mailpit |
-| `e2e-t28.mjs` | UU PDP: gerbang persetujuan bisa ditolak, halaman Data pribadi menampilkan apa yang tercatat, penghapusan ditahan selama kontrak aktif, konfirmasi tertulis wajib, dan sesudah dilepas **tagihannya tetap utuh sedangkan namanya hilang** - termasuk dari jejak audit pemilik | Chrome, seed, Mailpit |
+| `e2e-t28.mjs` | UU PDP: gerbang persetujuan bisa ditolak, halaman Data pribadi menampilkan apa yang tercatat, penghapusan ditahan selama kontrak aktif **maupun selama masih ada tagihan belum lunas**, konfirmasi tertulis wajib, dan sesudah dilepas **tagihannya tetap utuh sedangkan namanya hilang** - termasuk dari jejak audit pemilik | Chrome, seed, Mailpit |
+| `e2e-r3.mjs` | R3: tagihan yang salah terbit bisa **dibatalkan tanpa dihapus** dan periodenya diterbitkan ulang, pemaafan denda membekukan denda tanpa menghapus jejaknya, tombol WhatsApp menyusun tautan `wa.me` dengan teks dari server, dan rekening tujuan pembayaran hanya bisa ditulis pemilik | Chrome, seed |
 
 ### Balapan
 

@@ -107,4 +107,89 @@ class PembayaranDitolak extends \RuntimeException
             number_format($jumlah, 0, ',', '.'),
         ));
     }
+
+    // --- Pembatalan tagihan (REV-FIN-02) ----------------------------------
+
+    /**
+     * Pembatalan wajib beralasan.
+     *
+     * Sama alasannya dengan pembalikan dan penolakan pemeriksaan: baris batal
+     * tanpa keterangan adalah pertanyaan baru bagi yang membacanya nanti.
+     * Bedanya di sini, alasan juga disimpan sebagai kolom (`alasan_batal`),
+     * bukan hanya di jejak audit — pembatalan mengubah angka yang dilihat
+     * penghuni, jadi jawabannya harus ada di barisnya sendiri.
+     */
+    public static function batalTanpaAlasan(): self
+    {
+        return new self(
+            'Pembatalan tagihan harus menyebutkan alasannya, '
+            .'supaya periode yang dibebaskan bisa dijelaskan saat ditanya.',
+        );
+    }
+
+    public static function sudahDibatalkan(): self
+    {
+        return new self(
+            'Tagihan ini sudah dibatalkan. Periode itu sudah bebas dan bisa diterbitkan ulang.',
+        );
+    }
+
+    /**
+     * Tagihan yang sudah menerima uang tidak boleh dibatalkan.
+     *
+     * Membatalkannya akan meninggalkan uang yang tidak menempel pada apa pun:
+     * `SUM(pembayaran.jumlah)` tetap menghitungnya sebagai pendapatan,
+     * sementara tagihannya berstatus batal. Pesan ini menyebut jalan keluarnya,
+     * karena penolakan yang tidak menyebut langkah berikutnya hanya membuat
+     * pemilik menebak.
+     */
+    public static function batalSetelahDibayar(int $dibayar): self
+    {
+        return new self(sprintf(
+            'Tagihan ini sudah menerima pembayaran Rp %s, jadi tidak bisa dibatalkan. '
+            .'Tarik dulu pembayarannya lewat tombol pembalik, baru batalkan tagihannya.',
+            number_format($dibayar, 0, ',', '.'),
+        ));
+    }
+
+    // --- Pemaafan denda (REV-FIN-07) --------------------------------------
+
+    public static function maafNegatif(int $jumlah): self
+    {
+        return new self(sprintf(
+            'Jumlah denda yang dimaafkan tidak boleh negatif, diterima %s. '
+            .'Pemaafan hanya mengurangi tagihan, tidak pernah menambahnya.',
+            number_format($jumlah, 0, ',', '.'),
+        ));
+    }
+
+    /**
+     * Pemaafan yang mengurangi uang wajib beralasan.
+     *
+     * Bukan sekadar kelengkapan: denda yang tiba-tiba nol adalah hal pertama
+     * yang ditanyakan penghuni, dan pemilik yang lupa kenapa ia memaafkan akan
+     * mengira sistemnya salah hitung.
+     */
+    public static function maafTanpaAlasan(): self
+    {
+        return new self(
+            'Pemaafan denda harus menyebutkan alasannya, '
+            .'supaya "denda Rp 0" bisa dibedakan dari kebijakan tanpa denda.',
+        );
+    }
+
+    /**
+     * Tagihan batal tidak menagih denda, jadi tidak ada yang bisa dimaafkan.
+     *
+     * CHECK `tagihan_batal_tanpa_pemaafan` menahan keadaan ini di basis data.
+     * Pemeriksaan di sini hanya supaya pesannya bisa dibaca manusia, bukan
+     * "SQLSTATE 23514".
+     */
+    public static function maafTagihanDibatalkan(): self
+    {
+        return new self(
+            'Tagihan ini dibatalkan dan tidak menagih denda apa pun, '
+            .'jadi tidak ada denda yang bisa dimaafkan. Terbitkan tagihan baru bila memang perlu.',
+        );
+    }
 }

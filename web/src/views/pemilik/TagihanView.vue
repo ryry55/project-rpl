@@ -26,6 +26,11 @@ const kontrak = ref([])
 const memuat = ref(true)
 const galatMuat = ref('')
 
+// Rekening tujuan pembayaran (REV-UI-05). Dimuat di sini, bukan di panel
+// rincian, karena pesan WhatsApp yang disusun panel harus menyebut rekening yang
+// sama dengan yang dilihat penghuni di portalnya.
+const rekening = ref([])
+
 // Gerbang kebijakan (T16). `kebijakanKurang` berisi label jenis yang belum
 // ditetapkan; selama tidak kosong, tombol terbit tidak ditampilkan sama sekali.
 // Server tetap menolak dengan 422 walau tombolnya dipaksa lewat - yang ini
@@ -98,6 +103,15 @@ async function muat() {
     ])
     daftar.value = hasilTagihan.data
     kontrak.value = hasilKontrak.data.filter((k) => k.status === 'aktif')
+
+    // Rekening dimuat terpisah dan kegagalannya diabaikan: tagihan tetap harus
+    // tampil walau daftar rekening belum diisi. Yang hilang hanya satu baris di
+    // pesan WhatsApp, dan itu bukan alasan mengosongkan seluruh halaman.
+    sesi.panggil('/rekening?aktif=1').then((hasilRekening) => {
+      rekening.value = hasilRekening.data || []
+    }).catch(() => {
+      rekening.value = []
+    })
 
     // Kode tipe diterjemahkan ke label di sini, sekali, lalu dibuang. Kalau
     // kode mentah yang disimpan, setiap tempat yang menampilkannya harus ingat
@@ -255,6 +269,7 @@ onMounted(muat)
       v-if="detail"
       :detail="detail"
       :tanggal-acuan="tanggalAcuan"
+      :rekening="rekening"
       @tutup="tutupDetail"
       @berubah="setelahBayar"
     />

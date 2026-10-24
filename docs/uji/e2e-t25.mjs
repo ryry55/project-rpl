@@ -414,11 +414,11 @@ jalankan(async () => {
           .filter(i => !i.disabled && i.checked).length,
       })`,
     )
-    lapor('delapan peristiwa ditampilkan', matriks.baris === 8, `${matriks.baris} baris`)
+    lapor('sembilan peristiwa ditampilkan', matriks.baris === 9, `${matriks.baris} baris`)
     lapor('dua kanal ditampilkan', matriks.kolom === 3, `${matriks.kolom} kolom (termasuk judul)`)
     lapor(
       'kolom in-app nonaktif dan selalu tercentang',
-      matriks.inAppNonaktif === 8 && matriks.inAppTercentang === 8,
+      matriks.inAppNonaktif === 9 && matriks.inAppTercentang === 9,
       `${matriks.inAppNonaktif} nonaktif, ${matriks.inAppTercentang} tercentang`,
     )
     lapor('kanal email bisa diubah', matriks.emailAktif > 0, `${matriks.emailAktif} tercentang`)
@@ -456,7 +456,7 @@ jalankan(async () => {
     // Dimuat ulang: preferensi harus berasal dari server, bukan dari keadaan
     // reaktif yang masih hidup di memori komponen.
     await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/pengaturan-notifikasi` })
-    await tungguSampai(ws, `document.querySelectorAll('.tabel-notifikasi tbody tr').length === 8`)
+    await tungguSampai(ws, `document.querySelectorAll('.tabel-notifikasi tbody tr').length === 9`)
     const sesudahSimpan = await evaluasi(
       ws,
       `

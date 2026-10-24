@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AturanResource;
+use App\Http\Resources\RekeningResource;
 use App\Http\Resources\TagihanResource;
 use App\Models\AturanKos;
+use App\Models\Rekening;
 use App\Models\Tagihan;
 use App\Support\WaktuSistem;
 use Illuminate\Http\JsonResponse;
@@ -77,5 +79,24 @@ class PortalPenghuniController extends Controller
             ->get();
 
         return response()->json(['data' => AturanResource::collection($daftar)]);
+    }
+
+    /**
+     * Rekening dan QRIS tujuan pembayaran (REV-UI-05).
+     *
+     * Hanya yang aktif. Penghuni yang mentransfer ke rekening lama yang sudah
+     * tidak dipakai akan kehilangan uangnya, dan itu kerugian yang tidak bisa
+     * diperbaiki oleh aplikasi mana pun - jadi penyaringnya di server, bukan di
+     * layar.
+     */
+    public function rekening(): JsonResponse
+    {
+        $daftar = Rekening::query()
+            ->where('aktif', true)
+            ->orderBy('urutan')
+            ->orderBy('id')
+            ->get();
+
+        return response()->json(['data' => RekeningResource::collection($daftar)]);
     }
 }

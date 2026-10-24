@@ -241,6 +241,18 @@ jalankan(async () => {
       if (buat.status !== 201 && buat.status !== 409) {
         return 'tagihan: ' + JSON.stringify(buat.data)
       }
+
+      // Rekening tujuan pembayaran (REV-UI-05): tanpa satu baris pun, kartu
+      // "Cara membayar" di portal penghuni tidak pernah dirender, dan cabang
+      // yang tidak pernah dirender adalah cabang yang tidak pernah diuji.
+      const rekeningAda = await daftar('/rekening')
+      if (rekeningAda.length === 0) {
+        const tulis = await p('/rekening', 'POST', {
+          jenis: 'transfer', nama: 'BCA', nomor: '1234567890',
+          atas_nama: 'Pemilik Kos', catatan: 'Konfirmasi lewat WhatsApp.',
+        })
+        if (tulis.status !== 201) return 'rekening: ' + JSON.stringify(tulis.data)
+      }
       return 'ok'
     })()
   `)
@@ -293,6 +305,9 @@ jalankan(async () => {
     ['/pemilik/rekap', 'Rekap pendapatan'],
     ['/pemilik/tunggakan', 'Tunggakan'],
     ['/pemilik/kebijakan', 'Kebijakan'],
+    // Rekening (REV-UI-05) ikut disapu: halaman baru, dan halaman baru adalah
+    // tempat kesalahan yang paling sering lolos.
+    ['/pemilik/rekening', 'Rekening tujuan pembayaran'],
     ['/pemilik/fasilitas', 'Fasilitas'],
     ['/pemilik/aturan', 'Aturan kos'],
     ['/pemilik/audit', 'Jejak audit'],

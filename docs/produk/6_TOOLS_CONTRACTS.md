@@ -6,7 +6,7 @@
 > Sumber kebenaran tetap `api/routes/api.php` dan kelas `Resource`. Dokumen ini
 > diambil dari `php artisan route:list --json` pada aplikasi yang berjalan.
 
-Versi 1.0 · 26 Oktober 2026 · **71 endpoint**
+Versi 1.0 · 26 Oktober 2026 · **78 endpoint**
 
 ---
 
@@ -185,7 +185,7 @@ meminta, hanya waktunya belum tepat.
 
 ---
 
-## 4. Data kos (29 endpoint)
+## 4. Data kos (33 endpoint)
 
 ### 4.1 Kamar
 
@@ -271,6 +271,36 @@ Kategori aturan kos terlalu beragam untuk dijadikan enum.
 Aturan memakai `aktif`, bukan dihapus. Portal penghuni menyaring `aktif` **di
 server**.
 
+### 4.4.1 Rekening tujuan pembayaran (REV-UI-05)
+
+| Metode | Path | Middleware |
+|---|---|---|
+| `GET` | `/api/rekening` | `peran:pemilik,pengelola` |
+| `POST` `PUT` `DELETE` | `/api/rekening[/{rekening}]` | `peran:pemilik` |
+| `GET` | `/api/penghuni/rekening` | `peran:penghuni` |
+
+`POST` / `PUT` — `{ jenis, nama, nomor?, atas_nama?, catatan?, aktif?, urutan? }`.
+`jenis` ∈ `transfer` \| `qris`; `nama` wajib; `nomor` boleh kosong untuk QRIS
+statis yang hanya berupa gambar.
+
+**Menulis hanya pemilik.** Nomor rekening adalah alamat uang masuk: pengelola
+yang boleh menggantinya bisa mengarahkan seluruh setoran penghuni ke rekeningnya
+sendiri, lalu menandai tagihannya lunas dengan wewenang `catat_pembayaran` yang
+memang ia punya. Tidak ada pemeriksaan lain yang menangkapnya, jadi gerbangnya
+`peran:pemilik` — bukan `wewenang:`, karena tidak ada wewenang yang boleh
+membukanya.
+
+Membaca dibuka untuk pengelola (ia yang menagih, jadi ia perlu tahu ke mana
+penghuni mentransfer) dan untuk penghuni lewat endpoint sempit
+`/penghuni/rekening` yang hanya mengirim baris **aktif** dan tanpa `meta`.
+Penghuni yang mentransfer ke rekening lama yang sudah tidak dipakai kehilangan
+uangnya, dan tidak ada kode yang bisa mengembalikannya — jadi penyaringnya di
+server.
+
+**Tidak append-only**, berbeda dari tarif dan kebijakan: tidak ada angka tagihan
+yang dihitung dari baris ini. Setiap tambah/ubah/hapus menulis `log_audit`
+dengan salinan baris lengkap, termasuk nomor lama saat nomor diganti.
+
 ### 4.5 Penghuni
 
 | Metode | Path | Middleware |
@@ -339,7 +369,7 @@ Satu kamar hanya boleh punya satu kontrak aktif (indeks parsial). Melanggar →
 
 ---
 
-## 5. Tagihan dan pembayaran (14 endpoint)
+## 5. Tagihan dan pembayaran (16 endpoint)
 
 ### 5.1 Tagihan
 
@@ -349,6 +379,8 @@ Satu kamar hanya boleh punya satu kontrak aktif (indeks parsial). Melanggar →
 | `GET` | `/api/tagihan/{tagihan}` | `auth` saja (difilter scope) |
 | `POST` | `/api/tagihan` | `wewenang:terbitkan_tagihan` |
 | `POST` | `/api/tagihan/terbitkan` | `wewenang:terbitkan_tagihan` |
+| `POST` | `/api/tagihan/{tagihan}/batal` | `wewenang:terbitkan_tagihan` |
+| `POST` | `/api/tagihan/{tagihan}/maaf-denda` | `peran:pemilik` |
 | `GET` | `/api/tagihan/{tagihan}/denda` | `auth` saja |
 | `POST` | `/api/tagihan/{tagihan}/pembayaran` | `wewenang:catat_pembayaran` |
 
@@ -382,6 +414,46 @@ dikirim supaya layar tidak perlu memanggil `/denda` hanya untuk menampilkan
 "terlambat 12 hari".
 
 `GET /tagihan/{id}/denda` mengembalikan uraian lengkap untuk layar simulasi.
+
+### 5.1.1 Pembatalan tagihan (REV-FIN-02)
+
+`POST /api/tagihan/{tagihan}/batal` — `{ alasan }` (wajib, 5–500 karakter).
+
+Pembatalan **mengubah status, tidak menghapus baris**. Nomor tagihan yang pernah
+disebut ke penghuni harus tetap bisa dijawab; yang dibebaskan hanya periodenya,
+lewat index unik parsial `WHERE status <> 'dibatalkan'`. Respons **200** dengan
+`TagihanResource` yang sudah berstatus `dibatalkan`.
+
+| Keadaan | Jawaban |
+|---|---|
+| Tagihan sudah menerima uang | **422** — tarik pembayarannya dulu lewat baris pembalik |
+| Tagihan sudah dibatalkan | **422** |
+| Alasan kurang dari 5 karakter | **422** pada `alasan` |
+| Periode yang dibatalkan diterbitkan ulang | **201** — ini gunanya pembatalan |
+| Dua tagihan *hidup* untuk satu periode | **409** |
+
+Gerbangnya `wewenang:terbitkan_tagihan` — kebalikan dari menerbitkan. Orang yang
+boleh menerbitkan tagihan yang salah adalah orang yang harus bisa membatalkannya.
+
+### 5.1.2 Pemaafan denda (REV-FIN-07)
+
+`POST /api/tagihan/{tagihan}/maaf-denda` — `{ jumlah, alasan }`.
+
+`jumlah` adalah rupiah bulat yang dimaafkan; `0` **menarik kembali** pemaafan yang
+sudah ada. `alasan` wajib bila `jumlah > 0`, dan tidak diperlukan saat menarik
+kembali (tidak ada uang yang dilepas).
+
+**Gerbangnya `peran:pemilik`, bukan `wewenang:`.** Memaafkan denda berarti
+melepaskan uang pemilik pada satu tagihan satu orang. Berbeda dari tarif dan
+kebijakan yang perlu didelegasikan karena pemilik tidak selalu di lokasi, tidak
+ada kebutuhan operasional yang menuntut pemaafan didelegasikan.
+
+Dendanya **tidak dinolkan, tetapi dibekukan** pada hari pokoknya lunas — bukan
+pada hari ini. Menolkan akan memberi hadiah kepada penghuni yang paling lama
+menunda pokoknya: ia yang paling banyak berutang denda justru yang paling besar
+pemaafannya. `denda` yang dibaca layar adalah nilai **neto**; `denda_ringkas`
+mengirim `denda_sebelum_maaf` dan `dimaafkan` supaya layar bisa menulis "denda
+Rp 450.000, dimaafkan" alih-alih angka nol tanpa penjelasan.
 
 ### 5.2 Penerbitan massal
 
@@ -633,14 +705,15 @@ perlu meninggalkan nama orang itu di catatan sejarah selamanya.
 
 ---
 
-## 8. Portal penghuni dan notifikasi (7 endpoint)
+## 8. Portal penghuni dan notifikasi (8 endpoint)
 
 | Metode | Path | Middleware |
 |---|---|---|
 | `GET` | `/api/penghuni/tagihan` | `peran:penghuni` |
 | `GET` | `/api/penghuni/aturan` | `peran:penghuni` |
+| `GET` | `/api/penghuni/rekening` | `peran:penghuni` |
 
-**Keduanya harus didaftarkan sebelum `apiResource('penghuni')`.** Kalau tidak,
+**Ketiganya harus didaftarkan sebelum `apiResource('penghuni')`.** Kalau tidak,
 `GET /penghuni/tagihan` ditangkap `GET /penghuni/{penghuni}` dan "tagihan"
 diperlakukan sebagai id — route model binding mencari `penghuni.id = 'tagihan'`
 dan PostgreSQL menolaknya dengan `22P02`. Kelas kesalahan yang sama dengan
@@ -700,16 +773,17 @@ tidak pernah dijalankan.
 | Kamar & fasilitas | 10 | `/kamar*`, `/fasilitas*` |
 | Tarif, komponen, kebijakan | 6 | `/tarif`, `/komponen-biaya`, `/kebijakan` |
 | Aturan | 4 | `/aturan*` |
+| Rekening | 4 | `/rekening*` |
 | Penghuni & kontrak | 9 | `/penghuni*`, `/kontrak*` |
-| Tagihan | 6 | `/tagihan*` |
+| Tagihan | 8 | `/tagihan*` |
 | Pembayaran | 5 | `/pembayaran*` |
 | Laporan | 3 | `/tunggakan`, `/rekap`, `/audit-log` |
 | Usulan | 3 | `/usulan*` |
 | Pengelola | 6 | `/pengelola*` |
-| Portal penghuni | 2 | `/penghuni/tagihan`, `/penghuni/aturan` |
+| Portal penghuni | 3 | `/penghuni/tagihan`, `/penghuni/aturan`, `/penghuni/rekening` |
 | Notifikasi | 5 | `/notifikasi*`, `/pengaturan-notifikasi` |
 | Infrastruktur | 2 | `/health` (§3.1), `/pemilik/saja` |
-| **Total** | **71** | |
+| **Total** | **78** | |
 
 ---
 
