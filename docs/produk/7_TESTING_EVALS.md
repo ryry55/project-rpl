@@ -4,7 +4,7 @@
 > bagaimana menambah tes yang benar-benar menahan.**
 >
 > Angka diambil dari aplikasi yang berjalan: **713 tes PHP (3389 asersi)** dalam
-> 36 berkas, dan **24 skrip browser** dengan **730 langkah**.
+> 36 berkas, dan **24 skrip uji** (22 browser + 2 balapan HTTP) dengan **730 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -69,18 +69,18 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
 ## 2. Piramida
 
 ```
-        ┌─────────────────────────────────┐
-        │  24 skrip browser · 730 langkah  │  lambat (~300 dtk), tetapi
-        │  (E2E + tata letak + PWA)        │  satu-satunya yang melihat
-        └─────────────────────────────────┘  peramban sungguhan
-      ┌───────────────────────────────────────┐
-      │  32 tes Feature · HTTP + database      │  ~25 dtk, jalur penuh
-      │  (validasi, izin, isolasi, balapan)    │  lewat middleware nyata
-      └───────────────────────────────────────┘
-    ┌───────────────────────────────────────────┐
-    │  4 tes Unit · 713 tes total, 3389 asersi   │  cepat, murni logika
-    │  (prorata, denda, umur tunggakan)          │  tanpa database
-    └───────────────────────────────────────────┘
+        ┌──────────────────────────────────────┐
+        │  24 skrip uji                        │  lambat (~300 dtk), tetapi
+        │  (22 browser + 2 balapan)            │  satu-satunya yang melihat
+        └──────────────────────────────────────┘
+      ┌──────────────────────────────────────┐
+      │  613 tes Feature                     │  ~25 dtk, jalur penuh
+      │  (validasi, izin, isolasi, balapan)  │  lewat middleware nyata
+      └──────────────────────────────────────┘
+    ┌──────────────────────────────────────┐
+    │  100 tes Unit                        │  cepat, murni logika
+    │  (prorata, denda, umur tunggakan)    │  tanpa database
+    └──────────────────────────────────────┘
 ```
 
 Yang **tidak** ada: tes komponen Vue (Vitest). Tidak ada satu pun. Setiap

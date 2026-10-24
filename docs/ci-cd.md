@@ -50,13 +50,13 @@ perkakasnya sendiri tidak membusuk:
 Rencana awal menyebut Playwright sebagai pengganti CDP. Yang dipilih adalah
 kebalikannya, dan alasannya bukan kemalasan:
 
-Delapan belas skrip di `docs/uji/` berbicara CDP mentah lewat WebSocket, dan
+Kedua puluh dua skrip browser di `docs/uji/` berbicara CDP mentah lewat WebSocket, dan
 endpoint CDP-nya **dapat diatur lewat variabel lingkungan**
 (`CDP_BASE`/`APP_URL`/`API_URL`/`MAILPIT_URL`). Artinya skrip yang sama berjalan
 di Chrome berjendela di laptop dan di Chrome headless di runner tanpa satu baris
 pun diubah.
 
-Menulis ulang delapan belas skrip berarti membuang bukti yang sudah ada dan
+Menulis ulang kedua puluh dua skrip browser berarti membuang bukti yang sudah ada dan
 membuat **dua** rangkaian uji yang akan berbeda pendapat. Yang di CI selalu
 kalah dalam perbedaan itu, karena tidak ada yang membacanya.
 
