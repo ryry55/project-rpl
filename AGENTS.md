@@ -12,6 +12,31 @@ Five canonical roles, each label string equal to its role name. See `docs/agents
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
+## Serah-terima antar sesi
+
+Pekerjaan dibagi per fase (R1..R7) dan **tiap fase dikerjakan di sesi baru**,
+supaya konteks tidak menumpuk. Karena sesi baru mulai tanpa ingatan, perpindahan
+hanya aman bila tiga hal ini benar:
+
+1. **Fase belum selesai kalau belum di-commit.** Working tree kotor adalah biaya
+   terbesar bagi sesi berikutnya: ia harus merekonstruksi "apa yang belum masuk
+   dan kenapa", dan `git diff` tidak bisa menjawabnya.
+2. **`docs/serah-terima.md` ditimpa di akhir setiap fase**, lalu ikut di-commit
+   bersama pekerjaannya. Isinya: fase terakhir, keadaan tree, tiga aksi
+   berikutnya, keputusan terkunci, jebakan fase berikutnya. Maksimal 120 baris —
+   lebih dari itu ia menjadi `SPEC.md` kedua.
+3. **Jebakan baru langsung naik ke berkas ini**, tidak boleh hanya tinggal di
+   percakapan. Jebakan yang hanya diketahui satu sesi akan ditemukan ulang lewat
+   kegagalan yang sama.
+
+Sesi baru wajib membaca, berurut: `docs/serah-terima.md` → bagian "Jebakan yang
+sudah menggigit" di bawah → `SPEC.md` bagian yang disentuh fase itu. **Jangan
+membaca seluruh `SPEC.md`** (828 baris) kalau hanya satu bagian yang relevan.
+
+Berkas serah-terima memuat perintah untuk memverifikasi klaimnya sendiri. Kalau
+angkanya tidak cocok dengan kenyataan, berkas itu basi — perbarui dulu, baru
+bekerja.
+
 ## Menjalankan dan memeriksa
 
 Satu perintah memeriksa seluruh repo:
