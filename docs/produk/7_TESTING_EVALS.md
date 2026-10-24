@@ -176,7 +176,7 @@ Dikelompokkan menurut apa yang dijaga:
 
 ---
 
-## 4. Tes browser — 24 skrip, 730 langkah
+## 4. Skrip uji browser dan balapan - 24 skrip, 730 langkah
 
 ### 4.1 Menjalankan
 
