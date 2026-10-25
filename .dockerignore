@@ -1,0 +1,63 @@
+# ---------------------------------------------------------------------------
+# Yang TIDAK boleh ikut ke dalam konteks build `Dockerfile.prod`.
+#
+# Konteks build Dockerfile ini adalah AKAR repo (karena ia butuh `web/` dan
+# `api/` sekaligus), berbeda dari `api/.dockerignore` yang hanya berlaku saat
+# konteksnya `api/`. Tanpa berkas ini, setiap `docker build` mengirim 53 MB
+# `node_modules`, 45 MB `vendor`, seluruh riwayat `.git`, dan - yang paling
+# berbahaya - `api/.env` ke daemon Docker. Yang terakhir bukan soal ukuran:
+# rahasia yang terpanggang ke dalam layer image tetap ada di sana walaupun
+# berkasnya dihapus pada langkah berikutnya, dan image itu diunggah ke registry.
+#
+# Yang dilewatkan hanya yang DIPASANG ULANG di dalam image (vendor lewat
+# `composer install`, `node_modules` lewat `npm install`, `dist` lewat
+# `npm run build`) atau yang tidak berguna di Linux.
+# ---------------------------------------------------------------------------
+
+# --- Rahasia ---------------------------------------------------------------
+# `.env.example` sengaja DIPERTAHANKAN: ia dokumentasi variabel yang dibaca
+# operator saat menyiapkan layanan.
+**/.env
+**/.env.*
+!**/.env.example
+
+# --- Dependensi (dipasang ulang di dalam image) ----------------------------
+**/node_modules/
+**/vendor/
+
+# --- Hasil build (dibangun di dalam image) ---------------------------------
+**/dist/
+**/build/
+
+# --- Kontrol versi ---------------------------------------------------------
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# --- Berkas yang berubah saat aplikasi berjalan ----------------------------
+**/storage/logs/*.log
+**/storage/framework/cache/data/*
+**/storage/framework/sessions/*
+**/storage/framework/views/*
+**/storage/backups/
+**/bootstrap/cache/*.php
+
+# --- Sisa alat pengembangan ------------------------------------------------
+**/*.log
+**/.DS_Store
+**/Thumbs.db
+**/desktop.ini
+**/.idea/
+**/.vscode/
+**/.phpunit.result.cache
+**/.phpunit.cache/
+**/coverage/
+**/test-results/
+**/playwright-report/
+
+# --- Berkas kerja yang tidak perlu di image --------------------------------
+docs/akademik/_ukur/
+docs/akademik/_*.html
+revisi.md
+docs/revisi.md

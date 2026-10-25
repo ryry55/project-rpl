@@ -62,6 +62,13 @@ lapor 'APP_DEBUG=false' "$(ada 'APP_DEBUG: "false"' "$PROD")"
 lapor 'APP_DEMO_MODE=false' "$(ada 'APP_DEMO_MODE: "false"' "$PROD")"
 lapor 'RUN_SEEDER=false' "$(ada 'RUN_SEEDER: "false"' "$PROD")"
 
+# --- Sesi dan cache tidak boleh berbasis berkas --------------------------
+# Di container tanpa disk persisten, `file` berarti setiap restart memutus
+# semua sesi dan mengosongkan pembatas percobaan masuk - sehingga batas itu
+# bisa dilewati hanya dengan menunggu container tidur lalu bangun.
+lapor 'SESSION_DRIVER=database' "$(ada 'SESSION_DRIVER: database' "$PROD")"
+lapor 'CACHE_STORE=database' "$(ada 'CACHE_STORE: database' "$PROD")"
+
 # --- Tidak boleh ada jalan pintas yang menghapus data ---------------------
 # Komentar boleh menyebut `migrate:fresh` - dan memang menyebutnya, untuk
 # menjelaskan kenapa perintah itu tidak ada. Yang diperiksa adalah baris
@@ -103,6 +110,27 @@ fi
 lapor 'docker-compose.yml dasar tetap memakai mode demo' "$(ada 'APP_DEMO_MODE: ${APP_DEMO_MODE:-true}' "$DASAR")"
 
 # --- Ringkasan -----------------------------------------------------------
+# --- Image produksi benar-benar menunjuk berkas yang ada -----------------
+# Rujukan COPY ke berkas yang tidak ada baru ketahuan setelah build berjalan
+# beberapa menit. Memeriksanya di sini membuat kesalahan itu ketahuan dalam
+# hitungan detik.
+for rujukan in docker/prod/entrypoint-prod.sh \
+                docker/prod/nginx.conf.template \
+                docker/prod/supervisord.conf \
+                docker/prod/php-fpm.conf \
+                api/docker/backup.sh; do
+    if [ -f "$AKAR/$rujukan" ]; then
+        lapor "berkas image ada: $rujukan" 0
+    else
+        lapor "berkas image ada: $rujukan" 1 'tidak ditemukan'
+    fi
+done
+
+lapor 'Dockerfile.prod memakai entrypoint produksi' \
+    "$(grep -q 'entrypoint-prod.sh' "$AKAR/Dockerfile.prod" && echo 0 || echo 1)"
+lapor 'supervisord menjalankan penjadwal' \
+    "$(grep -q 'schedule:work' "$AKAR/docker/prod/supervisord.conf" && echo 0 || echo 1)"
+
 echo ''
 if [ "${#GAGAL[@]}" -eq 0 ]; then
     echo 'PROFIL PRODUKSI LULUS'

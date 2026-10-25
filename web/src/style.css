@@ -563,6 +563,14 @@ table.tabel {
   background: #eef0f3;
 }
 
+/* Kamar atau kontrak yang sudah dipesan: belum dihuni, tetapi juga tidak
+   tersedia. Warnanya harus berbeda dari "kosong" - kalau sama, kamar yang
+   sudah dijanjikan akan terbaca sebagai kamar bebas. */
+.lencana-status.status-dipesan {
+  color: #6b4ea8;
+  background: #f1ecfb;
+}
+
 /* Tagihan yang belum dibayar adalah keadaan yang perlu ditindak, bukan sekadar
    keterangan — jadi diberi warna peringatan, bukan abu-abu. */
 .lencana-status.status-belum_bayar {

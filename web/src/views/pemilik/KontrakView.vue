@@ -25,6 +25,11 @@ const galatAksi = ref('')
 
 const kamarKosong = computed(() => kamar.value.filter((k) => k.status_huni === 'kosong'))
 
+// Kamar yang boleh dipilih pada formulir kontrak. `dipesan` sengaja TIDAK
+// ikut: kamar itu sudah dijanjikan ke penghuni lain, dan menampilkannya di
+// sini berarti menawarkan kamar yang pasti ditolak server (indeks unik
+// menolaknya). Yang ditampilkan hanya kamar yang benar-benar kosong.
+const kamarTerpilih = computed(() => kamar.value.filter((k) => k.status_huni === 'kosong'))
 const tarifKamarTerpilih = computed(() => {
   const terpilih = kamar.value.find((k) => String(k.id) === String(form.value.kamar_id))
   return terpilih?.tarif_terakhir || null
@@ -151,9 +156,10 @@ onMounted(muat)
               :aria-invalid="Boolean(galatBidang.kamar_id)"
             >
               <option value="" disabled>Pilih kamar</option>
-              <option v-for="k in kamar" :key="k.id" :value="k.id">
+              <option v-for="k in kamarTerpilih" :key="k.id" :value="k.id">
                 {{ k.nomor }}{{ k.tipe ? ` — ${k.tipe}` : '' }}{{
-                  k.status_huni === 'terisi' ? ' (terisi)' : ''
+                  k.status_huni === 'terisi' ? ' (terisi)'
+                    : k.status_huni === 'dipesan' ? ' (sudah dipesan)' : ''
                 }}
               </option>
             </select>

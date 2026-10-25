@@ -21,7 +21,7 @@ karena uji gagal.
 | pint, eslint, vite build | lulus |
 | Paritas daftar E2E `periksa.ps1` vs `periksa.sh` | lulus |
 | Profil produksi (`periksa-profil-produksi.sh`) | lulus |
-| 715 tes PHP di dalam container | lulus |
+| 722 tes PHP di dalam container | lulus |
 | Chrome headless membuka port 9222 | lulus |
 | `periksa.sh` benar-benar dijalankan (`bash periksa.sh`) | lulus |
 
@@ -95,7 +95,8 @@ dengan mengembalikan `url_spa` menjadi `url`.
 
 | Cacat | Akibat | Catatan |
 |---|---|---|
-| `TerbitkanTagihanMassal` tidak terjadwal | Tagihan bulanan harus diterbitkan manual lewat layar | Disengaja; penjadwalan butuh cron yang tidak tersedia di Render free |
+| ~~`TerbitkanTagihanMassal` tidak terjadwal~~ | ~~Tagihan bulanan harus diterbitkan manual lewat layar~~ | **Sudah diperbaiki (LANGKAH 11).** Dijadwalkan lewat `Schedule::call` di `routes/console.php` (tanggal 1, 00:10 WIB) dan dijalankan `schedule:work` sebagai program supervisord di image produksi. `kontrak:mulai` berjalan 00:05 lebih dulu supaya kontrak yang mulai tanggal 1 sudah berstatus `aktif` saat tagihan diterbitkan |
+| ~~**S1.9 / REV-FIN-04** — tanggal masuk tidak boleh di masa depan~~ | ~~Pemilik tidak bisa mencatat penghuni yang sudah menyanggupi kamar untuk bulan depan~~ | **Sudah diperbaiki.** Batasnya kini satu tahun (menahan salah ketik tahun), dan tanggal masa depan melahirkan kontrak berstatus `dipesan` dengan kamar berstatus `dipesan`. Kontrak `dipesan` **tidak ditagih** dan **tidak dihitung menempati kamar**; `kontrak:mulai` (harian 00:05 WIB) mengubahnya menjadi `aktif`/`terisi` saat harinya tiba. Pemesanan ganda ditolak **indeks unik** `(kamar_id) WHERE status IN ('aktif','dipesan')`, bukan pemeriksaan aplikasi yang punya celah balapan. Dijaga 3 tes di `DataIndukTest` + 5 tes di `MulaiKontrakTest`, dan ketiganya dibuktikan bisa gagal dengan menyuntikkan cacat |
 | Deposit dibaca saat kontrak dibuat, tidak dipakai lagi | Deposit tidak pernah mengurangi tagihan akhir | Perlu keputusan produk, bukan perbaikan kode |
 | Akun yang pernah menangani uang tidak bisa dihapus | `RESTRICT` pada FK `dicatat_oleh`/`diterima_oleh` | Disengaja: jejak uang tidak boleh yatim |
 | **DAT-03** — email dikirim sinkron (`QUEUE_CONNECTION=sync`), tanpa queue worker | Terbit massal mengirim satu email per penghuni, berurutan dalam satu permintaan: 30 penghuni = 30 email sebelum respons kembali, dan SMTP yang lambat memperlambat layar, bukan hanya emailnya | **Diterima sebagai utang, bukan cacat yang harus ditutup.** Satu layanan Render tidak bisa menjalankan queue worker persisten, dan `sync` adalah konsekuensi arsitektur itu. Kegagalan kirim sudah tidak membatalkan transaksi (R3). Jangan "memperbaikinya" dengan worker yang tidak akan hidup di produksi |
@@ -130,17 +131,30 @@ kondisi lama, dan tepat satu asersi menjadi merah.
 
 ---
 
-## 4. Kesiapan produksi yang belum dikerjakan (LANGKAH 11)
+## 4. Kesiapan produksi (LANGKAH 11) — SELESAI, dengan tiga batas yang jujur
 
-| Kurang | Akibat bila live sekarang |
+Seluruh butir di bawah **sudah dikerjakan dan dibuktikan berjalan** lewat
+`docker build -f Dockerfile.prod` + `docker run` terhadap database lokal.
+Bukti yang dipegang: image boot, tiga proses (`php-fpm`, `nginx`, `penjadwal`)
+masuk RUNNING, `GET /` menyajikan HTML SPA, `/assets/*` ber-cache immutable,
+`/sw.js` ber-cache `no-store`, deep link `/tagihan` menjawab 200 HTML,
+`/api/health` menjawab `database: ok`, dan `POST /api/login` + `GET /api/me` +
+`GET /api/tagihan` mengembalikan data sungguhan — semuanya dari **satu origin**.
+
+| Butir | Status |
 |---|---|
-| `Dockerfile.prod` satu layanan (SPA di dalam `public/` Laravel) | Dua origin, CORS harus dibuka, dua cold start |
-| `docker-compose.prod.yml` belum memakai Neon (masih service `db`) | Database hilang setiap restart — Render free tidak punya disk |
-| `SESSION_DRIVER`/`CACHE_STORE` masih `file` | Sesi dan pembatas login hilang setiap restart |
-| Akun demo belum dihapus dari database produksi | `pemilik@kos.test` / `password` = seluruh data kos terbuka |
-| Backup tidak terjadwal | `backup.sh` ada dan terbukti bisa memulihkan, tetapi tidak dipanggil cron mana pun |
-| Target deploy belum ada | `deploy.yml` melaporkan `siap=false`, tidak gagal |
-| T22 Midtrans belum bisa diverifikasi | Butuh kredensial sandbox |
+| `Dockerfile.prod` satu layanan (SPA di dalam `public/`) | **Selesai.** Tiga tahap: SPA (`node:22-alpine`), dependensi PHP (`composer --no-dev`), lalu `php:8.3-fpm-alpine` + nginx + supervisord |
+| Sesi dan cache hilang setiap restart | **Selesai.** `SESSION_DRIVER=database`, `CACHE_STORE=database`; tabel `sessions`/`cache`/`cache_locks` sudah ada sejak migrasi awal |
+| Akun demo terbawa ke produksi | **Selesai, berlapis tiga.** Seeder menolak di `APP_ENV=production`; entrypoint memaksa `RUN_SEEDER=false`; `smoke-produksi.sh` memastikan login `pemilik@kos.test` gagal |
+| `APP_DEBUG`/`APP_DEMO_MODE`/`APP_KEY` salah | **Selesai.** Entrypoint berhenti keras. Ketiganya dibuktikan bisa gagal: masing-masing dijalankan dan keluar dengan kode 1 disertai alasannya |
+| Backup tidak terjadwal | **Selesai, dengan batas.** `kos:backup` berjalan harian 02:00 WIB lewat penjadwal. Di Render free tidak ada disk persisten, jadi hasilnya hilang saat restart — ia untuk pemulihan cepat, bukan arsip |
+| Target deploy belum ada | **Belum, dan tidak bisa dikerjakan dari sini.** Butuh akun Render + Neon. `deploy.yml` tetap melaporkan `siap=false` alih-alih gagal, dan langkah manualnya ada di `docs/produk/9_DEPLOY.md` |
+| T22 Midtrans | **Belum.** Tidak ada kode Midtrans sama sekali; yang ada hanya konstanta `SUMBER_GATEWAY_WEBHOOK` yang mengantisipasinya. Butuh kredensial sandbox untuk dibuktikan |
+
+Tiga hal di atas yang masih "belum" bukan kelalaian yang disembunyikan:
+masing-masing menunggu sesuatu yang tidak ada di repo ini (akun, kredensial,
+disk). Menulisnya sebagai selesai akan membuat audit berikutnya mencari kode
+yang tidak pernah ada.
 
 ---
 

@@ -1,0 +1,153 @@
+# ---------------------------------------------------------------------------
+# Produksi - SATU layanan: nginx + PHP-FPM + SPA dalam satu container.
+#
+#   docker build -f Dockerfile.prod -t kos-kosan/prod .
+#   docker run --rm -p 8080:8080 --env-file .env.production kos-kosan/prod
+#
+# Kenapa satu container, padahal di laptop ada empat layanan:
+#
+#   Render free hanya memberi satu layanan web. Kalau SPA dilayani container
+#   sendiri, konsekuensinya bukan sekadar "dua URL": CORS harus dibuka,
+#   cookie sesi harus lintas situs, ada dua cold start (~50 detik masing-
+#   masing), dan satu deploy menjadi dua langkah yang bisa berbeda versi.
+#   Dengan satu layanan, browser hanya mengenal satu origin - dan seluruh
+#   kelas masalah itu hilang, bukan diselesaikan.
+#
+# Kenapa supervisord, bukan dua proses di shell:
+#
+#   `php-fpm -D && nginx -g 'daemon off;'` terlihat lebih sederhana, tetapi
+#   bila php-fpm mati, nginx tetap hidup dan melayani 502 tanpa satu pun
+#   proses yang keluar. Render mengira layanannya sehat. supervisord mematikan
+#   seluruh container bila salah satu proses mati, sehingga kegagalan terlihat
+#   sebagai kegagalan - bukan sebagai halaman galat yang tenang.
+#
+# Yang TIDAK ada di sini: `migrate:fresh`, `db:seed` di produksi, akun demo,
+# dan APP_DEBUG=true. Masing-masing ditutup oleh entrypoint dan oleh
+# docker-compose.prod.yml, dan diperiksa `docs/uji/smoke-produksi.sh`.
+# ---------------------------------------------------------------------------
+
+# --- Tahap 1: bangun SPA ----------------------------------------------------
+FROM node:22-alpine AS spa
+
+WORKDIR /app
+
+# Dependensi dulu, supaya layer ini dipakai ulang saat kode berubah.
+COPY web/package.json web/package-lock.json* ./
+RUN npm install --no-audit --no-fund
+
+COPY web/ ./
+RUN npm run build
+
+# --- Tahap 2: dependensi PHP ------------------------------------------------
+# Dipisah supaya `composer install` tidak dijalankan ulang setiap kali satu
+# berkas Vue berubah, dan supaya image akhir tidak membawa composer.
+FROM php:8.3-fpm-alpine AS php-deps
+
+RUN apk add --no-cache \
+        postgresql-dev \
+        postgresql16-client \
+        libzip-dev \
+        icu-dev \
+        oniguruma-dev \
+        $PHPIZE_DEPS \
+    && docker-php-ext-install -j"$(nproc)" \
+        pdo_pgsql \
+        pgsql \
+        bcmath \
+        intl \
+        zip \
+        opcache \
+    && apk del $PHPIZE_DEPS
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+COPY api/composer.json api/composer.lock ./
+RUN composer install \
+        --no-interaction \
+        --no-dev \
+        --no-scripts \
+        --no-autoloader \
+        --prefer-dist \
+        --optimize-autoloader
+
+# --- Tahap 3: image akhir ---------------------------------------------------
+FROM php:8.3-fpm-alpine
+
+RUN apk add --no-cache \
+        postgresql-dev \
+        postgresql16-client \
+        libzip-dev \
+        icu-dev \
+        oniguruma-dev \
+        nginx \
+        supervisor \
+        curl \
+        $PHPIZE_DEPS \
+    && docker-php-ext-install -j"$(nproc)" \
+        pdo_pgsql \
+        pgsql \
+        bcmath \
+        intl \
+        zip \
+        opcache \
+    && apk del $PHPIZE_DEPS \
+    && rm -rf /var/cache/apk/*
+
+WORKDIR /var/www/html
+
+# Dependensi dari tahap sebelumnya - sudah tanpa paket dev.
+COPY --from=php-deps /var/www/html/vendor ./vendor
+
+# Composer hanya dipinjam untuk `dump-autoload`, lalu dihapus pada RUN yang
+# sama. Tanpa `dump-autoload`, autoloader hasil `composer install` masih
+# memakai peta kelas dari tahap sebelumnya - di sana `api/app` belum ada,
+# sehingga seluruh kelas aplikasi tidak ditemukan saat runtime.
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Kode aplikasi.
+COPY api/ ./
+
+# SPA masuk ke public/, sehingga nginx dan PHP berbagi satu document root.
+# Inilah yang membuat satu origin mungkin: `/api/*` ditangani index.php,
+# sisanya dilayani sebagai berkas statis lalu jatuh ke index.html.
+COPY --from=spa /app/dist ./public
+
+# Direktori ditulis satu per satu, bukan `storage/framework/{a,b,c}`: `/bin/sh`
+# di Alpine adalah BusyBox ash yang TIDAK mengenal brace expansion, sehingga
+# bentuk itu membuat satu direktori bernama harfiah `{cache,sessions,views}`.
+RUN composer dump-autoload --optimize --no-dev --no-interaction \
+    && rm /usr/bin/composer \
+    && mkdir -p storage/framework/cache/data \
+                storage/framework/sessions \
+                storage/framework/views \
+                storage/logs \
+                storage/backups \
+                bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache public \
+    && chmod -R ug+rwX storage bootstrap/cache
+
+COPY api/docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY api/docker/php/php.ini /usr/local/etc/php/conf.d/app.ini
+COPY api/docker/backup.sh /usr/local/bin/backup.sh
+
+# Konfigurasi satu layanan. `nginx.conf.template` sengaja bernama template:
+# nginx tidak mengenal variabel lingkungan, jadi `${PORT}` baru diganti oleh
+# entrypoint saat container start (Render menentukan portnya lewat PORT).
+COPY docker/prod/nginx.conf.template /etc/nginx/nginx.conf.template
+COPY docker/prod/supervisord.conf /etc/supervisord.conf
+COPY docker/prod/php-fpm.conf /usr/local/etc/php-fpm.d/zz-prod.conf
+COPY docker/prod/entrypoint-prod.sh /usr/local/bin/entrypoint-prod.sh
+
+RUN chmod +x /usr/local/bin/entrypoint-prod.sh /usr/local/bin/backup.sh
+
+# Render meneruskan PORT; bawaan 8080 dipakai saat dijalankan di laptop.
+ENV PORT=8080
+EXPOSE 8080
+
+# Satu-satunya proses yang boleh menjadi PID 1: supervisord.
+# Entrypoint tetap dijalankan lebih dulu untuk menunggu database, menjalankan
+# migrasi, dan memeriksa pagar produksi - hal yang sama seperti di laptop.
+ENTRYPOINT ["/usr/local/bin/entrypoint-prod.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

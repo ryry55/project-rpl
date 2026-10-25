@@ -18,7 +18,7 @@ Terakhir diperbarui: fase R6/R7 selesai, REV-SEC-03 ditutup - 25 Oktober 2026
 |---|---|
 | Fase terakhir yang selesai | **R1-R7 tuntas**, plus REV-SEC-03 |
 | Fase yang sedang dikerjakan | - (berikutnya LANGKAH 11: produksi) |
-| Suite PHP | **715 lulus / 3395 asersi**, 36 berkas tes |
+| Suite PHP | **722 lulus / 3417 asersi**, 37 berkas tes |
 | Pint / ESLint | bersih |
 | Migrasi | **36** |
 | Endpoint `/api` | **78** |
@@ -91,7 +91,7 @@ Dari akar repo:
 
 ```powershell
 git status --short                              # harus bersih kecuali 2 berkas audit
-docker compose exec -T api php artisan test      # 715 lulus / 3395 asersi
+docker compose exec -T api php artisan test      # 722 lulus / 3417 asersi
 powershell -ExecutionPolicy Bypass -File periksa.ps1   # SEMUA LULUS
 node docs/akademik/uji-validator.js              # 4/4 kasus gagal sebagaimana mestinya
 powershell -ExecutionPolicy Bypass -File docs/akademik/ukur-halaman.ps1  # 4 halaman

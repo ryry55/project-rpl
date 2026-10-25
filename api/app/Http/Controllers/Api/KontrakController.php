@@ -121,13 +121,25 @@ class KontrakController extends Controller
                     'tgl_masuk' => $tglMasuk->toDateString(),
                     'tarif_awal' => (int) $tarifBerlaku->nilai,
                     'deposit' => $this->depositUntuk($request, $kamar, $tglMasuk, (int) $tarifBerlaku->nilai),
+                    // S1.9: kontrak yang mulai di masa depan lahir sebagai
+                    // `dipesan`, bukan `aktif`. Bedanya bukan sekadar label:
+                    // kontrak `dipesan` tidak ditagih (PenerbitanMassal hanya
+                    // menyaring `aktif`) dan tidak membuat penghuni dianggap
+                    // menempati kamar. Tanpa ini, mencatat penghuni bulan
+                    // depan berarti menerbitkan tagihan untuk bulan yang
+                    // belum ia tempati.
+                    'status' => $tglMasuk->isAfter(now('Asia/Jakarta')->startOfDay()) ? 'dipesan' : 'aktif',
                 ]);
 
-                // Status kamar mengikuti kontrak aktifnya, supaya daftar kamar
+                // Status kamar mengikuti kontraknya, supaya daftar kamar
                 // tidak pernah bertentangan dengan daftar kontrak.
-                if ($kontrak->status === 'aktif') {
-                    Kamar::whereKey($kontrak->kamar_id)->update(['status_huni' => 'terisi']);
-                }
+                //
+                // `dipesan` penting ada di sini: tanpa itu, kamar yang sudah
+                // dijanjikan tetap tampil `kosong`, muncul di daftar pilihan
+                // formulir kontrak, dan bisa dipesan penghuni kedua.
+                Kamar::whereKey($kontrak->kamar_id)->update([
+                    'status_huni' => $kontrak->status === 'aktif' ? 'terisi' : 'dipesan',
+                ]);
 
                 // REV-DAT-05: kontrak berjejak. Ini baris yang menentukan
                 // berapa yang ditagih setiap bulan, jadi "sejak kapan ia
@@ -157,13 +169,19 @@ class KontrakController extends Controller
                 return $kontrak;
             });
         } catch (QueryException $e) {
-            // Partial unique index kontrak_satu_aktif_per_kamar. Pengecekan
-            // exists() sebelumnya punya celah balapan, jadi constraint-lah yang
-            // jadi pengaman; di sini hanya diterjemahkan ke pesan yang jelas.
+            // Partial unique index kontrak_satu_aktif_per_kamar, yang sejak
+            // S1.9 juga mencakup kontrak `dipesan`. Pengecekan exists()
+            // sebelumnya punya celah balapan, jadi constraint-lah yang jadi
+            // pengaman; di sini hanya diterjemahkan ke pesan yang jelas.
+            //
+            // Pesannya menyebut "sudah dipesan", bukan hanya "sudah punya
+            // kontrak aktif": kamar yang dipesan belum berpenghuni, dan
+            // pemilik yang membaca "kontrak aktif" akan mencari penghuni yang
+            // tidak ada.
             if ($e->getCode() === '23505') {
                 return response()->json([
-                    'message' => 'Kamar ini sudah punya kontrak aktif. Akhiri kontrak lama dulu.',
-                    'errors' => ['kamar_id' => ['Kamar ini sudah punya kontrak aktif.']],
+                    'message' => 'Kamar ini sudah punya kontrak aktif atau sudah dipesan. Pilih kamar lain, atau akhiri kontrak yang ada.',
+                    'errors' => ['kamar_id' => ['Kamar ini sudah punya kontrak aktif atau sudah dipesan.']],
                 ], 422);
             }
 

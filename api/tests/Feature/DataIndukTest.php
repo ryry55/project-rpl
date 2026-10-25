@@ -319,7 +319,7 @@ class DataIndukTest extends TestCase
         $this->assertSame('kosong', Kamar::find($kamar->id)->status_huni);
     }
 
-    public function test_tgl_masuk_di_masa_depan_ditolak_422(): void
+    public function test_tgl_masuk_di_masa_depan_diterima_sebagai_dipesan(): void
     {
         $kamar = Kamar::create(['nomor' => 'A1']);
         $penghuni = Penghuni::create(['nama' => 'Budi', 'email' => 'budi@kos.test']);
@@ -329,6 +329,53 @@ class DataIndukTest extends TestCase
                 'kamar_id' => $kamar->id,
                 'penghuni_id' => $penghuni->id,
                 'tgl_masuk' => now()->addDays(5)->toDateString(),
+                'tarif' => 1500000,
+            ])
+            ->assertStatus(201)
+            ->assertJsonPath('data.status', 'dipesan');
+
+        // Kamar TIDAK boleh tampak terisi: penghuninya belum masuk.
+        $this->assertSame('dipesan', Kamar::find($kamar->id)->status_huni);
+    }
+
+    public function test_kamar_yang_sudah_dipesan_tidak_bisa_dipesan_lagi(): void
+    {
+        $kamar = Kamar::create(['nomor' => 'A1']);
+        $pertama = Penghuni::create(['nama' => 'Budi', 'email' => 'budi@kos.test']);
+        $kedua = Penghuni::create(['nama' => 'Sari', 'email' => 'sari@kos.test']);
+
+        $this->sebagaiPemilik()->postJson('/api/kontrak', [
+            'kamar_id' => $kamar->id,
+            'penghuni_id' => $pertama->id,
+            'tgl_masuk' => now()->addDays(10)->toDateString(),
+            'tarif' => 1500000,
+        ])->assertStatus(201);
+
+        // Pemesanan kedua pada kamar yang sama harus ditolak, dan yang menolak
+        // adalah indeks unik di basis data - bukan pemeriksaan di aplikasi yang
+        // punya celah balapan.
+        $this->sebagaiPemilik()->postJson('/api/kontrak', [
+            'kamar_id' => $kamar->id,
+            'penghuni_id' => $kedua->id,
+            'tgl_masuk' => now()->addDays(11)->toDateString(),
+            'tarif' => 1500000,
+        ])
+            ->assertStatus(422)
+            ->assertJsonStructure(['errors' => ['kamar_id']]);
+    }
+
+    public function test_tgl_masuk_lebih_dari_setahun_ditolak(): void
+    {
+        $kamar = Kamar::create(['nomor' => 'A1']);
+        $penghuni = Penghuni::create(['nama' => 'Budi', 'email' => 'budi@kos.test']);
+
+        // Batas atas dipertahankan supaya salah ketik tahun (2027 -> 2072)
+        // tidak menghasilkan kontrak yang tidak akan pernah ditagih.
+        $this->sebagaiPemilik()
+            ->postJson('/api/kontrak', [
+                'kamar_id' => $kamar->id,
+                'penghuni_id' => $penghuni->id,
+                'tgl_masuk' => now()->addYears(2)->toDateString(),
                 'tarif' => 1500000,
             ])
             ->assertStatus(422)

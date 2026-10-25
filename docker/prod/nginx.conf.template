@@ -1,0 +1,154 @@
+# ---------------------------------------------------------------------------
+# nginx untuk SATU layanan produksi.
+#
+# Bedanya dengan web/docker/nginx/default.conf yang dipakai di laptop: di sini
+# nginx dan PHP berada di container yang sama, jadi tidak ada `proxy_pass`.
+# `/api/*` diserahkan langsung ke PHP-FPM lewat FastCGI, dan sisanya dilayani
+# sebagai berkas statis SPA.
+#
+# Yang dipertahankan persis sama dengan versi laptop, karena masing-masing
+# menutup satu kesalahan yang sudah pernah terjadi:
+#
+#   sw.js        tidak boleh di-cache. Peramban memeriksa ulang berkas ini
+#                setiap pemuatan; bila disajikan dari cache, versi baru
+#                aplikasi tidak pernah terpasang dan pengguna terjebak di
+#                versi lama tanpa cara membersihkannya.
+#   index.html   tidak boleh di-cache. Ia menyebut nama berkas ber-hash;
+#                HTML basi menunjuk berkas yang sudah tidak ada.
+#   /assets/     sebaliknya: boleh di-cache selamanya, karena namanya
+#                mengandung hash isi.
+# ---------------------------------------------------------------------------
+
+worker_processes auto;
+error_log /dev/stderr warn;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    # Format log ditulis sendiri, bukan `main`: berkas ini menggantikan
+    # nginx.conf bawaan paket Alpine, sehingga format `main` yang biasa
+    # didefinisikan di sana tidak ada. Tanpa definisi ini nginx menolak start
+    # dengan "unknown log format", dan container mati sebelum melayani apa pun.
+    log_format utama '$remote_addr - [$time_local] "$request" '
+                     '$status $body_bytes_sent $request_time '
+                     '"$http_x_forwarded_for" "$http_user_agent"';
+
+    # Log ke stdout/stderr supaya terbaca oleh platform, bukan hilang di
+    # dalam container.
+    access_log /dev/stdout utama;
+
+    sendfile on;
+    tcp_nopush on;
+    keepalive_timeout 65;
+
+    # Render free memberi 512 MB. Permintaan unggah di aplikasi ini hanya
+    # formulir JSON, jadi batas kecil sudah cukup dan menutup satu jalan
+    # menghabiskan memori.
+    client_max_body_size 2m;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml application/manifest+json;
+    gzip_min_length 512;
+
+    # PHP-FPM di container yang sama, lewat soket TCP localhost.
+    upstream php_fpm {
+        server 127.0.0.1:9000;
+    }
+
+    server {
+        listen ${PORT} default_server;
+        server_name _;
+        root /var/www/html/public;
+
+        # URUTAN PENTING: `index.html` lebih dulu, bukan `index.php`.
+        # Dengan `index.php` di depan, permintaan `/` cocok dengan `$uri/`
+        # pada `try_files` di bawah, lalu nginx memilih index.php - sehingga
+        # pengguna yang membuka alamat aplikasi menerima JSON mentah alih-alih
+        # halaman masuk. Front controller Laravel tetap dipakai, tetapi hanya
+        # lewat `location = /index.php` yang dituju `/api/*`.
+        index index.html;
+        charset utf-8;
+
+        # Header keamanan dasar. Tidak ada yang bergantung pada HTTPS di sini:
+        # Render menangani TLS di depannya, dan `X-Forwarded-Proto` sudah
+        # diteruskan Laravel lewat trustProxies.
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+        # --- API: diserahkan ke Laravel ------------------------------------
+        location /api/ {
+            try_files $uri /index.php?$query_string;
+        }
+
+        location = /index.php {
+            fastcgi_pass php_fpm;
+            fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+            fastcgi_param DOCUMENT_ROOT $realpath_root;
+            # Laravel membaca ini untuk membangun URL dan memutuskan HTTPS.
+            fastcgi_param HTTP_X_FORWARDED_PROTO $http_x_forwarded_proto;
+            include fastcgi_params;
+
+            # Terbit tagihan massal mengirim satu email per penghuni secara
+            # sinkron (DAT-03). 30 penghuni dengan SMTP lambat masih di bawah
+            # batas ini; tanpa batas, permintaan yang menggantung menahan
+            # seluruh worker.
+            fastcgi_read_timeout 120s;
+        }
+
+        # --- Aset ber-hash: cache selamanya ---------------------------------
+        location /assets/ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+            try_files $uri =404;
+        }
+
+        # --- Service worker: jangan pernah di-cache -------------------------
+        location = /sw.js {
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
+            add_header Pragma "no-cache";
+            expires off;
+            try_files $uri =404;
+        }
+
+        # --- Manifest: boleh disimpan, wajib divalidasi ---------------------
+        location = /manifest.webmanifest {
+            add_header Cache-Control "no-cache";
+            types { } default_type application/manifest+json;
+            try_files $uri =404;
+        }
+
+        # --- HTML: jangan di-cache ------------------------------------------
+        location = /index.html {
+            add_header Cache-Control "no-cache";
+            expires off;
+        }
+
+        # Berkas statis lain (ikon, favicon, robots.txt).
+        location ~* \.(?:png|jpg|jpeg|svg|ico|webmanifest|txt|woff2?)$ {
+            try_files $uri =404;
+            expires 7d;
+        }
+
+        # --- SPA: rute apa pun dilayani index.html --------------------------
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+
+        # Jangan pernah menyajikan berkas titik (mis. .env bila pernah salah
+        # salin) dan berkas PHP di luar index.php.
+        location ~ /\.(?!well-known).* {
+            deny all;
+        }
+
+        location ~ \.php$ {
+            return 404;
+        }
+    }
+}
