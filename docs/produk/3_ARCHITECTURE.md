@@ -392,7 +392,7 @@ dibatasi adalah tebakan, bukan pemakaian.
 |---|---|---|
 | Penerbitan tagihan terjadwal | Render gratis tanpa cron yang andal | Utang teknis |
 | Antrean email | Tanpa worker persisten | Utang teknis |
-| Tombol pembalik di layar | Endpoint `POST /pembayaran/{id}/pembalik` sudah ada sejak R2, tetapi belum ada tombolnya. Koreksi masih lewat API | Utang teknis (§3) |
+| ~~Tombol pembalik di layar~~ | ~~Endpoint `POST /pembayaran/{id}/pembalik` sudah ada sejak R2, tetapi belum ada tombolnya~~ | **Sudah ditutup (fase terakhir).** Panel rincian tagihan kini punya tombol **Tarik kembali** beserta formulir alasan wajib; `TagihanResource` mengirim `adalah_pembalik`/`sudah_dibalik` supaya layar tahu baris mana yang sudah ditarik. Dijaga `uji-pembalik.mjs` (13 langkah) |
 | Uji aksesibilitas otomatis | Waktu | Utang teknis |
 | Multi-kos | Ditolak (§3.6) | — |
 | Aplikasi native | PWA cukup | Capacitor dicatat sebagai opsi |

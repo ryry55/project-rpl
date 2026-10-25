@@ -142,6 +142,11 @@ class TagihanController extends Controller
                 // di panel tidak menjalankan dua query per baris pembayaran.
                 'pembayaran.verifikasi',
                 'pembayaran.penerima',
+                // Sejak tombol pembalik dipasang di panel rincian, riwayat ini
+                // juga harus bisa menjawab "baris mana yang sudah ditarik".
+                // Tanpa relasinya, `sudah_dibalik` hilang dari respons dan layar
+                // menawarkan tombol Balik untuk pembayaran yang sudah dibalik.
+                'pembayaran.pembalik',
                 'kontrak.kamar',
                 'kontrak.penghuni',
                 // Pelaku pembatalan dan pemaafan ikut dimuat: tanpa ini,
@@ -188,7 +193,7 @@ class TagihanController extends Controller
             ], 422);
         }
 
-        $tagihan->refresh()->load(['rincian', 'pembayaran.verifikasi', 'pembayaran.pencatat', 'pembayaran.penerima', 'kontrak.kamar', 'kontrak.penghuni']);
+        $tagihan->refresh()->load(['rincian', 'pembayaran.verifikasi', 'pembayaran.pencatat', 'pembayaran.penerima', 'pembayaran.pembalik', 'kontrak.kamar', 'kontrak.penghuni']);
 
         $this->pemberitahu->pembayaranDicatat(
             pelaku: $request->user(),
@@ -331,7 +336,7 @@ class TagihanController extends Controller
             ], 422);
         }
 
-        $tagihan->load(['rincian', 'pembayaran.verifikasi', 'pembayaran.penerima', 'kontrak.kamar', 'kontrak.penghuni', 'pemaafDenda']);
+        $tagihan->load(['rincian', 'pembayaran.verifikasi', 'pembayaran.penerima', 'pembayaran.pembalik', 'kontrak.kamar', 'kontrak.penghuni', 'pemaafDenda']);
         $tagihan->loadSum('pembayaran as total_dibayar', 'jumlah');
 
         return response()->json(['data' => new TagihanResource($tagihan)]);

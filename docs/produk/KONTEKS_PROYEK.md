@@ -165,7 +165,7 @@ Diurutkan menurut **risiko**, bukan kemudahan.
 | **Uji aksesibilitas otomatis** | Rendah | Waktu |
 | **Lanskap ponsel belum diuji** | Rendah | Waktu |
 | **Uji luring sungguhan** | Rendah | Waktu |
-| **Pembayaran pembalik** | Rendah | Belum dibutuhkan |
+| ~~**Pembayaran pembalik**~~ | ~~Rendah~~ | **Sudah ditutup (fase terakhir):** endpoint dan tombolnya sudah ada, dijaga `uji-pembalik.mjs` dan `PembalikPembayaranTest` |
 | **Multi-kos** | — | **Ditolak** dengan alasan tertulis |
 
 Semuanya tercatat di `docs/utang-teknis.md` dengan tiga hal: apa yang kurang,

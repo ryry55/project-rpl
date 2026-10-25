@@ -4,7 +4,7 @@
 > bagaimana menambah tes yang benar-benar menahan.**
 >
 > Angka diambil dari aplikasi yang berjalan: **738 tes PHP (3474 asersi)** dalam
-> 36 berkas, dan **24 skrip uji** (22 browser + 2 balapan HTTP) dengan **730 langkah**.
+> 36 berkas, dan **25 skrip uji** (23 browser + 2 balapan HTTP) dengan **743 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -70,7 +70,7 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
 
 ```
         ┌──────────────────────────────────────┐
-        │  24 skrip uji                        │  lambat (~300 dtk), tetapi
+        │  25 skrip uji                        │  lambat (~300 dtk), tetapi
         │  (22 browser + 2 balapan)            │  satu-satunya yang melihat
         └──────────────────────────────────────┘
       ┌──────────────────────────────────────┐
@@ -176,7 +176,7 @@ Dikelompokkan menurut apa yang dijaga:
 
 ---
 
-## 4. Skrip uji browser dan balapan - 24 skrip, 730 langkah
+## 4. Skrip uji browser dan balapan - 25 skrip, 743 langkah
 
 ### 4.1 Menjalankan
 
@@ -215,6 +215,7 @@ Prasyarat: `docker compose up`, Chrome dengan `--remote-debugging-port=9222`,
 | `e2e-t27.mjs` | 28 | Aktivasi, lupa sandi, wajib ganti sandi |
 | `e2e-t28.mjs` | 39 | PDP: persetujuan, akses, anonimisasi |
 | `e2e-r3.mjs` | 50 | Pembatalan tagihan, pemaafan denda, bagikan WhatsApp, rekening |
+| `uji-pembalik.mjs` | 13 | Tombol **Tarik kembali**: alasan wajib, baris negatif di riwayat, tombol hilang sesudah ditarik, pembatalan jadi mungkin |
 | `asap-semua-halaman.mjs` | 23 | Semua halaman terbuka tanpa galat konsol/5xx |
 | `uji-tata-letak.mjs` | 94 | Tidak meluber di 360/390/768px |
 | `uji-kartu-tabel.mjs` | 65 | Tabel 4+ kolom jadi kartu; label sesuai `<th>`; desktop kembali normal |

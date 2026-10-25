@@ -327,8 +327,7 @@ Lima hal yang layak dijelaskan bila ditanya "kenapa begitu":
    pernah dipertanggungjawabkan sistem. Pemilik memutuskan menghapusnya seluruhnya di
    fase terakhir: kolom `kontrak.deposit`, tipe kebijakan `deposit`, dan kelas
    `PenentuDeposit` sudah tidak ada. Alasan lengkapnya di `docs/utang-teknis.md`; yang
-   tersisa sebagai utang adalah **pembalik pembayaran** dan **antrean email**, bukan
-   deposit.
+   tersisa sebagai utang adalah **antrean email** dan **gambar QRIS**, bukan deposit.
 
 ---
 

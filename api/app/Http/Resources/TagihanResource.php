@@ -126,6 +126,19 @@ class TagihanResource extends JsonResource
                     'catatan' => $baris->catatan,
                     'dicatat_pada' => $baris->created_at?->toIso8601String(),
 
+                    // Sejak REV-FIN-01 satu baris riwayat bisa berupa pembalik:
+                    // uang yang ditarik kembali, bukan diterima. Tanpa penanda
+                    // ini, baris negatif di daftar pembayaran terbaca sebagai
+                    // salah hitung, bukan sebagai koreksi yang disengaja.
+                    'pembalik_id' => $baris->pembalik_id,
+                    'adalah_pembalik' => $baris->adalahPembalik(),
+                    // `null` berarti relasinya tidak dimuat; `false` berarti sudah
+                    // diperiksa dan baris ini belum ditarik. Tombol "Balik"
+                    // hanya boleh muncul saat nilainya benar-benar `false`.
+                    'sudah_dibalik' => $baris->relationLoaded('pembalik')
+                        ? $baris->pembalik !== null
+                        : null,
+
                     // Sejak T20 riwayat ini juga menjawab "bagaimana uangnya
                     // masuk" dan "sudah diperiksa atau belum". Tanpa keduanya,
                     // layar Tagihan menampilkan deretan angka yang tidak bisa

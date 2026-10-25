@@ -376,9 +376,12 @@ sekarang sengaja ditekan ketika ada hasil pembayaran yang baru — yang benar-be
 kali: asersi yang menguji **kalimat** alih-alih **keadaan**. Kalimat boleh berubah karena alasan
 tampilan; keadaan tidak.
 
-**T5: batasan yang dicatat, bukan disembunyikan.** `pembayaran` bersifat append-only (trigger
-menolak UPDATE dan DELETE), tetapi **belum ada baris pembalik**. Artinya salah input jumlah tidak
-bisa diperbaiki lewat aplikasi. Ini konsekuensi langsung dari keputusan yang benar — catatan uang
+**T5: batasan yang dicatat, bukan disembunyikan.** Saat T5 dikerjakan, `pembayaran` sudah
+append-only (trigger menolak UPDATE dan DELETE) tetapi **belum ada baris pembalik** — salah input
+jumlah tidak bisa diperbaiki lewat aplikasi. Batasan itu **sudah ditutup di R2** dengan baris
+pembalik bertanda (REV-FIN-01), dan tombolnya di layar dipasang di fase terakhir; lihat
+`PembalikPembayaranTest` dan `docs/uji/uji-pembalik.mjs`. Catatan di bawah ini adalah keadaan saat
+T5, bukan keadaan sekarang. Ini konsekuensi langsung dari keputusan yang benar — catatan uang
 yang bisa diedit diam-diam tidak layak dipercaya — dan jalan keluarnya sudah jelas bentuknya
 (entri balik bertanda dengan rujukan ke baris yang dikoreksi), tetapi membangunnya butuh alur
 tersendiri. Dicatat di SPEC §5 dan §11, di README, dan di komentar migrasi, supaya tidak menjadi

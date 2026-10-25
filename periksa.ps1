@@ -235,6 +235,11 @@ if (-not $Cepat) {
             # R3: pembatalan tagihan, pemaafan denda, bagikan WhatsApp,
             # rekening tujuan pembayaran.
             'e2e-r3.mjs',
+            # Fase terakhir: tombol pembalik pembayaran (REV-FIN-01).
+            # Endpoint-nya sudah ada sejak R2, tetapi tombolnya baru dipasang
+            # sekarang - tanpa skrip ini, satu-satunya cara memakainya adalah
+            # memanggil API dengan tangan.
+            'uji-pembalik.mjs',
             'asap-semua-halaman.mjs', 'uji-tata-letak.mjs',
             # U2 (mobile/PWA) - lihat catatan di periksa.sh.
             'uji-kartu-tabel.mjs', 'uji-pwa.mjs',

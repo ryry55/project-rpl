@@ -144,7 +144,7 @@ pemilik yang memutuskan. Usulan kedaluwarsa dalam **7 hari**.
 |---|---|---|
 | Penerbitan tagihan otomatis (terjadwal) | Butuh cron yang tidak tersedia di Render gratis | Dicatat sebagai utang teknis |
 | Deposit | Dulu ada kolomnya, tetapi tidak pernah dicatat sebagai uang masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan. Pemilik memilih menghapusnya daripada mempertahankan angka yang tidak berakibat | **Dihapus seluruhnya di fase terakhir** |
-| Pembayaran pembalik | Belum ada kebutuhan nyata | Utang teknis |
+| ~~Pembayaran pembalik~~ | ~~Belum ada kebutuhan nyata~~ | **Sudah ada:** baris negatif sejak R2, tombol **Tarik kembali** di panel rincian tagihan sejak fase terakhir |
 | Antrean email | Render gratis tanpa worker persisten | Utang teknis |
 | Multi-kos | Lihat §1.3 | Ditolak, alasannya di SPEC |
 | Aplikasi native | PWA sudah bisa dipasang | Dicatat sebagai opsi masa depan (Capacitor) |

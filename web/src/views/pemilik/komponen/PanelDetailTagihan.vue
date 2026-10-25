@@ -259,6 +259,80 @@ function kelasVerifikasi(p) {
   return v.keputusan === 'terima' ? 'verifikasi-terima' : 'verifikasi-tolak'
 }
 
+// --- Pembalik pembayaran (REV-FIN-01) -------------------------------------
+
+/**
+ * Pembayaran yang sedang ditarik. `null` = tidak ada formulir terbuka.
+ *
+ * Dipisah dari `verifikasiUntuk` karena keduanya menjawab pertanyaan berbeda:
+ * pemeriksaan menempelkan label pada uang, pembalikan mengeluarkan uangnya.
+ * Satu formulir untuk dua tindakan akan membuat pemilik menekan tombol yang
+ * salah dan tidak bisa membatalkannya.
+ */
+const balikUntuk = ref(null)
+const balikProses = ref(false)
+const balikGalat = ref('')
+const balikBidang = ref({})
+const balikAlasan = ref('')
+const balikHasil = ref(null)
+
+/**
+ * Apakah satu baris pembayaran masih bisa ditarik.
+ *
+ * Empat syarat, semuanya harus benar:
+ *   1. baris ini pembayaran, bukan pembalik — pembalik tidak bisa dibalik;
+ *   2. `sudah_dibalik` benar-benar `false`, bukan `null`. `null` berarti
+ *      relasinya tidak dimuat dan layar tidak tahu apa-apa; menampilkan tombol
+ *      berdasarkan ketidaktahuan akan menawarkan tombol yang pasti ditolak;
+ *   3. tagihannya belum dibatalkan — pembatalan sudah mengeluarkan uangnya;
+ *   4. akun ini berwenang mencatat pembayaran, sama seperti saat mencatatnya.
+ *
+ * Pemeriksaan kewenangan diulang di server; ini hanya supaya tombol yang pasti
+ * gagal tidak dirender.
+ */
+function bisaDibalik(p) {
+  return (
+    !p.adalah_pembalik &&
+    p.sudah_dibalik === false &&
+    props.detail?.status !== 'dibatalkan' &&
+    sesi.boleh('catat_pembayaran')
+  )
+}
+
+function bukaBalik(p) {
+  balikUntuk.value = p.id
+  balikAlasan.value = ''
+  balikGalat.value = ''
+  balikBidang.value = {}
+  balikHasil.value = null
+}
+
+function tutupBalik() {
+  balikUntuk.value = null
+}
+
+async function balikPembayaran() {
+  balikProses.value = true
+  balikGalat.value = ''
+  balikBidang.value = {}
+  try {
+    const hasil = await sesi.panggil(`/pembayaran/${balikUntuk.value}/pembalik`, {
+      method: 'POST',
+      body: JSON.stringify({ alasan: balikAlasan.value }),
+    })
+    balikHasil.value = hasil.data
+    balikUntuk.value = null
+    // Panel dan daftar sama-sama disegarkan: sisa tagihan berubah, dan baris
+    // baru bernilai negatif harus muncul di riwayat tanpa menutup panel.
+    emit('berubah')
+  } catch (e) {
+    balikGalat.value = pesanGalat(e)
+    balikBidang.value = galatPerBidang(e)
+  } finally {
+    balikProses.value = false
+  }
+}
+
 // --- Bagikan lewat WhatsApp dan salin (REV-UI-03) --------------------------
 
 /** Teks tagihan yang siap dikirim atau disalin. */
@@ -601,6 +675,16 @@ onMounted(() => {
         <template v-else>Tagihan lunas.</template>
       </PesanBaris>
 
+      <!-- Konfirmasi penarikan. Angkanya disebut dua kali dengan sengaja:
+           jumlah yang ditarik, dan status tagihan sesudahnya. Pemilik yang baru
+           menarik pembayaran lunas harus melihat sendiri bahwa tagihannya
+           kembali menunggak, bukan menemukannya belakangan di laporan. -->
+      <PesanBaris v-if="balikHasil" jenis="sukses" mungil>
+        Pembayaran {{ rupiah(balikHasil.pembalik.jumlah) }} ditarik kembali.
+        Status tagihan sekarang
+        <strong>{{ labelStatus(balikHasil.status_tagihan) }}</strong>.
+      </PesanBaris>
+
       <!-- Pesan keadaan hanya muncul bila tidak ada hasil yang baru dicatat.
            Kalau keduanya tampil, "sudah lunas" muncul dua kali berturut-turut
            dan pemilik membaca kalimat yang sama dua kali. -->
@@ -854,7 +938,18 @@ onMounted(() => {
             <tbody>
               <tr v-for="p in detail.pembayaran" :key="p.id">
                 <td>{{ tanggal(p.tanggal_pembayaran) }}</td>
-                <td class="kanan">{{ rupiah(p.jumlah) }}</td>
+                <td class="kanan">
+                  <!-- Baris pembalik bernilai negatif dan sengaja ditampilkan
+                       apa adanya: menyembunyikannya membuat total riwayat tidak
+                       sama dengan sisa tagihan, dan pemilik akan menghitung
+                       ulang angkanya sendiri. -->
+                  <span :class="{ 'teks-pembalik': p.adalah_pembalik }">
+                    {{ rupiah(p.jumlah) }}
+                  </span>
+                  <template v-if="p.adalah_pembalik">
+                    <br /><span class="lemah mungil">ditarik kembali</span>
+                  </template>
+                </td>
                 <td class="mungil">
                   <!-- `metode` null hanya mungkin untuk baris sebelum T20.
                        Menampilkannya sebagai "Tunai" berarti mengarang fakta
@@ -878,13 +973,28 @@ onMounted(() => {
                 <td class="mungil lemah">{{ p.catatan || '—' }}</td>
                 <td class="kanan">
                   <button
-                    v-if="sesi.boleh('verifikasi_pembayaran') && verifikasiUntuk !== p.id"
+                    v-if="sesi.boleh('verifikasi_pembayaran') && verifikasiUntuk !== p.id && !p.adalah_pembalik"
                     type="button"
                     class="halus mungil tombol-verifikasi"
                     @click="bukaVerifikasi(p)"
                   >
                     {{ p.verifikasi_terakhir ? 'Periksa ulang' : 'Verifikasi' }}
                   </button>
+                  <!-- Pembalik tidak ditawari pemeriksaan: ia bukan uang yang
+                       diterima, jadi tidak ada mutasi rekening untuk dicocokkan. -->
+                  <button
+                    v-if="bisaDibalik(p) && balikUntuk !== p.id"
+                    type="button"
+                    class="halus mungil tombol-balik"
+                    @click="bukaBalik(p)"
+                  >
+                    Tarik kembali
+                  </button>
+                  <!-- Baris yang sudah ditarik menyebutkan alasannya di sini,
+                       bukan hanya menghilang dari daftar tombol. -->
+                  <template v-else-if="p.sudah_dibalik === true">
+                    <br /><span class="lemah mungil">sudah ditarik</span>
+                  </template>
                 </td>
               </tr>
             </tbody>
@@ -941,6 +1051,45 @@ onMounted(() => {
               {{ verifikasiProses ? 'Menyimpan…' : 'Simpan pemeriksaan' }}
             </button>
             <button type="button" class="halus" @click="tutupVerifikasi">Batal</button>
+          </div>
+        </form>
+
+        <!-- Pembalik pembayaran (REV-FIN-01). Diletakkan setelah pemeriksaan
+             karena ia tindakan yang lebih berat: pemeriksaan hanya memberi
+             label, pembalikan mengeluarkan uang dari tagihan. -->
+        <form
+          v-if="balikUntuk"
+          class="bidang form-balik"
+          @submit.prevent="balikPembayaran"
+        >
+          <p class="mungil lemah">
+            Penarikan tidak menghapus baris pembayaran. Ia menulis baris baru bernilai
+            negatif yang menunjuk baris asalnya, sehingga riwayatnya tetap utuh dan
+            angka tagihan kembali seperti sebelum uang itu dicatat.
+          </p>
+          <MedanForm
+            id="balik-alasan"
+            label="Alasan penarikan"
+            :galat="balikBidang.alasan"
+            bantuan="Maksimal 255 karakter. Wajib: baris negatif tanpa keterangan adalah pertanyaan baru, bukan jawaban."
+          >
+            <input
+              id="balik-alasan"
+              v-model="balikAlasan"
+              type="text"
+              maxlength="255"
+              required
+              :aria-invalid="Boolean(balikBidang.alasan)"
+            />
+          </MedanForm>
+
+          <PesanBaris v-if="balikGalat" jenis="galat">{{ balikGalat }}</PesanBaris>
+
+          <div class="aksi">
+            <button type="submit" :disabled="balikProses">
+              {{ balikProses ? 'Menarik…' : 'Tarik pembayaran' }}
+            </button>
+            <button type="button" class="halus" @click="tutupBalik">Batal</button>
           </div>
         </form>
       </div>
@@ -1019,11 +1168,24 @@ onMounted(() => {
 }
 
 .form-maaf,
-.form-batal {
+.form-batal,
+.form-balik {
   padding: 14px;
   background: #fbfcfe;
   border: 1px solid var(--garis);
   border-radius: 10px;
+}
+
+/* Baris pembalik ditandai warna bahaya: angkanya negatif dan itu bukan
+   kekeliruan tampilan, melainkan koreksi yang disengaja. Tanpa penanda, ia
+   terbaca sebagai salah hitung. */
+.teks-pembalik {
+  color: var(--bahaya);
+  font-weight: 600;
+}
+
+.tombol-balik {
+  color: var(--bahaya);
 }
 
 /* Tindakan yang mengubah angka tanpa mencatat uang masuk diberi garis atas

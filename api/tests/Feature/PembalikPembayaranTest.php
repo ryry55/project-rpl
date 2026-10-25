@@ -361,6 +361,78 @@ class PembalikPembayaranTest extends TestCase
         $this->assertSame(2, Pembayaran::count());
     }
 
+    // --- Kontrak data untuk tombol pembalik di layar ------------------------
+
+    /**
+     * Rincian tagihan harus memberi tahu layar mana baris yang sudah ditarik.
+     *
+     * Tombol "Tarik kembali" hanya boleh muncul saat `sudah_dibalik` benar-benar
+     * `false`. Kalau kuncinya hilang dari respons, layar tidak bisa membedakan
+     * "belum ditarik" dari "tidak tahu" - dan menawarkan tombol yang pasti
+     * ditolak lebih buruk daripada tidak menawarkan apa pun.
+     */
+    public function test_rincian_tagihan_menyebut_baris_yang_sudah_ditarik(): void
+    {
+        $tagihan = $this->buatTagihan();
+        $asli = $this->catat($tagihan, 500_000);
+
+        // Sebelum dibalik: baris asli belum ditarik, dan itu dinyatakan tegas.
+        $this->sebagaiPemilik()
+            ->withHeader('X-Simulasi-Tanggal', '2026-11-12')
+            ->getJson("/api/tagihan/{$tagihan->id}")
+            ->assertOk()
+            ->assertJsonPath('data.pembayaran.0.id', $asli->id)
+            ->assertJsonPath('data.pembayaran.0.adalah_pembalik', false)
+            ->assertJsonPath('data.pembayaran.0.sudah_dibalik', false);
+
+        $this->balik($asli)->assertCreated();
+
+        $respons = $this->sebagaiPemilik()
+            ->withHeader('X-Simulasi-Tanggal', '2026-11-12')
+            ->getJson("/api/tagihan/{$tagihan->id}")
+            ->assertOk();
+
+        $baris = collect($respons->json('data.pembayaran'))->keyBy('id');
+
+        // Baris asli: tetap positif, tetapi ditandai sudah ditarik.
+        $this->assertSame(500_000, $baris[$asli->id]['jumlah']);
+        $this->assertFalse($baris[$asli->id]['adalah_pembalik']);
+        $this->assertTrue($baris[$asli->id]['sudah_dibalik']);
+
+        // Baris pembalik: negatif, dan menyebut dirinya sendiri sebagai pembalik.
+        $pembalik = $baris->firstWhere('adalah_pembalik', true);
+        $this->assertNotNull($pembalik, 'baris pembalik harus muncul di riwayat');
+        $this->assertSame(-500_000, $pembalik['jumlah']);
+        $this->assertSame($asli->id, $pembalik['pembalik_id']);
+    }
+
+    /**
+     * Baris pembalik tidak boleh menawarkan penarikan lagi.
+     *
+     * `PembalikPembayaran` sudah menolaknya, tetapi layar memutuskan sendiri
+     * tombol mana yang dirender - dan ia memutuskan dari data ini.
+     */
+    public function test_baris_pembalik_ditandai_tidak_bisa_ditarik_lagi(): void
+    {
+        $tagihan = $this->buatTagihan();
+        $asli = $this->catat($tagihan, 500_000);
+        $this->balik($asli)->assertCreated();
+
+        $respons = $this->sebagaiPemilik()
+            ->withHeader('X-Simulasi-Tanggal', '2026-11-12')
+            ->getJson("/api/tagihan/{$tagihan->id}")
+            ->assertOk();
+
+        $pembalik = collect($respons->json('data.pembayaran'))
+            ->firstWhere('adalah_pembalik', true);
+
+        $this->assertTrue($pembalik['adalah_pembalik']);
+        // `sudah_dibalik` milik baris pembalik bernilai false: yang sudah
+        // ditarik adalah baris asalnya, bukan baris ini. Layar menyaringnya
+        // lewat `adalah_pembalik`, bukan lewat kunci ini.
+        $this->assertFalse($pembalik['sudah_dibalik']);
+    }
+
     // --- Uang tunai di tangan sendiri (REV-SEC-06) -------------------------
 
     public function test_pengelola_hanya_melihat_uang_tunai_yang_di_tangannya(): void
