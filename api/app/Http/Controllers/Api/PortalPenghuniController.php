@@ -91,7 +91,14 @@ class PortalPenghuniController extends Controller
      */
     public function rekening(): JsonResponse
     {
+        // Kolom `gambar` sengaja tidak diambil: portal hanya perlu tahu apakah
+        // gambarnya ada, dan URL-nya. Menarik `bytea` untuk setiap baris berarti
+        // mengirim ratusan kilobyte yang langsung dibuang peramban.
         $daftar = Rekening::query()
+            ->select([
+                'id', 'jenis', 'nama', 'nomor', 'atas_nama', 'catatan',
+                'gambar_mime', 'gambar_ukuran', 'aktif', 'urutan',
+            ])
             ->where('aktif', true)
             ->orderBy('urutan')
             ->orderBy('id')

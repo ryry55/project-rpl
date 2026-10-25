@@ -127,6 +127,22 @@ Route::middleware('auth:sanctum')->group(function () {
     // Mulai di sini, akun yang wajib mengganti sandi ditahan (T27).
     Route::middleware(WajibGantiSandi::class)->group(function () {
 
+        // Gambar QRIS tujuan pembayaran (utang teknis yang ditutup).
+        //
+        // Didaftarkan DI LUAR ketiga grup peran, karena ketiganya butuh:
+        // penghuni memindainya untuk membayar, pengelola perlu memeriksanya
+        // saat menagih, pemilik mengunggahnya. Yang berbeda antar peran bukan
+        // "boleh membaca atau tidak", melainkan rekening MANA yang boleh
+        // dibaca - dan itu disaring di controller, bukan oleh middleware yang
+        // hanya tahu peran.
+        //
+        // Dibaca lewat `GET /rekening/{rekening}/gambar`, bukan URL statis:
+        // `public/` read-only dan Render free tidak punya disk persisten,
+        // sehingga gambarnya tinggal di kolom `bytea` dan hanya bisa keluar
+        // lewat rute ini.
+        Route::get('/rekening/{rekening}/gambar', [RekeningController::class, 'gambar'])
+            ->name('rekening.gambar');
+
         // Portal penghuni (T9). Wajib didaftarkan SEBELUM `apiResource('penghuni')`,
         // kalau tidak `/penghuni/tagihan` ditangkap `GET /penghuni/{penghuni}` dan
         // "tagihan" diperlakukan sebagai id penghuni - route model binding lalu

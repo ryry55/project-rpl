@@ -60,6 +60,6 @@ tidak dijelaskan entitas mana pun, atau aturan bisnis tidak sama dengan
 `docs/dfd/dfd-data.js`.
 
 Angka pada dokumen dibaca dari sumbernya, bukan diketik: 80 endpoint, 23 tabel,
-39 migrasi, 14 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
+41 migrasi, 14 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
 angka yang boleh dikarang — lihat `docs/serah-terima.md` §5 untuk cara
 memeriksanya.

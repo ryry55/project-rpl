@@ -3,8 +3,8 @@
 > Dokumen ini menjawab: **apa yang dibuktikan tes, bagaimana menjalankannya, dan
 > bagaimana menambah tes yang benar-benar menahan.**
 >
-> Angka diambil dari aplikasi yang berjalan: **738 tes PHP (3474 asersi)** dalam
-> 36 berkas, dan **25 skrip uji** (23 browser + 2 balapan HTTP) dengan **743 langkah**.
+> Angka diambil dari aplikasi yang berjalan: **746 tes PHP (3516 asersi)** dalam
+> 36 berkas, dan **26 skrip uji** (24 browser + 2 balapan HTTP) dengan **758 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -70,7 +70,7 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
 
 ```
         ┌──────────────────────────────────────┐
-        │  25 skrip uji                        │  lambat (~300 dtk), tetapi
+        │  26 skrip uji                        │  lambat (~300 dtk), tetapi
         │  (22 browser + 2 balapan)            │  satu-satunya yang melihat
         └──────────────────────────────────────┘
       ┌──────────────────────────────────────┐
@@ -89,7 +89,7 @@ menguji implementasi, bukan perilaku.
 
 ---
 
-## 3. Tes PHP — 738 tes, 3474 asersi
+## 3. Tes PHP — 746 tes, 3516 asersi
 
 ### 3.1 Menjalankan
 
@@ -176,7 +176,7 @@ Dikelompokkan menurut apa yang dijaga:
 
 ---
 
-## 4. Skrip uji browser dan balapan - 25 skrip, 743 langkah
+## 4. Skrip uji browser dan balapan - 26 skrip, 758 langkah
 
 ### 4.1 Menjalankan
 
@@ -216,6 +216,7 @@ Prasyarat: `docker compose up`, Chrome dengan `--remote-debugging-port=9222`,
 | `e2e-t28.mjs` | 39 | PDP: persetujuan, akses, anonimisasi |
 | `e2e-r3.mjs` | 50 | Pembatalan tagihan, pemaafan denda, bagikan WhatsApp, rekening |
 | `uji-pembalik.mjs` | 13 | Tombol **Tarik kembali**: alasan wajib, baris negatif di riwayat, tombol hilang sesudah ditarik, pembatalan jadi mungkin |
+| `uji-qris.mjs` | 15 | Unggah gambar QRIS, pratinjau, gambar termuat sebagai blob di portal penghuni, penolakan pada rekening transfer, rekening nonaktif 404 |
 | `asap-semua-halaman.mjs` | 23 | Semua halaman terbuka tanpa galat konsol/5xx |
 | `uji-tata-letak.mjs` | 94 | Tidak meluber di 360/390/768px |
 | `uji-kartu-tabel.mjs` | 65 | Tabel 4+ kolom jadi kartu; label sesuai `<th>`; desktop kembali normal |
@@ -299,7 +300,7 @@ Dari `1_PRD.md` §6, dan bagaimana masing-masing dibuktikan.
 | U-6 | Halaman meluber di 360px | 0 | `uji-tata-letak.mjs` | Lulus 94/94 |
 | U-7 | Tabel tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` | Lulus 65/65 |
 | U-8 | Kepala pemilik sebelum konten | < 220px | Terukur | 203px |
-| U-9 | Cakupan tes PHP | 738 tes | CI | Lulus 3474 asersi |
+| U-9 | Cakupan tes PHP | 746 tes | CI | Lulus 3516 asersi |
 | U-10 | Pemuatan gagal menyamar sebagai data kosong | 0 layar | `uji-galat-muat.mjs` — **dibuktikan bisa gagal** | Lulus 30/30 |
 
 ---

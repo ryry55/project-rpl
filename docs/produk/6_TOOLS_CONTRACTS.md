@@ -278,11 +278,12 @@ server**.
 |---|---|---|
 | `GET` | `/api/rekening` | `peran:pemilik,pengelola` |
 | `POST` `PUT` `DELETE` | `/api/rekening[/{rekening}]` | `peran:pemilik` |
+| `GET` | `/api/rekening/{rekening}/gambar` | `auth:sanctum` (semua peran) |
 | `GET` | `/api/penghuni/rekening` | `peran:penghuni` |
 
-`POST` / `PUT` — `{ jenis, nama, nomor?, atas_nama?, catatan?, aktif?, urutan? }`.
-`jenis` ∈ `transfer` \| `qris`; `nama` wajib; `nomor` boleh kosong untuk QRIS
-statis yang hanya berupa gambar.
+`POST` / `PUT` — `{ jenis, nama, nomor?, atas_nama?, catatan?, aktif?, urutan?,
+gambar?, hapus_gambar? }`. `jenis` ∈ `transfer` \| `qris`; `nama` wajib; `nomor`
+boleh kosong untuk QRIS statis yang hanya berupa gambar.
 
 **Menulis hanya pemilik.** Nomor rekening adalah alamat uang masuk: pengelola
 yang boleh menggantinya bisa mengarahkan seluruh setoran penghuni ke rekeningnya
@@ -300,7 +301,45 @@ server.
 
 **Tidak append-only**, berbeda dari tarif dan kebijakan: tidak ada angka tagihan
 yang dihitung dari baris ini. Setiap tambah/ubah/hapus menulis `log_audit`
-dengan salinan baris lengkap, termasuk nomor lama saat nomor diganti.
+dengan salinan baris lengkap, termasuk nomor lama saat nomor diganti. Isi
+gambarnya **tidak** ikut disalin ke `log_audit` — yang dicatat hanya
+`punya_gambar`, `gambar_mime`, dan `gambar_ukuran`.
+
+#### Gambar QRIS
+
+`gambar` adalah berkas (`multipart/form-data`) berisi PNG, JPG, atau WEBP,
+maksimal 2 MB. `hapus_gambar: true` membuang gambar tanpa menghapus rekening.
+Hanya berlaku untuk `jenis: qris`; pada `transfer` dijawab **422** dengan pesan
+yang menyebut alasannya.
+
+Isi diperiksa `getimagesize`, **bukan** nama berkas atau `Content-Type` kiriman:
+berkas PDF yang dinamai `.png` ditolak. **SVG ditolak** karena ia dokumen yang
+bisa memuat skrip, dan menyajikannya kembali dari origin aplikasi membuat satu
+unggahan menjadi jalan menjalankan kode di peramban penghuni.
+
+**Disimpan di kolom `bytea`, bukan berkas di disk.** `public/` dipasang
+read-only ke nginx dan Render free tidak punya disk persisten; berkas yang
+ditulis hari ini hilang saat restart. Isinya hanya bisa keluar lewat
+`GET /api/rekening/{id}/gambar`, yang mengirim `Content-Type`,
+`X-Content-Type-Options: nosniff`, dan CSP yang melarang skrip.
+
+> **Jebakan yang wajib diketahui siapa pun yang menyentuh kolom ini.** Menulis
+> `bytea` lewat parameter teks biasa (termasuk `mass assignment`) menyimpan
+> **0 byte tanpa galat apa pun**: unggahan tampak berhasil, `gambar_ukuran`
+> terisi, gambarnya kosong. Satu-satunya jalur tulis yang terbukti utuh adalah
+> `decode(?, 'base64')` di `App\Domain\Rekening\PenyimpanGambarQris`. Karena itu
+> `gambar` sengaja **tidak** ada di `$fillable` `Rekening`.
+
+`RekeningResource` mengirim `punya_gambar`, `gambar_mime`, `gambar_ukuran`, dan
+`gambar_path` (path relatif, mis. `/rekening/3/gambar`) — **bukan** isi gambarnya
+dan bukan URL absolut. Path relatif dipakai karena rutenya butuh Bearer token,
+sedangkan `<img src>` tidak bisa mengirim header: komponen `GambarQris.vue`
+mengambilnya lewat `fetch` ber-token lalu menjadikannya blob. URL absolut dari
+`route()` tidak dipakai karena di dev API dan SPA berbeda port.
+
+Penghuni hanya bisa membuka gambar rekening **aktif**; rekening nonaktif
+dijawab **404**, bukan 403 — 403 akan memberi tahu bahwa rekening lama itu masih
+ada. Pengelola dan pemilik bisa membuka keduanya.
 
 ### 4.5 Penghuni
 

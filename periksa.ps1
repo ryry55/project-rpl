@@ -240,6 +240,10 @@ if (-not $Cepat) {
             # sekarang - tanpa skrip ini, satu-satunya cara memakainya adalah
             # memanggil API dengan tangan.
             'uji-pembalik.mjs',
+            # Fase terakhir: gambar QRIS pada rekening. Sampai sebelumnya
+            # `jenis: qris` hanya menyimpan teks, padahal QRIS statis ADALAH
+            # gambarnya - kode QR tidak bisa dibayar dengan mengetik nomornya.
+            'uji-qris.mjs',
             'asap-semua-halaman.mjs', 'uji-tata-letak.mjs',
             # U2 (mobile/PWA) - lihat catatan di periksa.sh.
             'uji-kartu-tabel.mjs', 'uji-pwa.mjs',

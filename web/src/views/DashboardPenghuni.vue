@@ -20,6 +20,7 @@ import { simulasiTanggal } from '../simulasi.js'
 import LencanaStatus from '../komponen/ui/LencanaStatus.vue'
 import BarisKosong from '../komponen/ui/BarisKosong.vue'
 import LoncengNotifikasi from '../komponen/LoncengNotifikasi.vue'
+import GambarQris from '../komponen/GambarQris.vue'
 
 const router = useRouter()
 
@@ -477,6 +478,14 @@ onMounted(muatRekening)
             <p v-if="r.nomor" class="nomor-rekening">{{ r.nomor }}</p>
             <p v-if="r.atas_nama" class="mungil lemah">a.n. {{ r.atas_nama }}</p>
             <p v-if="r.catatan" class="mungil lemah">{{ r.catatan }}</p>
+
+            <!-- Gambar QRIS. Inilah tujuan pembayarannya sendiri: kode QR tidak
+                 bisa dibayar dengan mengetik ulang nomornya. -->
+            <GambarQris
+              v-if="r.gambar_path"
+              :path="r.gambar_path"
+              :alt="`Kode QRIS ${r.nama}`"
+            />
           </div>
           <!-- Tombol salin hanya muncul bila ada nomornya. QRIS yang hanya
                berupa gambar tidak punya apa pun untuk disalin, dan tombol yang

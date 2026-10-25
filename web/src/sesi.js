@@ -25,14 +25,20 @@ const versiPdp = ref('')
 const apiDasar = import.meta.env.VITE_API_BASE || '/api'
 
 async function panggil(path, opsi = {}) {
+  // `tanpaTipeIsi` dipakai untuk unggahan berkas (gambar QRIS). Saat badan
+  // permintaan berupa `FormData`, peramban HARUS memasang sendiri
+  // `Content-Type` beserta `boundary`-nya; menyetelnya manual membuat boundary
+  // hilang dan seluruh badan tidak terbaca di server.
+  const { tanpaTipeIsi, ...sisa } = opsi
+
   const headers = {
     Accept: 'application/json',
-    ...(opsi.body ? { 'Content-Type': 'application/json' } : {}),
+    ...(opsi.body && !tanpaTipeIsi ? { 'Content-Type': 'application/json' } : {}),
     ...(token.value ? { Authorization: `Bearer ${token.value}` } : {}),
     ...(opsi.headers || {}),
   }
 
-  const res = await fetch(`${apiDasar}${path}`, { ...opsi, headers })
+  const res = await fetch(`${apiDasar}${path}`, { ...sisa, headers })
 
   let isi = null
   const teks = await res.text()

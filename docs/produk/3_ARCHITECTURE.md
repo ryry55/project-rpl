@@ -406,27 +406,27 @@ penutupan. Daftar yang tidak dicatat akan terlupakan.
 
 ```
 api/
-  app/Domain/            49 kelas, 10 folder - semua aturan
+  app/Domain/            50 kelas, 11 folder - semua aturan
   app/Http/Controllers/  24 pengendali — hanya menerjemahkan
   app/Http/Middleware/   6 middleware
   app/Http/Requests/     validasi
   app/Http/Resources/    14 resource — bentuk JSON
   app/Models/            21 model — hanya bentuk data
-  database/migrations/   39 migrasi
-  tests/                 38 berkas tes, 738 tes
+  database/migrations/   41 migrasi
+  tests/                 39 berkas tes, 746 tes
 
 web/
   src/views/             26 view (7 publik + 14 pemilik + 5 panel pemilik)
-  src/komponen/          6 komponen ui + 3 komponen bersama
+  src/komponen/          6 komponen ui + 4 komponen bersama
   src/direktif/          kartu-tabel.js
-  src/style.css          630 baris — seluruh design system
+  src/style.css          651 baris — seluruh design system
   src/bagikan.js         pesan WhatsApp & salin papan klip (REV-UI-03)
   public/                manifest, sw.js, ikon
   skrip/                 buat-ikon.mjs, pasang-kartu-tabel.mjs
 
 docs/
   produk/                9 dokumen ini
-  uji/                   24 skrip E2E + perkakas
+  uji/                   26 skrip E2E + perkakas
   dfd/                   4 diagram (Gane-Sarson, Yourdon)
   charter/               Project Charter
 ```

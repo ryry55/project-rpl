@@ -26,6 +26,7 @@ import PanelKartu from '../../komponen/ui/PanelKartu.vue'
 import MedanForm from '../../komponen/ui/MedanForm.vue'
 import PesanBaris from '../../komponen/ui/PesanBaris.vue'
 import BarisKosong from '../../komponen/ui/BarisKosong.vue'
+import GambarQris from '../../komponen/GambarQris.vue'
 
 const daftar = ref([])
 const meta = ref({ jenis: [], label_jenis: {} })
@@ -55,11 +56,112 @@ const formulir = ref({
   aktif: true,
 })
 
+/**
+ * Berkas gambar yang dipilih, `null` = tidak mengganti gambar.
+ *
+ * Dipisah dari `formulir` karena `FormData` tidak bisa membawa objek: berkasnya
+ * harus ditempel sendiri saat mengirim. Menaruhnya di dalam `formulir` akan
+ * membuat `JSON.stringify` menyertakannya dan mengirim string kosong.
+ */
+const berkasGambar = ref(null)
+const hapusGambar = ref(false)
+const pratinjauGambar = ref('')
+const galatBerkas = ref('')
+const batasGambar = ref(2 * 1024 * 1024)
+const mimeGambar = ref(['image/png', 'image/jpeg', 'image/webp'])
+
 const judulFormulir = computed(() =>
   disunting.value ? `Ubah rekening ${disunting.value.nama}` : 'Tambah rekening',
 )
 
 const pilihanJenis = computed(() => meta.value?.label_jenis || {})
+
+/**
+ * Apakah formulir sedang dalam keadaan QRIS.
+ *
+ * Medan gambar hanya ditampilkan untuk QRIS: rekening transfer tidak punya
+ * gambar untuk dipindai, dan server menolaknya. Menampilkan medan yang pasti
+ * ditolak hanya membuat pemilik mengunggah lalu kecewa.
+ */
+const modeQris = computed(() => formulir.value.jenis === 'qris')
+
+/**
+ * Gambar yang akan terlihat sesudah formulir disimpan.
+ *
+ * Pratinjau dari berkas yang baru dipilih didahulukan: pemilik yang baru
+ * memilih foto perlu melihat bahwa yang terpilih memang QRIS yang benar,
+ * sebelum menyimpan. Tanpa pratinjau, satu-satunya cara memeriksanya adalah
+ * menyimpan lalu membuka portal penghuni.
+ */
+const gambarTampil = computed(() => {
+  if (hapusGambar.value) {
+    return ''
+  }
+  if (pratinjauGambar.value) {
+    return pratinjauGambar.value
+  }
+  return disunting.value?.gambar_path || ''
+})
+
+function pilihGambar(peristiwa) {
+  const berkas = peristiwa.target.files?.[0]
+
+  galatBerkas.value = ''
+  hapusGambar.value = false
+
+  if (!berkas) {
+    berkasGambar.value = null
+    pratinjauGambar.value = ''
+    return
+  }
+
+  // Diperiksa di layar SEBELUM dikirim, bukan hanya di server. Server tetap
+  // memeriksa ulang - ini hanya supaya pemilik tidak menunggu unggahan 3 MB
+  // untuk mendapat penolakan yang bisa diketahui dalam sekejap.
+  if (berkas.size > batasGambar.value) {
+    galatBerkas.value = `Gambar ${Math.round(berkas.size / 1024)} kB melebihi batas ${Math.round(batasGambar.value / 1024 / 1024)} MB.`
+    berkasGambar.value = null
+    pratinjauGambar.value = ''
+    peristiwa.target.value = ''
+    return
+  }
+
+  if (!mimeGambar.value.includes(berkas.type)) {
+    galatBerkas.value = 'Format tidak didukung. Pakai PNG, JPG, atau WEBP.'
+    berkasGambar.value = null
+    pratinjauGambar.value = ''
+    peristiwa.target.value = ''
+    return
+  }
+
+  berkasGambar.value = berkas
+  // `URL.createObjectURL` dipakai, bukan pembacaan base64: pratinjau hanya
+  // untuk dilihat, dan base64 sebuah foto 400 kB menjadi ~550 kB string yang
+  // ditahan di memori sampai halaman ditutup.
+  pratinjauGambar.value = URL.createObjectURL(berkas)
+}
+
+function buangGambar() {
+  berkasGambar.value = null
+  pratinjauGambar.value = ''
+  hapusGambar.value = true
+  galatBerkas.value = ''
+}
+
+/**
+ * Ukuran berkas dalam bentuk yang terbaca.
+ *
+ * Di bawah 1 kB ditulis dalam byte, bukan "0 kB". Gambar QRIS kecil memang ada
+ * yang 70-900 byte (kode QR hitam-putih terkompresi baik), dan "0 kB" membuat
+ * pemilik mengira gambarnya gagal tersimpan.
+ */
+function labelUkuran(byte) {
+  const n = Number(byte || 0)
+  if (n < 1024) {
+    return `${n} byte`
+  }
+  return `${Math.round(n / 1024)} kB`
+}
 
 function kosongkan() {
   disunting.value = null
@@ -71,6 +173,10 @@ function kosongkan() {
     catatan: '',
     aktif: true,
   }
+  berkasGambar.value = null
+  hapusGambar.value = false
+  pratinjauGambar.value = ''
+  galatBerkas.value = ''
   galatSimpan.value = ''
   galatBidang.value = {}
 }
@@ -85,6 +191,10 @@ function sunting(r) {
     catatan: r.catatan || '',
     aktif: r.aktif,
   }
+  berkasGambar.value = null
+  hapusGambar.value = false
+  pratinjauGambar.value = ''
+  galatBerkas.value = ''
   galatSimpan.value = ''
   galatBidang.value = {}
   sukses.value = ''
@@ -97,6 +207,15 @@ async function muat() {
     const hasil = await sesi.panggil('/rekening')
     daftar.value = hasil.data || []
     meta.value = hasil.meta || meta.value
+    // Batas dan tipe dibaca dari server, bukan ditulis ulang di layar. Dua
+    // angka yang sama di dua tempat akan berbeda cepat atau lambat, dan yang
+    // berbeda selalu yang tidak dipakai memutuskan.
+    if (hasil.meta?.batas_gambar) {
+      batasGambar.value = hasil.meta.batas_gambar
+    }
+    if (hasil.meta?.mime_gambar?.length) {
+      mimeGambar.value = hasil.meta.mime_gambar
+    }
   } catch (e) {
     galatMuat.value = pesanGalat(e)
   } finally {
@@ -111,25 +230,60 @@ async function simpan() {
   sukses.value = ''
 
   try {
-    const isi = {
-      jenis: formulir.value.jenis,
-      nama: formulir.value.nama,
-      nomor: formulir.value.nomor || null,
-      atas_nama: formulir.value.atas_nama || null,
-      catatan: formulir.value.catatan || null,
-      aktif: formulir.value.aktif,
+    // `FormData` dipakai hanya saat ada berkas, karena ia tidak bisa membawa
+    // JSON. Saat tidak ada berkas, permintaan tetap JSON - itu bentuk yang
+    // sudah dipakai seluruh aplikasi ini, dan mengubahnya semua hanya untuk
+    // satu medan akan membuat dua bentuk permintaan untuk endpoint yang sama.
+    const adaBerkas = Boolean(berkasGambar.value) || hapusGambar.value
+
+    let isi
+    let opsiTambahan = {}
+
+    if (adaBerkas) {
+      isi = new FormData()
+      isi.append('jenis', formulir.value.jenis)
+      isi.append('nama', formulir.value.nama)
+      isi.append('nomor', formulir.value.nomor || '')
+      isi.append('atas_nama', formulir.value.atas_nama || '')
+      isi.append('catatan', formulir.value.catatan || '')
+      isi.append('aktif', formulir.value.aktif ? '1' : '0')
+      if (hapusGambar.value) {
+        isi.append('hapus_gambar', '1')
+      }
+      if (berkasGambar.value) {
+        isi.append('gambar', berkasGambar.value)
+      }
+
+      // Unggahan berkas hanya bisa lewat POST; `_method` memberi tahu Laravel
+      // bahwa maksudnya PUT. Ini bukan akal-akalan: PHP tidak mengurai badan
+      // multipart pada PUT, jadi tanpa `_method` berkasnya tidak akan terbaca.
+      if (disunting.value) {
+        isi.append('_method', 'PUT')
+      }
+      opsiTambahan = { tanpaTipeIsi: true }
+    } else {
+      isi = {
+        jenis: formulir.value.jenis,
+        nama: formulir.value.nama,
+        nomor: formulir.value.nomor || null,
+        atas_nama: formulir.value.atas_nama || null,
+        catatan: formulir.value.catatan || null,
+        aktif: formulir.value.aktif,
+      }
     }
 
-    if (disunting.value) {
-      await sesi.panggil(`/rekening/${disunting.value.id}`, {
-        method: 'PUT',
-        body: JSON.stringify(isi),
-      })
-      sukses.value = 'Rekening diperbarui. Portal penghuni langsung memakai nilai ini.'
-    } else {
-      await sesi.panggil('/rekening', { method: 'POST', body: JSON.stringify(isi) })
-      sukses.value = 'Rekening ditambahkan dan langsung tampil di portal penghuni.'
-    }
+    const jalur = disunting.value ? `/rekening/${disunting.value.id}` : '/rekening'
+    const metode = disunting.value && !adaBerkas ? 'PUT' : 'POST'
+
+    await sesi.panggil(jalur, {
+      method: metode,
+      body: adaBerkas ? isi : JSON.stringify(isi),
+      ...opsiTambahan,
+    })
+
+    sukses.value = disunting.value
+      ? 'Rekening diperbarui. Portal penghuni langsung memakai nilai ini.'
+      : 'Rekening ditambahkan dan langsung tampil di portal penghuni.'
 
     kosongkan()
     await muat()
@@ -285,6 +439,35 @@ onMounted(muat)
           <input id="rekening-catatan" v-model="formulir.catatan" type="text" maxlength="200" />
         </MedanForm>
 
+        <!-- Gambar QRIS. Hanya untuk jenis QRIS: rekening transfer ditampilkan
+             sebagai nomor, dan server menolak gambar untuknya. -->
+        <MedanForm
+          v-if="modeQris"
+          id="rekening-gambar"
+          label="Gambar QRIS"
+          :galat="galatBidang.gambar || galatBerkas"
+          bantuan="PNG, JPG, atau WEBP, maksimal 2 MB. Penghuni memindai gambar ini dari portal."
+        >
+          <template #label-ekstra> <span class="lemah">(opsional)</span></template>
+          <input
+            id="rekening-gambar"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            @change="pilihGambar"
+          />
+        </MedanForm>
+
+        <!-- Pratinjau. Ditampilkan sebelum menyimpan supaya pemilik melihat
+             bahwa yang terpilih memang QRIS yang benar; sesudah tersimpan,
+             satu-satunya cara memeriksanya adalah membuka portal penghuni. -->
+        <div v-if="modeQris && gambarTampil" class="pratinjau-gambar">
+          <img v-if="pratinjauGambar" :src="pratinjauGambar" alt="Pratinjau gambar QRIS" />
+          <GambarQris v-else :path="gambarTampil" alt="Gambar QRIS tersimpan" />
+          <button type="button" class="halus mungil" @click="buangGambar">
+            Buang gambar
+          </button>
+        </div>
+
         <label class="centang">
           <input v-model="formulir.aktif" type="checkbox" />
           <span class="mungil">Tampilkan di portal penghuni</span>
@@ -330,6 +513,12 @@ onMounted(muat)
               <td>
                 <strong>{{ r.nama }}</strong>
                 <p v-if="r.catatan" class="mungil lemah">{{ r.catatan }}</p>
+                <!-- Penanda gambar, bukan gambarnya: daftar ini dibaca dengan
+                     memindai kolom, dan gambar QRIS di setiap baris akan
+                     mendorong kolom lain keluar layar. -->
+                <p v-if="r.punya_gambar" class="mungil lemah penanda-gambar">
+                  Ada gambar QRIS ({{ labelUkuran(r.gambar_ukuran) }})
+                </p>
               </td>
               <td class="mungil">{{ r.nomor || '—' }}</td>
               <td class="mungil">{{ r.atas_nama || '—' }}</td>
@@ -377,6 +566,34 @@ onMounted(muat)
    supaya pemilik tahu nomor mana yang sudah tidak dipakai. */
 .baris-nonaktif {
   opacity: 0.62;
+}
+
+/* Pratinjau gambar QRIS. Dibatasi lebarnya supaya formulir tidak melompat
+   tinggi saat gambar besar dipilih - pemilik yang sedang mengisi medan lain
+   tidak kehilangan tempatnya. */
+.pratinjau-gambar {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 12px;
+  background: #fbfcfe;
+  border: 1px solid var(--garis);
+  border-radius: 10px;
+}
+
+.pratinjau-gambar img {
+  max-width: 180px;
+  max-height: 180px;
+  /* `object-fit: contain` menjaga kode QR tetap utuh, tidak terpotong. Kode QR
+     yang terpotong tidak bisa dipindai, dan pemilik tidak akan tahu bedanya. */
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid var(--garis);
+  border-radius: 6px;
+}
+
+.penanda-gambar {
+  margin-top: 2px;
 }
 
 .lencana-aktif {
