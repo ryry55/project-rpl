@@ -47,6 +47,15 @@ desktop.ini
 # --- Scratch lokal (issue tracker ada di GitHub, bukan di sini) -----------
 .scratch/
 
+# --- Catatan audit mentah ------------------------------------------------
+# `revisi.md` adalah MASUKAN audit, bukan dokumen hasil. Ia ditulis pemeriksa
+# luar dan dibaca sebagai daftar temuan; menyimpannya di riwayat membuat
+# pemeriksa berikutnya mengira temuannya sudah dibaca padahal belum. Bentuknya
+# juga berubah tiap putaran audit, sehingga setiap commit akan membawa diff
+# yang tidak ada hubungannya dengan pekerjaan yang sedang dikerjakan.
+revisi.md
+docs/revisi.md
+
 # --- Materi kuliah & template jurusan ------------------------------------
 # Referensi pribadi, bukan bagian deliverable.
 Slide Materi/
