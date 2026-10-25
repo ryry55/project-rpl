@@ -127,6 +127,20 @@ class Kalkulator
      * `tanggal_tetap` juga dijepit dengan alasan yang sama: pemilik yang
      * menagih "tanggal 31" tidak boleh mendapat jatuh tempo 3 Maret di bulan
      * Februari, karena denda akan dihitung dari tanggal yang salah.
+     *
+     * **Pada bulan masuk, jatuh tempo tidak boleh mendahului tanggal masuk.**
+     * Kebijakan "tanggal tetap 15" berarti sewa jatuh tempo tiap tanggal 15.
+     * Penghuni yang masuk tanggal 16 September karena itu akan mendapat
+     * tagihan September yang jatuh temponya 15 September — sehari **sebelum**
+     * ia menempati kamarnya. Tagihan itu lahir dalam keadaan sudah terlambat,
+     * dan denda mulai berjalan dari tanggal ia belum berutang apa pun. Yang
+     * ditagih pun bukan sebulan penuh: pokoknya sudah diprorata 15/30, jadi
+     * menagihnya lebih cepat daripada porsi yang ia pakai tidak punya dasar.
+     *
+     * Karena itu pada bulan masuk saja, jatuh tempo dinaikkan sampai tanggal
+     * masuk. Bulan-bulan berikutnya tetap persis tanggal 15. Cara
+     * `tanggal_masuk` dan `akhir_bulan` tidak terpengaruh: keduanya sudah
+     * menghasilkan tanggal yang tidak pernah mendahului hari masuk.
      */
     public function tanggalJatuhTempoMenurut(
         string $cara,
@@ -136,7 +150,7 @@ class Kalkulator
     ): CarbonInterface {
         $awalBulan = $periode->copy()->startOfMonth();
 
-        return match ($cara) {
+        $jatuhTempo = match ($cara) {
             PilihanKebijakan::JATUH_TEMPO_TANGGAL_MASUK => $this->tanggalJatuhTempo($tanggalMasuk, $periode),
             PilihanKebijakan::JATUH_TEMPO_TANGGAL_TETAP => $awalBulan->copy()->day(
                 min($tanggalTetap ?? 1, $awalBulan->daysInMonth)
@@ -146,6 +160,16 @@ class Kalkulator
                 "Cara jatuh tempo \"{$cara}\" tidak dikenal."
             ),
         };
+
+        // Penjaga bulan masuk. Hanya berlaku bila periode tagihan adalah bulan
+        // yang sama dengan bulan tanggal masuk — bulan berikutnya tidak punya
+        // alasan untuk ditahan, karena penghuni memang sudah menempati kamar
+        // sejak lama.
+        if ($awalBulan->isSameMonth($tanggalMasuk) && $jatuhTempo->lessThan($tanggalMasuk)) {
+            return $tanggalMasuk->copy()->startOfDay();
+        }
+
+        return $jatuhTempo;
     }
 
     /**

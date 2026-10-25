@@ -3,7 +3,7 @@
 > Dokumen ini menjawab: **apa yang dibuktikan tes, bagaimana menjalankannya, dan
 > bagaimana menambah tes yang benar-benar menahan.**
 >
-> Angka diambil dari aplikasi yang berjalan: **746 tes PHP (3516 asersi)** dalam
+> Angka diambil dari aplikasi yang berjalan: **748 tes PHP (3522 asersi)** dalam
 > 36 berkas, dan **26 skrip uji** (24 browser + 2 balapan HTTP) dengan **758 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
@@ -89,7 +89,7 @@ menguji implementasi, bukan perilaku.
 
 ---
 
-## 3. Tes PHP — 746 tes, 3516 asersi
+## 3. Tes PHP — 748 tes, 3522 asersi
 
 ### 3.1 Menjalankan
 
@@ -300,7 +300,7 @@ Dari `1_PRD.md` §6, dan bagaimana masing-masing dibuktikan.
 | U-6 | Halaman meluber di 360px | 0 | `uji-tata-letak.mjs` | Lulus 94/94 |
 | U-7 | Tabel tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` | Lulus 65/65 |
 | U-8 | Kepala pemilik sebelum konten | < 220px | Terukur | 203px |
-| U-9 | Cakupan tes PHP | 746 tes | CI | Lulus 3516 asersi |
+| U-9 | Cakupan tes PHP | 748 tes | CI | Lulus 3522 asersi |
 | U-10 | Pemuatan gagal menyamar sebagai data kosong | 0 layar | `uji-galat-muat.mjs` — **dibuktikan bisa gagal** | Lulus 30/30 |
 
 ---

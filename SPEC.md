@@ -254,6 +254,24 @@ parameter/tarif. Isi: aktor, aksi, entitas, id entitas, waktu, nilai lama, nilai
 Tagihan pertama karena itu jatuh tempo **pada tanggal masuk** — sewa dibayar saat masuk. Bulan
 berikutnya jatuh tempo pada tanggal yang sama di bulan itu.
 
+**Jatuh tempo bulan masuk tidak boleh mendahului tanggal masuk.** Kebijakan *tanggal tetap 15*
+berarti sewa jatuh tempo tiap tanggal 15. Penghuni yang masuk tanggal 16 September akan mendapat
+tagihan September yang jatuh temponya 15 September — sehari **sebelum** ia menempati kamarnya.
+Tagihan itu lahir dalam keadaan sudah terlambat, dan dendanya berjalan dari tanggal ia belum
+berutang apa pun. Pokoknya pun sudah diprorata 15/30, jadi menagihnya lebih cepat daripada porsi
+yang ia pakai tidak punya dasar.
+
+Karena itu, **pada bulan masuk saja**, jatuh tempo dinaikkan sampai tanggal masuk. Bulan berikutnya
+tetap persis tanggal 15. Cara `tanggal_masuk` dan `akhir_bulan` tidak terpengaruh — keduanya sudah
+menghasilkan tanggal yang tidak pernah mendahului hari masuk.
+
+| Masuk | Periode | Kebijakan | Jatuh tempo |
+|---|---|---|---|
+| 16 Sep 2026 | Sep 2026 | tanggal tetap 15 | **16 Sep 2026** (dinaikkan) |
+| 16 Sep 2026 | Okt 2026 | tanggal tetap 15 | **15 Okt 2026** (apa adanya) |
+| 16 Sep 2026 | Sep 2026 | tanggal masuk | 16 Sep 2026 |
+| 16 Sep 2026 | Sep 2026 | akhir bulan | 30 Sep 2026 |
+
 **Deviasi sadar dari DFD.** DFD menaruh `tarif_dasar` di D1 (Kamar). Implementasi memindahkannya
 ke `tarif_sewa` di D3, karena riwayat tarif butuh tabel sendiri. DFD bersifat logis, bukan
 fisik — `tarif_dasar` di D1 dibaca sebagai "tarif kamar", bukan sebagai kolom yang harus ada.

@@ -1,11 +1,26 @@
 # Sistem Informasi Operasional Kos-Kosan
 
-Aplikasi untuk pemilik kos kecil (5–30 kamar) mengelola tagihan sewa: prorata penghuni baru,
-denda keterlambatan, dan umur tunggakan. Lihat `SPEC.md` di akar repo untuk kontrak lengkap.
+Aplikasi untuk pemilik kos kecil (5–30 kamar) mengelola operasionalnya: tagihan sewa dengan prorata
+penghuni baru, denda keterlambatan, umur tunggakan, pembayaran, dan portal penghuni. Lihat `SPEC.md`
+di akar repo untuk kontrak lengkap.
+
+**Masalah yang diselesaikan, dan kenapa tidak ada satu pengaturan untuk semua.** Setiap kos berbeda:
+ada yang menagih bulanan, ada yang harian; ada yang mendenda 1%/hari, ada yang nominal tetap, ada
+yang tidak mendenda sama sekali. Karena itu semua aturan itu **bukan konstanta di kode**, melainkan
+data yang dipilih pemilik di menu **Kebijakan** — dan tagihan pertama tidak bisa terbit sebelum
+ketiganya diisi. Batas kustomisasinya juga disengaja: **menu jenis + angka**, bukan penulisan rumus
+atau JSON oleh pengguna. Rumus buatan pengguna adalah kode yang tidak diuji, tidak bisa dijelaskan
+saat angka tagihan dipertanyakan, dan tidak bisa diperbaiki bila salah.
 
 - **API**: Laravel 12, PHP 8.3, PostgreSQL 16, Sanctum
-- **Web**: Vue 3 + Vite, dilayani nginx
+- **Web**: Vue 3 + Vite, dibangun ke `public/` dan dilayani satu layanan bersama API
 - **Demo**: Docker Compose
+
+| Peran | Yang bisa dilakukan |
+|---|---|
+| **Pemilik** | Semuanya: kebijakan, tarif, rekening, pengelola, persetujuan usulan |
+| **Pengelola** | Hanya yang diberi wewenang satu per satu; tindakan sensitif harus diusulkan |
+| **Penghuni** | Portal sendiri: tagihan, cara membayar, aturan kos |
 
 ## Menjalankan
 
@@ -28,6 +43,9 @@ Tunggu sampai `db` berstatus sehat dan container `api` menulis `[entrypoint] sia
 | Pemilik | `pemilik@kos.test` | `password` |
 | Pengelola | `pengelola@kos.test` | `password` |
 | Penghuni | `penghuni@kos.test` | `password` |
+
+**Untuk sidang, buka [`docs/demo-sidang.md`](docs/demo-sidang.md)** — urutan demo 5 menit beserta apa
+yang diucapkan di tiap langkah, dan jawaban atas pertanyaan yang paling sering muncul.
 
 **Akun pengelola** diberi empat wewenang harian (mencatat pembayaran, mengelola kamar, mengelola
 penghuni, menerbitkan tagihan) dan **sengaja tidak** diberi `ubah_tarif` maupun `ubah_kebijakan`.
@@ -55,6 +73,10 @@ node docs/uji/e2e-t5.mjs   # catat pembayaran sebagian lalu lunas
 node docs/uji/e2e-t9.mjs   # isolasi portal penghuni + log audit pemilik
 node docs/uji/e2e-t20.mjs  # metode bayar, verifikasi pembayaran, rekap pendapatan
 node docs/uji/e2e-t24.mjs  # akun pengelola berwewenang terbatas + penolakan 403 di server
+node docs/uji/e2e-t26.mjs  # usulan perubahan tarif/kebijakan + persetujuan pemilik
+node docs/uji/e2e-r3.mjs   # pembatalan tagihan, pemaafan denda, bagikan WhatsApp, rekening
+node docs/uji/uji-pembalik.mjs  # tombol Tarik kembali + baris negatif di riwayat
+node docs/uji/uji-qris.mjs      # unggah gambar QRIS + gambar tampil di portal penghuni
 ```
 
 Uji balapan (bukan browser, jadi tidak butuh Chrome):
@@ -175,6 +197,49 @@ disembunyikan dari menu. Tapi itu **hanya kesopanan**: seluruh pemeriksaan seben
 lewat middleware `wewenang:`, dan `e2e-t24.mjs` membuktikannya dengan menembak API langsung memakai
 token pengelola — bukan dengan memeriksa bahwa tombolnya hilang.
 
+## Rekening dan QRIS tujuan pembayaran
+
+Halaman **Rekening** menjawab pertanyaan yang selalu muncul sesudah "berapa yang harus saya bayar":
+**ke mana uangnya dikirim**. Tanpa itu penghuni bertanya lewat WhatsApp dan pemilik mengetik ulang
+nomor rekeningnya untuk tiap orang — pekerjaan berulang yang rawan salah ketik.
+
+Rekening bisa berjenis **transfer** (nomor rekening) atau **QRIS**. Untuk QRIS, pemilik
+**mengunggah gambar kode QR**-nya: kode QR tidak bisa dibayar dengan mengetik ulang nomornya. Gambar
+itu tampil di portal penghuni cukup besar untuk dipindai dari layar ponsel.
+
+**Menulis rekening hanya pemilik, dan itu bukan soal kerapian.** Nomor rekening adalah *alamat uang
+masuk*: pengelola yang boleh menggantinya bisa mengarahkan seluruh setoran penghuni ke rekeningnya
+sendiri, lalu menandai tagihannya lunas dengan wewenang `catat_pembayaran` yang memang ia punya.
+Tidak ada pemeriksaan lain yang menangkapnya, jadi gerbangnya `peran:pemilik` di server — bukan
+`wewenang:`, karena tidak ada wewenang yang boleh membukanya.
+
+Gambar QRIS disimpan **di kolom basis data**, bukan sebagai berkas di disk. Tiga hal menutup jalan
+penyimpanan berkas, dan semuanya nyata di lingkungan yang dipakai: `public/` dipasang read-only ke
+nginx, Render free tidak punya disk persisten, dan `storage:link` justru menulis ke `public/` yang
+read-only itu. Berkas yang hilang saat restart lebih buruk daripada tidak ada gambar sama sekali —
+pemilik mengira sudah mengunggah, penghuni melihat kotak kosong, dan tidak ada yang tahu sejak kapan.
+
+| Yang diunggah | Hasil |
+|---|---|
+| PNG, JPG, atau WEBP ≤ 2 MB | Tersimpan, tampil di portal penghuni |
+| Berkas PDF yang dinamai `.png` | **422** — yang diperiksa isinya, bukan namanya |
+| SVG | **422** — ia dokumen yang bisa memuat skrip |
+| Gambar pada rekening transfer | **422** — rekening transfer ditampilkan sebagai nomor |
+
+Penghuni hanya bisa membuka gambar rekening yang **aktif**; rekening lama dijawab **404**, bukan 403 —
+403 akan memberi tahu bahwa rekening itu masih ada. Penghuni yang memindai QRIS lama kehilangan
+uangnya, dan tidak ada kode yang bisa mengembalikannya.
+
+## Persetujuan pemilik untuk tindakan sensitif
+
+Dua hal bisa merugikan pemilik kos secara diam-diam bila dilakukan orang lain: **mengubah tarif** dan
+**mengubah kebijakan**. Pengelola yang punya wewenang itu tidak langsung berubah — ia **mengusulkan**,
+dan usulannya menunggu keputusan pemilik selama **7 hari**.
+
+Usulan yang kedaluwarsa tidak berlaku dengan sendirinya. Pemilik melihat daftar usulan beserta angka
+lamanya dan angka barunya berdampingan, karena tanpa nilai lama sebuah usulan tidak bisa dinilai.
+Setiap persetujuan dan penolakan dicatat di jejak audit dengan nama pemilik yang memutuskan.
+
 ## Mendemokan denda tanpa menunggu 37 hari
 
 Denda bergantung pada "hari ini", jadi menunggu plafon 30% berarti menunggu lebih dari sebulan.
@@ -290,9 +355,21 @@ curl -X POST -H "Authorization: Bearer <token>" -H "Content-Type: application/js
      http://localhost:8081/api/tagihan/1/pembayaran
 ```
 
-Catatan penting: tabel `pembayaran` bersifat **append-only** (trigger menolak UPDATE dan DELETE),
-dan baris pembalik belum ada. Salah input jumlah karena itu **tidak bisa diperbaiki dari
-aplikasi** — lihat batasan yang dicatat di `SPEC.md` §5.
+Catatan penting: tabel `pembayaran` bersifat **append-only** — trigger menolak UPDATE dan DELETE.
+Salah input jumlah karena itu **tidak diperbaiki dengan mengubah barisnya**, melainkan dengan
+**menariknya kembali**: tombol **Tarik kembali** di rincian tagihan menulis baris **negatif** yang
+menunjuk baris aslinya lewat `pembalik_id`. Riwayatnya jadi dua baris — setoran dan penarikannya —
+sehingga pertanyaan "dulu pernah dicatat Rp 500.000, lalu kenapa hilang" tetap bisa dijawab.
+
+Alasan penarikan **wajib diisi** dan ditolak server bila kosong (422): baris negatif tanpa alasan
+adalah angka yang tidak bisa dipertanggungjawabkan kepada pemilik kos. Baris pembalik tampil di
+riwayat sebagai angka negatif bertanda "ditarik kembali", bukan disembunyikan — menyembunyikannya
+membuat total riwayat tidak sama dengan sisa tagihan, dan pemilik akan menghitung ulang angkanya
+sendiri.
+
+Penarikan **tidak menghapus** apa pun dan tidak mengubah baris aslinya. Ia juga membuka jalan keluar
+dari kebuntuan: tagihan yang tadinya tidak bisa dibatalkan karena masih ada uang menempel kini bisa
+dibatalkan setelah pembayarannya ditarik.
 
 ## Metode bayar, pemegang uang, dan pemeriksaan
 
@@ -317,8 +394,9 @@ Penolakan wajib menyebutkan alasannya, dan aturan itu ditegakkan dua lapis (vali
 di basis data).
 
 Pemeriksaan **tidak mengubah** jumlah uang maupun status tagihan. Ia hanya menyatakan uang ini
-sudah diperiksa. Pemeriksaan yang menemukan angka salah menandainya; koreksi tetap menuntut baris
-pembalik yang belum ada.
+sudah diperiksa. Pemeriksaan yang menemukan angka salah menandainya; koreksinya lewat **Tarik
+kembali** pada rincian tagihan, yang menulis baris pembalik bertanda negatif (lihat bagian
+Mencatat pembayaran).
 
 `verifikasi_pembayaran` juga append-only lewat trigger: satu baris = satu pemeriksaan.
 
@@ -428,11 +506,18 @@ docker compose down -v     # hentikan dan hapus data (kembali ke keadaan bersih)
 
 ## Menjalankan tes
 
-Tes memakai PostgreSQL, bukan SQLite — tiket berikutnya bergantung pada unique index parsial,
+Tes memakai PostgreSQL, bukan SQLite — beberapa aturan bergantung pada unique index parsial,
 SQLSTATE `23505`, dan trigger append-only, yang perilakunya berbeda di SQLite.
 
 ```bash
-docker compose exec api php artisan test
+docker compose exec api php artisan test          # 748 tes, 3522 asersi
+```
+
+Seluruh pemeriksaan sekaligus — tes, format, lint, dan 26 skrip uji browser:
+
+```powershell
+.\periksa.ps1     # Windows
+./periksa.sh      # Linux/macOS
 ```
 
 **Kode dibakar ke image, bukan di-mount.** `docker-compose.yml` sengaja tidak memasang `./api`
@@ -455,20 +540,22 @@ dari database demo supaya data sidang tidak pernah terhapus oleh tes.
 │   │                       PenghitungDenda, PencatatPembayaran
 │   ├── app/Domain/Pembayaran/ MetodePembayaran (daftar tertutup), RekapPendapatan,
 │   │                       PencatatVerifikasi — pemeriksaan append-only
+│   ├── app/Domain/Rekening/ PenyimpanGambarQris — satu-satunya jalur tulis `bytea`
 │   ├── app/Domain/Akses/ Wewenang — daftar tertutup wewenang pengelola + mana yang sensitif
 │   ├── app/Domain/Audit/ PencatatAudit — penulis log_audit, NilaiLama — pembanding sebelum/sesudah
 │   ├── app/Http/         Controller, Request, Resource, Middleware (termasuk PastikanWewenang)
 │   ├── app/Models/       User, Kamar, Penghuni, Kontrak, TarifSewa, KomponenBiaya,
 │   │                     Fasilitas, AturanKos, Tagihan, TagihanRincian, Pembayaran,
-│   │                     VerifikasiPembayaran, LogAudit, PengelolaKewenangan
+│   │                     VerifikasiPembayaran, Rekening, LogAudit, PengelolaKewenangan
 │   ├── database/migrations/  Termasuk trigger append-only untuk tabel riwayat
 │   ├── docker/php/       php.ini, opcache.ini, entrypoint.sh
 │   └── docker/nginx/     Konfigurasi nginx untuk API
 ├── web/                  Vue 3 + Vite
 │   ├── src/views/pemilik/    Kamar, Penghuni, Kontrak, Tagihan, Rekap, Tunggakan, Kebijakan,
-│   │                         Fasilitas, Aturan, AuditLog, Pengelola
+│   │                         Fasilitas, Aturan, AuditLog, Pengelola, Rekening, Persetujuan,
+│   │                         PengaturanNotifikasi
 │   ├── src/views/DashboardPenghuni.vue  Portal penghuni (T9)
-│   ├── src/komponen/         TataLetakPemilik (sidebar + navigasi sadar wewenang)
+│   ├── src/komponen/         TataLetakPemilik, GambarQris (fetch ber-token → blob)
 │   ├── src/sesi.js           Sesi, panggilan API, dan `boleh(wewenang)`
 │   ├── src/format.js         Rupiah, tanggal, dan ringkasan galat validasi
 │   └── docker/nginx/     Konfigurasi nginx untuk SPA

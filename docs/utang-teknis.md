@@ -21,7 +21,7 @@ karena uji gagal.
 | pint, eslint, vite build | lulus |
 | Paritas daftar E2E `periksa.ps1` vs `periksa.sh` | lulus |
 | Profil produksi (`periksa-profil-produksi.sh`) | lulus |
-| 746 tes PHP di dalam container | lulus |
+| 748 tes PHP di dalam container | lulus |
 | Chrome headless membuka port 9222 | lulus |
 | `periksa.sh` benar-benar dijalankan (`bash periksa.sh`) | lulus |
 

@@ -17,7 +17,7 @@ Terakhir diperbarui: LANGKAH 11 + T22 selesai - 26 Oktober 2026
 |---|---|
 | Fase terakhir yang selesai | **LANGKAH 11 (produksi) + T22 (Midtrans) + S1.9** |
 | Berikutnya | **CI/CD**, lalu live - sesuai urutan pemilik |
-| Suite PHP | **746 lulus / 3516 asersi**, 39 berkas tes |
+| Suite PHP | **748 lulus / 3522 asersi**, 39 berkas tes |
 | Pint / ESLint / build | bersih |
 | Migrasi / endpoint / tabel domain | **39** / **80** / **23** (total 32 di skema `public`) |
 | Skrip uji | **24** (22 browser + 2 balapan), **730 langkah**; `periksa.ps1` SEMUA LULUS |
@@ -90,7 +90,7 @@ kamar; `kontrak:mulai` mempromosikannya, pemesanan ganda ditolak indeks unik.
 
 ```powershell
 git status --short                              # harus bersih
-docker compose exec -T api php artisan test      # 746 lulus / 3516 asersi
+docker compose exec -T api php artisan test      # 748 lulus / 3522 asersi
 cd api; php vendor\bin\pint --test                # di HOST, bukan container
 cd web; npx eslint src; npm run build             # bersih
 bash docs/uji/periksa-profil-produksi.sh          # 22/22 LULUS

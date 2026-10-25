@@ -43,7 +43,8 @@ Kriteria penerimaan T2 yang bukan turunan langsung R-01..R-07.
 | Biaya tambahan tetap muncul sebagai baris rincian terpisah | `PenerbitTagihan` menambah satu baris per komponen | `test_komponen_biaya_muncul_sebagai_baris_tersendiri` | ✅ |
 | `pokok` = jumlah seluruh rincian | dijumlah dari array baris yang sudah bulat | `test_pokok_sama_dengan_jumlah_seluruh_rincian` | ✅ |
 | Total = pokok + denda (denda 0 saat terbit) | `TagihanResource` (denda diisi T6) | `test_total_sama_dengan_pokok_karena_denda_belum_ada` | ✅ |
-| `jatuh_tempo` = tanggal masuk, dijepit ke akhir bulan | `Kalkulator::tanggalJatuhTempo` | `KalkulatorTest::test_jatuh_tempo_dijepit_ke_akhir_bulan` (7 set data), `test_jatuh_tempo_tidak_pernah_menggelinding_ke_bulan_berikutnya` (36 kombinasi), `TagihanTest::test_jatuh_tempo_dijepit_ke_akhir_bulan_pendek` | ✅ |
+| `jatuh_tempo` = tanggal masuk, dijepit ke akhir bulan | `Kalkulator::tanggalJatuhTempo` | `KalkulatorTest::test_jatuh_tempo_dijepit_ke_akhir_bulan` (7 set data), `test_jatuh_tempo_tidak_pernah_menggelinding_ke_bulan_berikutnya` (36 kombinasi), `TagihanTest::test_jatuh_tempo_dijepit_ke_akhir_bulan_pendek` |
+| Jatuh tempo bulan masuk tidak mendahului tanggal masuk (tanggal tetap) | `Kalkulator::tanggalJatuhTempoMenurut` | `KebijakanKosTest::test_jatuh_tempo_bulan_masuk_tidak_mendahului_tanggal_masuk`, `test_jatuh_tempo_bulan_berikutnya_tetap_tanggal_tetap` | ✅ |
 | `periode` tersimpan sebagai tanggal 1 | `PenerbitTagihan` menormalkan ke `startOfMonth()` | `test_periode_disimpan_sebagai_tanggal_1` | ✅ |
 | Komponen bernilai 0 tidak menjadi baris rincian | dilewati di `PenerbitTagihan` | `test_komponen_bernilai_nol_tidak_muncul_sebagai_baris` | ✅ |
 | Periode sebelum tanggal masuk ditolak | `pastikanPeriodeMasukAkal` | `test_periode_sebelum_tanggal_masuk_ditolak` | ✅ |

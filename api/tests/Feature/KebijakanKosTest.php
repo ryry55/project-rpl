@@ -521,6 +521,51 @@ class KebijakanKosTest extends TestCase
             ->assertJsonPath('data.jatuh_tempo', '2027-02-28');
     }
 
+    public function test_jatuh_tempo_bulan_masuk_tidak_mendahului_tanggal_masuk(): void
+    {
+        // Cacat yang ditemukan saat memverifikasi angka panduan sidang:
+        // kebijakan "tanggal tetap 15" membuat penghuni yang masuk tanggal 16
+        // September menerima tagihan September yang jatuh temponya 15
+        // September - sehari SEBELUM ia menempati kamar. Tagihan itu lahir
+        // dalam keadaan sudah terlambat, dan dendanya berjalan dari tanggal ia
+        // belum berutang apa pun.
+        $kontrak = $this->siapkanKontrak('2026-09-16');
+        $this->kebijakan(PilihanKebijakan::TIPE_SATUAN_SEWA, PilihanKebijakan::SATUAN_BULANAN);
+        $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_TETAP, [
+            'tanggal' => 15,
+        ]);
+        $this->dendaBawaan();
+
+        $this->sebagaiPemilik()
+            ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-09-01'])
+            ->assertCreated()
+            // Dinaikkan sampai tanggal masuk, bukan dibiarkan 2026-09-15.
+            ->assertJsonPath('data.jatuh_tempo', '2026-09-16')
+            // Pokoknya tetap prorata 15/30 - yang ditagih memang bukan
+            // sebulan penuh, jadi menagihnya lebih cepat tidak punya dasar.
+            ->assertJsonPath('data.pokok', 750_000);
+    }
+
+    public function test_jatuh_tempo_bulan_berikutnya_tetap_tanggal_tetap(): void
+    {
+        // Penjaga di atas hanya berlaku pada bulan masuk. Bulan berikutnya
+        // penghuni sudah menempati kamar sejak lama, jadi tanggal 15 harus
+        // dipakai apa adanya - kalau tidak, kebijakan "tanggal tetap" berhenti
+        // berarti apa pun sesudah bulan pertama.
+        $kontrak = $this->siapkanKontrak('2026-09-16');
+        $this->kebijakan(PilihanKebijakan::TIPE_SATUAN_SEWA, PilihanKebijakan::SATUAN_BULANAN);
+        $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_TETAP, [
+            'tanggal' => 15,
+        ]);
+        $this->dendaBawaan();
+
+        $this->sebagaiPemilik()
+            ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-10-01'])
+            ->assertCreated()
+            ->assertJsonPath('data.jatuh_tempo', '2026-10-15')
+            ->assertJsonPath('data.pokok', 1_500_000);
+    }
+
     public function test_jatuh_tempo_akhir_bulan(): void
     {
         $kontrak = $this->siapkanKontrak('2026-10-15');
