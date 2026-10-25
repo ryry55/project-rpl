@@ -216,7 +216,7 @@ function bab3() {
   const langkah = [
     `**Registrasi dan autentikasi.** Ketiga peran masuk lewat \`POST /api/login\`; akun dibuat pemilik atau pengelola lalu diaktifkan lewat surel, dan sebelum aktivasi login ditolak 403.`,
     `**Penyiapan data induk.** Pemilik atau pengelola ber-wewenang \`kelola_kamar\` dan \`kelola_penghuni\` mendaftarkan kamar, fasilitas, aturan kos, dan identitas penghuni.`,
-    `**Penetapan angka uang.** Pemilik menetapkan tarif, komponen biaya, dan empat dimensi kebijakan. Bila pengelola ber-wewenang \`ubah_tarif\` yang menekan tombol, sistem menyimpan **usulan** dan membalas 202.`,
+    `**Penetapan angka uang.** Pemilik menetapkan tarif, komponen biaya, dan tiga dimensi kebijakan. Bila pengelola ber-wewenang \`ubah_tarif\` yang menekan tombol, sistem menyimpan **usulan** dan membalas 202.`,
     `**Pembuatan kontrak sewa.** Kontrak menunjuk satu kamar kosong dan satu penghuni; indeks parsial menolak kontrak aktif kedua pada kamar yang sama.`,
     `**Penerbitan tagihan bulanan.** Sistem menghitung sewa prorata (R-01), membekukan tarif dan kebijakan (R-06), lalu menolak bila periode itu sudah punya tagihan hidup (R-02) atau kebijakan belum lengkap (R-05).`,
     `**Pembayaran dan verifikasi.** Uang yang diterima dicatat beserta tanggal, metode, dan penerimanya; status tagihan menjadi \`sebagian\` atau \`lunas\`. Akun yang mencatat tidak boleh memverifikasi catatannya sendiri.`,

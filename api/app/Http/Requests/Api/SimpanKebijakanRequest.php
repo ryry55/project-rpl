@@ -167,7 +167,7 @@ class SimpanKebijakanRequest extends FormRequest
             'masa_tenggang.min' => 'Masa tenggang tidak boleh negatif.',
             'masa_tenggang.max' => 'Masa tenggang tidak masuk akal bila lebih dari 365 hari.',
             'nominal.required' => 'Nominal wajib diisi untuk pilihan ini.',
-            'nominal.prohibited' => 'Nominal hanya dipakai oleh denda nominal tetap dan deposit nominal.',
+            'nominal.prohibited' => 'Nominal hanya dipakai oleh denda nominal tetap.',
             'nominal.integer' => 'Nominal harus bilangan bulat rupiah.',
             'nominal.min' => 'Nominal tidak boleh negatif.',
             'nominal.max' => 'Nominal terlalu besar.',

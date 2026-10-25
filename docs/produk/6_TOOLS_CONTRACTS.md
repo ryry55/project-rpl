@@ -344,7 +344,7 @@ aktif, mengganti email tetap bekerja dan mengirim tautan baru ke alamat baru.
 | `POST` | `/api/kontrak` | `wewenang:kelola_penghuni` |
 | `POST` | `/api/kontrak/{kontrak}/akhiri` | `wewenang:kelola_penghuni` |
 
-`POST` — `{ kamar_id, penghuni_id, tgl_masuk, tarif?, deposit? }`.
+`POST` — `{ kamar_id, penghuni_id, tgl_masuk, tarif? }`.
 
 `tarif_awal` **wajib ada di database** tetapi klien hanya boleh mengirimnya bila
 kamar **belum punya tarif** pada `tgl_masuk`. Bila kamar sudah punya, server
@@ -360,10 +360,6 @@ persetujuan, dan tanpa jejak. Sekarang pengelola yang mencoba dijawab **422**
 dengan `kode: 'tarif_perlu_pemilik'`; pemilik tetap boleh, dan barisnya ditulis
 lewat `PenerapPerubahan` sehingga meninggalkan `log_audit` seperti perubahan
 tarif lainnya.
-
-`deposit` memakai `filled()`, bukan `integer()`: `integer()` mengembalikan `0`
-baik untuk "tidak diisi" maupun "diisi nol", sehingga deposit kosong akan
-terbaca sebagai "tanpa deposit" dan mengabaikan kebijakan kos.
 
 Satu kamar hanya boleh punya satu kontrak aktif (indeks parsial). Melanggar →
 `409`.

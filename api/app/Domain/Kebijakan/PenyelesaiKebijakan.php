@@ -38,11 +38,6 @@ class PenyelesaiKebijakan
      * berarti sistem harus menebak — dan menebak angka uang adalah persis
      * yang dilarang.
      *
-     * `deposit` sengaja TIDAK wajib: ia dibaca saat kontrak dibuat, bukan saat
-     * tagihan terbit. Kos yang tidak memungut deposit tidak boleh terhalang
-     * hanya karena ia tidak menyatakan "tanpa deposit"; ketiadaannya berarti
-     * nol, dan pemilik tetap bisa mengisinya sendiri di formulir kontrak.
-     *
      * @var list<string>
      */
     public const TIPE_WAJIB = [
@@ -67,8 +62,8 @@ class PenyelesaiKebijakan
      * Seluruh tipe kebijakan yang berlaku, dipetakan tipe => baris.
      *
      * Satu query untuk semua tipe, bukan satu query per tipe: penerbitan massal
-     * memanggil ini untuk setiap kontrak, dan empat query per kontrak pada kos
-     * 30 kamar berarti 120 query hanya untuk membaca kebijakan.
+     * memanggil ini untuk setiap kontrak, dan tiga query per kontrak pada kos
+     * 30 kamar berarti 90 query hanya untuk membaca kebijakan.
      *
      * @return array<string, KebijakanKos>
      */

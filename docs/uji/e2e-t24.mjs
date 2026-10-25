@@ -126,7 +126,6 @@ async function siapkanDataInduk(ws) {
     kamar_id: kamar.id,
     penghuni_id: penghuni.id,
     tgl_masuk: '2026-01-01',
-    deposit: 0,
   })
 
   if (buatKontrak.status !== 201) {

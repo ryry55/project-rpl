@@ -80,7 +80,6 @@ class TagihanTest extends TestCase
             'penghuni_id' => $penghuni->id,
             'tgl_masuk' => $tglMasuk,
             'tarif_awal' => $tarif,
-            'deposit' => 0,
         ]);
     }
 
@@ -500,7 +499,7 @@ class TagihanTest extends TestCase
         $penghuni = Penghuni::create(['nama' => 'Ani', 'email' => 'ani@kos.test']);
         $kontrak = Kontrak::create([
             'kamar_id' => $kamar->id, 'penghuni_id' => $penghuni->id,
-            'tgl_masuk' => '2026-10-01', 'tarif_awal' => 0, 'deposit' => 0,
+            'tgl_masuk' => '2026-10-01', 'tarif_awal' => 0,
         ]);
 
         $this->sebagaiPemilik()

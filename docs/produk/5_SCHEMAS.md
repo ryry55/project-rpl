@@ -204,7 +204,7 @@ Tabel terpenting di aplikasi ini. Satu baris per dimensi kebijakan.
 |---|---|---|---|
 | `id` | bigint | tidak | |
 | `kamar_id` | bigint | ya | NULL = seluruh kos |
-| `tipe` | varchar(30) | tidak | `satuan_sewa` \| `jatuh_tempo` \| `denda` \| `deposit` |
+| `tipe` | varchar(30) | tidak | `satuan_sewa` \| `jatuh_tempo` \| `denda` |
 | `nilai` | varchar(30) | tidak | lihat tabel di bawah |
 | `persen` | numeric(5,2) | ya | |
 | `plafon_persen` | numeric(5,2) | ya | |
@@ -223,10 +223,8 @@ Tabel terpenting di aplikasi ini. Satu baris per dimensi kebijakan.
 | `denda` | `persen_harian`, `persen_bulanan` | `persen` > 0, `plafon_persen` > 0, `masa_tenggang` ≥ 0 | `nominal`, `tanggal` |
 | `denda` | `nominal_tetap` | `nominal` ≥ 0 | `persen`, `plafon_persen`, `masa_tenggang` |
 | `denda` | `tanpa_denda` | — | semua |
-| `deposit` | `nominal` | `nominal` ≥ 0 | sisanya |
-| `deposit` | `tanpa_deposit`, `satu_bulan` | — | semua |
 
-**Empat CHECK, dan semuanya penting:**
+**Tiga CHECK dan satu indeks unik, dan semuanya penting:**
 
 1. `kebijakan_kos_tipe_valid` — tipe dari daftar tertutup.
 2. `kebijakan_kos_nilai_valid` — kombinasi `tipe`+`nilai` dari daftar tertutup.
@@ -259,7 +257,6 @@ yang berubah?
 | `tgl_masuk` | date | tidak | |
 | `tgl_keluar` | date | ya | |
 | `tarif_awal` | numeric(14,0) | tidak | **wajib saat create** |
-| `deposit` | numeric(14,0) | tidak | `0` |
 | `status` | varchar(255) | tidak | `'aktif'` |
 
 **CHECK:** `status IN ('aktif', 'selesai')`

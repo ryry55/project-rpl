@@ -83,22 +83,4 @@ trait MenyiapkanKebijakan
             'berlaku_dari' => $berlakuDari,
         ]);
     }
-
-    /**
-     * Baris kebijakan deposit, untuk tes yang menguji pembentukan kontrak.
-     */
-    protected function siapkanKebijakanDeposit(
-        string $nilai = PilihanKebijakan::DEPOSIT_TANPA_DEPOSIT,
-        ?int $nominal = null,
-        ?int $kamarId = null,
-        string $berlakuDari = '2026-01-01',
-    ): void {
-        KebijakanKos::create([
-            'kamar_id' => $kamarId,
-            'tipe' => PilihanKebijakan::TIPE_DEPOSIT,
-            'nilai' => $nilai,
-            'nominal' => $nilai === PilihanKebijakan::DEPOSIT_NOMINAL ? $nominal : null,
-            'berlaku_dari' => $berlakuDari,
-        ]);
-    }
 }

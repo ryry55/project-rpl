@@ -1,5 +1,7 @@
 # Rencana: dari satu model kos menjadi kos yang bisa dikonfigurasi
 
+> **Status dokumen (fase terakhir).** Ini catatan perencanaan yang ditulis sebelum pekerjaan berjalan, dan isinya sengaja **tidak** ditulis ulang supaya jejak keputusan tetap jujur. Satu hal yang sudah tidak berlaku: **deposit** (T8, R-05) tidak lagi ditunda — ia **dihapus seluruhnya** di fase terakhir karena tidak pernah tercatat sebagai uang masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan. Alasan lengkapnya di `SPEC.md` R-05 dan `docs/utang-teknis.md`. Keadaan akhir yang berlaku ada di `README.md` akar repo.
+
 Dokumen ini mencatat keputusan yang diambil 24 Oktober 2026, setelah audit menemukan bahwa
 sistem mengunci **satu model bisnis kos** lalu memperlakukannya seolah universal.
 

@@ -144,7 +144,6 @@ async function jalan() {
         kamar_id: kamar.data.data.id,
         penghuni_id: p1.data.data.id,
         tgl_masuk: '2026-10-15',
-        deposit: 1500000,
       })
       if (k1.status !== 201) return { galat: 'kontrak1: ' + JSON.stringify(k1.data) }
 
@@ -157,7 +156,6 @@ async function jalan() {
         kamar_id: kamar2.data.data.id,
         penghuni_id: p2.data.data.id,
         tgl_masuk: '2026-10-01',
-        deposit: 0,
       })
       if (k2.status !== 201) return { galat: 'kontrak2: ' + JSON.stringify(k2.data) }
 

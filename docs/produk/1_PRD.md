@@ -121,7 +121,7 @@ pemilik yang memutuskan. Usulan kedaluwarsa dalam **7 hari**.
 
 | Fitur | Menjawab |
 |---|---|
-| Setup kebijakan kos (satuan sewa, jatuh tempo, denda, deposit) | M-5 — dan **wajib sebelum tagihan pertama** |
+| Setup kebijakan kos (satuan sewa, jatuh tempo, denda) | M-5 — dan **wajib sebelum tagihan pertama** |
 | Kamar, tarif per kamar, komponen biaya per kamar | M-5 |
 | Fasilitas kamar | M-5 (dicatat, tidak ditagih) |
 | Aturan kos | M-5 |
@@ -143,7 +143,7 @@ pemilik yang memutuskan. Usulan kedaluwarsa dalam **7 hari**.
 | Tidak ada | Alasan | Rencana |
 |---|---|---|
 | Penerbitan tagihan otomatis (terjadwal) | Butuh cron yang tidak tersedia di Render gratis | Dicatat sebagai utang teknis |
-| Deposit dipakai mengurangi tagihan akhir | Butuh keputusan produk, bukan kode | Utang teknis |
+| Deposit | Dulu ada kolomnya, tetapi tidak pernah dicatat sebagai uang masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan. Pemilik memilih menghapusnya daripada mempertahankan angka yang tidak berakibat | **Dihapus seluruhnya di fase terakhir** |
 | Pembayaran pembalik | Belum ada kebutuhan nyata | Utang teknis |
 | Antrean email | Render gratis tanpa worker persisten | Utang teknis |
 | Multi-kos | Lihat §1.3 | Ditolak, alasannya di SPEC |

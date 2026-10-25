@@ -253,7 +253,6 @@ jalankan(async () => {
       kamar_id: kamarId,
       penghuni_id: penghuniId,
       tgl_masuk: '2026-03-01',
-      deposit: 0,
     })
     lapor('kontrak uji dibuat', kontrak.status === 201, String(kontrak.status))
 

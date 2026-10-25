@@ -69,7 +69,6 @@ class DendaHttpTest extends TestCase
             'penghuni_id' => $penghuni->id,
             'tgl_masuk' => '2026-10-15',
             'tarif_awal' => $pokok,
-            'deposit' => 0,
         ]);
 
         return Tagihan::create([
@@ -256,7 +255,6 @@ class DendaHttpTest extends TestCase
             'penghuni_id' => $penghuni->id,
             'tgl_masuk' => '2026-10-15',
             'tarif_awal' => 1_500_000,
-            'deposit' => 0,
         ]);
 
         $tagihanBaru = Tagihan::create([

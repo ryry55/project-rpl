@@ -94,7 +94,6 @@ class RekapPendapatanTest extends TestCase
             'penghuni_id' => $penghuni->id,
             'tgl_masuk' => '2026-01-15',
             'tarif_awal' => $pokok,
-            'deposit' => 0,
         ]);
 
         return Tagihan::create([

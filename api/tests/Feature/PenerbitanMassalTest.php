@@ -87,7 +87,6 @@ class PenerbitanMassalTest extends TestCase
             'penghuni_id' => $penghuni->id,
             'tgl_masuk' => $tglMasuk,
             'tarif_awal' => $tarif ?? 0,
-            'deposit' => 0,
             'status' => $status,
         ]);
     }

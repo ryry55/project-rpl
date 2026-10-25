@@ -129,7 +129,6 @@ async function jalan() {
         // Kalau masuk 15 Oktober, tagihan Oktober diprorata jadi 822.581 dan
         // denda 1% dari angka itu - benar, tapi bukan yang mau ditunjukkan.
         tgl_masuk: '2026-01-15',
-        deposit: 0,
       })
       if (kontrak.status !== 201) return { galat: 'kontrak: ' + JSON.stringify(kontrak.data) }
 

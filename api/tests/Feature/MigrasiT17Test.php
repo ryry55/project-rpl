@@ -21,10 +21,15 @@ use Tests\TestCase;
  * Dua hal yang mudah terlewat dan pernah benar-benar gagal di sini:
  *
  *   1. **CHECK lama menolak baris baru.** Mengembalikan constraint dua tipe
- *      sementara baris `denda`/`deposit` masih ada membuat ALTER TABLE ditolak.
+ *      sementara baris `denda` masih ada membuat ALTER TABLE ditolak.
  *   2. **Trigger append-only menolak DELETE.** Membersihkan baris itu perlu
  *      melepas trigger lebih dulu, lalu memasangnya kembali — kalau tidak,
  *      tabelnya jadi bisa diubah diam-diam sesudah rollback.
+ *
+ * Sejak fase terakhir, `deposit` sudah keluar dari sistem (lihat
+ * `MigrasiHapusDepositTest`). Tes ini tidak lagi membuat baris deposit karena
+ * skema sekarang menolaknya; yang diuji tetap hal yang sama, yaitu T17 bisa
+ * dibalik walau ada baris kebijakan yang harus dibuang.
  *
  * Tes ini menjalankan migrasi mundur dan maju sungguhan, jadi ia lebih lambat
  * daripada tes lain. Itu harga yang pantas: satu-satunya cara membuktikan
@@ -35,7 +40,7 @@ class MigrasiT17Test extends TestCase
     use RefreshDatabase;
 
     /**
-     * Baris kebijakan keempat tipe, seperti keadaan sesudah pemilik mengisi
+     * Baris kebijakan tiga tipe, seperti keadaan sesudah pemilik mengisi
      * layar Kebijakan.
      */
     private function isiKebijakan(): void
@@ -58,14 +63,8 @@ class MigrasiT17Test extends TestCase
             'masa_tenggang' => 7,
             'berlaku_dari' => '2026-01-01',
         ]);
-        KebijakanKos::create([
-            'tipe' => PilihanKebijakan::TIPE_DEPOSIT,
-            'nilai' => PilihanKebijakan::DEPOSIT_NOMINAL,
-            'nominal' => 750_000,
-            'berlaku_dari' => '2026-01-01',
-        ]);
 
-        $this->assertSame(4, KebijakanKos::count());
+        $this->assertSame(3, KebijakanKos::count());
     }
 
     private function jalankanMigrasiT17(): string
@@ -78,7 +77,7 @@ class MigrasiT17Test extends TestCase
         return $berkas;
     }
 
-    public function test_rollback_berhasil_walau_ada_baris_denda_dan_deposit(): void
+    public function test_rollback_berhasil_walau_ada_baris_denda(): void
     {
         $this->isiKebijakan();
 
@@ -97,10 +96,9 @@ class MigrasiT17Test extends TestCase
             $this->assertSame('NO', $baris->is_nullable, "{$kolom} harus kembali NOT NULL");
         }
 
-        // Baris `denda` dan `deposit` dibuang: kode lama tidak bisa membacanya,
-        // dan constraint lama menolaknya.
+        // Baris `denda` dibuang: kode lama tidak bisa membacanya, dan constraint
+        // lama menolaknya.
         $this->assertSame(0, KebijakanKos::where('tipe', PilihanKebijakan::TIPE_DENDA)->count());
-        $this->assertSame(0, KebijakanKos::where('tipe', PilihanKebijakan::TIPE_DEPOSIT)->count());
         $this->assertSame(2, KebijakanKos::count());
     }
 
@@ -132,7 +130,7 @@ class MigrasiT17Test extends TestCase
         $this->assertFalse(Schema::hasTable('parameter_denda'), 'tabel parameter_denda harus hilang lagi');
         $this->assertTrue(Schema::hasColumn('tagihan', 'kebijakan_terpakai'));
 
-        // Empat tipe diterima kembali.
+        // Tiga tipe diterima kembali.
         KebijakanKos::create([
             'tipe' => PilihanKebijakan::TIPE_DENDA,
             'nilai' => PilihanKebijakan::DENDA_NOMINAL_TETAP,

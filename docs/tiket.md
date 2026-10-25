@@ -1,5 +1,7 @@
 # Tiket — peta issue GitHub
 
+> **Status dokumen (fase terakhir).** Ini catatan perencanaan yang ditulis sebelum pekerjaan berjalan, dan isinya sengaja **tidak** ditulis ulang supaya jejak keputusan tetap jujur. Satu hal yang sudah tidak berlaku: **deposit** (T8, R-05) tidak lagi ditunda — ia **dihapus seluruhnya** di fase terakhir karena tidak pernah tercatat sebagai uang masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan. Alasan lengkapnya di `SPEC.md` R-05 dan `docs/utang-teknis.md`. Keadaan akhir yang berlaku ada di `README.md` akar repo.
+
 Spec: **#1**. Delapan tiket terbit sebagai sub-issue #1, berlabel `ready-for-agent`.
 Relasi blocking memakai **native issue dependencies** GitHub, jadi tiket yang belum bisa
 dikerjakan akan tampil terkunci di UI.

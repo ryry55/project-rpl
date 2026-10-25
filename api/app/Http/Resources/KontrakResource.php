@@ -24,7 +24,6 @@ class KontrakResource extends JsonResource
             'tgl_keluar' => $this->tgl_keluar?->toDateString(),
             // Uang selalu dikirim sebagai integer rupiah, tidak pernah float.
             'tarif_awal' => (int) $this->tarif_awal,
-            'deposit' => (int) $this->deposit,
             'status' => $this->status,
             'kamar' => $this->whenLoaded('kamar', fn () => $this->kamar
                 ? ['id' => $this->kamar->id, 'nomor' => $this->kamar->nomor]

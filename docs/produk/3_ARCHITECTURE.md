@@ -78,7 +78,7 @@ return (new TagihanResource($hasil->tagihan))->response()->setStatusCode(201);
 | Folder | Isi | Contoh |
 |---|---|---|
 | `Billing/` | Hitung dan terbitkan tagihan, denda, tunggakan, pembatalan, pemaafan | `Kalkulator`, `PenghitungDenda`, `PenerbitTagihan`, `DaftarTunggakan`, `PembatalTagihan`, `PemaafDenda` |
-| `Kebijakan/` | Kebijakan kos, deposit | `PenyelesaiKebijakan`, `PenentuDeposit`, `PilihanKebijakan` |
+| `Kebijakan/` | Kebijakan kos: satuan sewa, jatuh tempo, denda | `PenyelesaiKebijakan`, `PilihanKebijakan` |
 | `Persetujuan/` | Usulan perubahan dan pemutusnya | `PengajuUsulan`, `PemutusUsulan`, `PenerapPerubahan` |
 | `Pembayaran/` | Catat, balik, dan verifikasi pembayaran; rekap | `PencatatPembayaran`, `PembalikPembayaran`, `PencatatVerifikasi`, `RekapPendapatan` |
 | `Akun/` | Aktivasi, tautan, pembatas masuk | `PembuatAkun`, `TautanAkun`, `PembatasMasuk` |
@@ -117,7 +117,6 @@ query, dan menaruhnya di luar berarti setiap pemanggil harus mengingatnya.
 | `satuan_sewa` | `bulanan`, `mingguan`, `harian` | — |
 | `jatuh_tempo` | `tanggal_masuk`, `tanggal_tetap`, `akhir_bulan` | `tanggal` (bila `tanggal_tetap`) |
 | `denda` | `persen_harian`, `persen_bulanan`, `nominal_tetap`, `tanpa_denda` | `persen`, `plafon_persen`, `masa_tenggang`, `nominal` |
-| `deposit` | `tanpa_deposit`, `nominal`, `satu_bulan` | `nominal` |
 
 Kolom yang tidak relevan **wajib NULL**, ditegakkan `CHECK kebijakan_kos_kolom_sesuai_tipe`.
 
@@ -142,7 +141,9 @@ Dengan menu bertipe, setiap kombinasi bisa diuji, dan pesan galat bisa spesifik
 ("plafon denda harus lebih dari 0").
 
 Ini bukan pengurangan fleksibilitas. Empat bentuk denda × tiga jatuh tempo ×
-tiga satuan sewa × tiga deposit = 108 kombinasi, dan semuanya tertangani.
+tiga satuan sewa = 36 kombinasi, dan semuanya tertangani. Angka ini pernah 108
+karena `deposit` dulu ikut dihitung sebagai dimensi keempat; deposit sudah
+dihapus di fase terakhir, lihat §3.1 dan `docs/utang-teknis.md`.
 
 ### 3.3 Append-only untuk data yang menyentuh uang
 

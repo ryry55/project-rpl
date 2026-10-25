@@ -84,8 +84,10 @@ Tiga tipe wajib diisi sebelum tagihan pertama bisa terbit:
 | Jatuh tempo | tanggal masuk / tanggal tetap / akhir bulan | `tanggal` (untuk "tanggal tetap") |
 | Denda | persen per hari / persen per bulan / nominal tetap / tanpa denda | `persen` + `plafon_persen` + `masa_tenggang`, atau `nominal` |
 
-Menu **Deposit** opsional (tanpa deposit / nominal / satu bulan sewa); bila tidak diisi, deposit
-kontrak baru bernilai nol.
+**Deposit tidak ada di sistem ini.** Dulu ada kolomnya, tetapi tidak pernah dicatat sebagai uang
+masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan — jadi ia dikeluarkan
+seluruhnya di fase terakhir. Kos yang memungut deposit mencatatnya di luar sistem, dan itu batas
+yang dinyatakan terbuka, bukan cacat tersembunyi. Lihat `SPEC.md` R-05.
 
 Selama ketiganya belum lengkap, `POST /tagihan` dijawab **422** dengan menyebut tipe mana yang
 kurang — bukan menerbitkan tagihan dengan angka tebakan. Layar Kebijakan menandai kartu yang masih

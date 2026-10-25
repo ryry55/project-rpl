@@ -18,7 +18,7 @@ const formTerbuka = ref(false)
 const menyimpan = ref(false)
 const galatForm = ref('')
 const galatBidang = ref({})
-const form = ref({ kamar_id: '', penghuni_id: '', tgl_masuk: '', tarif: '', deposit: '' })
+const form = ref({ kamar_id: '', penghuni_id: '', tgl_masuk: '', tarif: '' })
 
 const memproses = ref(null)
 const galatAksi = ref('')
@@ -60,7 +60,6 @@ function bukaForm() {
     penghuni_id: '',
     tgl_masuk: tanggalHariIni(),
     tarif: '',
-    deposit: '',
   }
   galatForm.value = ''
   galatBidang.value = {}
@@ -77,21 +76,11 @@ async function simpan() {
       penghuni_id: Number(form.value.penghuni_id),
       tgl_masuk: form.value.tgl_masuk,
     }
-    // Deposit hanya dikirim bila diisi, sama seperti tarif. Mengirim 0 untuk
-    // medan kosong akan membatalkan deposit dari kebijakan kos: server membaca
-    // "0 yang diketik pemilik" sebagai kesepakatan eksplisit, dan tidak bisa
-    // membedakannya dari "tidak diisi". Justru perbedaan itulah yang membuat
-    // kebijakan deposit berguna sebagai bawaan.
     // Tarif hanya dikirim bila diisi. Kalau kamar sudah punya tarif yang
     // berlaku, server memakai tarif itu; mengirim angka berbeda akan ditolak
     // dan pesannya ditampilkan apa adanya.
     if (form.value.tarif !== '') {
       isi.tarif = Number(form.value.tarif)
-    }
-    // Nol yang diketik pemilik tetap dikirim: itu pernyataan "kamar ini tanpa
-    // deposit", yang memang berbeda dari "ikuti kebijakan kos".
-    if (form.value.deposit !== '') {
-      isi.deposit = Number(form.value.deposit)
     }
 
     await sesi.panggil('/kontrak', { method: 'POST', body: JSON.stringify(isi) })
@@ -191,21 +180,6 @@ onMounted(muat)
               :aria-invalid="Boolean(galatBidang.tgl_masuk)"
             />
           </MedanForm>
-          <MedanForm
-            id="deposit"
-            label="Deposit"
-            :galat="galatBidang.deposit"
-            bantuan="Kosongkan untuk mengikuti kebijakan kos. Isi 0 bila kamar ini memang tanpa deposit."
-          >
-            <template #label-ekstra> <span class="lemah">(opsional)</span></template>
-            <input
-              id="deposit"
-              v-model="form.deposit"
-              inputmode="numeric"
-              placeholder="Ikuti kebijakan"
-              :aria-invalid="Boolean(galatBidang.deposit)"
-            />
-          </MedanForm>
         </div>
 
         <MedanForm id="tarif" label="Tarif bulanan" :galat="galatBidang.tarif">
@@ -250,7 +224,6 @@ onMounted(muat)
               <th>Masuk</th>
               <th>Keluar</th>
               <th class="kanan">Tarif awal</th>
-              <th class="kanan">Deposit</th>
               <th>Status</th>
               <th></th>
             </tr>
@@ -262,7 +235,6 @@ onMounted(muat)
               <td>{{ tanggal(k.tgl_masuk) }}</td>
               <td>{{ tanggal(k.tgl_keluar) }}</td>
               <td class="kanan">{{ rupiah(k.tarif_awal) }}</td>
-              <td class="kanan">{{ rupiah(k.deposit) }}</td>
               <td>
                 <LencanaStatus :status="k.status" />
               </td>

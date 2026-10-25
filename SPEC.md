@@ -172,11 +172,25 @@ hari **tidak** mengubah tagihan lama.
 Tagihan berstatus `lunas` dan `dibatalkan` **tidak pernah** masuk tunggakan. Batas 30/31 dan
 60/61 adalah titik uji wajib.
 
-### R-05 — Deposit hanya untuk kerusakan (ditunda)
+### R-05 — Deposit tidak ada di sistem ini
 
-Tidak diimplementasikan di rilis ini. Kolom `kontrak.deposit` tetap dibuat dan diisi saat
-pendaftaran, supaya tidak perlu migrasi besar nanti. Fitur pencatatan kerusakan masuk T8 (di luar
-cakupan).
+> Sistem ini **tidak** memungut, mencatat, maupun mengembalikan deposit.
+
+Deposit pernah ada sebagai kolom `kontrak.deposit` yang diisi dari kebijakan kos. Kolom itu
+dikeluarkan seluruhnya di fase terakhir, bersama tipe kebijakan `deposit` dan kelas
+`PenentuDeposit`. Alasannya bukan kerapian, melainkan pertanggungjawaban uang: deposit
+dikumpulkan saat kontrak dibuat, tetapi tidak pernah dicatat sebagai uang masuk, tidak pernah
+mengurangi tagihan, dan tidak pernah dikembalikan saat penghuni keluar. Sistem menampung janji
+uang yang tidak pernah ia pertanggungjawabkan.
+
+Dua jalan keluarnya adalah (a) merekam deposit sebagai pembayaran sah lalu mengembalikannya lewat
+baris negatif, atau (b) berhenti berpura-pura menanganinya. Pemilik memilih (b), dengan alasan:
+**kolom yang menyimpan angka tanpa akibat lebih buruk daripada kolom yang tidak ada, karena ia
+membuat orang mengira uangnya terjaga.**
+
+Konsekuensi yang diterima: kos yang memang memungut deposit mencatatnya di luar sistem. Ini
+konsisten dengan batas yang sudah dinyatakan di §1.2 — sistem ini menagih sewa, bukan
+mengelola titipan uang.
 
 ### R-06 — Tarif tidak berlaku surut
 
@@ -362,7 +376,7 @@ penghuni         id, nama, email (unique), no_hp
                  -- users.penghuni_id (lihat catatan deviasi di bawah).
 
 kontrak          id, kamar_id, penghuni_id, tgl_masuk (date), tgl_keluar (date|null),
-                 tarif_awal (numeric 14,0), deposit (numeric), status (aktif|selesai)
+                 tarif_awal (numeric 14,0), status (aktif|selesai)
                  -- satu kontrak aktif per kamar (partial unique index)
                  -- tarif_awal = salinan tarif saat kontrak dibuat, untuk keterangan.
                  -- Sumber kebenaran tarif tetap tarif_sewa (R-06).
@@ -611,7 +625,7 @@ Sebagai pemilik, saya ingin mencatat kamar dan penghuni beserta tarifnya, supaya
 siapa menyewa apa dengan harga berapa.
 
 - [ ] Nomor kamar duplikat → 422
-- [ ] Kontrak baru menyimpan `tgl_masuk`, tarif, dan deposit
+- [ ] Kontrak baru menyimpan `tgl_masuk` dan tarif
 - [ ] Dua kontrak aktif pada satu kamar → 422
 - [ ] Mengubah tarif membuat baris **baru** di `tarif_sewa` dengan `berlaku_dari`, baris lama utuh
 - [ ] Tarif efektif untuk periode P = baris terakhir dengan `berlaku_dari ≤ P`
@@ -769,7 +783,7 @@ Lokasi: `docs/uji/audit-ketertelusuran.md`.
 | R-02 satu tagihan per periode | unique index + `PenerbitanMassal` | `test_menekan_dua_kali_menghasilkan_409_bukan_tagihan_kedua`, `uji-balapan-t4.mjs` | ✅ |
 | R-03 denda 1%/hari plafon 30% | `Kalkulator::hitungDenda` + `PenghitungDenda` | `test_batas_7_8`, `test_plafon_37`, `test_pembayaran_sebagian_tidak_menurunkan_dasar_denda` | ✅ |
 | R-04 umur tunggakan | `Kalkulator::kelompokUmur` | `test_batas_30_31`, `test_batas_60_61` | ✅ |
-| R-05 deposit | — | — | ⏸ ditunda (T8) |
+| R-05 deposit | tidak ada di sistem (dihapus di fase terakhir) | `MigrasiHapusDepositTest` (5 tes), `KebijakanKosTest::test_tipe_deposit_ditolak_validasi_maupun_constraint` | ✅ |
 | R-06 tarif tidak surut | `tarif_sewa` append-only + snapshot `tarif_terpakai` | `test_tagihan_lama_tidak_berubah` | ✅ |
 | R-07 isolasi + audit | scope `Tagihan::terlihatOleh` + `log_audit` append-only (trigger basis data) | `IsolasiDanAuditTest` (18 tes): `test_penghuni_hanya_melihat_tagihannya_sendiri`, `test_penghuni_mengakses_tagihan_orang_lain_mendapat_404_bukan_403`, `test_penghuni_mengakses_denda_tagihan_orang_lain_mendapat_404`, `test_penghuni_memanggil_endpoint_pemilik_ditolak_403`, `test_update_langsung_ke_log_audit_ditolak_basis_data`, `test_delete_langsung_ke_log_audit_ditolak_basis_data`; `docs/uji/e2e-t9.mjs` (23/23) | ✅ |
 
@@ -783,7 +797,7 @@ Ditunda dengan sadar, bukan terlupa.
 
 | Hal | Alasan | Rencana |
 |---|---|---|
-| Deposit & kerusakan (R-05) | Butuh alur foto kerusakan dan negosiasi; kolom sudah disiapkan | T8, tabel manual di laporan |
+| Deposit & kerusakan (R-05) | **Dihapus seluruhnya di fase terakhir**, bukan ditunda: deposit tidak pernah tercatat sebagai uang masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan. Lihat R-05 | Tidak ada rencana mengembalikannya |
 | Laporan & rekap lengkap (proses 5.0) | Bisa dihitung manual dari data yang ada | T10, tabel manual di laporan |
 | Pembatalan tagihan | **Sudah dikerjakan di R3** (REV-FIN-02): status berubah, baris tidak dihapus, periode bisa diterbitkan ulang | `POST /tagihan/{id}/batal`, tombol di panel rincian |
 | Pemaafan denda | **Sudah dikerjakan di R3** (REV-FIN-07): denda dibekukan pada hari pokok lunas, bukan dinolkan | `POST /tagihan/{id}/maaf-denda`, `peran:pemilik` |

@@ -146,10 +146,10 @@ const STORE = [
     ringkas: 'Penghuni & Kontrak',
     atribut:
       'penghuni: id, nama, no_hp, email · ' +
-      'kontrak: id, kamar_id, penghuni_id, tgl_masuk, tgl_keluar, tarif_awal, deposit, status',
+      'kontrak: id, kamar_id, penghuni_id, tgl_masuk, tgl_keluar, tarif_awal, status',
     isi:
-      'Data penghuni dan kontrak sewanya. Deposit dibaca saat kontrak dibuat; ' +
-      'tarif_awal membekukan tarif yang berlaku ketika kontrak ditandatangani.',
+      'Data penghuni dan kontrak sewanya. tarif_awal membekukan tarif yang ' +
+      'berlaku ketika kontrak ditandatangani.',
   },
   {
     id: 'D3',
@@ -218,7 +218,7 @@ const ALIRAN = [
   {
     kunci: 'I-1', kode: 'I-1', jenis: 'masuk', dari: 'E1', ke: 'P1',
     label: ['data kamar, penghuni', '& kontrak'],
-    struktur: 'nomor_kamar, tipe, nama, no_hp, email, tgl_masuk, deposit',
+    struktur: 'nomor_kamar, tipe, nama, no_hp, email, tgl_masuk',
     catatan: 'Pemilik mendaftarkan kamar dan penghuni, lalu membuat kontrak.',
   },
   {
@@ -268,7 +268,7 @@ const ALIRAN = [
   {
     kunci: 'O-1', kode: 'O-1', jenis: 'keluar', dari: 'P1', ke: 'E3',
     label: ['konfirmasi sewa', '& kontrak'],
-    struktur: 'kontrak_id, kamar, tgl_mulai, tarif_awal, deposit',
+    struktur: 'kontrak_id, kamar, tgl_mulai, tarif_awal',
     catatan: 'Penghuni menerima, tidak membalas - portalnya baca-saja.',
   },
   {
@@ -320,7 +320,7 @@ const ALIRAN = [
   {
     kunci: 'A2', kode: '11', jenis: 'internal', dari: 'P1', ke: 'D2',
     label: ['kontrak sewa'],
-    struktur: 'kontrak_id, penghuni, kamar, tgl_masuk, tarif_awal, deposit',
+    struktur: 'kontrak_id, penghuni, kamar, tgl_masuk, tarif_awal',
     catatan: '',
   },
   {
@@ -517,7 +517,7 @@ const KAMUS = [
   ['kamar', 'nomor_kamar + tipe + status_huni'],
   ['status_huni', '"kosong" | "terisi"'],
   ['penghuni', 'nama + no_hp + email'],
-  ['kontrak', 'kontrak_id + penghuni + kamar + tgl_masuk + tgl_keluar + deposit + tarif_awal + status_kontrak'],
+  ['kontrak', 'kontrak_id + penghuni + kamar + tgl_masuk + tgl_keluar + tarif_awal + status_kontrak'],
   ['status_kontrak', '"aktif" | "selesai"'],
   ['tgl_masuk', 'tanggal'],
   ['tgl_keluar', 'tanggal | kosong (berarti masih aktif)'],
@@ -526,7 +526,7 @@ const KAMUS = [
   ['satuan_komponen', '"rupiah/bulan" | "rupiah/orang"'],
   ['kebijakan_kos', 'tipe + nilai + angka_pendukung + kamar_id + berlaku_dari'],
   ['angka_pendukung', 'persen + plafon_persen + masa_tenggang + nominal + tanggal'],
-  ['tipe_kebijakan', '"satuan_sewa" | "jatuh_tempo" | "denda" | "deposit"'],
+  ['tipe_kebijakan', '"satuan_sewa" | "jatuh_tempo" | "denda"'],
   ['bentuk_denda', '"persen_harian" | "persen_bulanan" | "nominal_tetap" | "tanpa_denda"'],
   ['persen_denda', 'persen per hari atau per bulan (0..100), dihitung dari pokok'],
   ['plafon_persen', '0..100'],

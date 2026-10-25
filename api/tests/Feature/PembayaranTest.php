@@ -80,7 +80,6 @@ class PembayaranTest extends TestCase
             'penghuni_id' => $penghuni->id,
             'tgl_masuk' => '2026-01-15',
             'tarif_awal' => 1_500_000,
-            'deposit' => 0,
         ]);
 
         return Tagihan::create([

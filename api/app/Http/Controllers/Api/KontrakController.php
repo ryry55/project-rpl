@@ -3,15 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Audit\PencatatAudit;
-use App\Domain\Kebijakan\PenentuDeposit;
-use App\Domain\Kebijakan\PenyelesaiKebijakan;
 use App\Domain\Persetujuan\PenerapPerubahan;
 use App\Domain\Tarif\PencariTarif;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SimpanKontrakRequest;
 use App\Http\Resources\KontrakResource;
 use App\Models\Kamar;
-use App\Models\KebijakanKos;
 use App\Models\Kontrak;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
@@ -22,7 +19,6 @@ class KontrakController extends Controller
 {
     public function __construct(
         private readonly PencariTarif $pencari,
-        private readonly PenyelesaiKebijakan $penyelesai,
         private readonly PenerapPerubahan $penerap,
         private readonly PencatatAudit $audit,
     ) {}
@@ -92,7 +88,7 @@ class KontrakController extends Controller
         }
 
         try {
-            $kontrak = DB::transaction(function () use ($request, $tglMasuk, $tarifBerlaku, $tarifDiminta, $kamar) {
+            $kontrak = DB::transaction(function () use ($request, $tglMasuk, $tarifBerlaku, $tarifDiminta) {
                 // Kamar belum punya tarif: baris pertama riwayat dibuat dari
                 // angka yang diketik pemilik.
                 //
@@ -120,7 +116,6 @@ class KontrakController extends Controller
                     'penghuni_id' => $request->integer('penghuni_id'),
                     'tgl_masuk' => $tglMasuk->toDateString(),
                     'tarif_awal' => (int) $tarifBerlaku->nilai,
-                    'deposit' => $this->depositUntuk($request, $kamar, $tglMasuk, (int) $tarifBerlaku->nilai),
                     // S1.9: kontrak yang mulai di masa depan lahir sebagai
                     // `dipesan`, bukan `aktif`. Bedanya bukan sekadar label:
                     // kontrak `dipesan` tidak ditagih (PenerbitanMassal hanya
@@ -146,12 +141,12 @@ class KontrakController extends Controller
                 // menempati kamar ini dan dengan tarif berapa" harus bisa
                 // dijawab tanpa membaca tabel yang bisa berubah.
                 //
-                // `tarif_awal` dan `deposit` di-cast ke int karena kolomnya
-                // ber-cast `decimal:0` dan Eloquent mengembalikannya sebagai
-                // string. Membiarkannya berarti satu baris jejak memuat
-                // `"1500000"` sementara baris tarif di sebelahnya memuat
-                // `1500000` - dua bentuk untuk angka yang sama, dan pembaca
-                // log tidak punya cara tahu mana yang disengaja.
+                // `tarif_awal` di-cast ke int karena kolomnya ber-cast
+                // `decimal:0` dan Eloquent mengembalikannya sebagai string.
+                // Membiarkannya berarti satu baris jejak memuat `"1500000"`
+                // sementara baris tarif di sebelahnya memuat `1500000` - dua
+                // bentuk untuk angka yang sama, dan pembaca log tidak punya
+                // cara tahu mana yang disengaja.
                 $this->audit->catat(
                     aksi: PencatatAudit::AKSI_KONTRAK_TAMBAH,
                     entitas: 'kontrak',
@@ -161,7 +156,6 @@ class KontrakController extends Controller
                         'penghuni_id' => $kontrak->penghuni_id,
                         'tgl_masuk' => $kontrak->tgl_masuk->toDateString(),
                         'tarif_awal' => (int) $kontrak->tarif_awal,
-                        'deposit' => (int) $kontrak->deposit,
                         'status' => $kontrak->status,
                     ],
                 );
@@ -191,35 +185,6 @@ class KontrakController extends Controller
         $kontrak->load(['kamar', 'penghuni']);
 
         return response()->json(['data' => new KontrakResource($kontrak)], 201);
-    }
-
-    /**
-     * Deposit kontrak: isian pemilik bila ada, kalau tidak kebijakan kos.
-     *
-     * Urutannya disengaja. Kebijakan adalah **bawaan**, bukan kewajiban:
-     * kesepakatan dengan penghuni bisa berbeda dari kebijakan umum kos (mis.
-     * kamar tanpa deposit karena penghuni membawa kasur sendiri), dan pemilik
-     * yang mengetik angkanya di formulir sedang menyatakan kesepakatan itu.
-     *
-     * `filled()` dipakai, bukan `integer('deposit')`: `integer()` mengembalikan
-     * 0 baik untuk "tidak diisi" maupun untuk "diisi nol", sehingga deposit
-     * kebijakan tidak akan pernah terpakai. Nol yang diketik pemilik tetap
-     * dihormati karena ia mengirim string "0".
-     */
-    private function depositUntuk(
-        SimpanKontrakRequest $request,
-        Kamar $kamar,
-        Carbon $tglMasuk,
-        int $tarifSewa,
-    ): int {
-        if ($request->filled('deposit')) {
-            return $request->integer('deposit');
-        }
-
-        return PenentuDeposit::hitung(
-            $this->penyelesai->kebijakan(KebijakanKos::TIPE_DEPOSIT, $tglMasuk, $kamar),
-            $tarifSewa,
-        );
     }
 
     public function show(Kontrak $kontrak): JsonResponse

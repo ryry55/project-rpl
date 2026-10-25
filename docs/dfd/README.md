@@ -73,7 +73,7 @@ Proses tunggal **0.0 Sistem Informasi Operasional Kos-Kosan** menghubungkan
 
 | Kode | Dari | Ke | Nama aliran | Struktur data |
 | --- | --- | --- | --- | --- |
-| **I-1** | PEMILIK KOS | Proses 1.0 | data kamar, penghuni & kontrak | <code>nomor_kamar, tipe, nama, no_hp, email, tgl_masuk, deposit</code> |
+| **I-1** | PEMILIK KOS | Proses 1.0 | data kamar, penghuni & kontrak | <code>nomor_kamar, tipe, nama, no_hp, email, tgl_masuk</code> |
 | **I-2** | PEMILIK KOS | Proses 2.0 | tarif, kebijakan & komponen biaya | <code>kamar_id, nilai, berlaku_dari (tarif) · tipe, nilai, angka_pendukung, kamar_id (kebijakan)</code> |
 | **I-3** | PEMILIK KOS | Proses 2.0 | keputusan persetujuan usulan | <code>usulan_id, keputusan, alasan</code> |
 | **I-4** | PEMILIK KOS | Proses 3.0 | periode penagihan | <code>periode (bulan + tahun)</code> |
@@ -85,7 +85,7 @@ Proses tunggal **0.0 Sistem Informasi Operasional Kos-Kosan** menghubungkan
 
 | Kode | Dari | Ke | Nama aliran | Struktur data |
 | --- | --- | --- | --- | --- |
-| **O-1** | Proses 1.0 | PENGHUNI | konfirmasi sewa & kontrak | <code>kontrak_id, kamar, tgl_mulai, tarif_awal, deposit</code> |
+| **O-1** | Proses 1.0 | PENGHUNI | konfirmasi sewa & kontrak | <code>kontrak_id, kamar, tgl_mulai, tarif_awal</code> |
 | **O-2** | Proses 2.0 | PEMILIK KOS | daftar usulan menunggu persetujuan | <code>usulan_id, tipe, nilai_lama, nilai_baru, batas_waktu</code> |
 | **O-3** | Proses 3.0 | PENGHUNI | tagihan bulanan (pokok) | <code>periode, rincian[], pokok, total, jatuh_tempo</code> |
 | **O-4** | Proses 3.0 | PENGELOLA | daftar tagihan terbit | <code>periode, daftar_tagihan[], jumlah_terbit</code> |
@@ -154,7 +154,7 @@ menjanjikan fitur yang tidak ada.
 | Kode | Penyimpanan | Atribut utama | Keterangan |
 | --- | --- | --- | --- |
 | **D1** | Kamar | <code>id, nomor, tipe, status_huni</code> | Kamar beserta status huninya. Status hanya kosong atau terisi — tidak ada status perbaikan, karena perbaikan tidak pernah menghalangi penagihan. |
-| **D2** | Penghuni & Kontrak | <code>penghuni: id, nama, no_hp, email · kontrak: id, kamar_id, penghuni_id, tgl_masuk, tgl_keluar, tarif_awal, deposit, status</code> | Data penghuni dan kontrak sewanya. Deposit dibaca saat kontrak dibuat; tarif_awal membekukan tarif yang berlaku ketika kontrak ditandatangani. |
+| **D2** | Penghuni & Kontrak | <code>penghuni: id, nama, no_hp, email · kontrak: id, kamar_id, penghuni_id, tgl_masuk, tgl_keluar, tarif_awal, status</code> | Data penghuni dan kontrak sewanya. tarif_awal membekukan tarif yang berlaku ketika kontrak ditandatangani. |
 | **D3** | Tarif, Kebijakan & Komponen | <code>tarif_sewa: kamar_id, nilai, berlaku_dari · komponen_biaya: nama, nilai, satuan, kamar_id, berlaku_dari · kebijakan_kos: tipe, nilai, persen, plafon_persen, masa_tenggang, nominal, tanggal, kamar_id, berlaku_dari</code> | Tarif sewa, kebijakan kos per dimensi, dan komponen biaya. Bersifat tambah-saja: perubahan membuat baris baru dengan berlaku_dari sendiri, baris lama tidak pernah ditimpa. |
 | **D4** | Tagihan | <code>id, kontrak_id, periode, pokok, total_final, jatuh_tempo, status, tarif_terpakai, kebijakan_terpakai</code> | Tagihan bulanan beserta salinan tarif dan kebijakan yang dipakai saat terbit. Denda tidak disimpan sebagai kolom: ia dihitung ulang setiap kali dibaca, dan hanya `total_final` yang dibekukan saat tagihan lunas. |
 | **D5** | Pembayaran | <code>id, tagihan_id, tanggal_pembayaran, jumlah, metode, sumber, diterima_oleh, dicatat_oleh</code> | Uang yang benar-benar diterima, dicatat per tanggal pembayaran. Metode mencakup tunai, transfer, QRIS, dan gateway; sumber memisahkan yang dicatat orang dari yang datang lewat webhook. |
@@ -168,7 +168,7 @@ menjanjikan fitur yang tidak ada.
 
 | Kode | Dari | Ke | Nama aliran | Struktur data |
 | --- | --- | --- | --- | --- |
-| **I-1** | PEMILIK KOS | Proses 1.0 | data kamar, penghuni & kontrak | <code>nomor_kamar, tipe, nama, no_hp, email, tgl_masuk, deposit</code> |
+| **I-1** | PEMILIK KOS | Proses 1.0 | data kamar, penghuni & kontrak | <code>nomor_kamar, tipe, nama, no_hp, email, tgl_masuk</code> |
 | **I-2** | PEMILIK KOS | Proses 2.0 | tarif, kebijakan & komponen biaya | <code>kamar_id, nilai, berlaku_dari (tarif) · tipe, nilai, angka_pendukung, kamar_id (kebijakan)</code> |
 | **I-3** | PEMILIK KOS | Proses 2.0 | keputusan persetujuan usulan | <code>usulan_id, keputusan, alasan</code> |
 | **I-4** | PEMILIK KOS | Proses 3.0 | periode penagihan | <code>periode (bulan + tahun)</code> |
@@ -182,7 +182,7 @@ menjanjikan fitur yang tidak ada.
 
 | Kode | Dari | Ke | Nama aliran | Struktur data |
 | --- | --- | --- | --- | --- |
-| **O-1** | Proses 1.0 | PENGHUNI | konfirmasi sewa & kontrak | <code>kontrak_id, kamar, tgl_mulai, tarif_awal, deposit</code> |
+| **O-1** | Proses 1.0 | PENGHUNI | konfirmasi sewa & kontrak | <code>kontrak_id, kamar, tgl_mulai, tarif_awal</code> |
 | **O-2** | Proses 2.0 | PEMILIK KOS | daftar usulan menunggu persetujuan | <code>usulan_id, tipe, nilai_lama, nilai_baru, batas_waktu</code> |
 | **O-3** | Proses 3.0 | PENGHUNI | tagihan bulanan (pokok) | <code>periode, rincian[], pokok, total, jatuh_tempo</code> |
 | **O-4** | Proses 3.0 | PENGELOLA | daftar tagihan terbit | <code>periode, daftar_tagihan[], jumlah_terbit</code> |
@@ -197,7 +197,7 @@ menjanjikan fitur yang tidak ada.
 | Kode | Dari | Ke | Nama aliran | Struktur data |
 | --- | --- | --- | --- | --- |
 | **10** | Proses 1.0 | Store D1 | data kamar | <code>nomor, tipe, status_huni</code> |
-| **11** | Proses 1.0 | Store D2 | kontrak sewa | <code>kontrak_id, penghuni, kamar, tgl_masuk, tarif_awal, deposit</code> |
+| **11** | Proses 1.0 | Store D2 | kontrak sewa | <code>kontrak_id, penghuni, kamar, tgl_masuk, tarif_awal</code> |
 | **12** | Proses 2.0 | Store D3 | tarif, kebijakan & komponen | <code>tarif: kamar_id, nilai, berlaku_dari · kebijakan: tipe, nilai, angka, kamar_id, berlaku_dari</code> |
 | **13** | Proses 2.0 | Store D6 | log audit perubahan | <code>aktor, aksi, nilai_lama, nilai_baru, waktu</code> |
 | **14** | Proses 3.0 | Store D4 | tagihan | <code>periode, pokok, jatuh_tempo, status, tarif_terpakai, kebijakan_terpakai</code> |
@@ -241,7 +241,7 @@ Sekarang keluaran proses 5.0 dipecah menjadi dua aliran (O-6 dan O-7), sehingga
 kamar = nomor_kamar + tipe + status_huni
 status_huni = "kosong" | "terisi"
 penghuni = nama + no_hp + email
-kontrak = kontrak_id + penghuni + kamar + tgl_masuk + tgl_keluar + deposit + tarif_awal + status_kontrak
+kontrak = kontrak_id + penghuni + kamar + tgl_masuk + tgl_keluar + tarif_awal + status_kontrak
 status_kontrak = "aktif" | "selesai"
 tgl_masuk = tanggal
 tgl_keluar = tanggal | kosong (berarti masih aktif)
@@ -250,7 +250,7 @@ komponen_biaya = nama + nilai + satuan + kamar_id + berlaku_dari
 satuan_komponen = "rupiah/bulan" | "rupiah/orang"
 kebijakan_kos = tipe + nilai + angka_pendukung + kamar_id + berlaku_dari
 angka_pendukung = persen + plafon_persen + masa_tenggang + nominal + tanggal
-tipe_kebijakan = "satuan_sewa" | "jatuh_tempo" | "denda" | "deposit"
+tipe_kebijakan = "satuan_sewa" | "jatuh_tempo" | "denda"
 bentuk_denda = "persen_harian" | "persen_bulanan" | "nominal_tetap" | "tanpa_denda"
 persen_denda = persen per hari atau per bulan (0..100), dihitung dari pokok
 plafon_persen = 0..100
@@ -320,12 +320,15 @@ Lima hal yang layak dijelaskan bila ditanya "kenapa begitu":
    Sub-metering utilitas sengaja diletakkan di daftar *tidak dikerjakan*, bukan karena keterbatasan
    waktu, tetapi karena segmen yang disasar tidak memisahkan biaya listrik dan air.
 
-5. **Mengapa deposit tidak punya proses pemotongan?** Deposit **dicatat** saat kontrak dibuat —
-   besarannya dibaca dari kebijakan kos lewat `PenentuDeposit` — tetapi alur pemotongan karena
-   kerusakan belum dikerjakan (tercatat sebagai T8). Karena itu tidak ada aturan R-05 versi lama
-   ("deposit dipotong hanya bila kerusakan tercatat") di daftar aturan di atas: menggambar alur
-   yang tidak ada akan menjanjikan fitur yang tidak bisa ditunjukkan saat demo. Nomor R-05 kini
-   dipakai untuk gerbang kebijakan wajib, sama seperti di `1_PRD.md` dan `KONTEKS_PROYEK.md`.
+5. **Mengapa deposit tidak ada sama sekali?** Deposit dulu **dicatat** saat kontrak
+   dibuat, besarannya dibaca dari kebijakan kos lewat `PenentuDeposit`, tetapi ia tidak
+   pernah dicatat sebagai uang masuk, tidak pernah mengurangi tagihan, dan tidak pernah
+   dikembalikan saat penghuni keluar. Artinya diagram ini akan menggambar uang yang tidak
+   pernah dipertanggungjawabkan sistem. Pemilik memutuskan menghapusnya seluruhnya di
+   fase terakhir: kolom `kontrak.deposit`, tipe kebijakan `deposit`, dan kelas
+   `PenentuDeposit` sudah tidak ada. Alasan lengkapnya di `docs/utang-teknis.md`; yang
+   tersisa sebagai utang adalah **pembalik pembayaran** dan **antrean email**, bukan
+   deposit.
 
 ---
 

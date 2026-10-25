@@ -165,7 +165,7 @@ $inserts = @(
     'R-02  Satu kontrak hanya boleh memiliki satu tagihan per periode, dan penerbitan ulang untuk periode yang sama ditolak',
     'R-03  Denda keterlambatan mulai berlaku pada hari ke-8 setelah jatuh tempo, sebesar 1% dari pokok tagihan per hari, dan dibatasi maksimal 30% dari pokok sehingga denda berhenti bertambah pada hari terlambat ke-37',
     'R-04  Tunggakan dikelompokkan menurut umur, yaitu 0 sampai 30 hari, 31 sampai 60 hari, dan lebih dari 60 hari',
-    'R-05  Deposit hanya dipotong bila ada kerusakan yang tercatat, dan sisanya wajib dikembalikan kepada penghuni',
+    'R-05  Sistem tidak memungut, mencatat, maupun mengembalikan deposit; kos yang memungut deposit mencatatnya di luar sistem',
     'R-06  Perubahan tarif tidak berlaku surut, hanya untuk periode berikutnya',
     'R-07  Penghuni hanya dapat melihat tagihannya sendiri, dan setiap perubahan status tagihan tercatat dalam log audit'
 )

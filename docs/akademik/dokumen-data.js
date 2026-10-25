@@ -63,7 +63,7 @@ const ENTITAS_DATA = [
     nama: 'Kontrak Sewa',
     tabel: ['kontrak'],
     inti: true,
-    atribut: 'id, kamar_id, penghuni_id, tgl_masuk, tarif_awal, deposit, status',
+    atribut: 'id, kamar_id, penghuni_id, tgl_masuk, tarif_awal, status',
     lingkup: '',
   },
   {

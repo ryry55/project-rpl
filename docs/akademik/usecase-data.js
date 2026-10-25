@@ -185,7 +185,7 @@ const USE_CASE = [
     kode: 'UC-05',
     nama: 'Kelola Kebijakan Kos',
     ringkas: 'Kelola Kebijakan Kos',
-    deskripsi: 'Menetapkan empat dimensi kebijakan kos — satuan sewa, jatuh tempo, denda, deposit.',
+    deskripsi: 'Menetapkan tiga dimensi kebijakan kos — satuan sewa, jatuh tempo, denda.',
     endpoint: ['kebijakan.index', 'kebijakan.store'],
     gerbang:
       'Pemilik menetapkan langsung; pengelola dengan `ubah_kebijakan` hanya ' +

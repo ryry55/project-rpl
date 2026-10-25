@@ -149,7 +149,6 @@ jalankan(async () => {
         kamar_id: kamarId,
         penghuni_id: penghuni.data?.data?.id,
         tgl_masuk: '2026-01-01',
-        deposit: 0,
       })
       if (kontrak.data?.data?.id) {
         await panggilApi(ws, '/tagihan', 'POST', {

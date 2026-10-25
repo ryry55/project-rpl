@@ -722,7 +722,6 @@ class PengelolaTest extends TestCase
             'kamar_id' => $kamar->id,
             'penghuni_id' => $penghuni->id,
             'tgl_masuk' => '2026-01-01',
-            'deposit' => 0,
         ])->assertCreated()->json('data');
 
         return (object) $this->sebagaiPemilik()->postJson('/api/tagihan', [

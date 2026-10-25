@@ -26,7 +26,7 @@ rusak. Kriteria yang hanya "ada kodenya" tanpa tes tidak dicentang.
 | # | Kriteria | Tes pembukti |
 |---|---|---|
 | 6 | Nomor kamar duplikat → 422 | `DataIndukTest::test_nomor_kamar_duplikat_ditolak_422` |
-| 7 | Kontrak menyimpan `tgl_masuk`, tarif, deposit | `DataIndukTest::test_kontrak_menyimpan_tgl_masuk_tarif_dan_deposit` |
+| 7 | Kontrak menyimpan `tgl_masuk` dan tarif | `DataIndukTest::test_kontrak_menyimpan_tgl_masuk_dan_tarif` |
 | 8 | Dua kontrak aktif pada satu kamar → 422 | `DataIndukTest::test_dua_kontrak_aktif_pada_satu_kamar_ditolak_422` |
 | 9 | Mengubah tarif membuat baris **baru**, baris lama utuh | `RiwayatTarifTest::test_mengubah_tarif_menambah_baris_dan_baris_lama_tetap` |
 | 10 | Tarif efektif periode P = baris terakhir `berlaku_dari <= P` | `RiwayatTarifTest::test_tarif_efektif_adalah_baris_terakhir_yang_berlaku_dari_kurang_dari_sama_periode` |
@@ -98,6 +98,8 @@ rusak. Kriteria yang hanya "ada kodenya" tanpa tes tidak dicentang.
 
 Tidak ada. Keempat puluh tiga kriteria punya tes yang gagal bila perilakunya rusak.
 
-Yang **tidak** masuk daftar ini adalah R-05 (deposit) dan proses 5.0 (laporan): keduanya
-memang di luar cakupan rilis demo (SPEC §11), dan tidak pernah muncul sebagai kotak centang
-di issue #1. Statusnya tetap ⏸ di `docs/uji/audit-ketertelusuran.md`.
+Yang **tidak** masuk daftar ini adalah proses 5.0 (laporan): memang di luar cakupan rilis
+demo (SPEC §11), dan tidak pernah muncul sebagai kotak centang di issue #1. R-05 (deposit)
+**tidak lagi** ada di daftar ini karena alasan yang berbeda — deposit dihapus seluruhnya di
+fase terakhir, dan penghapusannya punya tesnya sendiri (`MigrasiHapusDepositTest`, 5 tes).
+Status lengkapnya di `docs/uji/audit-ketertelusuran.md`.

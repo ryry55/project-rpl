@@ -20,7 +20,6 @@ class Kontrak extends Model
      */
     protected $attributes = [
         'status' => 'aktif',
-        'deposit' => 0,
     ];
 
     /**
@@ -32,7 +31,6 @@ class Kontrak extends Model
         'tgl_masuk',
         'tgl_keluar',
         'tarif_awal',
-        'deposit',
         'status',
     ];
 
@@ -45,7 +43,6 @@ class Kontrak extends Model
             'tgl_masuk' => 'date',
             'tgl_keluar' => 'date',
             'tarif_awal' => 'decimal:0',
-            'deposit' => 'decimal:0',
         ];
     }
 

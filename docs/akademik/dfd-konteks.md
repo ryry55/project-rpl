@@ -31,7 +31,7 @@ muncul di level 1, dan jumlah aliran batas di kedua level sengaja sama
 
 | Kode | Dari | Ke | Nama aliran | Struktur data |
 |---|---|---|---|---|
-| **I-1** | Pemilik Kos | Proses 1.0 | data kamar, penghuni & kontrak | `nomor_kamar, tipe, nama, no_hp, email, tgl_masuk, deposit` |
+| **I-1** | Pemilik Kos | Proses 1.0 | data kamar, penghuni & kontrak | `nomor_kamar, tipe, nama, no_hp, email, tgl_masuk` |
 | **I-2** | Pemilik Kos | Proses 2.0 | tarif, kebijakan & komponen biaya | `kamar_id, nilai, berlaku_dari (tarif) · tipe, nilai, angka_pendukung, kamar_id (kebijakan)` |
 | **I-3** | Pemilik Kos | Proses 2.0 | keputusan persetujuan usulan | `usulan_id, keputusan, alasan` |
 | **I-4** | Pemilik Kos | Proses 3.0 | periode penagihan | `periode (bulan + tahun)` |
@@ -43,7 +43,7 @@ muncul di level 1, dan jumlah aliran batas di kedua level sengaja sama
 
 | Kode | Dari | Ke | Nama aliran | Struktur data |
 |---|---|---|---|---|
-| **O-1** | Proses 1.0 | Penghuni | konfirmasi sewa & kontrak | `kontrak_id, kamar, tgl_mulai, tarif_awal, deposit` |
+| **O-1** | Proses 1.0 | Penghuni | konfirmasi sewa & kontrak | `kontrak_id, kamar, tgl_mulai, tarif_awal` |
 | **O-2** | Proses 2.0 | Pemilik Kos | daftar usulan menunggu persetujuan | `usulan_id, tipe, nilai_lama, nilai_baru, batas_waktu` |
 | **O-3** | Proses 3.0 | Penghuni | tagihan bulanan (pokok) | `periode, rincian[], pokok, total, jatuh_tempo` |
 | **O-4** | Proses 3.0 | Pengelola | daftar tagihan terbit | `periode, daftar_tagihan[], jumlah_terbit` |

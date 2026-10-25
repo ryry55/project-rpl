@@ -230,7 +230,7 @@ class JejakDataIndukTest extends TestCase
 
     // --- Kontrak -----------------------------------------------------------
 
-    public function test_kontrak_baru_mencatat_kamar_penghuni_tarif_dan_deposit(): void
+    public function test_kontrak_baru_mencatat_kamar_penghuni_dan_tarif(): void
     {
         $kamar = Kamar::create(['nomor' => 'A1']);
         $penghuni = Penghuni::create(['nama' => 'Budi', 'email' => 'budi@kos.test']);
@@ -241,7 +241,6 @@ class JejakDataIndukTest extends TestCase
                 'penghuni_id' => $penghuni->id,
                 'tgl_masuk' => '2026-10-15',
                 'tarif' => 1_500_000,
-                'deposit' => 1_500_000,
             ])
             ->assertCreated();
 
@@ -252,7 +251,6 @@ class JejakDataIndukTest extends TestCase
         $this->assertSame($kamar->id, $log->nilai_baru['kamar_id']);
         $this->assertSame($penghuni->id, $log->nilai_baru['penghuni_id']);
         $this->assertSame(1_500_000, $log->nilai_baru['tarif_awal']);
-        $this->assertSame(1_500_000, $log->nilai_baru['deposit']);
         $this->assertSame('aktif', $log->nilai_baru['status']);
     }
 
@@ -278,7 +276,6 @@ class JejakDataIndukTest extends TestCase
             'penghuni_id' => $penghuni->id,
             'tgl_masuk' => '2026-01-15',
             'tarif_awal' => 1_500_000,
-            'deposit' => 0,
         ]);
 
         $this->sebagaiPemilik()

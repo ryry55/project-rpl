@@ -100,7 +100,6 @@ async function siapkanData(ws) {
       kamar_id: kamar.id,
       penghuni_id: penghuni.id,
       tgl_masuk: '2026-01-15',
-      deposit: 0,
     })
     if (buat.status !== 201) {
       return { ok: false, alasan: `POST /kontrak gagal (${buat.status})` }

@@ -127,7 +127,7 @@ Dikelompokkan menurut apa yang dijaga:
 | `RekapPendapatanTest` | Basis kas, denda terpisah sebagai piutang |
 | `TunggakanHttpTest` | Empat keranjang R-04 lewat HTTP |
 | `DendaHttpTest` | Denda dihitung saat dibaca, `denda_ringkas` konsisten |
-| `DepositKontrakTest` | Penentu deposit: tanpa, nominal, satu bulan; penetapan tarif pertama lewat kontrak hanya untuk pemilik |
+| `MigrasiHapusDepositTest` | Deposit benar-benar keluar: kolom hilang, tiga CHECK menyempit, trigger append-only utuh, `down()`/`up()` bisa dibalik |
 | `PembalikPembayaranTest` | Baris pembalik negatif; saldo tagihan pulih; `total_final` dilepas; rekap memisahkan pembalik |
 
 **Kebijakan dan tarif**
@@ -171,7 +171,7 @@ Dikelompokkan menurut apa yang dijaga:
 | Satu statement gagal | **Seluruh transaksi dibatalkan** | Bungkus dalam `DB::transaction(...)` sebelum memeriksa `QueryException` |
 | `DB::afterCommit()` | **Tidak pernah terpanggil** di `RefreshDatabase` | Kirim notifikasi di batas HTTP |
 | `Schema::hasTable` nyata | Tes `/health` 503 tidak bisa memaksa kegagalan | Mock `Schema::shouldReceive('hasTable')` |
-| `Kontrak::create` tanpa `tarif_awal` | NOT NULL violation | Selalu sertakan `tarif_awal` + `deposit` |
+| `Kontrak::create` tanpa `tarif_awal` | NOT NULL violation | Selalu sertakan `tarif_awal` |
 | `PengelolaKewenangan` ganda | Unique `(user_id, wewenang)` | `firstOrCreate` |
 
 ---

@@ -34,11 +34,6 @@ class SimpanKontrakRequest extends FormRequest
             // sudah punya tarif yang berlaku pada tanggal masuk — dalam hal itu
             // tarif yang sudah ada yang dipakai, bukan tarif baru.
             'tarif' => ['nullable', 'integer', 'min:0'],
-            // Deposit kosong berarti "ikuti kebijakan kos", bukan "nol".
-            // `KontrakController::depositUntuk()` membedakan keduanya lewat
-            // `filled()`, jadi klien yang mengirim 0 untuk medan kosong akan
-            // mematikan kebijakan deposit tanpa sadar.
-            'deposit' => ['nullable', 'integer', 'min:0'],
         ];
     }
 
@@ -56,8 +51,6 @@ class SimpanKontrakRequest extends FormRequest
             'tgl_masuk.before_or_equal' => 'Tanggal masuk terlalu jauh di masa depan (maksimal satu tahun).',
             'tarif.integer' => 'Tarif harus angka bulat rupiah, tanpa desimal.',
             'tarif.min' => 'Tarif tidak boleh negatif.',
-            'deposit.integer' => 'Deposit harus berupa angka bulat rupiah.',
-            'deposit.min' => 'Deposit tidak boleh negatif.',
         ];
     }
 }

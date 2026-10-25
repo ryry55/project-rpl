@@ -18,7 +18,7 @@ yang berhak melakukan apa**: **pemilik** memutuskan, **pengelola** berwenang
 terbatas mengusulkan, **penghuni** hanya membaca. Pengelola ber-wewenang
 `ubah_tarif` pun tidak menetapkan tarif. Uang dicatat sebagai peristiwa yang
 tidak bisa diubah. Cakupan: **80 endpoint** `/api`, **14 use case**, **3
-aktor**, **23 tabel domain** dari **39 migrasi**.
+aktor**, **23 tabel domain** dari **40 migrasi**.
 
 ## 2. Aktor dan Entitas Eksternal Sistem
 
@@ -44,7 +44,7 @@ Satu siklus bulanan; setiap langkah menunjuk endpoint nyata pada `api/routes/api
    `kelola_kamar` dan `kelola_penghuni` mendaftarkan kamar, fasilitas, aturan
    kos, dan identitas penghuni.
 3. **Penetapan angka uang.** Pemilik menetapkan tarif, komponen biaya, dan
-   empat dimensi kebijakan. Bila pengelola ber-wewenang `ubah_tarif` yang
+   tiga dimensi kebijakan. Bila pengelola ber-wewenang `ubah_tarif` yang
    menekan tombol, sistem menyimpan **usulan** dan membalas 202.
 4. **Pembuatan kontrak sewa.** Kontrak menunjuk satu kamar kosong dan satu
    penghuni; indeks parsial menolak kontrak aktif kedua pada kamar yang sama.
@@ -77,8 +77,8 @@ yang terpetakan habis tanpa sisa dan tanpa satu pun dipakai dua use case.
    membuat kontrak atas satu kamar kosong, dan mengakhiri kontrak.
 4. **UC-04 Kelola Tarif Sewa & Komponen Biaya:** Menetapkan tarif per kamar
    dan komponen biaya; keduanya tambah-saja, riwayat tidak tertimpa.
-5. **UC-05 Kelola Kebijakan Kos:** Menetapkan empat dimensi kebijakan kos —
-   satuan sewa, jatuh tempo, denda, deposit.
+5. **UC-05 Kelola Kebijakan Kos:** Menetapkan tiga dimensi kebijakan kos —
+   satuan sewa, jatuh tempo, denda.
 6. **UC-06 Persetujuan Usulan Perubahan Tarif & Kebijakan:** Memproses
    antrean usulan pengelola dan keputusan pemilik atas perubahan tarif dan
    kebijakan.
@@ -157,7 +157,7 @@ mengenal "kontrak", bukan tabel penghubung.
 | Pengguna & Peran | id, name, email, password, peran, wajib_ganti_sandi |
 | Penghuni | id, nama, email, no_hp |
 | Kamar | id, nomor, tipe, status_huni |
-| Kontrak Sewa | id, kamar_id, penghuni_id, tgl_masuk, tarif_awal, deposit, status |
+| Kontrak Sewa | id, kamar_id, penghuni_id, tgl_masuk, tarif_awal, status |
 | Tarif, Komponen Biaya & Kebijakan | id, kamar_id, nilai, satuan, tipe, masa_tenggang, berlaku_dari |
 | Tagihan & Rincian | id, kontrak_id, periode, pokok, jatuh_tempo, status, tarif_terpakai, total_final |
 | Pembayaran & Verifikasi | id, tagihan_id, pembalik_id, jumlah, metode, dicatat_oleh |

@@ -137,7 +137,7 @@ jalankan(async () => {
         if (!kontrak) {
           const buat = await p('/kontrak', 'POST', {
             kamar_id: kamar.id, penghuni_id: hapus.id,
-            tgl_masuk: '2026-01-01', deposit: 0,
+            tgl_masuk: '2026-01-01',
           })
           if (buat.status !== 201) return { galat: 'kontrak: ' + JSON.stringify(buat.data) }
           kontrak = buat.data.data

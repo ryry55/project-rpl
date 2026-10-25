@@ -77,18 +77,6 @@ class KebijakanResource extends JsonResource
             $this->tipe === PilihanKebijakan::TIPE_DENDA
                 && $this->nilai === PilihanKebijakan::DENDA_TANPA_DENDA => 'Keterlambatan tidak didenda.',
 
-            $this->tipe === PilihanKebijakan::TIPE_DEPOSIT
-                && $this->nilai === PilihanKebijakan::DEPOSIT_NOMINAL => sprintf(
-                    'Rp %s',
-                    number_format((int) $this->nominal, 0, ',', '.'),
-                ),
-
-            $this->tipe === PilihanKebijakan::TIPE_DEPOSIT
-                && $this->nilai === PilihanKebijakan::DEPOSIT_SATU_BULAN => 'Sebesar satu bulan sewa saat kontrak dibuat.',
-
-            $this->tipe === PilihanKebijakan::TIPE_DEPOSIT
-                && $this->nilai === PilihanKebijakan::DEPOSIT_TANPA_DEPOSIT => 'Tidak memungut deposit.',
-
             $this->tipe === PilihanKebijakan::TIPE_JATUH_TEMPO
                 && $this->nilai === PilihanKebijakan::JATUH_TEMPO_TANGGAL_TETAP => sprintf(
                     'Tanggal %d tiap bulan',

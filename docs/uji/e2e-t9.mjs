@@ -99,7 +99,6 @@ jalankan(async () => {
           kamar_id: kamar.data.data.id,
           penghuni_id: penghuni.data.data.id,
           tgl_masuk: '2026-01-15',
-          deposit: 0,
         })
         if (kontrak.status !== 201) return { galat: 'kontrak ' + nama + ': ' + JSON.stringify(kontrak.data) }
 

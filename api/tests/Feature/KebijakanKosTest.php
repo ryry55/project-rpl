@@ -129,7 +129,6 @@ class KebijakanKosTest extends TestCase
             'penghuni_id' => $penghuni->id,
             'tgl_masuk' => $tglMasuk,
             'tarif_awal' => $tarif,
-            'deposit' => 0,
         ]);
     }
 
@@ -901,44 +900,43 @@ class KebijakanKosTest extends TestCase
             ->assertJsonValidationErrors('nominal');
     }
 
-    public function test_post_deposit_nominal_wajib_menyertakan_nominal(): void
+    /**
+     * Deposit sudah dikeluarkan dari sistem di fase terakhir.
+     *
+     * Tes ini menjaga agar ia tidak masuk kembali tanpa sengaja. Yang diuji
+     * adalah dua lapis: validasi HTTP menolaknya lebih dulu dengan 422 yang
+     * rapi, dan CHECK constraint basis data menolaknya juga bila lapis pertama
+     * dilewati. Keduanya harus sepakat — kalau hanya HTTP yang menolak, baris
+     * deposit masih bisa masuk lewat seeder atau SQL langsung dan menjadi baris
+     * yang tidak bisa ditafsirkan kode mana pun.
+     */
+    public function test_tipe_deposit_ditolak_validasi_maupun_constraint(): void
     {
         $this->sebagaiPemilik()
             ->postJson('/api/kebijakan', [
                 'tipe' => 'deposit',
                 'nilai' => 'nominal',
-                'berlaku_dari' => '2026-10-01',
-            ])
-            ->assertStatus(422)
-            ->assertJsonValidationErrors('nominal');
-    }
-
-    public function test_post_deposit_satu_bulan_tidak_menyimpan_nominal(): void
-    {
-        // `satu_bulan` dihitung dari tarif sewa saat kontrak dibuat. Menyimpan
-        // nominal di sini akan membekukan angka yang seharusnya mengikuti tarif.
-        $this->sebagaiPemilik()
-            ->postJson('/api/kebijakan', [
-                'tipe' => 'deposit',
-                'nilai' => 'satu_bulan',
                 'nominal' => 1_500_000,
                 'berlaku_dari' => '2026-10-01',
             ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('nominal');
-    }
+            ->assertJsonValidationErrors('tipe');
 
-    public function test_post_deposit_satu_bulan_tanpa_nominal_diterima(): void
-    {
-        $this->sebagaiPemilik()
-            ->postJson('/api/kebijakan', [
+        $this->assertSame(0, KebijakanKos::count());
+
+        // Lapis kedua: basis data tetap menolak walau validasi dilewati.
+        try {
+            DB::transaction(fn () => DB::table('kebijakan_kos')->insert([
                 'tipe' => 'deposit',
-                'nilai' => 'satu_bulan',
+                'nilai' => 'nominal',
+                'nominal' => 1_500_000,
                 'berlaku_dari' => '2026-10-01',
-            ])
-            ->assertCreated()
-            ->assertJsonPath('data.nilai', 'satu_bulan')
-            ->assertJsonPath('data.nominal', null);
+            ]));
+            $this->fail('tipe deposit seharusnya ditolak CHECK constraint');
+        } catch (QueryException $e) {
+            $this->assertSame('23514', $e->getCode(), 'harus pelanggaran CHECK (23514)');
+            $this->assertStringContainsString('kebijakan_kos', $e->getMessage());
+        }
     }
 
     public function test_post_denda_persen_menolak_persentase_di_atas_seratus(): void
@@ -999,8 +997,6 @@ class KebijakanKosTest extends TestCase
             ->assertJsonPath('meta.kolom.denda.persen_harian.wajib', ['persen', 'plafon_persen', 'masa_tenggang'])
             ->assertJsonPath('meta.kolom.denda.nominal_tetap.wajib', ['nominal'])
             ->assertJsonPath('meta.kolom.denda.tanpa_denda.wajib', [])
-            ->assertJsonPath('meta.kolom.deposit.nominal.wajib', ['nominal'])
-            ->assertJsonPath('meta.kolom.deposit.satu_bulan.wajib', [])
             ->assertJsonPath('meta.kolom.jatuh_tempo.tanggal_tetap.wajib', ['tanggal']);
     }
 }

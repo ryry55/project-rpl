@@ -111,7 +111,6 @@ async function jalan() {
           kamar_id: kamar.data.data.id,
           penghuni_id: penghuni.data.data.id,
           tgl_masuk: s.masuk,
-          deposit: 0,
         })
         if (kontrak.status !== 201) return { galat: 'kontrak ' + s.nama + ': ' + JSON.stringify(kontrak.data) }
 

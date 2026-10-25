@@ -39,8 +39,10 @@ ini:
 
 **Yang tidak diambil dari kalimat itu:** kebebasan menulis rumus. Fleksibilitas
 yang diminta adalah *pilihan*, bukan *bahasa pemrograman*. Empat bentuk × tiga
-jatuh tempo × tiga satuan sewa × tiga deposit = 108 kombinasi, dan semuanya
-tertangani tanpa satu pun kolom yang berisi formula.
+jatuh tempo × tiga satuan sewa = 36 kombinasi, dan semuanya tertangani tanpa
+satu pun kolom yang berisi formula. (Angka ini pernah 108 karena `deposit` dulu
+dihitung sebagai dimensi keempat; deposit sudah dihapus — lihat
+`docs/utang-teknis.md`.)
 
 ---
 
@@ -158,7 +160,7 @@ Diurutkan menurut **risiko**, bukan kemudahan.
 | **Backup di disk tidak persisten** | Tinggi — backup hilang saat redeploy | Butuh storage luar |
 | **Penerbitan tagihan tidak terjadwal** | Sedang — pemilik harus menekan tombol tiap bulan | Tanpa cron |
 | **Antrean email** | Sedang — 30 penghuni = 30 pengiriman berurutan | Tanpa worker persisten |
-| **Deposit tidak dipakai** | Sedang — dibaca saat kontrak, lalu tidak pernah dipakai | Butuh keputusan produk |
+| ~~**Deposit tidak dipakai**~~ | ~~Sedang — dibaca saat kontrak, lalu tidak pernah dipakai~~ | **Sudah ditutup.** Deposit dihapus seluruhnya di fase terakhir: kolom `kontrak.deposit`, tipe kebijakan `deposit`, dan seluruh alurnya. Kolom yang menyimpan angka tanpa akibat membuat orang mengira uangnya terjaga |
 | **E2E menggantung di CI** | Sedang — CI tidak membuktikan frontend | Penyebab tidak dapat direproduksi |
 | **Uji aksesibilitas otomatis** | Rendah | Waktu |
 | **Lanskap ponsel belum diuji** | Rendah | Waktu |

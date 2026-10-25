@@ -249,7 +249,6 @@ async function jalan() {
       }
       set('#tgl_masuk', '2026-10-05')
       set('#tarif', '1500000')
-      set('#deposit', '1500000')
 
       document.querySelector('form').dispatchEvent(
         new Event('submit', { bubbles: true, cancelable: true }))

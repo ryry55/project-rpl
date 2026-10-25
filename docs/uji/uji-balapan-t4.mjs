@@ -129,7 +129,6 @@ async function siapkanSatuKontrak(token) {
     kamar_id: kamar.isi.data.id,
     penghuni_id: penghuni.isi.data.id,
     tgl_masuk: '2026-01-15',
-    deposit: 0,
   })
   if (kontrak.status !== 201) throw new Error(`kontrak: ${JSON.stringify(kontrak.isi)}`)
 
@@ -217,7 +216,6 @@ async function jalan() {
     kamar_id: kamar2.isi.data.id,
     penghuni_id: penghuni2.isi.data.id,
     tgl_masuk: '2026-01-15',
-    deposit: 0,
   })
 
   const tiga = await Promise.all([

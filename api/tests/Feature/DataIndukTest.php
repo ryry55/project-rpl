@@ -177,7 +177,7 @@ class DataIndukTest extends TestCase
 
     // --- Kontrak -----------------------------------------------------------
 
-    public function test_kontrak_menyimpan_tgl_masuk_tarif_dan_deposit(): void
+    public function test_kontrak_menyimpan_tgl_masuk_dan_tarif(): void
     {
         $kamar = Kamar::create(['nomor' => 'A1']);
         $penghuni = Penghuni::create(['nama' => 'Budi', 'email' => 'budi@kos.test']);
@@ -188,12 +188,10 @@ class DataIndukTest extends TestCase
                 'penghuni_id' => $penghuni->id,
                 'tgl_masuk' => '2026-10-15',
                 'tarif' => 1500000,
-                'deposit' => 1500000,
             ])
             ->assertCreated()
             ->assertJsonPath('data.tgl_masuk', '2026-10-15')
             ->assertJsonPath('data.tarif_awal', 1500000)
-            ->assertJsonPath('data.deposit', 1500000)
             ->assertJsonPath('data.status', 'aktif');
 
         // Kamar ikut menjadi terisi.

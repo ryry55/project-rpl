@@ -415,8 +415,12 @@ punya aturan hitung sendiri. Uraiannya ada di dalam §3.5 di atas.
 | 2.0 Kelola Tarif, Kebijakan & Komponen | Sama, ditambah alur usulan pengelola yang sudah dijelaskan aliran I-3/I-6/O-2 di level 1 |
 | 5.0 Laporan & Rekap | Hanya membaca; tidak ada aturan hitung baru di dalamnya selain yang sudah ada di 3.0 dan 4.0 |
 
-Yang **belum** punya proses sendiri: pemotongan deposit karena kerusakan
-(R-05 versi lama, tiket T8). Deposit dicatat saat kontrak dibuat — besarannya
-dibaca dari kebijakan kos — tetapi alur pemotongan dan pengembaliannya belum
-dikerjakan. Menggambarnya di sini akan menjanjikan fitur yang tidak bisa
-ditunjukkan saat demo.
+Yang **belum** punya proses sendiri: pembalik pembayaran dari layar pemilik.
+Endpoint-nya sudah ada dan teruji sejak R2 (`POST /api/pembayaran/{id}/pembalik`),
+tetapi tombolnya belum dipasang di layar detail tagihan, sehingga alurnya baru
+bisa dijalankan lewat API. Menggambarnya sebagai proses pemilik akan
+menjanjikan tombol yang belum ada saat demo.
+
+Deposit **tidak lagi** masuk daftar ini karena sudah dihapus seluruhnya di fase
+terakhir — bukan karena alurnya sudah dikerjakan. Kolom, tipe kebijakan, dan
+kelas `PenentuDeposit` tidak ada lagi; alasannya di `docs/utang-teknis.md`.

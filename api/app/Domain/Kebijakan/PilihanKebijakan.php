@@ -29,8 +29,6 @@ final class PilihanKebijakan
 
     public const TIPE_DENDA = 'denda';
 
-    public const TIPE_DEPOSIT = 'deposit';
-
     public const SATUAN_BULANAN = 'bulanan';
 
     public const SATUAN_MINGGUAN = 'mingguan';
@@ -51,19 +49,20 @@ final class PilihanKebijakan
 
     public const DENDA_TANPA_DENDA = 'tanpa_denda';
 
-    public const DEPOSIT_TANPA_DEPOSIT = 'tanpa_deposit';
-
-    public const DEPOSIT_NOMINAL = 'nominal';
-
-    public const DEPOSIT_SATU_BULAN = 'satu_bulan';
-
     /**
      * Seluruh tipe yang bisa dipilih pemilik.
      *
-     * `denda` dan `deposit` dibuka di LANGKAH 3. Keduanya dibuka bersamaan
-     * dengan pembacanya, bukan sebelumnya: kebijakan yang bisa diisi tetapi
-     * diabaikan lebih buruk daripada kebijakan yang belum ada, karena layar
-     * menampilkan satu angka sementara sistem memakai angka lain.
+     * `denda` dibuka di LANGKAH 3, bersamaan dengan pembacanya, bukan
+     * sebelumnya: kebijakan yang bisa diisi tetapi diabaikan lebih buruk
+     * daripada kebijakan yang belum ada, karena layar menampilkan satu angka
+     * sementara sistem memakai angka lain.
+     *
+     * `deposit` pernah ada di daftar ini dan sudah dikeluarkan di fase terakhir.
+     * Alasannya bukan kerapian: deposit dikumpulkan saat kontrak dibuat tetapi
+     * tidak pernah dicatat sebagai uang masuk, tidak pernah mengurangi tagihan,
+     * dan tidak pernah dikembalikan. Kolom yang menyimpan angka tanpa akibat
+     * membuat orang mengira uangnya terjaga. Riwayat lengkapnya di
+     * `docs/utang-teknis.md`.
      *
      * @var list<string>
      */
@@ -71,7 +70,6 @@ final class PilihanKebijakan
         self::TIPE_SATUAN_SEWA,
         self::TIPE_JATUH_TEMPO,
         self::TIPE_DENDA,
-        self::TIPE_DEPOSIT,
     ];
 
     /**
@@ -98,11 +96,6 @@ final class PilihanKebijakan
                 self::DENDA_NOMINAL_TETAP => 'Nominal tetap',
                 self::DENDA_TANPA_DENDA => 'Tanpa denda',
             ],
-            self::TIPE_DEPOSIT => [
-                self::DEPOSIT_TANPA_DEPOSIT => 'Tanpa deposit',
-                self::DEPOSIT_NOMINAL => 'Nominal tetap',
-                self::DEPOSIT_SATU_BULAN => 'Satu bulan sewa',
-            ],
         ];
     }
 
@@ -120,7 +113,6 @@ final class PilihanKebijakan
             self::TIPE_SATUAN_SEWA => 'Satuan sewa',
             self::TIPE_JATUH_TEMPO => 'Jatuh tempo',
             self::TIPE_DENDA => 'Denda',
-            self::TIPE_DEPOSIT => 'Deposit',
             default => $tipe,
         };
     }
@@ -182,12 +174,7 @@ final class PilihanKebijakan
             // mengubah angka apa pun.
             $tipe === self::TIPE_DENDA && $nilai === self::DENDA_NOMINAL_TETAP => ['nominal'],
 
-            $tipe === self::TIPE_DEPOSIT && $nilai === self::DEPOSIT_NOMINAL => ['nominal'],
-
-            // `tanpa_denda`, `tanpa_deposit`, dan `satu_bulan` tidak membawa
-            // angka sendiri: yang ketiga dihitung dari tarif sewa saat kontrak
-            // dibuat, sehingga menyimpan nominal di sini akan membekukan angka
-            // yang seharusnya mengikuti tarif.
+            // `tanpa_denda` tidak membawa angka sendiri.
             default => [],
         };
 
