@@ -23,11 +23,14 @@
  *
  * Perhatikan yang TIDAK diperiksa: "setiap entitas harus punya aliran masuk".
  * Pemeriksaan itu wajar untuk DFD kebanyakan, tetapi salah untuk sistem ini.
- * PENGHUNI sengaja tidak punya aliran masuk sama sekali — portalnya baca-saja,
- * pendaftaran sewa dan pencatatan uang dilakukan pemilik atau pengelola
- * (`docs/dfd/dfd-data.js`, `peran` E3). Menuntut aliran masuk dari penghuni
- * berarti menuntut fitur yang memang tidak ada, dan pemeriksa yang menuntut
- * hal salah akan "diperbaiki" dengan mengarang aliran.
+ * PENGHUNI sengaja tidak punya aliran masuk data sama sekali — portalnya
+ * hampir seluruhnya baca-saja, pendaftaran sewa dan pencatatan uang dilakukan
+ * pemilik atau pengelola (`docs/dfd/dfd-data.js`, `peran` E3). Satu-satunya
+ * tindakan yang ia mulai sendiri adalah membuka tautan bayar daring, dan itu
+ * tidak membawa data ke sistem: uangnya tercatat dari webhook gerbang
+ * pembayaran, bukan dari peramban penghuni. Menuntut aliran masuk dari
+ * penghuni berarti menuntut fitur yang memang tidak ada, dan pemeriksa yang
+ * menuntut hal salah akan "diperbaiki" dengan mengarang aliran.
  */
 
 const D = require('../dfd/dfd-data');

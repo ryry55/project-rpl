@@ -82,7 +82,7 @@ const ENTITAS_DATA = [
   },
   {
     nama: 'Pembayaran & Verifikasi',
-    tabel: ['pembayaran', 'verifikasi_pembayaran'],
+    tabel: ['pembayaran', 'verifikasi_pembayaran', 'transaksi_gateway'],
     inti: true,
     atribut: 'id, tagihan_id, pembalik_id, jumlah, metode, dicatat_oleh',
     lingkup: '',

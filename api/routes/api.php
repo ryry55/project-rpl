@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\KontrakController;
 use App\Http\Controllers\Api\NotifikasiController;
 use App\Http\Controllers\Api\PdpController;
 use App\Http\Controllers\Api\PembayaranController;
+use App\Http\Controllers\Api\PembayaranGatewayController;
 use App\Http\Controllers\Api\PengaturanNotifikasiController;
 use App\Http\Controllers\Api\PengelolaController;
 use App\Http\Controllers\Api\PenghuniController;
@@ -76,6 +77,23 @@ Route::post('/lupa-sandi', [AuthController::class, 'lupaSandi'])->name('api.lupa
 Route::post('/periksa-token', [AuthController::class, 'periksaToken'])->name('api.periksa-token');
 Route::post('/atur-sandi', [AuthController::class, 'aturSandi'])->name('api.atur-sandi');
 
+// Notifikasi payment gateway (T22). Tanpa `auth:sanctum` karena Midtrans bukan
+// pengguna aplikasi ini - ia tidak punya akun, dan tidak akan pernah punya.
+//
+// Satu-satunya bukti bahwa permintaan ini sah adalah `signature_key` di
+// badannya, yang dihitung dari `server_key` yang hanya diketahui kita dan
+// Midtrans. Karena itu endpoint ini TIDAK boleh ditambahkan autentikasi lain
+// yang "lebih aman": menambahkan token statis di URL akan membuat token itu
+// ikut tercatat di log akses dan dashboard gateway, dan setelah itu ia bukan
+// rahasia lagi.
+//
+// `throttle` sengaja longgar (120/menit): gateway bisa mengirim banyak
+// notifikasi sekaligus saat tagihan massal dibayar beruntun, dan notifikasi
+// yang ditolak karena batas akan diulang terus - memperpanjang kemacetan.
+Route::post('/webhook/midtrans', [PembayaranGatewayController::class, 'webhook'])
+    ->middleware('throttle:120,1')
+    ->name('api.webhook.midtrans');
+
 Route::middleware('auth:sanctum')->group(function () {
     // Gerbang sandi dan gerbang PDP. Keduanya sengaja berada DI LUAR
     // `WajibGantiSandi`: kalau keduanya ikut ditahan, tidak akan ada jalan
@@ -132,6 +150,18 @@ Route::middleware('auth:sanctum')->group(function () {
             // berbeda menurut peran adalah kelas kebocoran yang sulit terlihat.
             Route::get('/penghuni/rekening', [PortalPenghuniController::class, 'rekening'])
                 ->name('penghuni.rekening');
+
+            // Pembayaran daring (T22). Penghuni memulai pembayaran untuk
+            // tagihannya sendiri. Diletakkan di sini, bukan di grup
+            // `catat_pembayaran`, karena penghuni memang tidak punya wewenang
+            // mencatat pembayaran - yang ia lakukan adalah MEMBUKA tautan
+            // bayar, dan uangnya baru tercatat setelah webhook gateway
+            // menyatakan settlement.
+            //
+            // Controller tetap memeriksa kepemilikan tagihan: rute ini hanya
+            // menjaga peran, bukan kepemilikan baris.
+            Route::post('/tagihan/{tagihan}/bayar-daring', [PembayaranGatewayController::class, 'mulai'])
+                ->name('tagihan.bayar-daring');
         });
 
         // --- Akun dan izin: hanya pemilik ----------------------------------

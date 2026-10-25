@@ -52,9 +52,12 @@ const ENTITAS = [
     nama: 'PENGHUNI',
     ringkas: 'Penghuni',
     peran:
-      'Penerima informasi, bukan pemasok data. Portal penghuni bersifat baca ' +
-      'saja: pendaftaran sewa dan pencatatan uang dilakukan pemilik atau ' +
-      'pengelola, sehingga penghuni tidak punya aliran masuk ke sistem.',
+      'Penerima informasi dan pembayar, bukan pemasok data. Portal penghuni ' +
+      'hampir seluruhnya baca-saja: pendaftaran sewa dan pencatatan uang ' +
+      'dilakukan pemilik atau pengelola. Satu-satunya tindakan yang ia mulai ' +
+      'sendiri adalah membuka tautan bayar daring, dan itu tidak membawa data ' +
+      'baru ke sistem - uangnya baru tercatat setelah gerbang pembayaran ' +
+      'menyatakan settlement lewat webhook.',
   },
 ];
 
@@ -266,7 +269,7 @@ const ALIRAN = [
     kunci: 'O-1', kode: 'O-1', jenis: 'keluar', dari: 'P1', ke: 'E3',
     label: ['konfirmasi sewa', '& kontrak'],
     struktur: 'kontrak_id, kamar, tgl_mulai, tarif_awal, deposit',
-    catatan: 'Penghuni menerima, tidak membalas — portal bersifat baca saja.',
+    catatan: 'Penghuni menerima, tidak membalas - portalnya baca-saja.',
   },
   {
     kunci: 'O-2', kode: 'O-2', jenis: 'keluar', dari: 'P2', ke: 'E1',

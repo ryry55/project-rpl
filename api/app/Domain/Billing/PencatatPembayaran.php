@@ -75,6 +75,7 @@ class PencatatPembayaran
         ?int $diterimaOleh = null,
         ?string $referensi = null,
         ?string $catatan = null,
+        string $sumber = MetodePembayaran::SUMBER_DICATAT_PEMILIK,
     ): HasilPembayaran {
         if ($jumlah <= 0) {
             throw PembayaranDitolak::jumlahTidakPositif($jumlah);
@@ -82,6 +83,10 @@ class PencatatPembayaran
 
         if (! MetodePembayaran::dikenal($metode)) {
             throw PembayaranDitolak::metodeTidakDikenal($metode);
+        }
+
+        if (! in_array($sumber, MetodePembayaran::SEMUA_SUMBER, true)) {
+            throw PembayaranDitolak::sumberTidakDikenal($sumber);
         }
 
         // `auth()->id()` di dalam transaksi, bukan dioper controller: aktor
@@ -95,7 +100,7 @@ class PencatatPembayaran
             throw PembayaranDitolak::tunaiTanpaPemegang();
         }
 
-        return DB::transaction(function () use ($tagihan, $jumlah, $tanggalPembayaran, $metode, $penerima, $referensi, $catatan, $dicatatOleh) {
+        return DB::transaction(function () use ($tagihan, $jumlah, $tanggalPembayaran, $metode, $penerima, $referensi, $catatan, $dicatatOleh, $sumber) {
             // Baca ulang di dalam transaksi dengan kunci baris. Instance yang
             // dioper pemanggil bisa sudah basi, dan tanpa kunci dua permintaan
             // bersamaan akan saling menimpa.
@@ -123,7 +128,7 @@ class PencatatPembayaran
                 'tagihan_id' => $tagihan->id,
                 'jumlah' => $jumlah,
                 'metode' => $metode,
-                'sumber' => MetodePembayaran::SUMBER_DICATAT_PEMILIK,
+                'sumber' => $sumber,
                 'referensi' => $referensi,
                 'dicatat_oleh' => $dicatatOleh,
                 'diterima_oleh' => $penerima,

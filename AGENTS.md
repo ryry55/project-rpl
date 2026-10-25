@@ -175,7 +175,7 @@ Fungsinya tidak melakukan apa pun bila gerbangnya tidak muncul.
 **Backtick di dalam komentar pun memutus template literal.** Seluruh pemeriksaan
 DOM dikirim sebagai template literal, jadi satu backtick di komentar membuat
 `node --check` gagal dengan pesan yang menunjuk baris yang salah - dan baru
-ketahuan setelah build, 722 tes PHP, pint, dan eslint selesai. `periksa.ps1`
+ketahuan setelah build, 738 tes PHP, pint, dan eslint selesai. `periksa.ps1`
 sekarang menjalankan `node --check` pada semua `.mjs` lebih dulu, tetapi jalankan
 sendiri saat menyunting satu berkas: `node --check docs/uji/<berkas>.mjs`.
 

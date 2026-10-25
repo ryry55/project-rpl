@@ -21,7 +21,7 @@ karena uji gagal.
 | pint, eslint, vite build | lulus |
 | Paritas daftar E2E `periksa.ps1` vs `periksa.sh` | lulus |
 | Profil produksi (`periksa-profil-produksi.sh`) | lulus |
-| 722 tes PHP di dalam container | lulus |
+| 738 tes PHP di dalam container | lulus |
 | Chrome headless membuka port 9222 | lulus |
 | `periksa.sh` benar-benar dijalankan (`bash periksa.sh`) | lulus |
 
@@ -149,7 +149,7 @@ masuk RUNNING, `GET /` menyajikan HTML SPA, `/assets/*` ber-cache immutable,
 | `APP_DEBUG`/`APP_DEMO_MODE`/`APP_KEY` salah | **Selesai.** Entrypoint berhenti keras. Ketiganya dibuktikan bisa gagal: masing-masing dijalankan dan keluar dengan kode 1 disertai alasannya |
 | Backup tidak terjadwal | **Selesai, dengan batas.** `kos:backup` berjalan harian 02:00 WIB lewat penjadwal. Di Render free tidak ada disk persisten, jadi hasilnya hilang saat restart — ia untuk pemulihan cepat, bukan arsip |
 | Target deploy belum ada | **Belum, dan tidak bisa dikerjakan dari sini.** Butuh akun Render + Neon. `deploy.yml` tetap melaporkan `siap=false` alih-alih gagal, dan langkah manualnya ada di `docs/produk/9_DEPLOY.md` |
-| T22 Midtrans | **Belum.** Tidak ada kode Midtrans sama sekali; yang ada hanya konstanta `SUMBER_GATEWAY_WEBHOOK` yang mengantisipasinya. Butuh kredensial sandbox untuk dibuktikan |
+| T22 Midtrans | **Selesai, kecuali verifikasi sandbox.** Kode lengkap: `MidtransGateway` (tanda tangan SHA512, `hash_equals`, pemetaan status), `PembayaranGateway` (buat transaksi + tangani webhook), tabel `transaksi_gateway`, endpoint `POST /api/webhook/midtrans` (tanpa auth, tanda tangan sebagai satu-satunya bukti) dan `POST /api/tagihan/{id}/bayar-daring`, plus tombol "Bayar daring" di portal penghuni. 16 tes berjalan dengan kredensial palsu; tiga pengaman (tanda tangan, idempotensi, pencocokan nominal) dibuktikan bisa gagal. **Yang belum:** transaksi sungguhan ke sandbox Midtrans - butuh `MIDTRANS_SERVER_KEY` |
 
 Tiga hal di atas yang masih "belum" bukan kelalaian yang disembunyikan:
 masing-masing menunggu sesuatu yang tidak ada di repo ini (akun, kredensial,

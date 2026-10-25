@@ -238,7 +238,7 @@ atau dari tes.
 | U-6 | Halaman yang meluber di 360px | 0 | `uji-tata-letak.mjs` 94 langkah |
 | U-7 | Tabel yang tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` 65 langkah |
 | U-8 | Bagian kepala pemilik sebelum konten | < 220px | Terukur 203px |
-| U-9 | Cakupan tes PHP | 722 tes, 3417 asersi | CI |
+| U-9 | Cakupan tes PHP | 738 tes, 3474 asersi | CI |
 
 ---
 

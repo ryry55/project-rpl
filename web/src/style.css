@@ -211,6 +211,19 @@ button.mungil {
   border-radius: 8px;
 }
 
+/* Tombol bayar daring (T22). Diberi jarak atas karena ia muncul di bawah blok
+   denda, dan tanpa jarak ia terbaca sebagai bagian dari rincian denda -
+   padahal ia tindakan, bukan keterangan. */
+.aksi-bayar-daring {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--garis);
+}
+
+.aksi-bayar-daring p {
+  margin: 6px 0 0;
+}
+
 .lemah {
   color: var(--teks-lemah);
 }

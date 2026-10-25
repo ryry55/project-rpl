@@ -14,13 +14,13 @@ Versi 1.0 · 26 Oktober 2026 · PostgreSQL 16
 
 ## 1. Gambaran
 
-**22 tabel** (di luar tabel infrastruktur Laravel: `cache`, `cache_locks`,
+**23 tabel** (di luar tabel infrastruktur Laravel: `cache`, `cache_locks`,
 `jobs`, `job_batches`, `failed_jobs`, `migrations`, `password_reset_tokens`,
-`personal_access_tokens`, `sessions`). Dua puluh satu di antaranya adalah tabel
-domain yang diuraikan di §2; yang kedua puluh dua adalah `notifications` milik
+`personal_access_tokens`, `sessions`). Dua puluh dua di antaranya adalah tabel
+domain yang diuraikan di §2; yang kedua puluh tiga adalah `notifications` milik
 kanal in-app bawaan Laravel.
 
-Total di skema `public`: **31 tabel**.
+Total di skema `public`: **32 tabel**.
 
 ```
                     ┌──────────┐
@@ -688,6 +688,52 @@ penghuni ke rekeningnya sendiri, lalu menandai tagihannya lunas dengan wewenang
 
 ---
 
+### 2.21 `transaksi_gateway` — percobaan bayar daring (T22)
+
+| Kolom | Tipe | Null | Bawaan |
+|---|---|---|---|
+| `id` | bigint | tidak | |
+| `tagihan_id` | bigint | tidak | FK → `tagihan`, `ON DELETE RESTRICT` |
+| `order_id` | varchar(64) | tidak | unik, bentuk `KOS-{tagihan_id}-{cap}` |
+| `jumlah` | numeric(14,0) | tidak | nominal yang **diminta** ke gateway, dibekukan |
+| `status` | varchar(20) | tidak | `'menunggu'` — `menunggu` \| `dibayar` \| `gagal` \| `kedaluwarsa` \| `dibatalkan` |
+| `redirect_url` | text | ya | tautan bayar untuk penghuni |
+| `token` | varchar(128) | ya | token Snap |
+| `transaction_id` | varchar(64) | ya | jejak jawaban gateway |
+| `transaction_status` | varchar(32) | ya | idem |
+| `fraud_status` | varchar(32) | ya | `accept` wajib untuk dianggap lunas |
+| `kedaluwarsa_pada` | timestamp | ya | |
+| `dibayar_pada` | timestamp | ya | |
+
+**Indeks:** `(tagihan_id, status)`, `(status)`, dan parsial unik
+`transaksi_gateway_satu_menunggu_per_tagihan` pada `(tagihan_id) WHERE status =
+'menunggu'`.
+
+**Kenapa tabel sendiri, bukan kolom di `tagihan`.** Satu tagihan bisa punya
+lebih dari satu percobaan bayar: penghuni membuka tautan, tautannya kedaluwarsa,
+ia membuka lagi. Menyimpannya sebagai kolom di `tagihan` berarti hanya percobaan
+terakhir yang tersisa, dan pertanyaan "kenapa penghuni ini mengaku sudah bayar
+padahal tagihannya belum lunas" tidak bisa dijawab.
+
+**Kenapa `jumlah` dibekukan.** Tagihan bisa berubah — denda bertambah — setelah
+tautan dibuat. Nominal yang dicocokkan saat webhook datang harus nominal yang
+**diminta**, bukan total tagihan hari ini; membandingkan dengan yang kedua
+membuat pembayaran sah ditolak hanya karena denda berjalan.
+
+**Kenapa indeks parsial "satu menunggu per tagihan".** Tanpa itu, penghuni yang
+menekan Bayar dua kali membuat dua tautan untuk tagihan yang sama, dan keduanya
+bisa dibayar. Indeks parsial, bukan unik penuh, karena percobaan yang sudah
+`gagal` atau `kedaluwarsa` memang boleh bertumpuk sebanyak apa pun.
+
+**Kenapa `pembayaran.referensi` juga diindeks unik secara parsial.** Memeriksa
+status lalu menulis selalu punya celah: dua notifikasi yang sama bisa tiba
+bersamaan, keduanya membaca `menunggu`, keduanya lolos. Yang menutupnya hanya
+constraint basis data — `pembayaran_gateway_satu_per_order` pada `(referensi)
+WHERE sumber = 'gateway_webhook' AND referensi IS NOT NULL`. Parsial karena
+`referensi` juga dipakai setoran transfer bank yang dicatat tangan.
+
+---
+
 ## 3. Trigger append-only
 
 Delapan trigger: tujuh pasang `append_only` (UPDATE dan DELETE) ditambah satu
@@ -769,7 +815,7 @@ uang dari JSON berarti parsing di jalur yang menghitung uang.
 
 ## 6. Migrasi
 
-**36 migrasi**, dijalankan berurutan. Tiga yang paling perlu dipahami:
+**39 migrasi**, dijalankan berurutan. Tiga yang paling perlu dipahami:
 
 | Migrasi | Isi |
 |---|---|

@@ -21,7 +21,7 @@
  *   2. Setiap use case menunjuk minimal satu endpoint yang benar-benar ada.
  *      Use case tanpa endpoint adalah karangan.
  *   3. Satu endpoint hanya boleh menjadi dasar satu use case, supaya
- *      penghitungan 78 endpoint bisa ditutup tanpa sisa dan tanpa dobel.
+ *      penghitungan 80 endpoint bisa ditutup tanpa sisa dan tanpa dobel.
  *   4. Keanggotaan aktor diturunkan dari middleware, bukan diketik bebas:
  *      hanya endpoint bergerbang (`peran:` atau `wewenang:`) yang menentukan
  *      siapa pemilik use case. Endpoint yang hanya memakai `auth:sanctum`
@@ -74,11 +74,12 @@ const AKTOR = [
     nama: 'PENGHUNI',
     ringkas: ['Penghuni'],
     peran:
-      'Penerima informasi, bukan pemasok data. Portal penghuni bersifat baca ' +
-      'saja: pendaftaran sewa dan pencatatan uang dilakukan pemilik atau ' +
-      'pengelola, sehingga penghuni tidak punya aliran masuk ke sistem.',
-    peranSingkat: 'Penerima informasi, bukan pemasok data; portalnya baca-saja.',
-  },
+      'Penerima informasi dan pembayar, bukan pemasok data. Portal penghuni ' +
+      'hampir seluruhnya baca-saja: pendaftaran sewa dan pencatatan uang ' +
+      'dilakukan pemilik atau pengelola. Satu-satunya aliran masuk darinya ' +
+      'adalah membuka tautan bayar daring, dan uangnya baru tercatat setelah ' +
+      'gerbang pembayaran menyatakan settlement.',
+    peranSingkat: 'Penerima informasi dan pembayar, bukan pemasok data; portalnya baca-saja kecuali membuka tautan bayar daring.',  },
 ];
 
 /* ------------------------------------------------------------ use case */
@@ -226,10 +227,17 @@ const USE_CASE = [
       'pembayaran.index',
       'pembayaran.penerima',
       'pembayaran.tunai-saya',
+      'api.webhook.midtrans',
     ],
     gerbang:
       'Mencatat menuntut `catat_pembayaran`. Uang tunai di tangan ' +
       'dipertanggungjawabkan per akun lewat `/pembayaran/tunai-saya`.',
+    gabungan:
+      'Webhook gateway (`POST /api/webhook/midtrans`) ikut di sini karena ia ' +
+      'peristiwa pencatatan uang yang sama, hanya pemicunya mesin bukan orang. ' +
+      'Ia tidak bergerbang peran — pemanggilnya Midtrans, bukan pengguna — dan ' +
+      'karena itu tidak menambah aktor mana pun; yang menjaganya tanda tangan ' +
+      'SHA512 atas `order_id`, `status_code`, dan `gross_amount`.',
   },
   {
     kode: 'UC-09',
@@ -301,19 +309,21 @@ const USE_CASE = [
     kode: 'UC-13',
     nama: 'Portal Penghuni',
     ringkas: 'Portal Penghuni',
-    deskripsi: 'Menyajikan tagihan, denda, aturan, dan rekening tujuan transfer milik penghuni sendiri; baca-saja.',
+    deskripsi: 'Menyajikan tagihan, denda, aturan, dan rekening tujuan transfer milik penghuni sendiri, serta membuka tautan bayar daring.',
     endpoint: [
       'penghuni.tagihan',
       'penghuni.aturan',
       'penghuni.rekening',
       'tagihan.show',
       'tagihan.denda',
+      'tagihan.bayar-daring',
     ],
     gerbang:
-      'Tiga endpoint `/penghuni/*` bergerbang `peran:penghuni` dan itu yang ' +
-      'menentukan keanggotaan aktor: hanya penghuni. Dua endpoint baca di ' +
-      'dalamnya hanya memakai `auth:sanctum` dan dipakai bersama ketiga peran ' +
-      'lewat scope `Tagihan::terlihatOleh` (R-07) — lihat catatan kaki (d).',
+      'Empat endpoint `/penghuni/*` dan `bayar-daring` bergerbang ' +
+      '`peran:penghuni`, dan itulah yang menentukan keanggotaan aktor: hanya ' +
+      'penghuni. Dua endpoint baca di dalamnya hanya memakai `auth:sanctum` ' +
+      'dan dipakai bersama ketiga peran lewat scope `Tagihan::terlihatOleh` ' +
+      '(R-07) — lihat catatan kaki (d).',
   },
   {
     kode: 'UC-14',
@@ -407,7 +417,8 @@ const CATATAN_MATRIKS = [
     kode: 'd',
     uc: 'UC-13',
     teks:
-      'tiga endpoint `/penghuni/*` bergerbang `peran:penghuni`, sehingga UC-13 ' +
+      'empat endpoint `/penghuni/*` dan `POST /api/tagihan/{tagihan}/bayar-daring` ' +
+      'bergerbang `peran:penghuni`, sehingga UC-13 ' +
       'utuh hanya milik penghuni. Dua endpoint baca di dalamnya — `GET ' +
       '/api/tagihan/{tagihan}` dan `GET /api/tagihan/{tagihan}/denda` — hanya ' +
       'memakai `auth:sanctum` dan dipakai bersama: pemilik dan pengelola ' +

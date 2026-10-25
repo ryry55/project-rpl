@@ -18,6 +18,7 @@
     "tagihan_rincian",
     "tarif_sewa",
     "token_akun",
+    "transaksi_gateway",
     "users",
     "usulan_perubahan",
     "verifikasi_pembayaran"

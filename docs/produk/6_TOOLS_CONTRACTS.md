@@ -6,7 +6,7 @@
 > Sumber kebenaran tetap `api/routes/api.php` dan kelas `Resource`. Dokumen ini
 > diambil dari `php artisan route:list --json` pada aplikasi yang berjalan.
 
-Versi 1.0 · 26 Oktober 2026 · **78 endpoint**
+Versi 1.0 · 26 Oktober 2026 · **80 endpoint**
 
 ---
 
@@ -105,7 +105,7 @@ menerapkan. Lihat §6.
 
 ---
 
-## 3. Autentikasi, akun, dan kesehatan (11 endpoint)
+## 3. Autentikasi, akun, dan kesehatan (12 endpoint)
 
 ### 3.1 Publik
 
@@ -116,6 +116,7 @@ menerapkan. Lihat §6.
 | `POST` | `/api/periksa-token` | `{ token, jenis? }` → `{ data: { berlaku, nama, email } }`; `429` bila terlalu sering |
 | `POST` | `/api/atur-sandi` | `{ token, jenis, password, password_confirmation }` |
 | `GET` | `/api/health` | `200 { data: { status: "ok", database, zona_waktu, waktu } }` atau `503` dengan `status: "down"` |
+| `GET` | `/api/pemilik/saja` | Pemeriksa middleware `peran:pemilik`; `403` untuk peran lain |
 
 `/lupa-sandi` selalu `200` meski email tidak terdaftar. Membalas `404` untuk
 email yang tidak ada berarti aplikasi ini bisa dipakai memeriksa siapa saja yang
@@ -707,19 +708,80 @@ perlu meninggalkan nama orang itu di catatan sejarah selamanya.
 
 ---
 
-## 8. Portal penghuni dan notifikasi (8 endpoint)
+## 8. Portal penghuni, pembayaran daring, dan notifikasi (10 endpoint)
 
 | Metode | Path | Middleware |
 |---|---|---|
 | `GET` | `/api/penghuni/tagihan` | `peran:penghuni` |
 | `GET` | `/api/penghuni/aturan` | `peran:penghuni` |
 | `GET` | `/api/penghuni/rekening` | `peran:penghuni` |
+| `POST` | `/api/tagihan/{tagihan}/bayar-daring` | `peran:penghuni` |
 
 **Ketiganya harus didaftarkan sebelum `apiResource('penghuni')`.** Kalau tidak,
 `GET /penghuni/tagihan` ditangkap `GET /penghuni/{penghuni}` dan "tagihan"
 diperlakukan sebagai id — route model binding mencari `penghuni.id = 'tagihan'`
 dan PostgreSQL menolaknya dengan `22P02`. Kelas kesalahan yang sama dengan
 `/tagihan/terbitkan`.
+
+### 8.0 Pembayaran daring (T22)
+
+`POST /tagihan/{tagihan}/bayar-daring` — tanpa badan permintaan. Balasan:
+`{ data: { redirect_url, order_id, jumlah, kedaluwarsa_pada } }`.
+
+Endpoint ini **tidak mencatat uang**. Ia membuat tautan bayar di gateway dan
+menyimpan satu baris `transaksi_gateway` berstatus `menunggu`. Uangnya baru
+tercatat saat gateway memanggil webhook dan menyatakan `settlement`.
+
+Digerbangi `peran:penghuni`, **bukan** `wewenang:catat_pembayaran`: penghuni
+memang tidak berwenang mencatat pembayaran, dan memberi mereka wewenang itu
+supaya tombol ini bisa dipakai akan membuka seluruh pencatatan uang. Rute ini
+menjaga peran; kepemilikan baris diperiksa controller — tagihan milik orang lain
+dijawab **404**, mengikuti R-07.
+
+**Satu transaksi menunggu per tagihan.** Menekan tombol dua kali mengembalikan
+tautan yang sama, bukan membuat percobaan kedua — dijaga indeks parsial
+`transaksi_gateway_satu_menunggu_per_tagihan`.
+
+### 8.0.1 Webhook gateway (T22)
+
+`POST /api/webhook/midtrans` — `throttle:120,1`, **tanpa** `auth:sanctum` dan
+tanpa `peran:`. Pemanggilnya Midtrans, bukan pengguna; tidak ada token yang bisa
+dipakai.
+
+```json
+{
+  "order_id": "KOS-12-1732012345",
+  "status_code": "200",
+  "gross_amount": "600000.00",
+  "signature_key": "…",
+  "transaction_status": "settlement",
+  "fraud_status": "accept",
+  "transaction_id": "…"
+}
+```
+
+Pemeriksaan, berurutan:
+
+| Pemeriksaan | Gagal → |
+|---|---|
+| `signature_key` = SHA512(`order_id` + `status_code` + `gross_amount` + server key), dibandingkan `hash_equals` | **401** tanpa penjelasan |
+| `order_id` dikenal di `transaksi_gateway` | **200** (diabaikan) |
+| `gross_amount` = `transaksi_gateway.jumlah` yang **dibekukan** | **200** (diabaikan) |
+| status belum pernah diproses | **200** (idempoten) |
+
+**Semua notifikasi bertanda tangan sah dijawab 200**, termasuk yang tidak
+mengubah apa pun. Midtrans mengulang kiriman selama balasan bukan 2xx; menjawab
+4xx untuk kasus yang memang tidak perlu ditindak akan membuatnya mengulang
+selamanya. Hanya tanda tangan yang salah dijawab 401 — dan itu tanpa keterangan,
+sebab keterangan akan memberi tahu penyerang bagian mana yang meleset.
+
+**`gross_amount` dicocokkan dengan nominal yang DIMINTA**, bukan total tagihan
+hari ini. Denda bisa bertambah setelah tautan dibuat; membandingkan dengan total
+berjalan akan menolak pembayaran sah.
+
+**`capture` dihitung lunas hanya bila `fraud_status = 'accept'`.** `capture`
+dengan `challenge` berarti masih ditinjau — menandainya lunas berarti
+memberikan barang sebelum uangnya pasti.
 
 ### 8.1 Notifikasi (5 endpoint)
 
@@ -782,10 +844,11 @@ tidak pernah dijalankan.
 | Laporan | 3 | `/tunggakan`, `/rekap`, `/audit-log` |
 | Usulan | 3 | `/usulan*` |
 | Pengelola | 6 | `/pengelola*` |
-| Portal penghuni | 3 | `/penghuni/tagihan`, `/penghuni/aturan`, `/penghuni/rekening` |
+| Portal penghuni | 4 | `/penghuni/tagihan`, `/penghuni/aturan`, `/penghuni/rekening`, `/tagihan/{id}/bayar-daring` |
 | Notifikasi | 5 | `/notifikasi*`, `/pengaturan-notifikasi` |
 | Infrastruktur | 2 | `/health` (§3.1), `/pemilik/saja` |
-| **Total** | **78** | |
+| Webhook gateway | 1 | `/webhook/midtrans` (§8.0.1) |
+| **Total** | **80** | |
 
 ---
 

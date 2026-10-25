@@ -15,7 +15,7 @@ Versi 1.0 · 26 Oktober 2026 · Status: diserahkan
 Aplikasi web untuk pemilik kos kecil (5-30 kamar) mengelola kamar, penghuni,
 tagihan, dan pembayaran. Dibangun sebagai tugas besar mata kuliah Rekayasa
 Perangkat Lunak: Laravel 12.70.1 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah
-Docker Compose untuk menjalankan, 722 tes PHP dan 24 skrip uji untuk
+Docker Compose untuk menjalankan, 738 tes PHP dan 24 skrip uji untuk
 menjaganya. Yang membedakannya dari aplikasi sejenis: **setiap kos boleh punya
 cara kerja sendiri** — satuan sewa, jatuh tempo, dan bentuk dendanya dipilih dari
 menu, bukan dipaksa mengikuti satu pola.
@@ -94,7 +94,7 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 | Pengendali | **22** |
 | Middleware | **6** |
 | Trigger basis data | **8** (7 append-only + 1 penjaga pembalik) |
-| Tes PHP | **722** (3417 asersi) di **37** berkas |
+| Tes PHP | **738** (3474 asersi) di **38** berkas |
 | Skrip browser | **24** (730 langkah) |
 | Halaman SPA | **26** komponen view · 22 rute bernama |
 | Wewenang pengelola | **8** |
@@ -237,9 +237,9 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 ├── 2_DESIGN_SYSTEM.md    Token, komponen, tabel→kartu, PWA, a11y
 ├── 3_ARCHITECTURE.md     Lapisan, 9 keputusan besar + alternatif yang ditolak
 ├── 4_AGENTS.md           Cara mengubah kode tanpa merusak apa pun
-├── 5_SCHEMAS.md          22 tabel, CHECK, indeks, trigger (dari DB nyata)
-├── 6_TOOLS_CONTRACTS.md  78 endpoint, middleware, bentuk request/response
-├── 7_TESTING_EVALS.md    722 tes, 24 skrip, prinsip "buktikan bisa gagal"
+├── 5_SCHEMAS.md          23 tabel, CHECK, indeks, trigger (dari DB nyata)
+├── 6_TOOLS_CONTRACTS.md  80 endpoint, middleware, bentuk request/response
+├── 7_TESTING_EVALS.md    738 tes, 24 skrip, prinsip "buktikan bisa gagal"
 └── 8_OPERATIONS_SOP.md   Deploy, backup, pemulihan, insiden, batas gratis
 ```
 

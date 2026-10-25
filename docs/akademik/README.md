@@ -27,8 +27,8 @@ lain.** Diagram tangan tidak bisa diperbaiki saat angkanya berubah.
 | `dfd-konteks-gambar.js` | Memanggil `docs/dfd/dfd-gambar.js`; tidak menggambar ulang DFD |
 | `build.js` | Menulis kedua SVG; gagal bila data tidak konsisten |
 | `build-dokumen.js` | Menulis ketiga `.md`; tidak menulis apa pun bila ada masalah |
-| `rute-api.json` | Potret `route:list --json` — 78 endpoint |
-| `tabel-domain.json` | Potret 22 tabel domain dari `pg_attribute` |
+| `rute-api.json` | Potret `route:list --json` — 80 endpoint |
+| `tabel-domain.json` | Potret 23 tabel domain dari `pg_attribute` |
 
 ## Membangun ulang
 
@@ -59,7 +59,7 @@ garis asosiasi menembus elips lain, entitas menunjuk tabel hantu, ada tabel yang
 tidak dijelaskan entitas mana pun, atau aturan bisnis tidak sama dengan
 `docs/dfd/dfd-data.js`.
 
-Angka pada dokumen dibaca dari sumbernya, bukan diketik: 78 endpoint, 22 tabel,
-36 migrasi, 14 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
+Angka pada dokumen dibaca dari sumbernya, bukan diketik: 80 endpoint, 23 tabel,
+39 migrasi, 14 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
 angka yang boleh dikarang — lihat `docs/serah-terima.md` §5 untuk cara
 memeriksanya.

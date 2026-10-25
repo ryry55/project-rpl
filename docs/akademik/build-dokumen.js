@@ -16,8 +16,8 @@
  * Sumbernya:
  *     usecase-data.js       14 use case, 3 aktor, matriks, catatan kaki
  *     dokumen-data.js       entitas data utama, aturan bisnis
- *     rute-api.json         potret route:list (78 endpoint)
- *     tabel-domain.json     potret pg_tables (22 tabel domain)
+ *     rute-api.json         potret route:list (80 endpoint)
+ *     tabel-domain.json     potret pg_tables (23 tabel domain)
  *     ../dfd/dfd-data.js    entitas eksternal, aliran batas, aturan R-01..R-07
  *
  * Kenapa seluruh dokumen dibangkitkan, bukan hanya tabelnya. Dokumen akademik
@@ -57,6 +57,17 @@ const LARAVEL = (() => {
   const paket = lock.packages.find((p) => p.name === 'laravel/framework');
   return paket ? paket.version.replace(/^v/, '') : '(tidak terbaca)';
 })();
+
+/**
+ * Jumlah migrasi dihitung dari direktori, bukan diketik.
+ *
+ * Angka ini pernah tertinggal di 36 sementara basis data sudah 39, dan yang
+ * membacanya adalah dosen yang membandingkan laporan dengan `migrations`.
+ * Menghitung dari berkas membuatnya mustahil salah tanpa menghapus berkas.
+ */
+const MIGRASI = fs
+  .readdirSync(path.join(OUT, '..', '..', 'api', 'database', 'migrations'))
+  .filter((f) => f.endsWith('.php')).length;
 
 /* ------------------------------------------------------------- bantuan */
 
@@ -183,7 +194,7 @@ function bab1() {
   // seperempat bab 1 untuk informasi yang pembaca temui lagi dua bab kemudian.
   const isi = [
     `**Sistem Informasi Operasional Kos-Kosan** mengelola operasional kos — kamar, penghuni, kontrak sewa, tarif dan kebijakan, tagihan bulanan, pembayaran, sampai laporan pendapatan dan tunggakan — sebagai API Laravel ${LARAVEL} + PostgreSQL dengan antarmuka Vue 3.`,
-    `Pembedanya dari pencatatan manual bukan kelengkapan fitur, melainkan **siapa yang berhak melakukan apa**: **pemilik** memutuskan, **pengelola** berwenang terbatas mengusulkan, **penghuni** hanya membaca. Pengelola ber-wewenang \`ubah_tarif\` pun tidak menetapkan tarif. Uang dicatat sebagai peristiwa yang tidak bisa diubah. Cakupan: **${jumlahEndpoint} endpoint** \`/api\`, **${U.USE_CASE.length} use case**, **${U.AKTOR.length} aktor**, **${TABEL.length} tabel domain** dari **36 migrasi**.`,
+    `Pembedanya dari pencatatan manual bukan kelengkapan fitur, melainkan **siapa yang berhak melakukan apa**: **pemilik** memutuskan, **pengelola** berwenang terbatas mengusulkan, **penghuni** hanya membaca. Pengelola ber-wewenang \`ubah_tarif\` pun tidak menetapkan tarif. Uang dicatat sebagai peristiwa yang tidak bisa diubah. Cakupan: **${jumlahEndpoint} endpoint** \`/api\`, **${U.USE_CASE.length} use case**, **${U.AKTOR.length} aktor**, **${TABEL.length} tabel domain** dari **${MIGRASI} migrasi**.`,
   ];
   return `## 1. Ringkasan Eksekutif Sistem
 
@@ -281,7 +292,9 @@ ${masuk.map((m) => lipat(m, '   ')).join('\n')}
 
 ${keluar.map((k) => lipat(k, '   ')).join('\n')}
 
-Penghuni sengaja tanpa aliran masuk (portal baca-saja), dan pemilik dipisahkan
+Penghuni sengaja tanpa aliran masuk data (portalnya hampir seluruhnya
+baca-saja; bayar daring tidak membawa data, uangnya tercatat dari webhook), dan
+pemilik dipisahkan
 dari pengelola karena pengelola mengusulkan (I-6) sementara pemilik memutuskan
 (I-3) — alasan lengkapnya di \`dfd-konteks.md\`.`;
 }
@@ -499,9 +512,12 @@ perbedaannya mengubah aliran data secara nyata: pengelola mengusulkan (I-6) dan
 pemilik memutuskan (I-3). Menggabungkan keduanya hanya menyederhanakan gambar,
 sementara kenyataan sistemnya tetap punya dua peran dengan wewenang berbeda.
 
-**Penghuni tanpa aliran masuk.** Portal penghuni baca-saja. Pendaftaran sewa
-dan pencatatan uang dilakukan pemilik atau pengelola, jadi tidak ada data yang
-mengalir *dari* penghuni ke sistem. Aliran masuk dari penghuni akan
+**Penghuni tanpa aliran masuk data.** Portal penghuni hampir seluruhnya
+baca-saja. Pendaftaran sewa dan pencatatan uang dilakukan pemilik atau
+pengelola, jadi tidak ada data yang mengalir *dari* penghuni ke sistem. Satu
+tindakan ia mulai sendiri — membuka tautan bayar daring — tidak membawa data:
+uangnya baru tercatat setelah gerbang pembayaran menyatakan settlement lewat
+webhook, dan webhook itu bukan penghuni. Aliran masuk dari penghuni akan
 menggambarkan fitur yang tidak ada.
 
 **Dua aliran keluar ke pemilik dari proses 5.0.** Rekap pendapatan (O-6) dan

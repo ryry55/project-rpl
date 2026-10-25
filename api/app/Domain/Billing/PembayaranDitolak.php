@@ -60,6 +60,23 @@ class PembayaranDitolak extends \RuntimeException
     }
 
     /**
+     * Sumber baris pembayaran tidak dikenal.
+     *
+     * Dijaga di sini, bukan hanya oleh CHECK di basis data, supaya jalur baru
+     * (mis. webhook gateway) tidak bisa diam-diam menulis sumber yang tidak
+     * dikenali rekap. Tanpa pemeriksaan ini, salah ketik seperti
+     * `gateway_webhook ` (dengan spasi) akan diterima sampai constraint
+     * menolaknya dengan pesan SQLSTATE yang tidak terbaca operator.
+     */
+    public static function sumberTidakDikenal(string $sumber): self
+    {
+        return new self(sprintf(
+            'Sumber pembayaran "%s" tidak dikenal. Pilih salah satu: dicatat_pemilik, gateway_webhook.',
+            $sumber,
+        ));
+    }
+
+    /**
      * Tunai wajib menyebut pemegang uangnya.
      *
      * Pesan ini sengaja menyebut alasannya, bukan hanya aturannya. Pemilik yang

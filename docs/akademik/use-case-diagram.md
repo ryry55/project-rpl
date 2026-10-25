@@ -21,14 +21,16 @@ Berkas: `01-use-case.svg` (vektor) dan `01-use-case.png` (2x, siap tempel).
    tagihan, dan mengusulkan perubahan tarif atau kebijakan — usulan itu baru
    berlaku setelah pemilik memutuskan.
 
-3. **Penghuni** (`penghuni`) — Penerima informasi, bukan pemasok data. Portal penghuni bersifat baca saja:
-   pendaftaran sewa dan pencatatan uang dilakukan pemilik atau pengelola,
-   sehingga penghuni tidak punya aliran masuk ke sistem.
+3. **Penghuni** (`penghuni`) — Penerima informasi dan pembayar, bukan pemasok data. Portal penghuni hampir
+   seluruhnya baca-saja: pendaftaran sewa dan pencatatan uang dilakukan
+   pemilik atau pengelola. Satu-satunya aliran masuk darinya adalah membuka
+   tautan bayar daring, dan uangnya baru tercatat setelah gerbang pembayaran
+   menyatakan settlement.
 
 ## 3. Daftar 14 Use Case dan Endpoint Pendukungnya
 
 Setiap use case menunjuk minimal satu endpoint nyata. Pemetaannya
-**tertutup**: 78 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
+**tertutup**: 80 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
 ada satu pun yang dipakai dua use case. `build.js` memeriksa ketiga hal itu
 dan gagal bila tidak terpenuhi.
 
@@ -41,12 +43,12 @@ dan gagal bila tidak terpenuhi.
 | **UC-05** | Kelola Kebijakan Kos | `kebijakan.index`<br>`kebijakan.store` |
 | **UC-06** | Persetujuan Usulan Perubahan Tarif & Kebijakan | `usulan.index`<br>`usulan.setujui`<br>`usulan.tolak` |
 | **UC-07** | Terbitkan & Kelola Tagihan Bulanan | `tagihan.index`<br>`tagihan.store`<br>`tagihan.terbitkan`<br>`tagihan.batal`<br>`tagihan.maaf-denda` |
-| **UC-08** | Catat Pembayaran Sewa | `tagihan.bayar`<br>`pembayaran.index`<br>`pembayaran.penerima`<br>`pembayaran.tunai-saya` |
+| **UC-08** | Catat Pembayaran Sewa | `tagihan.bayar`<br>`pembayaran.index`<br>`pembayaran.penerima`<br>`pembayaran.tunai-saya`<br>`api.webhook.midtrans` |
 | **UC-09** | Verifikasi & Koreksi Pembayaran | `pembayaran.verifikasi`<br>`pembayaran.pembalik` |
 | **UC-10** | Laporan Rekap Pendapatan, Tunggakan & Jejak Audit | `rekap.index`<br>`tunggakan.index`<br>`audit-log.index` |
 | **UC-11** | Kelola Preferensi Akun, Notifikasi & Hak Data Pribadi | `notifikasi.index`<br>`notifikasi.baca-semua`<br>`notifikasi.baca`<br>`pengaturan-notifikasi.show`<br>`pengaturan-notifikasi.update`<br>`api.persetujuan-pdp`<br>`pdp.data-saya`<br>`pdp.hapus-saya` |
 | **UC-12** | Kelola Akun Pengelola & Wewenang | `pengelola.index`<br>`pengelola.store`<br>`pengelola.show`<br>`pengelola.update`<br>`pengelola.destroy`<br>`pengelola.kirim-ulang-aktivasi` |
-| **UC-13** | Portal Penghuni | `penghuni.tagihan`<br>`penghuni.aturan`<br>`penghuni.rekening`<br>`tagihan.show`<br>`tagihan.denda` |
+| **UC-13** | Portal Penghuni | `penghuni.tagihan`<br>`penghuni.aturan`<br>`penghuni.rekening`<br>`tagihan.show`<br>`tagihan.denda`<br>`tagihan.bayar-daring` |
 | **UC-14** | Kelola Rekening Tujuan Pembayaran & Diagnostik Sistem | `rekening.index`<br>`rekening.store`<br>`rekening.update`<br>`rekening.destroy`<br>`api.health`<br>`api.pemilik-saja` |
 
 ## 4. Matriks Hak Akses Aktor
@@ -75,9 +77,10 @@ dan begitu pula sebaliknya.
 - **(c) UC-14** — pengelola hanya membaca daftar rekening; menulis rekening
   khusus pemilik karena nomor rekening adalah alamat uang masuk.
 
-- **(d) UC-13** — tiga endpoint `/penghuni/*` bergerbang `peran:penghuni`,
-  sehingga UC-13 utuh hanya milik penghuni. Dua endpoint baca di dalamnya —
-  `GET /api/tagihan/{tagihan}` dan `GET /api/tagihan/{tagihan}/denda` — hanya
+- **(d) UC-13** — empat endpoint `/penghuni/*` dan `POST
+  /api/tagihan/{tagihan}/bayar-daring` bergerbang `peran:penghuni`, sehingga
+  UC-13 utuh hanya milik penghuni. Dua endpoint baca di dalamnya — `GET
+  /api/tagihan/{tagihan}` dan `GET /api/tagihan/{tagihan}/denda` — hanya
   memakai `auth:sanctum` dan dipakai bersama: pemilik dan pengelola membukanya
   dari layar tagihan, penghuni dari portalnya. Yang membedakan bukan gerbang
   melainkan scope `Tagihan::terlihatOleh` (R-07): tagihan milik orang lain
@@ -89,6 +92,12 @@ dan begitu pula sebaliknya.
   masuk yang sama bagi ketiga peran. Memecahnya menjadi tiga use case akan
   menggambarkan tiga pekerjaan berbeda, padahal penggunanya mengalami satu
   urutan yang sama.
+
+- **UC-08.** Webhook gateway (`POST /api/webhook/midtrans`) ikut di sini karena ia
+  peristiwa pencatatan uang yang sama, hanya pemicunya mesin bukan orang. Ia
+  tidak bergerbang peran — pemanggilnya Midtrans, bukan pengguna — dan karena
+  itu tidak menambah aktor mana pun; yang menjaganya tanda tangan SHA512 atas
+  `order_id`, `status_code`, dan `gross_amount`.
 
 - **UC-11.** Kesembilan peristiwa notifikasi dan tiga hak subjek data tidak membentuk
   alur tersendiri, tetapi ketiganya milik semua peran dan menyangkut akun

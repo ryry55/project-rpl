@@ -1,7 +1,7 @@
 # Proses Bisnis & Spesifikasi Pemodelan Sistem Informasi Operasional Kos-Kosan
 
 > **Dibangkitkan, jangan disunting tangan** — `node docs/akademik/build-dokumen.js`.
-> Angka dibaca dari `rute-api.json` (78 endpoint), `tabel-domain.json` (22 tabel),
+> Angka dibaca dari `rute-api.json` (80 endpoint), `tabel-domain.json` (23 tabel),
 > `usecase-data.js` (14 use case), `api/composer.lock` (Laravel 12.70.1),
 > dan `docs/dfd/dfd-data.js` (14 aliran batas).
 
@@ -17,8 +17,8 @@ Pembedanya dari pencatatan manual bukan kelengkapan fitur, melainkan **siapa
 yang berhak melakukan apa**: **pemilik** memutuskan, **pengelola** berwenang
 terbatas mengusulkan, **penghuni** hanya membaca. Pengelola ber-wewenang
 `ubah_tarif` pun tidak menetapkan tarif. Uang dicatat sebagai peristiwa yang
-tidak bisa diubah. Cakupan: **78 endpoint** `/api`, **14 use case**, **3
-aktor**, **22 tabel domain** dari **36 migrasi**.
+tidak bisa diubah. Cakupan: **80 endpoint** `/api`, **14 use case**, **3
+aktor**, **23 tabel domain** dari **39 migrasi**.
 
 ## 2. Aktor dan Entitas Eksternal Sistem
 
@@ -30,7 +30,8 @@ memeriksa jenis akun, `wewenang:` memeriksa izin yang didelegasikan.
    rekening tujuan setoran, serta memaafkan denda.
 2. **Pengelola:** Akun buatan pemilik dengan wewenang terbatas: mencatat pembayaran tunai,
    menerbitkan tagihan, mengusulkan perubahan tarif atau kebijakan.
-3. **Penghuni:** Penerima informasi, bukan pemasok data; portalnya baca-saja.
+3. **Penghuni:** Penerima informasi dan pembayar, bukan pemasok data; portalnya baca-saja
+   kecuali membuka tautan bayar daring.
 
 ## 3. Alur Transaksi Utama
 
@@ -63,7 +64,7 @@ Satu siklus bulanan; setiap langkah menunjuk endpoint nyata pada `api/routes/api
 ## 4. Pemodelan Berorientasi Objek (UML Use Case Diagram)
 
 Batas sistem mencakup seluruh fungsionalitas aplikasi operasional kos: **3
-aktor**, **14 use case** — jumlah final, diturunkan dari 78 endpoint nyata
+aktor**, **14 use case** — jumlah final, diturunkan dari 80 endpoint nyata
 yang terpetakan habis tanpa sisa dan tanpa satu pun dipakai dua use case.
 
 ### 4.1 Deskripsi 14 Use Cases Fungsional
@@ -96,7 +97,8 @@ yang terpetakan habis tanpa sisa dan tanpa satu pun dipakai dua use case.
 12. **UC-12 Kelola Akun Pengelola & Wewenang:** Membuat akun pengelola,
    menetapkan wewenangnya, mengirim ulang aktivasi, dan menonaktifkan akun.
 13. **UC-13 Portal Penghuni:** Menyajikan tagihan, denda, aturan, dan
-   rekening tujuan transfer milik penghuni sendiri; baca-saja.
+   rekening tujuan transfer milik penghuni sendiri, serta membuka tautan bayar
+   daring.
 14. **UC-14 Kelola Rekening Tujuan Pembayaran & Diagnostik Sistem:**
    Mengelola rekening dan QRIS tujuan setoran, serta pemeriksaan kesehatan
    layanan dan peran.
@@ -139,13 +141,15 @@ sumber tunggal yang sama dengan DFD teknis.
 6. **Sistem -> Pemilik Kos:** rekap pendapatan & hunian
 7. **Sistem -> Pemilik Kos:** daftar tunggakan & log audit
 
-Penghuni sengaja tanpa aliran masuk (portal baca-saja), dan pemilik dipisahkan
+Penghuni sengaja tanpa aliran masuk data (portalnya hampir seluruhnya
+baca-saja; bayar daring tidak membawa data, uangnya tercatat dari webhook), dan
+pemilik dipisahkan
 dari pengelola karena pengelola mengusulkan (I-6) sementara pemilik memutuskan
 (I-3) — alasan lengkapnya di `dfd-konteks.md`.
 
 ## 6. Entitas Data Utama
 
-22 tabel domain dikelompokkan menjadi 12 entitas logis: pembaca laporan
+23 tabel domain dikelompokkan menjadi 12 entitas logis: pembaca laporan
 mengenal "kontrak", bukan tabel penghubung.
 
 | Entitas | Atribut Data Utama & Ruang Lingkup |

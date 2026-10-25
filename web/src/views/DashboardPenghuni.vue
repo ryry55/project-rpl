@@ -110,6 +110,52 @@ function labelStatus(status) {
   }[status] || status
 }
 
+/**
+ * Pembayaran daring (T22).
+ *
+ * Alurnya sengaja **mengalihkan ke halaman Midtrans**, bukan membuka popup
+ * Snap di dalam aplikasi. Alasannya bukan selera: popup membutuhkan skrip
+ * Midtrans dimuat dari domain lain, dan itu menambah satu pihak ketiga yang
+ * bisa gagal dimuat di jaringan kos. Tautan biasa bekerja di peramban mana
+ * pun, termasuk yang memblokir skrip pihak ketiga.
+ *
+ * Status tagihan TIDAK diubah di sini. Uangnya baru tercatat ketika webhook
+ * Midtrans menyatakan settlement, dan itu terjadi di server. Layar ini hanya
+ * memberi tahu bahwa tautan sudah dibuka.
+ */
+const memprosesBayar = ref(null)
+const galatBayar = ref('')
+const infoBayar = ref('')
+
+async function bayarDaring(id) {
+  memprosesBayar.value = id
+  galatBayar.value = ''
+  infoBayar.value = ''
+
+  try {
+    const hasil = await sesi.panggil(`/tagihan/${id}/bayar-daring`, { metode: 'POST' })
+    const tautan = hasil?.data?.redirect_url
+
+    if (!tautan) {
+      galatBayar.value = 'Tautan pembayaran tidak diterima. Coba lagi atau hubungi pemilik kos.'
+      return
+    }
+
+    infoBayar.value = 'Membuka halaman pembayaran...'
+    // `noopener` wajib: tanpa itu, halaman tujuan bisa mengubah `window.opener`
+    // dan mengarahkan ulang tab aplikasi ke alamat lain.
+    window.open(tautan, '_blank', 'noopener')
+    infoBayar.value =
+      'Halaman pembayaran dibuka di tab baru. Tagihan berubah lunas setelah pembayaran dikonfirmasi, biasanya dalam beberapa detik.'
+  } catch (e) {
+    // 503 berarti gateway belum diaktifkan pemilik, bukan kesalahan penghuni.
+    // Pesannya sudah disiapkan server dan lebih tepat daripada tebakan di sini.
+    galatBayar.value = pesanGalat(e)
+  } finally {
+    memprosesBayar.value = null
+  }
+}
+
 function namaPeriode(iso) {
   if (!iso) return '—'
   const [tahun, bulan] = iso.split('-').map(Number)
@@ -346,6 +392,27 @@ onMounted(muatRekening)
                           · {{ t.denda_ringkas.sisa_hari_ke_plafon }} hari lagi mencapai plafon.
                         </template>
                       </p>
+
+                      <!-- Pembayaran daring (T22). Hanya muncul bila masih
+                           ada sisa yang bisa dibayar: tagihan lunas atau
+                           dibatalkan tidak punya apa pun untuk dibayar, dan
+                           tombol yang selalu ditolak server lebih
+                           membingungkan daripada tombol yang tidak ada. -->
+                      <div v-if="t.sisa > 0 && t.status !== 'dibatalkan'" class="aksi-bayar-daring">
+                        <button
+                          type="button"
+                          class="utama"
+                          :disabled="memprosesBayar === t.id"
+                          @click="bayarDaring(t.id)"
+                        >
+                          {{ memprosesBayar === t.id ? 'Menyiapkan...' : 'Bayar daring ' + rupiah(t.sisa) }}
+                        </button>
+                        <p class="mungil lemah">
+                          Membuka halaman pembayaran Midtrans di tab baru.
+                        </p>
+                      </div>
+                      <p v-if="galatBayar" class="pesan-galat mungil">{{ galatBayar }}</p>
+                      <p v-if="infoBayar" class="pesan-netral mungil">{{ infoBayar }}</p>
                     </div>
 
                     <div>

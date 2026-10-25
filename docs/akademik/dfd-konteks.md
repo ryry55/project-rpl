@@ -63,9 +63,12 @@ perbedaannya mengubah aliran data secara nyata: pengelola mengusulkan (I-6) dan
 pemilik memutuskan (I-3). Menggabungkan keduanya hanya menyederhanakan gambar,
 sementara kenyataan sistemnya tetap punya dua peran dengan wewenang berbeda.
 
-**Penghuni tanpa aliran masuk.** Portal penghuni baca-saja. Pendaftaran sewa
-dan pencatatan uang dilakukan pemilik atau pengelola, jadi tidak ada data yang
-mengalir *dari* penghuni ke sistem. Aliran masuk dari penghuni akan
+**Penghuni tanpa aliran masuk data.** Portal penghuni hampir seluruhnya
+baca-saja. Pendaftaran sewa dan pencatatan uang dilakukan pemilik atau
+pengelola, jadi tidak ada data yang mengalir *dari* penghuni ke sistem. Satu
+tindakan ia mulai sendiri — membuka tautan bayar daring — tidak membawa data:
+uangnya baru tercatat setelah gerbang pembayaran menyatakan settlement lewat
+webhook, dan webhook itu bukan penghuni. Aliran masuk dari penghuni akan
 menggambarkan fitur yang tidak ada.
 
 **Dua aliran keluar ke pemilik dari proses 5.0.** Rekap pendapatan (O-6) dan

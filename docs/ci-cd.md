@@ -36,7 +36,7 @@ perkakasnya sendiri tidak membusuk:
 
 1. Bangun image dengan cache layer.
 2. `docker compose up -d`, lalu tunggu `/api/health` menjawab **200**.
-3. `php artisan test` di dalam container - 722 tes.
+3. `php artisan test` di dalam container - 738 tes.
 4. Jalankan Chrome headless dengan `--remote-debugging-port=9222`, lalu tunggu
    port debug itu terbuka - sampai **120 detik**, dan berhenti lebih awal bila
    prosesnya sudah mati. Chrome di runner dingin butuh puluhan detik; percobaan

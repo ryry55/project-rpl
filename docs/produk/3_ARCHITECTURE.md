@@ -33,7 +33,7 @@ Versi 1.0 · 26 Oktober 2026
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
 │  PostgreSQL 16                                               │
-│  22 tabel · 8 trigger (7 append-only) · CHECK sebagai pagar  │
+│  23 tabel · 8 trigger (7 append-only) · CHECK sebagai pagar  │
 └──────────────────────────────────────────────────────────────┘
 
   di luar jalur utama:
@@ -373,6 +373,11 @@ memutuskan jam berapa, dan jawabannya akan berbeda di setiap tempat.
 | Email palsu | `email_verified_at` adalah penanda "sudah diaktifkan"; login sebelum itu → 403 |
 | Link aktivasi dipakai ulang | `token_akun.dipakai_pada`; token baru menghapus token lama yang belum dipakai |
 | Pencatatan token di log | `TautanAkun` tidak pernah mencatat token; hanya hash SHA-256 yang disimpan |
+| Webhook gateway dipalsukan | `signature_key` SHA512 atas `order_id`+`status_code`+`gross_amount`+server key, dibandingkan `hash_equals`; gagal → **401 tanpa keterangan** |
+| Notifikasi gateway diulang | Semua notifikasi bertanda tangan sah dijawab **200**, termasuk yang tidak mengubah apa pun |
+| Webhook ganda mencatat dua kali | Indeks unik parsial `pembayaran_gateway_satu_per_order` pada `pembayaran.referensi` — pemeriksaan baca-lalu-tulis saja tidak cukup |
+| Nominal webhook dipalsukan | `gross_amount` dicocokkan dengan `transaksi_gateway.jumlah` yang **dibekukan**, bukan total tagihan berjalan |
+| `capture` berstatus `challenge` dianggap lunas | Hanya `fraud_status = 'accept'` yang menandai lunas |
 
 **Kenapa hanya kegagalan yang dihitung.** Menghitung semua percobaan berarti
 pengguna yang berhasil masuk 6 kali dalam semenit akan terkunci. Yang perlu
@@ -386,7 +391,7 @@ dibatasi adalah tebakan, bukan pemakaian.
 |---|---|---|
 | Penerbitan tagihan terjadwal | Render gratis tanpa cron yang andal | Utang teknis |
 | Antrean email | Tanpa worker persisten | Utang teknis |
-| Pembayaran pembalik | Belum dibutuhkan | Utang teknis |
+| Tombol pembalik di layar | Endpoint `POST /pembayaran/{id}/pembalik` sudah ada sejak R2, tetapi belum ada tombolnya. Koreksi masih lewat API | Utang teknis (§3) |
 | Uji aksesibilitas otomatis | Waktu | Utang teknis |
 | Multi-kos | Ditolak (§3.6) | — |
 | Aplikasi native | PWA cukup | Capacitor dicatat sebagai opsi |
@@ -400,14 +405,14 @@ penutupan. Daftar yang tidak dicatat akan terlupakan.
 
 ```
 api/
-  app/Domain/            43 kelas, 10 folder - semua aturan
-  app/Http/Controllers/  22 pengendali — hanya menerjemahkan
+  app/Domain/            49 kelas, 10 folder - semua aturan
+  app/Http/Controllers/  24 pengendali — hanya menerjemahkan
   app/Http/Middleware/   6 middleware
   app/Http/Requests/     validasi
   app/Http/Resources/    14 resource — bentuk JSON
-  app/Models/            20 model — hanya bentuk data
-  database/migrations/   36 migrasi
-  tests/                 37 berkas tes, 722 tes
+  app/Models/            21 model — hanya bentuk data
+  database/migrations/   39 migrasi
+  tests/                 38 berkas tes, 738 tes
 
 web/
   src/views/             26 view (7 publik + 14 pemilik + 5 panel pemilik)
