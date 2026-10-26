@@ -56,8 +56,20 @@ jalankan(async () => {
     )
     lapor('menu Aturan kos ada di navigasi pemilik', adaMenu)
 
-    const barisAwal = await evaluasi(ws, `document.querySelectorAll('table.tabel tbody tr').length`)
-    lapor('tabel aturan terisi dari seeder', barisAwal >= 4, `${barisAwal} baris`)
+    // Lihat catatan di e2e-t18.mjs: yang ditunggu isinya, bukan jumlah <tr>,
+    // karena tabel merender satu baris kosong sebelum data tiba.
+    const barisSiap = await tungguSampai(
+      ws,
+      `[...document.querySelectorAll('table.tabel tbody tr')]
+         .filter(tr => tr.textContent.trim().length > 0).length >= 4`,
+      15000,
+    )
+    const barisAwal = await evaluasi(
+      ws,
+      `[...document.querySelectorAll('table.tabel tbody tr')]
+         .filter(tr => tr.textContent.trim().length > 0).length`,
+    )
+    lapor('tabel aturan terisi dari seeder', Boolean(barisSiap), `${barisAwal} baris`)
 
     // --- Tambah aturan lewat formulir -------------------------------------
     const tambah = async (judul, aktif) =>

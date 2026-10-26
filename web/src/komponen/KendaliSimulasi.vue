@@ -87,9 +87,20 @@ function pakaiHariIni() {
   display: flex;
   align-items: center;
   gap: 8px;
+  /* `wrap` wajib. Tanpa ini, `input[type=date]` + dua tombol dipaksa satu
+     baris dan membentuk lantai min-content yang lebih lebar daripada layar
+     ponsel. Terukur: pada viewport 200px, `.simulasi-kendali` berhenti di
+     328px dan menjadi penentu lebar dokumen - lebih lebar daripada
+     `.aksi-kepala` di halaman yang sama. Di runner CI lantai itu melewati
+     360px, sehingga halaman Tagihan bergulir mendatar di ponsel.
+     `min-width: 0` pada input menjaga kontrol tanggal tetap bisa menyusut:
+     kontrol bawaan browser punya lebar intrinsik yang tidak mengikuti
+     `width: auto`. */
+  flex-wrap: wrap;
 }
 
 .simulasi-kendali input {
   width: auto;
+  min-width: 0;
 }
 </style>

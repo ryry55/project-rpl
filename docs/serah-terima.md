@@ -16,7 +16,7 @@ Terakhir diperbarui: QRIS + materi sidang + perbaikan bukti - 26 Oktober 2026
 | Berikutnya | **CI/CD + deploy**, lalu verifikasi Midtrans sandbox - keduanya butuh akun/kunci pemilik |
 | Suite PHP | **748 lulus / 3522 asersi**, 39 berkas tes; pint & eslint bersih |
 | Migrasi / endpoint / tabel domain | **41** / **81** / **23** (total 32 di skema `public`) |
-| Skrip uji | **26** (24 browser + 2 balapan), **760 langkah** |
+| Skrip uji | **26** (24 browser + 2 balapan), **761 langkah** |
 | `periksa-profil-produksi.sh` | **22/22 LULUS**; working tree bersih |
 
 ---

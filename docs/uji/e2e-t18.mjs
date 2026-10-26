@@ -54,11 +54,26 @@ jalankan(async () => {
     lapor('menu Fasilitas ada di navigasi pemilik', adaMenu)
 
     // Seeder menyemai enam fasilitas; daftarnya harus terbaca di tabel.
+    //
+    // Yang ditunggu adalah baris yang BERISI TEKS, bukan jumlah <tr>. Tabel
+    // merender satu <tr> kosong selama data belum tiba (`BarisKosong.vue`),
+    // sehingga `querySelectorAll(...).length` langsung bernilai 1 dan asersi
+    // ">= 6" gagal dengan pesan "1 baris" - padahal datanya hanya belum
+    // termuat. Di lokal jaraknya cukup dekat sehingga selalu lolos; di runner
+    // CI yang lebih lambat ia gagal. Menunggu isinya menghapus ketergantungan
+    // pada kecepatan mesin.
+    const barisSiap = await tungguSampai(
+      ws,
+      `[...document.querySelectorAll('table.tabel tbody tr')]
+         .filter(tr => tr.textContent.trim().length > 0).length >= 6`,
+      15000,
+    )
     const barisAwal = await evaluasi(
       ws,
-      `document.querySelectorAll('table.tabel tbody tr').length`,
+      `[...document.querySelectorAll('table.tabel tbody tr')]
+         .filter(tr => tr.textContent.trim().length > 0).length`,
     )
-    lapor('tabel fasilitas terisi dari seeder', barisAwal >= 6, `${barisAwal} baris`)
+    lapor('tabel fasilitas terisi dari seeder', Boolean(barisSiap), `${barisAwal} baris`)
 
     // --- Tambah fasilitas lewat formulir ----------------------------------
     const ditambah = await evaluasi(

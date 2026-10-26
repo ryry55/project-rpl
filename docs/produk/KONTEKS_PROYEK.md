@@ -97,7 +97,7 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 | Middleware | **6** |
 | Trigger basis data | **8** (7 append-only + 1 penjaga pembalik) |
 | Tes PHP | **748** (3522 asersi) di **39** berkas |
-| Skrip browser | **26** (760 langkah, termasuk 2 uji balapan) |
+| Skrip browser | **26** (761 langkah, termasuk 2 uji balapan) |
 | Halaman SPA | **26** komponen view · 22 rute bernama |
 | Wewenang pengelola | **8** |
 | Peristiwa notifikasi | **9** |

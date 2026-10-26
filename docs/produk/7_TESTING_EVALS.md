@@ -4,7 +4,7 @@
 > bagaimana menambah tes yang benar-benar menahan.**
 >
 > Angka diambil dari aplikasi yang berjalan: **748 tes PHP (3522 asersi)** dalam
-> 36 berkas, dan **26 skrip uji** (24 browser + 2 balapan HTTP) dengan **760 langkah**.
+> 36 berkas, dan **26 skrip uji** (24 browser + 2 balapan HTTP) dengan **761 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -176,7 +176,7 @@ Dikelompokkan menurut apa yang dijaga:
 
 ---
 
-## 4. Skrip uji browser dan balapan - 26 skrip, 760 langkah
+## 4. Skrip uji browser dan balapan - 26 skrip, 761 langkah
 
 ### 4.1 Menjalankan
 
@@ -216,7 +216,7 @@ Prasyarat: `docker compose up`, Chrome dengan `--remote-debugging-port=9222`,
 | `e2e-t28.mjs` | 39 | PDP: persetujuan, akses, anonimisasi |
 | `e2e-r3.mjs` | 50 | Pembatalan tagihan, pemaafan denda, bagikan WhatsApp, rekening |
 | `uji-pembalik.mjs` | 13 | Tombol **Tarik kembali**: alasan wajib, baris negatif di riwayat, tombol hilang sesudah ditarik, pembatalan jadi mungkin |
-| `uji-qris.mjs` | 15 | Unggah gambar QRIS, pratinjau, gambar termuat sebagai blob di portal penghuni, penolakan pada rekening transfer, rekening nonaktif 404 |
+| `uji-qris.mjs` | 16 | Unggah gambar QRIS, pratinjau, gambar termuat sebagai blob di portal penghuni, penolakan pada rekening transfer, rekening nonaktif 404 |
 | `asap-semua-halaman.mjs` | 23 | Semua halaman terbuka tanpa galat konsol/5xx |
 | `uji-tata-letak.mjs` | 94 | Tidak meluber di 360/390/768px |
 | `uji-kartu-tabel.mjs` | 65 | Tabel 4+ kolom jadi kartu; label sesuai `<th>`; desktop kembali normal |

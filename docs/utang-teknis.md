@@ -7,61 +7,51 @@ Status per LANGKAH 9 (commit `f2c73f0`).
 
 ---
 
-## 1. Uji browser di CI menggantung — BELUM SELESAI
+## 1. Uji browser di CI menggantung - SELESAI, dan penyebabnya bukan yang diduga
 
-**Gejala.** Job `uji` pada GitHub Actions masuk ke langkah "Uji browser dan uji
-balapan" lalu tidak selesai: 17+ menit, padahal di laptop langkah yang sama
-memakan 257–283 detik. Job akhirnya berhenti karena `timeout-minutes: 30`, bukan
-karena uji gagal.
+**Gejala yang tercatat.** Job `uji` pada GitHub Actions masuk ke langkah "Uji
+browser dan uji balapan" lalu tidak selesai: 17+ menit, padahal di laptop
+langkah yang sama memakan 257-283 detik. Job akhirnya berhenti karena
+`timeout-minutes: 30`, bukan karena uji gagal.
 
-**Yang sudah terbukti bekerja di CI:**
+**Ternyata bukan itu yang terjadi.** Ketika daftar kegagalan CI diperiksa satu
+per satu, **setiap** push berakhir merah dalam **34-41 detik** - jauh sebelum
+17 menit. Yang gagal adalah langkah **paritas daftar skrip**, yang berjalan
+sebelum E2E sama sekali:
 
-| Langkah | Status |
-|---|---|
-| pint, eslint, vite build | lulus |
-| Paritas daftar E2E `periksa.ps1` vs `periksa.sh` | lulus |
-| Profil produksi (`periksa-profil-produksi.sh`) | lulus |
-| 748 tes PHP di dalam container | lulus |
-| Chrome headless membuka port 9222 | lulus |
-| `periksa.sh` benar-benar dijalankan (`bash periksa.sh`) | lulus |
+```
+Daftar skrip uji berbeda antara periksa.ps1 dan periksa.sh.
+```
 
-Jadi pagar yang menegakkan kebenaran kode **sudah** berjalan di CI. Yang belum
-adalah bagian E2E-nya.
+`periksa.ps1` memuat 26 skrip, `periksa.sh` hanya 24. Dua yang hilang:
+`uji-pembalik.mjs` (13 langkah) dan `uji-qris.mjs` (15 langkah) - keduanya
+ditambahkan pada fase terakhir dan hanya dimasukkan ke berkas PowerShell.
 
-**Dugaan penyebab, berurut menurut kemungkinan.**
+Akibatnya lebih buruk daripada CI merah: **gate yang dipakai di Linux - dan
+karena itu satu-satunya gate yang berjalan di CI - tidak pernah menjalankan uji
+untuk tombol "Tarik kembali" maupun unggah gambar QRIS.** Dua fitur terakhir
+yang dikerjakan justru yang paling tidak terjaga. Pagar yang tidak jalan di CI
+bukan pagar, dan yang lebih buruk, ia terlihat seperti pagar.
 
-1. **Penantian tanpa batas di skrip yang tidak punya `timeout`.** `periksa.sh`
-   memanggil `node docs/uji/<skrip>.mjs` tanpa `timeout`. Satu skrip yang
-   menggantung menahan seluruh rangkaian, dan tidak ada yang mencetak nama
-   skripnya karena `catat` baru dipanggil setelah `node` selesai. Perbaikan yang
-   tepat: bungkus dengan `timeout 180 node ...` supaya skrip yang menggantung
-   gagal sendiri dan namanya muncul di ringkasan.
-2. **`docker compose exec` menunggu selamanya** bila container `api` sedang
-   sibuk atau socket-nya tertinggal.
-3. **Tab Chrome yatim** yang tidak tertutup oleh `tutup_tab` karena
-   `CDP_BASE` di dalam `node -e` berbeda dari yang dipakai skrip.
+Diperbaiki dengan menyamakan daftarnya (26 = 26, diverifikasi dengan
+mengekstrak nama berkas dari kedua sumber lalu membandingkannya, bukan dengan
+mata). Sesudah itu CI **hijau untuk pertama kalinya**, dan job utamanya selesai
+**10m51s** - bukti bahwa E2E benar-benar berjalan, bukan menggantung. Dugaan
+"menggantung" di atas tidak pernah terbukti dan tidak perlu dikejar lagi.
 
-**Kenapa ditunda.** Penyebabnya belum bisa direproduksi di laptop: rangkaian yang
-sama lulus `SEMUA LULUS (283 detik)` lewat Git Bash dengan Chrome headless di
-port 9333. Tanpa reproduksi, setiap perbaikan adalah tebakan, dan tebakan pada
-pipa CI lebih mahal daripada manfaatnya saat ini.
+**Yang masih terbuka:** `continue-on-error: true` pada langkah E2E di `uji.yml`
+belum dicabut. Alasannya kini berbeda: lima kegagalan E2E yang tadinya tertutup
+sudah diperbaiki (lihat 2b), jadi pencabutan itu tinggal satu baris - tetapi
+belum dikerjakan, dan selama belum, CI hijau **tidak** membuktikan E2E lulus.
+Itu satu-satunya alasan hijau di CI saat ini belum bisa dipercaya sepenuhnya.
 
-**Rencana penutupan.** Tambahkan `timeout` per skrip. Itu mengubah "menggantung
-tanpa kabar" menjadi "gagal dengan nama skrip", yang cukup untuk menemukan
-penyebab sebenarnya pada percobaan berikutnya.
+**`timeout 240 node ...` per skrip** tetap dipasang di `periksa.sh` dan tetap
+berguna: ia mengubah "menggantung tanpa kabar" menjadi "gagal dengan nama
+skrip". `periksa.ps1` sengaja belum - padanan `Start-Process` + `WaitForExit`
+sudah dicoba dan justru menggantung sendiri saat diuji dengan proses yang
+sengaja dibuat macet, sehingga obatnya lebih berbahaya daripada penyakitnya.
 
-**Sudah dikerjakan sebagian.** `periksa.sh` (jalur CI) kini memakai
-`timeout 240 node ...` per skrip, dengan cadangan tanpa `timeout` bila
-perintahnya tidak ada. `periksa.ps1` **belum** - dan itu disengaja: padanan
-`Start-Process` + `WaitForExit` sudah dicoba dan justru menggantung sendiri saat
-diuji dengan proses yang sengaja dibuat macet, sehingga obatnya lebih berbahaya
-daripada penyakitnya. Batas waktu di PowerShell perlu pendekatan lain
-(mis. job + `Wait-Job -Timeout`), dan itu pekerjaan tersendiri.
 
-**Sementara ini.** Langkah E2E di `uji.yml` diberi `continue-on-error: true`
-sehingga pipeline tidak merah karena hal yang belum dipahami. **Ini harus
-dicabut** begitu penyebabnya ditemukan — pagar yang tidak menahan lebih buruk
-daripada tidak ada pagar, karena ia terlihat seperti pagar.
 
 ---
 
@@ -79,6 +69,50 @@ muncul di runner yang lebih lambat. Commit `f2c73f0`.
 Pelajaran yang berlaku umum: **asersi yang menunggu "ada elemen" harus menunggu
 elemen yang membuktikan data sudah tiba**, bukan elemen pertama yang muncul.
 Penanda memuat selalu lebih dulu ada.
+
+**Koreksi untuk baris ketiga.** Perbaikan `.kepala { flex-wrap: wrap }` di atas
+**tidak cukup**, dan itu baru terbukti belakangan: 363px muncul lagi di CI.
+Sebabnya, `flex-wrap` pada induk hanya memindahkan SELURUH kelompok tombol ke
+barisnya sendiri; ia tidak memampatkan isi kelompok itu. Karena `.aksi-kepala`
+masih `flex-shrink: 0`, kotaknya tetap selebar max-content dan luberannya keluar
+ke dokumen. Lihat 2b untuk perbaikan yang benar.
+
+---
+
+## 2b. Lima kegagalan E2E yang tertutup `continue-on-error`, dan perbaikannya
+
+Sesudah paritas daftar skrip diperbaiki (1), E2E akhirnya benar-benar berjalan
+di CI - dan ternyata **lima suite gagal di sana padahal lulus di laptop**.
+Selama ini semuanya tersembunyi karena `continue-on-error: true`.
+
+Dua sebab yang berbeda, dan membedakannya penting: **tiga di antaranya cacat
+skrip uji**, **satu cacat aplikasi yang nyata**, dan satu lagi cacat yang sama
+dengan yang kedua.
+
+| Skrip | Gejala di CI | Sebab sebenarnya | Perbaikan |
+|---|---|---|---|
+| `e2e-t18.mjs` | 25/26, "tabel fasilitas terisi dari seeder - **1 baris**" | Menghitung `<tr>` sekali jalan. Selama data belum tiba tabel merender **satu `<tr>` kosong** (`BarisKosong.vue`), jadi hitungannya 1 | Menunggu baris yang `textContent`-nya tidak kosong, maks 15 detik |
+| `e2e-t19.mjs` | 22/23, "tabel aturan terisi dari seeder - **1 baris**" | Sama | Sama |
+| `uji-qris.mjs` | 10/15, "medan gambar tidak muncul" | `<option>` dibangun dari `meta` yang dimuat **async** di `onMounted`. Uji menunggu `#rekening-nama` (ada sejak awal), lalu menulis `pilih.value = 'qris'` - pada `<select>` yang belum punya opsi itu penulisan **gagal senyap**, nilainya tidak berubah | Menunggu `option[value=qris]` ada sebelum mengganti jenis; jadi 16 langkah |
+| `uji-tata-letak.mjs` | 93/94, dokumen 363 > 360 di halaman **Tagihan** | **Cacat aplikasi nyata.** Lihat di bawah | `.aksi-kepala` diberi `flex-wrap` dan `flex-shrink: 0`-nya dibuang; `.simulasi-kendali` diberi `flex-wrap` |
+| `uji-kartu-tabel.mjs` | 64/65, `innerWidth` 363 | Sebab yang sama | Sama |
+
+**Cacat layout itu nyata, bukan artefak CI.** Diukur dengan probe pada viewport
+200px: dokumen berhenti menyusut di **328px**, dan yang menetapkan lantai itu
+adalah `.aksi-kepala` (291px - dua tombol yang tidak boleh mengecil) dan
+`.simulasi-kendali` (input tanggal + dua tombol sebaris). Lantai itu bergeser
+mengikuti metrik fon, jadi di runner CI ia melewati 360px sementara di Windows
+tidak. Artinya: **di ponsel 360px yang fonnya sedikit lebih lebar, halaman
+Tagihan memang bergulir mendatar.** Lulus di laptop hanya berarti fonnya lebih
+sempit.
+
+Sesudah perbaikan, lantai halaman Tagihan turun dari 307px ke **218px** - sama
+dengan halaman Kamar yang tidak pernah bermasalah. Diukur ulang, bukan diasumsikan.
+
+Pelajaran kedua yang berlaku umum: **`flex-wrap` pada induk tidak pernah cukup
+kalau anaknya `flex-shrink: 0`.** Membungkus hanya berguna bila kotaknya boleh
+menjadi lebih sempit daripada isinya; `min-width: 0` sering ikut diperlukan
+karena item flex bawaannya `min-width: auto`.
 
 ---
 
@@ -102,7 +136,7 @@ dengan mengembalikan `url_spa` menjadi `url`.
 | **DAT-03** — email dikirim sinkron (`QUEUE_CONNECTION=sync`), tanpa queue worker | Terbit massal mengirim satu email per penghuni, berurutan dalam satu permintaan: 30 penghuni = 30 email sebelum respons kembali, dan SMTP yang lambat memperlambat layar, bukan hanya emailnya | **Diterima sebagai utang, bukan cacat yang harus ditutup.** Satu layanan Render tidak bisa menjalankan queue worker persisten, dan `sync` adalah konsekuensi arsitektur itu. Kegagalan kirim sudah tidak membatalkan transaksi (R3). Jangan "memperbaikinya" dengan worker yang tidak akan hidup di produksi |
 | ~~Pembalik pembayaran belum punya tombol di layar~~ | ~~Koreksi salah catat masih lewat API (`POST /pembayaran/{id}/pembalik`)~~ | **Sudah ditutup (fase terakhir).** Tombol **Tarik kembali** ada di panel rincian tagihan, dengan formulir alasan wajib (server menolak 422 bila kosong, dan formulirnya tetap terbuka supaya pemilik tidak mengira penarikannya berhasil). Riwayat menampilkan baris negatif bertanda "ditarik kembali", dan tombolnya hilang untuk baris yang sudah ditarik. `TagihanResource` kini mengirim `adalah_pembalik` dan `sudah_dibalik` per baris; `null` pada yang kedua berarti relasinya tidak dimuat, dan layar hanya menawarkan tombol saat nilainya benar-benar `false`. Dijaga `uji-pembalik.mjs` (13 langkah) dan dua tes baru di `PembalikPembayaranTest`. Tinggal **antrean email** (DAT-03) yang masih terbuka |
 | Pemaafan denda tidak punya halaman riwayat sendiri | Pemaafan hanya terlihat saat membuka satu tagihan, dan di `log_audit` | Disengaja: pemaafan adalah kolom pada `tagihan`, bukan entitas. Riwayat lengkapnya ada di Jejak audit dengan aksi `denda.maafkan` |
-| ~~Rekening tidak menyimpan gambar QRIS~~ | ~~`jenis: qris` hanya menyimpan teks (nama merchant dan nomor bila ada)~~ | **Sudah ditutup (fase terakhir).** Gambarnya disimpan di kolom **`bytea`** (`rekening.gambar`), bukan berkas di disk: `public/` dipasang read-only ke nginx dan Render free tidak punya disk persisten, sehingga berkas yang ditulis hari ini hilang saat restart - dan gambar QRIS yang hilang lebih buruk daripada tidak ada, karena pemilik mengira sudah mengunggah. Disajikan lewat `GET /api/rekening/{id}/gambar` dengan `Content-Type`, `nosniff`, dan CSP; penghuni hanya bisa membuka gambar rekening **aktif** (404, bukan 403). Hanya PNG/JPG/WEBP yang diterima - **SVG ditolak** karena bisa memuat skrip. Dijaga `GambarQrisRekeningTest` (19 tes) dan `uji-qris.mjs` (15 langkah). **Jebakan yang ditemukan saat mengerjakannya:** menulis `bytea` sebagai parameter teks biasa menyimpan **0 byte tanpa galat apa pun** - unggahan tampak berhasil, `gambar_ukuran` terisi, gambarnya kosong. Satu-satunya jalur tulis yang terbukti utuh adalah `decode(?, 'base64')`, dan karena itu `gambar` sengaja **tidak** masuk `$fillable`
+| ~~Rekening tidak menyimpan gambar QRIS~~ | ~~`jenis: qris` hanya menyimpan teks (nama merchant dan nomor bila ada)~~ | **Sudah ditutup (fase terakhir).** Gambarnya disimpan di kolom **`bytea`** (`rekening.gambar`), bukan berkas di disk: `public/` dipasang read-only ke nginx dan Render free tidak punya disk persisten, sehingga berkas yang ditulis hari ini hilang saat restart - dan gambar QRIS yang hilang lebih buruk daripada tidak ada, karena pemilik mengira sudah mengunggah. Disajikan lewat `GET /api/rekening/{id}/gambar` dengan `Content-Type`, `nosniff`, dan CSP; penghuni hanya bisa membuka gambar rekening **aktif** (404, bukan 403). Hanya PNG/JPG/WEBP yang diterima - **SVG ditolak** karena bisa memuat skrip. Dijaga `GambarQrisRekeningTest` (19 tes) dan `uji-qris.mjs` (16 langkah). **Jebakan yang ditemukan saat mengerjakannya:** menulis `bytea` sebagai parameter teks biasa menyimpan **0 byte tanpa galat apa pun** - unggahan tampak berhasil, `gambar_ukuran` terisi, gambarnya kosong. Satu-satunya jalur tulis yang terbukti utuh adalah `decode(?, 'base64')`, dan karena itu `gambar` sengaja **tidak** masuk `$fillable`
 
 ---
 

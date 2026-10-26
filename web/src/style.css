@@ -279,8 +279,12 @@ button.mungil {
      baris, dan pada layar 360px jumlah min-content-nya melebihi lebar layar -
      seluruh dokumen lalu bergulir mendatar. Terukur di runner CI: 363px pada
      viewport 360px, dengan `.tautan`, `.tautan-label`, dan `.aksi-kepala`
-     sebagai penyebabnya. `flex-shrink: 0` pada `.aksi-kepala` membuat tombol
-     tidak bisa mengecil, jadi membungkus baris adalah satu-satunya jalan. */
+     sebagai penyebabnya.
+
+     `wrap` di sini TIDAK cukup sendirian: ia hanya memindahkan kelompok tombol
+     ke barisnya sendiri, dan kelompok itu masih bisa lebih lebar daripada
+     layar. Yang benar-benar menurunkan lantai adalah `flex-wrap` + hilangnya
+     `flex-shrink: 0` pada `.aksi-kepala` sendiri - lihat catatan di sana. */
   flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 2px;
@@ -291,11 +295,31 @@ button.mungil {
 }
 
 /* Beberapa tombol di kepala halaman. Dikelompokkan supaya tetap rapat di layar
-   sempit, bukan tersebar oleh justify-content milik .kepala. */
+   sempit, bukan tersebar oleh justify-content milik .kepala.
+
+   `flex-wrap: wrap` di sini, bukan hanya di `.kepala`. `flex-wrap` pada induk
+   hanya memindahkan SELURUH kelompok ini ke barisnya sendiri; ia tidak
+   memampatkan isinya. Karena `flex-shrink: 0` membuat tombol-tombolnya tidak
+   boleh mengecil, kelompok yang lebih lebar dari layar tetap meluber - dan
+   luberannya keluar ke dokumen, bukan ke kelompoknya.
+
+   Terukur: pada viewport 200px dokumen berhenti menyusut di 328px, dan yang
+   menetapkan lantai itu adalah `.aksi-kepala` (291px, dua tombol sebaris).
+   Di runner CI lantai yang sama menjadi 363px pada viewport 360px, karena
+   metrik fon di sana sedikit lebih lebar - jadi perbaikan `flex-wrap` pada
+   `.kepala` saja tidak pernah cukup, dan kegagalannya hanya muncul di CI.
+
+   `flex-shrink: 0` juga HARUS dibuang, dan ini bagian yang mudah terlewat:
+   dengan `0`, kotak ini selalu selebar max-content-nya, sehingga tidak pernah
+   dipersempit dan `flex-wrap` di dalamnya tidak pernah terpicu. Membungkus
+   hanya berguna kalau kotaknya boleh menjadi lebih sempit daripada isinya.
+   `min-width: 0` menyertainya karena item flex bawaannya `min-width: auto`,
+   yang sama-sama menolak menyusut di bawah min-content. */
 .aksi-kepala {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  flex-shrink: 0;
+  min-width: 0;
 }
 
 .panel {

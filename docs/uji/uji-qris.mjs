@@ -64,6 +64,19 @@ async function main() {
   // --- Buka halaman rekening ----------------------------------------------
   await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/rekening` })
   await tungguSampai(ws, `document.querySelector('#rekening-nama')`)
+  // Pilihan jenis dibangun dari `meta` yang dimuat lewat onMounted, jadi
+  // formulirnya bisa sudah tampil sementara <option> belum ada. Menunggu
+  // #rekening-nama saja membuat langkah berikutnya bisa gagal SENYAP: menulis
+  // `pilih.value = 'qris'` pada <select> yang belum punya opsi itu tidak
+  // melempar apa pun, nilainya hanya tidak berubah, dan asersi berikutnya
+  // melaporkan "medan gambar tidak muncul" - gejala yang menunjuk ke tempat
+  // yang salah. Terbukti di CI: lulus di lokal, gagal 5 langkah di runner.
+  const opsiSiap = await tungguSampai(
+    ws,
+    `[...document.querySelectorAll('#rekening-jenis option')].some(o => o.value === 'qris')`,
+    15000,
+  )
+  lapor('pilihan jenis rekening sudah termuat', Boolean(opsiSiap), 'opsi qris tersedia')
   lapor('halaman rekening terbuka', true, 'formulir tambah rekening tersedia')
 
   // --- Medan gambar hanya muncul untuk QRIS -------------------------------
