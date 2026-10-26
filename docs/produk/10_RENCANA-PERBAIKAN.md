@@ -91,7 +91,7 @@ adalah "apakah orangnya tahu harus mulai dari mana".
 |---|---|---|
 | 0.5.1 | Perintah `kos:buat-pemilik`, menggantikan blok `tinker` di `9_DEPLOY.md` | 10 tes; 4 cacat disuntikkan, 4 tertangkap |
 | 0.5.2 | `GET /penyiapan` — status penyiapan dihitung dari data hidup | 12 tes; 4 cacat, 4 tertangkap |
-| 0.5.3 | Ekspor CSV rekap / tunggakan / pembayaran | 15 tes; 6 cacat, 6 tertangkap; berkas terunduh diverifikasi 1183 byte + BOM |
+| 0.5.3 | Ekspor CSV rekap / tunggakan / pembayaran | 16 tes; 6 cacat, 6 tertangkap; berkas terunduh diverifikasi 1183 byte + BOM |
 | 0.5.4 | Penanda penyiapan di halaman muka + halaman Bantuan | `e2e-fase35.mjs` 18/18 |
 | 0.5.5 | SOP pemulihan email gagal (`8_OPERATIONS_SOP.md` §7.4.1) | Perintahnya dijalankan dan menghasilkan tautan sah |
 

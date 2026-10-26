@@ -165,14 +165,22 @@ class EksporController extends Controller
     {
         $data = $this->tunggakan->susun();
 
+        // Tabel bersih: baris judul kolom lebih dulu, tanpa blok ringkasan.
+        //
+        // **Kenapa tidak ada blok "Tanggal acuan / Jumlah tagihan / Total".**
+        // Berkas ini dibuat untuk DIGABUNG ke pembukuan yang sudah dipakai
+        // pemilik, dan setiap alat yang membaca CSV (Excel, LibreOffice, skrip
+        // milik pemilik sendiri) menganggap baris pertama sebagai judul kolom.
+        // Blok ringkasan di atasnya membuat seluruh berkas terbaca sebagai satu
+        // tabel yang kolomnya salah nama, dan pemilik harus membuang enam baris
+        // dengan tangan setiap kali - pekerjaan yang akan ia lupakan, lalu
+        // angkanya masuk ke sheet dengan kolom bergeser.
+        //
+        // Tanggal acuannya tidak hilang: ia ada di nama berkas
+        // (`tunggakan-2026-10-26.csv`), yang tetap terbaca setelah berkasnya
+        // disimpan. Angka totalnya juga tidak hilang: ia ada di layar, dan
+        // berkas ini justru ada supaya pemilik bisa menjumlahkannya sendiri.
         $baris = [];
-        $baris[] = ['Daftar tunggakan'];
-        $baris[] = ['Tanggal acuan', $data['tanggal_acuan']];
-        $baris[] = ['Jumlah tagihan', $data['ringkasan']['jumlah']];
-        $baris[] = ['Total pokok (Rp)', $data['ringkasan']['total_pokok']];
-        $baris[] = ['Total denda (Rp)', $data['ringkasan']['total_denda']];
-        $baris[] = ['Total (Rp)', $data['ringkasan']['total']];
-        $baris[] = [];
 
         $baris[] = [
             'Kelompok', 'Penghuni', 'Kamar', 'Periode', 'Jatuh tempo',
@@ -230,11 +238,11 @@ class EksporController extends Controller
 
         $labelMetode = MetodePembayaran::label();
 
+        // Tabel bersih, dengan alasan yang sama seperti `tunggakan()`: berkas
+        // ini untuk digabung ke pembukuan yang sudah ada, dan blok ringkasan di
+        // atas judul kolom membuat seluruh berkas terbaca sebagai satu tabel
+        // yang kolomnya bergeser. Rentang tanggalnya ada di nama berkas.
         $baris = [];
-        $baris[] = ['Daftar pembayaran'];
-        $baris[] = ['Dari', $data['dari']];
-        $baris[] = ['Sampai', $data['sampai']];
-        $baris[] = [];
 
         $baris[] = [
             'Tanggal', 'Penghuni', 'Kamar', 'Periode', 'Metode', 'Sumber',

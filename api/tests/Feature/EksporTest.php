@@ -326,9 +326,47 @@ class EksporTest extends TestCase
         $isi = $this->get('/api/ekspor/tunggakan')->streamedContent();
 
         $this->assertStringStartsWith("\xEF\xBB\xBF", $isi);
-        $this->assertStringContainsString('Daftar tunggakan', $isi);
         $this->assertStringContainsString('Siti Aminah', $isi);
-        $this->assertStringContainsString('Tanggal acuan', $isi);
+
+        // Baris PERTAMA harus judul kolom, bukan judul laporan.
+        //
+        // Ini yang membuat berkasnya bisa digabung ke pembukuan yang sudah
+        // dipakai pemilik: setiap alat CSV menganggap baris pertama sebagai
+        // nama kolom. Blok ringkasan di atasnya membuat seluruh berkas terbaca
+        // sebagai satu tabel dengan kolom bergeser - dan pemilik harus
+        // membuangnya dengan tangan setiap kali.
+        $baris = $this->urai($isi);
+        $this->assertSame(
+            'Kelompok',
+            $baris[0][0] ?? null,
+            'Baris pertama ekspor tunggakan harus judul kolom.',
+        );
+        $this->assertSame(10, count($baris[0]), 'Judul kolom tunggakan harus 10 kolom.');
+    }
+
+    public function test_ekspor_pembayaran_dan_tunggakan_tidak_memakai_blok_ringkasan(): void
+    {
+        $this->pemilik();
+        $this->tagihanDenganPembayaran(1500000, 'Siti Aminah');
+
+        $tunggakan = $this->urai($this->get('/api/ekspor/tunggakan')->streamedContent());
+        $pembayaran = $this->urai(
+            $this->get('/api/ekspor/pembayaran?dari=2026-01-01&sampai=2026-01-31')->streamedContent(),
+        );
+
+        foreach (['tunggakan' => $tunggakan, 'pembayaran' => $pembayaran] as $nama => $baris) {
+            // Tidak boleh ada baris berisi satu sel sebelum judul kolom. Baris
+            // satu sel di posisi mana pun adalah tanda blok ringkasan, dan blok
+            // ringkasan di tengah tabel lebih buruk lagi daripada di atasnya.
+            foreach ($baris as $i => $b) {
+                $this->assertGreaterThan(
+                    1,
+                    count($b),
+                    "Ekspor {$nama} baris ke-".($i + 1).' hanya punya satu kolom - '
+                        .'itu blok ringkasan, bukan tabel.',
+                );
+            }
+        }
     }
 
     public function test_ekspor_pembayaran_mewajibkan_rentang_tanggal(): void

@@ -264,7 +264,7 @@ selama ini hanya ada di kepala pengembang.
 |---|---|---|
 | **1. `kos:buat-pemilik`** | **Selesai** | 10 tes, 35 asersi. `uji-pagar-buat-pemilik.sh`: **4 cacat, 4 tertangkap** |
 | **2. `GET /penyiapan`** | **Selesai** | 12 tes, 40 asersi. `uji-pagar-penyiapan.sh`: **4 cacat, 4 tertangkap** |
-| **3. Ekspor CSV** | **Selesai** | 15 tes, 47 asersi. `uji-pagar-ekspor.sh`: **6 cacat, 6 tertangkap** |
+| **3. Ekspor CSV** | **Selesai** | 16 tes, 50 asersi. `uji-pagar-ekspor.sh`: **6 cacat, 6 tertangkap**. `uji-pagar-ekspor-bersih.sh`: blok ringkasan dikembalikan, 2 tes gagal |
 | **4. Panduan penyiapan + halaman Bantuan** | **Selesai** | `e2e-fase35.mjs` 18/18, termasuk berkas yang benar-benar terunduh (1183 byte, BOM terverifikasi) |
 | **5. SOP email gagal** | **Selesai** | `8_OPERATIONS_SOP.md` §7.4.1; perintah pemulihannya **dijalankan** dan menghasilkan tautan yang sah |
 
@@ -304,7 +304,10 @@ selama ini hanya ada di kepala pengembang.
   pemulihan dari cadangan tidak akan pernah membersihkannya.
 - **Ekspor `rekap` berbentuk laporan (berjudul); `tunggakan` dan `pembayaran`
   berbentuk tabel bersih.** Rekap memang dokumen dua bagian yang untuk dibaca;
-  dua lainnya untuk diimpor ke pembukuan yang sudah ada.
+  dua lainnya untuk diimpor ke pembukuan yang sudah ada, dan blok ringkasan di
+  atas judul kolom membuat seluruh berkas terbaca sebagai satu tabel dengan
+  kolom bergeser. Bukti bahwa pembedaan ini dijaga: `uji-pagar-ekspor-bersih.sh`
+  mengembalikan blok itu ke `tunggakan`, dan kedua tesnya gagal.
 - **Tombol "Ekspor pembayaran" hanya di layar rekap pemilik.** Layar pengelola
   berjudul "Uang tunai saya", sedangkan berkasnya berisi seluruh pembayaran —
   tombol yang menyesatkan, walaupun datanya sudah bisa ia baca lewat `/pembayaran`.
