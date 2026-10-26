@@ -132,7 +132,7 @@ dengan mengembalikan `url_spa` menjadi `url`.
 | ~~**S1.9 / REV-FIN-04** — tanggal masuk tidak boleh di masa depan~~ | ~~Pemilik tidak bisa mencatat penghuni yang sudah menyanggupi kamar untuk bulan depan~~ | **Sudah diperbaiki.** Batasnya kini satu tahun (menahan salah ketik tahun), dan tanggal masa depan melahirkan kontrak berstatus `dipesan` dengan kamar berstatus `dipesan`. Kontrak `dipesan` **tidak ditagih** dan **tidak dihitung menempati kamar**; `kontrak:mulai` (harian 00:05 WIB) mengubahnya menjadi `aktif`/`terisi` saat harinya tiba. Pemesanan ganda ditolak **indeks unik** `(kamar_id) WHERE status IN ('aktif','dipesan')`, bukan pemeriksaan aplikasi yang punya celah balapan. Dijaga 3 tes di `DataIndukTest` + 5 tes di `MulaiKontrakTest`, dan ketiganya dibuktikan bisa gagal dengan menyuntikkan cacat |
 | ~~Deposit dibaca saat kontrak dibuat, tidak dipakai lagi~~ | ~~Deposit tidak pernah mengurangi tagihan akhir~~ | **Sudah ditutup - deposit dihapus seluruhnya (fase terakhir).** Bukan dilengkapi, melainkan dibuang: deposit dikumpulkan saat kontrak dibuat tetapi tidak pernah dicatat sebagai uang masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan saat penghuni keluar. Dua jalan keluarnya adalah merekamnya sebagai pembayaran sah lalu mengembalikan lewat baris negatif, atau berhenti berpura-pura menanganinya. Pemilik memilih yang kedua, dengan alasan yang layak dikutip: **kolom yang menyimpan angka tanpa akibat lebih buruk daripada kolom yang tidak ada, karena ia membuat orang mengira uangnya terjaga.** Yang dihapus: kolom `kontrak.deposit`, tipe kebijakan `deposit` beserta tiga nilainya, kelas `PenentuDeposit`, medan formulir dan kolom tabel di layar Kontrak, dan seluruh rujukannya di dokumen. Migrasi `2026_11_20_120000_hapus_deposit` melepas trigger append-only secara sadar untuk membuang baris kebijakan deposit, menyempitkan tiga CHECK, lalu memasang trigger kembali. Dijaga `MigrasiHapusDepositTest` (5 tes) dan `KebijakanKosTest::test_tipe_deposit_ditolak_validasi_maupun_constraint` |
 | Akun yang pernah menangani uang tidak bisa dihapus | `RESTRICT` pada FK `dicatat_oleh`/`diterima_oleh` | Disengaja: jejak uang tidak boleh yatim |
-| **DAT-03** — email dikirim sinkron (`QUEUE_CONNECTION=sync`), tanpa queue worker | Terbit massal mengirim satu email per penghuni, berurutan dalam satu permintaan: 30 penghuni = 30 email sebelum respons kembali, dan SMTP yang lambat memperlambat layar, bukan hanya emailnya | **Diterima sebagai utang, bukan cacat yang harus ditutup.** Satu layanan Render tidak bisa menjalankan queue worker persisten, dan `sync` adalah konsekuensi arsitektur itu. Kegagalan kirim sudah tidak membatalkan transaksi (R3). Jangan "memperbaikinya" dengan worker yang tidak akan hidup di produksi |
+| **DAT-03** — email dikirim sinkron (`QUEUE_CONNECTION=sync`), tanpa queue worker | Terbit massal mengirim satu email per penghuni, berurutan dalam satu permintaan: 30 penghuni = 30 email sebelum respons kembali, dan SMTP yang lambat memperlambat layar, bukan hanya emailnya | **Diterima sebagai utang, bukan cacat yang harus ditutup.** ~~Satu layanan Render tidak bisa menjalankan queue worker persisten, dan `sync` adalah konsekuensi arsitektur itu.~~ **Koreksi audit putaran 2:** alasan itu **tidak berlaku**. Supervisord di image produksi **sudah** menjalankan tiga proses termasuk `schedule:work` yang persisten, jadi program keempat (`queue:work`) secara teknis mungkin. Keputusannya tetap **tunda**, tetapi alasannya kini berbeda dan lebih jujur: manfaatnya belum sepadan untuk 30 email (< 10 detik), bukan karena mustahil. Kegagalan kirim sudah tidak membatalkan transaksi (R3). Jangan "memperbaikinya" dengan worker yang tidak akan hidup di produksi |
 
 **Temuan samping saat menutup utang CI: `.env.example` menulis
 `QUEUE_CONNECTION=database`.** Nilai itu adalah bawaan Laravel, dan kalau
@@ -186,7 +186,17 @@ kondisi lama, dan tepat satu asersi menjadi merah.
 
 ---
 
-## 4. Kesiapan produksi (LANGKAH 11) — SELESAI, dengan tiga batas yang jujur
+## 4. Kesiapan produksi (LANGKAH 11) — SELESAI untuk laptop, BELUM untuk Render
+
+> **Koreksi (audit putaran 2, 26 Okt 2026).** Judul bagian ini semula
+> "SELESAI, dengan tiga batas yang jujur". Kata "selesai" itu terlalu luas, dan
+> audit kedua membuktikannya: lima penghalang produksi ditemukan yang **tidak
+> tercatat di sini**, karena kelimanya hanya muncul di lingkungan yang punya
+> proxy TLS, pernah tidur, dan memakai layanan email sungguhan. Lihat
+> `11_AUDIT-PRODUKSI-2.md` dan `10_RENCANA-PERBAIKAN.md`.
+>
+> Yang benar: seluruh butir di bawah terbukti berjalan **di laptop**. Itu
+> pencapaian yang nyata, tetapi bukan hal yang sama dengan siap di Render.
 
 Seluruh butir di bawah **sudah dikerjakan dan dibuktikan berjalan** lewat
 `docker build -f Dockerfile.prod` + `docker run` terhadap database lokal.

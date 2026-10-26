@@ -76,8 +76,16 @@ http {
         charset utf-8;
 
         # Header keamanan dasar. Tidak ada yang bergantung pada HTTPS di sini:
-        # Render menangani TLS di depannya, dan `X-Forwarded-Proto` sudah
-        # diteruskan Laravel lewat trustProxies.
+        # Render menangani TLS di depannya.
+        #
+        # `X-Forwarded-Proto` diteruskan ke Laravel lewat `fastcgi_param` di
+        # bawah. TETAPI meneruskan header saja tidak cukup: Laravel hanya
+        # mempercayainya bila `trustProxies` dipasang. Sampai audit putaran 2
+        # (lihat docs/produk/11_AUDIT-PRODUKSI-2.md) middleware itu TIDAK ADA,
+        # sehingga komentar lama di sini ("sudah diteruskan lewat trustProxies")
+        # menggambarkan sesuatu yang tidak pernah ditulis - dan akibatnya
+        # `$request->ip()` mengembalikan IP proxy untuk semua pengguna.
+        # Perbaikannya ada di api/bootstrap/app.php (FASE 0.1).
         add_header X-Content-Type-Options "nosniff" always;
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header Referrer-Policy "strict-origin-when-cross-origin" always;
