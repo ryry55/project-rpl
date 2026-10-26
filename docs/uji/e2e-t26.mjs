@@ -239,6 +239,25 @@ jalankan(async () => {
     lapor('pengelola bisa membuka halaman Kamar', kamarTerbuka)
     if (!kamarTerbuka) throw new Error('halaman kamar tidak terbuka')
 
+    // Menunggu BARIS KAMAR, bukan hanya judul halaman.
+    //
+    // `h1` dirender seketika, sebelum `/kamar` selesai dimuat. Menunggu `h1`
+    // lalu langsung membaca `tbody tr` adalah balapan: pada mesin cepat selalu
+    // menang, pada runner CI kadang kalah. Gejalanya "baris kamar tidak
+    // ditemukan" - yang terbaca seperti kamarnya hilang, padahal hanya tabelnya
+    // belum terisi.
+    //
+    // Balapan ini sudah ada sebelumnya dan menjadi lebih sering ketika halaman
+    // Kamar memuat satu permintaan tambahan (`/penyiapan`) untuk penanda
+    // penyiapan. Yang diperbaiki di sini bukan waktunya, melainkan syarat
+    // tunggunya: tes harus menunggu hal yang benar-benar dibacanya.
+    const adaBaris = await tungguSampai(
+      ws,
+      `[...document.querySelectorAll('tbody tr')].some(tr => tr.textContent.includes(${JSON.stringify(NOMOR_KAMAR)}))`,
+    )
+    lapor('baris kamar tampil setelah data dimuat', adaBaris)
+    if (!adaBaris) throw new Error('baris kamar tidak muncul')
+
     const bukaTarif = await evaluasi(
       ws,
       `
