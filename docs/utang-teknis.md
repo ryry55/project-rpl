@@ -39,11 +39,10 @@ mata). Sesudah itu CI **hijau untuk pertama kalinya**, dan job utamanya selesai
 **10m51s** - bukti bahwa E2E benar-benar berjalan, bukan menggantung. Dugaan
 "menggantung" di atas tidak pernah terbukti dan tidak perlu dikejar lagi.
 
-**Yang masih terbuka:** `continue-on-error: true` pada langkah E2E di `uji.yml`
-belum dicabut. Alasannya kini berbeda: lima kegagalan E2E yang tadinya tertutup
-sudah diperbaiki (lihat 2b), jadi pencabutan itu tinggal satu baris - tetapi
-belum dikerjakan, dan selama belum, CI hijau **tidak** membuktikan E2E lulus.
-Itu satu-satunya alasan hijau di CI saat ini belum bisa dipercaya sepenuhnya.
+**`continue-on-error` sudah DICABUT.** Sesudah lima kegagalan di 2b diperbaiki,
+satu putaran CI membuktikan 26/26 suite lulus di runner (375 detik), jadi
+alasan satu-satunya untuk mempertahankannya - "belum dipahami" - sudah hilang.
+Kini CI hijau **benar-benar** berarti E2E lulus; sebelumnya tidak.
 
 **`timeout 240 node ...` per skrip** tetap dipasang di `periksa.sh` dan tetap
 berguna: ia mengubah "menggantung tanpa kabar" menjadi "gagal dengan nama

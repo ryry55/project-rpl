@@ -318,12 +318,17 @@ seberapa besar kepercayaan pada hijau.
 | Orientasi lanskap ponsel | Waktu | 640×360 belum pernah diukur |
 | Uji luring sungguhan | `Network.emulateNetworkConditions` belum dipakai | Kerangka ter-cache, tetapi belum dibuktikan bisa dibuka tanpa jaringan |
 | Email sungguhan (Brevo) | Hanya Mailpit | Batas kirim Brevo dan reputasi domain belum diuji |
-| E2E di CI | Menggantung 17+ menit di runner, lulus 299 dtk lokal | Dicatat utang teknis; tidak ditebak |
+| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 26 skrip / 761 langkah lulus di runner, 375 dtk |
 | Tes komponen Vue | Tidak ada | Regresi di dalam komponen hanya tertangkap E2E |
 
-**E2E di CI adalah yang paling perlu diperhatikan.** Ia sudah `continue-on-error`
-dan `timeout-minutes: 20` supaya tidak memblokir. Penyebabnya tidak bisa
-direproduksi di laptop, dan menebak pada CI lebih mahal daripada manfaatnya.
+**E2E di CI sudah dipercaya lagi.** `continue-on-error` sudah **dicabut**;
+`timeout-minutes: 20` tetap sebagai jaring pengaman. Penyebab lamanya bukan
+E2E: `periksa.sh` ketinggalan dua skrip yang hanya ada di `periksa.ps1`,
+sehingga langkah paritas gagal dalam 34-41 detik - dan karena itu E2E tidak
+pernah benar-benar berjalan. Sesudah disamakan, E2E berjalan penuh dan
+membuka enam kegagalan yang selama ini tertutup: tiga balapan di skrip uji
+dan satu cacat layout nyata (halaman Tagihan bergulir mendatar di 360px).
+Semuanya sudah diperbaiki. Rincian: `docs/utang-teknis.md` 1 dan 2b.
 
 ---
 

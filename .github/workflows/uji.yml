@@ -8,7 +8,7 @@
 #           kesalahan format dan variabel mati dijawab dalam hitungan detik,
 #           bukan setelah sepuluh menit membangun image.
 #
-#   uji   - membangun image, menjalankan 715 tes PHP di dalam container, lalu
+#   uji   - membangun image, menjalankan 748 tes PHP di dalam container, lalu
 #           seluruh skrip uji browser terhadap Chrome headless.
 #
 # Kenapa uji browser TIDAK ditulis ulang memakai Playwright, padahal rencana
@@ -276,20 +276,23 @@ jobs:
       # ditambahkan dari Windows mudah masuk sebagai 644. Kegagalannya muncul
       # sebagai "exit code 126" - yang tidak menyebut izin sama sekali.
       #
-      # UTANG TEKNIS - `continue-on-error` ini harus DICABUT.
+      # `continue-on-error` DI SINI SUDAH DICABUT.
       #
-      # Rangkaian ini menggantung di runner (17+ menit, lalu kena timeout job)
-      # padahal lulus SEMUA LULUS 283 detik di laptop. Penyebabnya belum
-      # ditemukan, dan menebak pada pipa CI lebih mahal daripada manfaatnya.
-      # Langkah ini sengaja tidak memerahkan pipeline sampai penyebabnya jelas:
-      # pipeline yang merah karena hal yang belum dipahami akan diabaikan orang,
-      # dan setelah diabaikan ia tidak menjaga apa pun.
+      # Ia dipasang karena rangkaian ini dilaporkan menggantung di runner (17+
+      # menit, lalu kena timeout job) padahal lulus di laptop. Dugaan itu
+      # ternyata salah: setiap push merah dalam 34-41 detik di langkah PARITAS
+      # DAFTAR SKRIP, jauh sebelum E2E - `periksa.sh` ketinggalan dua skrip
+      # yang hanya ada di `periksa.ps1`. E2E sendiri tidak pernah menggantung;
+      # sesudah paritas diperbaiki ia selesai 375-407 detik.
       #
-      # Yang tetap MENAHAN di CI: pint, eslint, vite build, paritas daftar E2E,
-      # profil produksi, dan 715 tes PHP. Jadi kebenaran kode masih dijaga.
-      # Rincian dan rencana penutupan: docs/utang-teknis.md bagian 1.
+      # Mencabutnya membuka enam kegagalan yang selama ini tertutup: tiga
+      # balapan di skrip uji dan satu cacat layout nyata (halaman Tagihan
+      # bergulir mendatar di ponsel 360px). Semuanya sudah diperbaiki. Rincian:
+      # docs/utang-teknis.md bagian 1 dan 2b.
+      #
+      # Jangan pasang kembali. Pagar yang tidak menahan lebih buruk daripada
+      # tidak ada pagar, karena ia terlihat seperti pagar.
       - name: Uji browser dan uji balapan
-        continue-on-error: true
         timeout-minutes: 20
         run: bash periksa.sh --hanya-e2e
 

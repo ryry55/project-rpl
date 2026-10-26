@@ -24,8 +24,8 @@ Terakhir diperbarui: QRIS + materi sidang + perbaikan bukti - 26 Oktober 2026
 ## 2. Tiga aksi berikutnya
 
 1. **CI/CD.** `deploy.yml` masih mode peringatan (`siap=false`) karena target
-   Render/Neon belum ada. CI E2E **menggantung 17+ menit di runner** sementara
-   lulus ~390 detik di lokal - **utang teknis yang diterima**, jangan dikejar.
+   Render/Neon belum ada. CI **hijau**: 26 skrip / 761 langkah, 375 detik di
+   runner - catatan lama soal E2E "menggantung" keliru; paritasnya yang gagal.
 2. **Verifikasi Midtrans sandbox.** Butuh `MIDTRANS_SERVER_KEY` sungguhan; kode
    dan 16 tesnya lulus dengan kredensial palsu, tetapi transaksi sungguhan ke
    sandbox belum pernah terjadi.

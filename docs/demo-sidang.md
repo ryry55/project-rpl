@@ -233,8 +233,9 @@ persisten dan sudah dicadangkan.
 
 **"Apa yang belum selesai?"**
 Tiga hal, dan semuanya tercatat di `docs/utang-teknis.md`: **antrean email** masih sinkron (tanpa
-worker), **verifikasi Midtrans sandbox** menunggu kunci server, dan **uji E2E di CI** masih menggantung
-17+ menit sementara lulus ~7 menit di lokal. Tidak ada yang disembunyikan.
+worker), **verifikasi Midtrans sandbox** menunggu kunci server, dan **deploy Render/Neon** menunggu
+akun pemilik. Uji E2E di CI **sudah hijau** - 26 skrip / 761 langkah, 375 detik. Tidak ada yang
+disembunyikan.
 
 **"Bagaimana kalau angkanya dipertanyakan?"**
 Setiap perubahan angka punya jejak: `log_audit` mencatat aktor, waktu, nilai lama, dan nilai baru,

@@ -333,14 +333,26 @@ Service worker menyajikan kerangka dari cache.
    langkah yang direkomendasikan kepada pengguna — kalau perlu, berarti ada
    bug pada service worker.
 
-### 7.7 Uji E2E menggantung
+### 7.7 Uji E2E gagal di CI padahal lulus di lokal
 
-Sudah dicatat sebagai utang teknis. Di lokal 299 detik; di runner CI 17+ menit
-tanpa selesai. Penyebabnya tidak bisa direproduksi di laptop.
+Gejala ini nyata dan berulang, tetapi penyebabnya **bukan** E2E menggantung.
+Catatan lama di sini menyebut 17+ menit tanpa selesai; itu keliru. Yang gagal
+adalah langkah **paritas daftar skrip** dalam 34-41 detik, karena `periksa.sh`
+ketinggalan dua skrip yang hanya ada di `periksa.ps1`.
 
-Langkah di CI: `continue-on-error: true` dan `timeout-minutes: 20`. **Jangan
-menebak pada CI** — pipeline yang merah karena hal yang belum dipahami akan
-diabaikan orang.
+Cara mendiagnosisnya, dan ini yang berlaku umum:
+
+1. **Baca langkah mana yang merah, jangan percaya ringkasannya.** Job yang
+   merah dalam 36 detik tidak mungkin kehabisan waktu 30 menit.
+2. **Bandingkan daftar skrip kedua gate** dengan mengekstrak nama berkasnya,
+   bukan dengan mata.
+3. Kalau E2E benar-benar berjalan lalu gagal di runner tetapi lulus di lokal,
+   curigai **balapan**: asersi yang membaca daftar sebelum datanya tiba. Tanda
+   khasnya pesan "0 baris" atau "1 baris" - satu `<tr>` kosong dari
+   `BarisKosong.vue` selalu lebih dulu ada.
+
+`continue-on-error` sudah dicabut; jangan dipasang kembali. Pagar yang tidak
+menahan lebih buruk daripada tidak ada pagar, karena ia terlihat seperti pagar.
 
 ---
 

@@ -314,7 +314,12 @@ apa rencana penutupannya. Dua yang pertama saja tidak cukup — tanpa rencana,
 6. **Cek cache Chrome.** Kalau perubahan tidak terlihat, `_cdp.mjs` sudah
    mematikannya — tetapi jendela yang Anda buka manual tidak.
 
-**Jangan menebak pada pipa CI.** E2E yang menggantung di runner sudah dicatat
-sebagai utang teknis justru karena penyebabnya tidak bisa direproduksi di
-laptop. Menebak pada CI lebih mahal daripada manfaatnya — dan pipeline yang
-merah karena hal yang belum dipahami akan diabaikan orang.
+**Baca langkah mana yang merah sebelum menebak.** Pernah tercatat "E2E
+menggantung 17+ menit di runner", dan itu menyesatkan selama berbulan-bulan:
+job sebenarnya merah dalam **36 detik** di langkah paritas daftar skrip. Job
+yang gagal secepat itu tidak mungkin kehabisan waktu.
+
+Kalau E2E benar-benar berjalan lalu gagal di runner tetapi lulus di lokal,
+curigai **balapan** - asersi yang membaca daftar sebelum datanya tiba. Tanda
+khasnya "0 baris" atau "1 baris": `BarisKosong.vue` selalu merender satu
+`<tr>` kosong lebih dulu. Tunggu isinya, bukan keberadaan elemennya.
