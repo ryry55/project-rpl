@@ -212,7 +212,7 @@ yang tidak pernah ada.
 | Tidak ada manifest, service worker, theme-color | **Selesai.** `manifest.webmanifest`, `sw.js`, 4 ikon PNG, `theme-color`; dijaga `uji-pwa.mjs` 22 langkah |
 | Kepala pemilik memakan 360px dari 800px layar | **Selesai.** Terukur turun ke 203px |
 | Target sentuh di bawah 44px | **Selesai** untuk `(pointer: coarse)` |
-| Luberan mendatar di 360px | **Selesai** sejak commit `f2c73f0`, dijaga `uji-tata-letak.mjs` 94/94 |
+| Luberan mendatar di 360px | **Selesai.** Dijaga `uji-tata-letak.mjs` 94/94 dan `uji-kartu-tabel.mjs` 65/65 di runner CI maupun lokal. Perbaikan `f2c73f0` ternyata **tidak cukup** - lihat catatan di bawah |
 
 **Sisa yang belum dikerjakan:**
 
@@ -223,9 +223,16 @@ yang tidak pernah ada.
 | Uji luring sungguhan (matikan jaringan) | Kerangka ter-cache, tetapi belum pernah dibuktikan bisa dibuka tanpa jaringan | Bisa diuji dengan `Network.emulateNetworkConditions` |
 | `uji-pwa.mjs` memakai build produksi | Service worker tidak didaftarkan saat `npm run dev` | `periksa.sh` sudah memakai image, jadi aman di sana |
 
-**Catatan penting.** Luberan mendatar di 360px **sudah** diperbaiki (commit
-`f2c73f0`) dan dijaga `uji-tata-letak.mjs` 94/94. Jadi aplikasi sekarang *muat*
-di ponsel; yang belum adalah *nyaman*.
+**Catatan penting - dan koreksi.** Luberan mendatar di 360px **sudah**
+diperbaiki, tetapi bukan oleh commit `f2c73f0` seperti yang tertulis sebelumnya.
+Perbaikan itu (`.kepala { flex-wrap: wrap }`) hanya memindahkan kelompok tombol
+ke barisnya sendiri tanpa memampatkan isinya, sehingga lantai min-content tetap
+lebih lebar daripada layar dan luberannya hanya muncul di runner CI yang
+metrik fonnya berbeda. Yang benar-benar menutupnya: membuang `flex-shrink: 0`
+dari `.aksi-kepala` dan memberi `flex-wrap` pada `.aksi-kepala` maupun
+`.simulasi-kendali`. Diukur ulang: lantai halaman Tagihan turun 307px -> 218px.
+
+Jadi aplikasi sekarang *muat* di ponsel; yang belum adalah *nyaman*.
 
 ---
 
