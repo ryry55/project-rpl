@@ -266,7 +266,13 @@ if (-not $Cepat) {
             'uji-kartu-tabel.mjs', 'uji-pwa.mjs',
             # R5: "Belum ada ..." tidak boleh muncul saat pemuatan gagal
             # (REV-UI-04). Blokade 500 dipasang lewat CDP, bukan database.
-            'uji-galat-muat.mjs'
+            'uji-galat-muat.mjs',
+            # Fase 3.5: perintah pembuatan pemilik, penanda penyiapan, dan
+            # ekspor CSV. Ketiganya menambah permukaan yang tidak disentuh
+            # skrip mana pun di atas - perintah artisan yang tidak pernah
+            # dibuka lewat HTTP, panel yang hanya tampil saat kos belum siap,
+            # dan berkas yang diunduh alih-alih ditampilkan.
+            'e2e-fase35.mjs'
         )
 
         foreach ($s in $e2e) {

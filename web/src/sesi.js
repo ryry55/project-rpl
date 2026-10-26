@@ -143,6 +143,82 @@ function boleh(wewenang) {
   return Boolean(user.value?.wewenang?.includes(wewenang))
 }
 
+/**
+ * Unduh berkas dari endpoint yang mengembalikan CSV, bukan JSON.
+ *
+ * **Kenapa tidak memakai `panggil()`.** `panggil()` membaca badan respons
+ * sebagai teks lalu mencoba `JSON.parse`. Untuk CSV, percobaan itu gagal dan
+ * hasilnya dibungkus menjadi `{ message: <seluruh isi CSV> }` - jadi seluruh
+ * berkas ikut tertahan di memori sebagai satu objek JavaScript, lalu dibuang.
+ * Berkasnya tidak pernah sampai ke pemakai.
+ *
+ * **Kenapa `fetch` lalu `Blob`, bukan `<a href>` biasa.** Endpoint ekspor
+ * dijaga token Bearer di header `Authorization`. Tautan biasa tidak membawa
+ * header apa pun, sehingga permintaannya akan dijawab 401 - dan pemilik akan
+ * melihat "gagal mengunduh" pada fitur yang sebenarnya benar. Karena itu
+ * berkasnya diambil lewat `fetch`, baru kemudian dijadikan tautan sementara.
+ *
+ * **Kenapa `URL.revokeObjectURL` dipanggil.** Tanpa itu, setiap unduhan
+ * meninggalkan satu `Blob` yang ditahan peramban sampai tab ditutup. Pemilik
+ * yang mengekspor rekap setiap bulan selama setahun akan menahan dua belas
+ * salinan berkas keuangan di memori.
+ */
+async function unduhBerkas(path, opsi = {}) {
+  const res = await fetch(`${apiDasar}${path}`, {
+    headers: {
+      Accept: 'text/csv',
+      ...(token.value ? { Authorization: `Bearer ${token.value}` } : {}),
+      ...(opsi.headers || {}),
+    },
+  })
+
+  if (!res.ok) {
+    // Server menjawab JSON untuk penolakan (403, 422) walaupun endpointnya
+    // berektensi CSV. Pesannya diambil supaya layar bisa menyebut sebabnya -
+    // "tidak berhak" berbeda dari "rentang tanggal salah".
+    let pesan = `Unduhan gagal (${res.status})`
+    let rincian = {}
+
+    try {
+      const isi = await res.json()
+      pesan = isi?.message || pesan
+      rincian = isi?.errors || {}
+    } catch {
+      // Badan bukan JSON. Pesan bawaan dipertahankan.
+    }
+
+    const galat = new Error(pesan)
+    galat.status = res.status
+    galat.errors = rincian
+    throw galat
+  }
+
+  // Nama berkas diambil dari `Content-Disposition` supaya satu-satunya tempat
+  // yang menentukan nama adalah server. Menyusun nama di peramban berarti dua
+  // tempat harus setuju, dan yang satu akan tertinggal saat yang lain diubah.
+  const disposisi = res.headers.get('Content-Disposition') || ''
+  const cocok = /filename="?([^";]+)"?/.exec(disposisi)
+  const nama = cocok ? cocok[1] : 'ekspor.csv'
+
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+
+  try {
+    const tautan = document.createElement('a')
+    tautan.href = url
+    tautan.download = nama
+    document.body.appendChild(tautan)
+    tautan.click()
+    tautan.remove()
+  } finally {
+    // Ditunda satu putaran: beberapa peramban membatalkan unduhan bila objek
+    // URL dicabut pada tick yang sama dengan `click()`.
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+
+  return nama
+}
+
 export const sesi = {
   token,
   user,
@@ -152,6 +228,7 @@ export const sesi = {
   versiPdp,
   apiDasar,
   panggil,
+  unduhBerkas,
   masuk,
   muatSaya,
   keluar,

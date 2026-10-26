@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AturanController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DendaController;
+use App\Http\Controllers\Api\EksporController;
 use App\Http\Controllers\Api\FasilitasController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\KamarController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Api\PembayaranGatewayController;
 use App\Http\Controllers\Api\PengaturanNotifikasiController;
 use App\Http\Controllers\Api\PengelolaController;
 use App\Http\Controllers\Api\PenghuniController;
+use App\Http\Controllers\Api\PenyiapanController;
 use App\Http\Controllers\Api\PortalPenghuniController;
 use App\Http\Controllers\Api\RekeningController;
 use App\Http\Controllers\Api\TagihanController;
@@ -225,6 +227,16 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/rekap', [PembayaranController::class, 'rekap'])
                 ->name('rekap.index');
 
+            // Ekspor rekap (Fase 3.5). Ikut `peran:pemilik` dengan alasan yang
+            // sama persis seperti `/rekap` di atas: yang berbeda hanya bentuk
+            // keluarannya, dan berkas yang bisa dibawa pulang justru lebih
+            // berbahaya daripada layar yang harus dibuka dengan sesi.
+            //
+            // Didaftarkan SEBELUM `apiResource` mana pun tidak perlu: tidak ada
+            // rute `/ekspor/{id}` yang bisa tertabrak.
+            Route::get('/ekspor/rekap', [EksporController::class, 'rekap'])
+                ->name('ekspor.rekap');
+
             // Pemaafan denda (REV-FIN-07).
             //
             // `peran:pemilik`, bukan `wewenang:`: memaafkan denda berarti
@@ -289,6 +301,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
             Route::get('/kebijakan', [KebijakanController::class, 'index'])->name('kebijakan.index');
 
+            // Status penyiapan kos. Menjawab "apa yang belum ada dan mana yang
+            // harus lebih dulu" sebelum pemilik menabrak gerbangnya satu per
+            // satu. Dibaca dari data, bukan dari penanda yang bisa lupa
+            // disetel - lihat catatan kelas StatusPenyiapan.
+            //
+            // Tanpa `wewenang:`: pengelola yang baru ditambahkan ke kos yang
+            // belum lengkap adalah orang yang paling perlu melihat daftar ini,
+            // dan ia memang tidak punya wewenang untuk memperbaikinya sendiri.
+            Route::get('/penyiapan', [PenyiapanController::class, 'index'])
+                ->name('penyiapan.index');
+
             Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
             Route::get('/tunggakan', [TunggakanController::class, 'index'])
                 ->name('tunggakan.index');
@@ -309,6 +332,19 @@ Route::middleware('auth:sanctum')->group(function () {
             // yang dipersempit, melainkan pertanyaan yang memang miliknya.
             Route::get('/pembayaran/tunai-saya', [PembayaranController::class, 'tunaiSaya'])
                 ->name('pembayaran.tunai-saya');
+
+            // Ekspor tunggakan dan daftar pembayaran (Fase 3.5). Terbuka untuk
+            // pemilik DAN pengelola, sama seperti daftar yang diekspornya:
+            // pengelola yang menagih memang butuh daftar tunggakan di tangan,
+            // dan ia sudah bisa membaca layarnya. Menutup ekspornya hanya
+            // memaksanya menyalin dengan tangan - yang lebih rawan salah
+            // daripada berkas yang dihasilkan server.
+            //
+            // Yang TETAP hanya pemilik adalah `/ekspor/rekap` di atas.
+            Route::get('/ekspor/tunggakan', [EksporController::class, 'tunggakan'])
+                ->name('ekspor.tunggakan');
+            Route::get('/ekspor/pembayaran', [EksporController::class, 'pembayaran'])
+                ->name('ekspor.pembayaran');
 
             // Usulan perubahan (T26). Dibaca oleh pemilik dan pengelola - pengelola
             // perlu tahu nasib usulannya sendiri. Yang tidak boleh dibaca pengelola

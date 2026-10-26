@@ -145,6 +145,82 @@ async function bulanIni() {
   await muat()
 }
 
+/**
+ * Unduh rekap sebagai CSV.
+ *
+ * **Kenapa rentangnya diambil dari `data`, bukan dari isian `dari`/`sampai`.**
+ * Setelah pemilik menekan "Tampilkan", server mengembalikan rentang yang
+ * BENAR-BENAR dipakai - termasuk bawaan bulan berjalan bila isian dibiarkan
+ * kosong. Memakai isian formulir berarti mengirim rentang kosong, dan ekspornya
+ * akan memilih bawaannya sendiri lagi - yang kebetulan sama, sampai pemilik
+ * mengubah isian lalu menekan ekspor tanpa menekan "Tampilkan" lebih dulu.
+ * Saat itu terjadi, berkasnya berisi rentang yang berbeda dari angka di layar,
+ * dan tidak ada satu pun tanda di berkasnya yang mengatakan hal itu.
+ *
+ * **Kenapa hanya pemilik.** Server menolak pengelola pada endpoint ini
+ * (REV-SEC-06: rekap adalah gambaran utuh pendapatan kos). Tombolnya karena itu
+ * tidak dirender untuk pengelola - tombol yang pasti ditolak hanya membuat
+ * pengelola mengira aplikasinya rusak.
+ */
+const mengunduh = ref(false)
+const galatUnduh = ref('')
+const suksesUnduh = ref('')
+
+/**
+ * Unduh daftar pembayaran pada rentang yang sama dengan rekap.
+ *
+ * **Kenapa dua tombol, bukan satu.** Rekap menjawab "berapa uang masuk per
+ * metode"; daftar pembayaran menjawab "yang mana saja". Keduanya dipakai untuk
+ * keperluan berbeda - rekap untuk memeriksa total, daftar untuk mencocokkan
+ * satu per satu dengan mutasi bank - dan menggabungkannya menjadi satu berkas
+ * berarti salah satu keperluan harus membuang bagian yang tidak dipakainya.
+ *
+ * Berbeda dari rekap, yang ini juga boleh diunduh pengelola: ia yang mencatat
+ * pembayaran, dan daftar ini sudah bisa ia baca di layar.
+ */
+async function unduhPembayaran() {
+  mengunduh.value = true
+  galatUnduh.value = ''
+  suksesUnduh.value = ''
+
+  try {
+    const kueri = new URLSearchParams({
+      dari: data.value?.dari || dari.value,
+      sampai: data.value?.sampai || sampai.value,
+    })
+
+    const nama = await sesi.unduhBerkas(`/ekspor/pembayaran?${kueri}`)
+    suksesUnduh.value = `Berkas ${nama} diunduh.`
+  } catch (e) {
+    galatUnduh.value = pesanGalat(e)
+  } finally {
+    mengunduh.value = false
+  }
+}
+
+async function unduhRekap() {
+  mengunduh.value = true
+  galatUnduh.value = ''
+  suksesUnduh.value = ''
+
+  try {
+    const kueri = new URLSearchParams()
+    if (data.value?.dari) {
+      kueri.set('dari', data.value.dari)
+    }
+    if (data.value?.sampai) {
+      kueri.set('sampai', data.value.sampai)
+    }
+
+    const nama = await sesi.unduhBerkas(`/ekspor/rekap?${kueri}`)
+    suksesUnduh.value = `Berkas ${nama} diunduh.`
+  } catch (e) {
+    galatUnduh.value = pesanGalat(e)
+  } finally {
+    mengunduh.value = false
+  }
+}
+
 onMounted(muat)
 </script>
 
@@ -181,7 +257,41 @@ onMounted(muat)
           {{ memuat ? 'Memuat…' : 'Tampilkan' }}
         </button>
         <button type="button" class="halus" @click="bulanIni">Bulan ini</button>
+        <button
+          v-if="rekapPenuh && data"
+          type="button"
+          class="halus"
+          :disabled="mengunduh"
+          @click="unduhRekap"
+        >
+          {{ mengunduh ? 'Mengunduh…' : 'Ekspor rekap' }}
+        </button>
+        <!--
+          Hanya di layar rekap PENUH (pemilik).
+
+          Layar pengelola menampilkan "Uang tunai saya" - satu potongan yang
+          sengaja dipersempit (REV-SEC-06). Menaruh tombol "Ekspor pembayaran"
+          di sana akan menghasilkan berkas berisi SELURUH pembayaran kos,
+          sementara judul di atasnya menjanjikan angka miliknya sendiri. Orang
+          yang menekannya akan mengira berkasnya hanya berisi uangnya.
+
+          Endpoint `/ekspor/pembayaran` sendiri tetap terbuka untuk pengelola,
+          karena `/pembayaran` memang sudah bisa ia baca - jadi ini bukan
+          kebocoran baru, melainkan tombol yang menyesatkan. Kebutuhan ekspor
+          pengelola sudah terpenuhi oleh daftar tunggakan, yang memang miliknya.
+        -->
+        <button
+          v-if="rekapPenuh && data"
+          type="button"
+          class="halus"
+          :disabled="mengunduh"
+          @click="unduhPembayaran"
+        >
+          Ekspor pembayaran
+        </button>
       </div>
+      <p v-if="galatUnduh" class="galat-bidang">{{ galatUnduh }}</p>
+      <p v-if="suksesUnduh" class="bantuan mungil">{{ suksesUnduh }}</p>
       <p v-if="data" class="bantuan mungil">
         Dihitung dari tanggal pembayaran (uang masuk), bukan tanggal tagihan.
         Tagihan Oktober yang dibayar November menambah kas November.

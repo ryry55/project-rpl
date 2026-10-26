@@ -80,6 +80,38 @@ async function muat() {
 }
 
 onMounted(muat)
+
+/**
+ * Unduh daftar tunggakan sebagai CSV.
+ *
+ * Berbeda dari ekspor rekap, yang ini juga terbuka untuk pengelola: dialah yang
+ * menagih, dan daftar ini memang sudah bisa ia baca di layar. Menutup
+ * ekspornya hanya memaksanya menyalin dengan tangan ke WhatsApp satu per satu -
+ * lebih lambat, dan lebih rawan salah sebut nominal.
+ *
+ * Tanggal acuannya tidak dikirim: `/tunggakan` sengaja tidak menerima parameter
+ * tanggal (dua jalur penggeseran tanggal akan menghasilkan dua tanggal acuan
+ * berbeda untuk tagihan yang sama). Ekspornya memakai acuan yang sama dengan
+ * layar, yaitu "hari ini" menurut server.
+ */
+const mengunduh = ref(false)
+const galatUnduh = ref('')
+const suksesUnduh = ref('')
+
+async function unduhTunggakan() {
+  mengunduh.value = true
+  galatUnduh.value = ''
+  suksesUnduh.value = ''
+
+  try {
+    const nama = await sesi.unduhBerkas('/ekspor/tunggakan')
+    suksesUnduh.value = `Berkas ${nama} diunduh.`
+  } catch (e) {
+    galatUnduh.value = pesanGalat(e)
+  } finally {
+    mengunduh.value = false
+  }
+}
 </script>
 
 <template>
@@ -88,7 +120,21 @@ onMounted(muat)
       <template #keterangan>
         {{ ringkasan.jumlah }} tagihan belum lunas · denda {{ rupiah(ringkasan.total_denda) }}
       </template>
+      <template #aksi>
+        <button
+          v-if="data && ringkasan.jumlah > 0"
+          type="button"
+          class="halus"
+          :disabled="mengunduh"
+          @click="unduhTunggakan"
+        >
+          {{ mengunduh ? 'Mengunduh…' : 'Ekspor CSV' }}
+        </button>
+      </template>
     </KepalaHalaman>
+
+    <p v-if="galatUnduh" class="galat-bidang">{{ galatUnduh }}</p>
+    <p v-if="suksesUnduh" class="bantuan mungil">{{ suksesUnduh }}</p>
 
     <KendaliSimulasi
       :dipakai="simulasiDipakai"

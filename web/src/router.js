@@ -16,6 +16,7 @@ import AturanView from './views/pemilik/AturanView.vue'
 import PersetujuanView from './views/pemilik/PersetujuanView.vue'
 import PengaturanNotifikasiView from './views/pemilik/PengaturanNotifikasiView.vue'
 import PengelolaView from './views/pemilik/PengelolaView.vue'
+import BantuanView from './views/pemilik/BantuanView.vue'
 import DashboardPenghuni from './views/DashboardPenghuni.vue'
 import AturSandiView from './views/AturSandiView.vue'
 import LupaSandiView from './views/LupaSandiView.vue'
@@ -160,6 +161,15 @@ const routes = [
         // Hanya pemilik: siapa pun yang boleh memberi wewenang pada dasarnya
         // boleh memberi dirinya wewenang apa pun, termasuk mengubah tarif.
         meta: { peranSaja: 'pemilik' },
+      },
+      // Bantuan paling bawah: dibuka saat ada yang tidak berjalan, bukan
+      // setiap hari. Terbuka untuk pemilik DAN pengelola - pengelola adalah
+      // orang yang paling sering menerima pertanyaan "kenapa tidak bisa", dan
+      // sebagian jawabannya memang bukan wewenangnya sendiri.
+      {
+        path: 'bantuan',
+        name: 'pemilik-bantuan',
+        component: BantuanView,
       },
     ],
   },

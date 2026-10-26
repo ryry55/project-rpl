@@ -346,9 +346,21 @@ button.mungil {
   margin: 0;
 }
 
-/* Deretan tombol aksi formulir. */
+/* Deretan tombol aksi formulir.
+ *
+ * `flex-wrap` WAJIB, dan alasannya sama persis dengan `.kepala` di atas: tanpa
+ * ini, tiga tombol dipaksa satu baris, dan jumlah lebar minimumnya melebihi
+ * layar 360px - sehingga SELURUH dokumen bergulir mendatar. Gejalanya tidak
+ * terlihat sebagai "tombolnya sempit", melainkan sebagai "halamannya bergeser",
+ * dan itu membuat orang mengira tata letaknya rusak.
+ *
+ * Terjadi sungguhan saat tombol "Ekspor rekap" dan "Ekspor pembayaran"
+ * ditambahkan ke halaman Rekap: `uji-tata-letak.mjs` melaporkan dokumen 424px
+ * pada viewport 360px. Dua tombol sebelumnya kebetulan masih muat.
+ */
 .aksi {
   display: flex;
+  flex-wrap: wrap;
   gap: 9px;
 }
 

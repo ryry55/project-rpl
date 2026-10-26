@@ -254,6 +254,64 @@ Mailpit, alamat kosong) - dua harus ditolak, dua harus diloloskan.
    keadaan yang benar. Pagar yang menyala di situ akan memaksa orang
    mematikannya. Karena itu pagarnya memeriksa `MAIL_HOST`.
 
+### 4c. FASE 3.5 — SELESAI dan dibuktikan bisa gagal (26 Okt 2026)
+
+Fase ini mengubah aplikasi dari "benar saat diuji" menjadi "bisa dipakai orang
+yang baru pertama melihatnya". Isinya bukan fitur baru, melainkan empat hal yang
+selama ini hanya ada di kepala pengembang.
+
+| Butir | Status | Bukti |
+|---|---|---|
+| **1. `kos:buat-pemilik`** | **Selesai** | 10 tes, 35 asersi. `uji-pagar-buat-pemilik.sh`: **4 cacat, 4 tertangkap** |
+| **2. `GET /penyiapan`** | **Selesai** | 12 tes, 40 asersi. `uji-pagar-penyiapan.sh`: **4 cacat, 4 tertangkap** |
+| **3. Ekspor CSV** | **Selesai** | 15 tes, 47 asersi. `uji-pagar-ekspor.sh`: **6 cacat, 6 tertangkap** |
+| **4. Panduan penyiapan + halaman Bantuan** | **Selesai** | `e2e-fase35.mjs` 18/18, termasuk berkas yang benar-benar terunduh (1183 byte, BOM terverifikasi) |
+| **5. SOP email gagal** | **Selesai** | `8_OPERATIONS_SOP.md` §7.4.1; perintah pemulihannya **dijalankan** dan menghasilkan tautan yang sah |
+
+**Empat hal yang rencana awal salah:**
+
+1. **Tes HTTP tidak bisa menguji netralisasi angka di CSV.** Controller mengirim
+   `(int) $jumlah`, jadi nilainya sudah bertipe int saat mencapai `EksporCsv` dan
+   cabang "string yang isinya angka" tidak pernah dilewati. Ketika cacatnya
+   disuntikkan, seluruh tes HTTP tetap lulus — terbaca sebagai "pagar terpasang"
+   padahal pagarnya tidak pernah diuji. Diperbaiki dengan tes penulis langsung.
+
+2. **`trustProxies` bukan satu-satunya tempat IP hilang, dan `uji-proxy.mjs`
+   hanya didaftarkan di `periksa.ps1`.** Pagar paritas CI karena itu gagal sejak
+   `c331d60`, dan di Linux/CI cacat A1 tidak pernah diuji. Kegagalan yang terlihat
+   seperti "daftar berbeda" sebenarnya berarti "satu pagar tidak pernah dipasang".
+   `periksa.sh` sekarang menjalankan bagian "Jalur proxy" yang setara.
+
+3. **`sed` dengan regex ber-backslash ganda adalah cara menyuntikkan cacat yang
+   gagal secara diam.** Percobaan pertama menghasilkan `bad regex`, suntikan tidak
+   terpasang, lalu `set -e` menghentikan skrip sebelum cacat 5 dan 6 diuji — dan
+   keluarannya terbaca seperti "hanya 4 cacat yang perlu diuji". Diganti `php -r`.
+
+4. **`Browser.setDownloadBehavior` menerima path menurut OS peramban, bukan OS
+   skrip.** Chrome berjalan di Windows sementara skripnya menulis `/tmp/...`;
+   akibatnya `downloadWillBegin` tetap terkirim — jadi "unduhan dimulai" lulus —
+   tetapi `receivedBytes` tetap 0 dan status `completed` tidak pernah datang.
+   Diperbaiki dengan `os.tmpdir()`.
+
+**Keputusan yang diambil, dan alasannya:**
+
+- **`kos:buat-pemilik` adalah perintah artisan, bukan endpoint.** Tidak ada cara
+  membuktikan bahwa pemanggil sebuah endpoint berhak membuat akun pemilik
+  pertama — pada saat itu belum ada pemilik yang bisa memberi izin. Setiap
+  endpoint semacam itu adalah pintu belakang yang tidak bisa ditutup.
+- **`StatusPenyiapan` menghitung dari data hidup, bukan menyimpan penanda.**
+  Penanda tersimpan bisa bernilai benar sementara datanya sudah hilang, dan
+  pemulihan dari cadangan tidak akan pernah membersihkannya.
+- **Ekspor `rekap` berbentuk laporan (berjudul); `tunggakan` dan `pembayaran`
+  berbentuk tabel bersih.** Rekap memang dokumen dua bagian yang untuk dibaca;
+  dua lainnya untuk diimpor ke pembukuan yang sudah ada.
+- **Tombol "Ekspor pembayaran" hanya di layar rekap pemilik.** Layar pengelola
+  berjudul "Uang tunai saya", sedangkan berkasnya berisi seluruh pembayaran —
+  tombol yang menyesatkan, walaupun datanya sudah bisa ia baca lewat `/pembayaran`.
+- **Halaman Bantuan tidak punya tombol "hubungi dukungan".** Tidak ada tim
+  dukungan di balik pemasangan mandiri; tombol yang membuka surel ke alamat yang
+  tidak pernah dibaca lebih buruk daripada tidak ada tombol.
+
 ---
 
 ## 5. Konsistensi dokumen (LANGKAH 11, T23)

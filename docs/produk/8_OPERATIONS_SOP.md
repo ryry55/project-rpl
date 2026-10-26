@@ -315,6 +315,80 @@ Kegagalan email **tidak pernah** menggagalkan permintaan. Ia ditangkap dan
 `Log::warning`. Jadi tagihan yang terbit dengan email gagal tetap terbit —
 periksa log, bukan respons HTTP.
 
+#### 7.4.1 Memulihkan tautan aktivasi yang tidak sampai
+
+Ini kasus yang paling sering terjadi, dan paling merugikan: akunnya sudah ada
+tetapi orangnya tidak pernah bisa masuk.
+
+**Gejalanya di layar.** Setelah pemilik menambah penghuni, layar menampilkan
+peringatan bahwa tautan aktivasi **gagal dikirim** — bukan pesan sukses. Server
+mengirim `meta.tautan_aktivasi_terkirim: false` justru supaya layar bisa
+membedakan dua keadaan ini. Kalau peringatan itu muncul, jangan menunggu.
+
+**Urutan pemeriksaan.**
+
+```bash
+# 1. Apakah percobaannya tercatat? Ini satu-satunya tempat sebabnya tertulis.
+docker compose logs api | Select-String "Tautan akun gagal dikirim"
+```
+
+Baris log itu memuat `jenis`, `penerima`, dan `sebab`. `sebab` adalah pesan dari
+SMTP, dan biasanya sudah cukup untuk menentukan langkah berikutnya:
+
+| `sebab` berisi | Artinya | Yang dilakukan |
+|---|---|---|
+| `Connection refused` / `Could not connect` | `MAIL_HOST`/`MAIL_PORT` salah, atau server SMTP mati | Perbaiki variabel lingkungan, lalu kirim ulang |
+| `535` / `authentication failed` | `MAIL_USERNAME`/`MAIL_PASSWORD` salah atau kedaluwarsa | Perbarui kredensial SMTP |
+| `550` / `sender address rejected` | `MAIL_FROM_ADDRESS` belum diverifikasi di penyedia | Verifikasi alamat pengirim lebih dulu |
+| `Tautan akun gagal dikirim` **tidak ada** | Emailnya sebenarnya terkirim | Masalahnya di penerima: spam, alamat salah ketik, atau kotak penuh |
+
+**Memperbaiki alamat yang salah ketik.** Alamat email pada akun tidak bisa
+diubah pemilik; yang tersedia adalah menghapus penghuni lalu menambahkannya
+kembali dengan alamat yang benar. Penghuni yang sudah punya kontrak **tidak
+bisa dihapus** (ada `RESTRICT` pada kontrak), jadi perbaiki alamatnya lebih dulu
+sebelum kontrak dibuat — inilah sebabnya urutan penyiapan menaruh penghuni
+sebelum kontrak.
+
+**Mengirim ulang setelah penyebabnya diperbaiki.** Jangan membuat akun baru:
+akun lama sudah benar, dan membuat yang baru menghasilkan dua baris untuk orang
+yang sama. Gunakan tombol **Kirim ulang aktivasi** di layar Penghuni (atau
+Pengelola). Tombol itu menerbitkan token baru dan membatalkan yang lama, jadi
+tautan dari email sebelumnya berhenti berlaku.
+
+**Masa berlaku tautan.** Token aktivasi dan reset punya tenggat dalam **menit**,
+bukan hari, dan tenggatnya dihitung dari jam sungguhan — bukan dari tanggal
+simulasi demo. Tautan yang dikirim kemarin karena itu sudah kedaluwarsa hari
+ini, dan itu memang yang diinginkan: tautan aktivasi adalah kunci masuk, dan
+kunci masuk yang berlaku selamanya adalah kunci yang tidak pernah diganti.
+
+**Kalau email sama sekali tidak bisa dipakai.** Aplikasi ini tidak punya jalur
+cadangan untuk menetapkan sandi penghuni dari sisi pemilik — itu disengaja
+(T27: pemilik tidak pernah memegang sandi siapa pun). Pilihan yang tersisa:
+
+1. Perbaiki pengaturan SMTP. Ini jalur yang benar, dan biasanya hanya salah satu
+   dari empat baris tabel di atas.
+2. Untuk pemakaian mendesak, terbitkan tautan aktivasi langsung dari server:
+
+   ```bash
+   php artisan tinker --execute="
+   \$u = \App\Models\User::where('email', 'penghuni@contoh.id')->firstOrFail();
+   \$t = app(\App\Domain\Akun\TautanAkun::class)
+       ->terbitkan(\$u, \App\Models\TokenAkun::JENIS_AKTIVASI);
+   echo config('app.url_spa').'/atur-sandi?token='.\$t.'&jenis=aktivasi';
+   "
+   ```
+
+   Kirimkan tautannya lewat kanal lain, lalu **perbaiki SMTP-nya** — jalur ini
+   meninggalkan tautan yang tidak pernah dikirim aplikasi, sehingga tidak ada
+   catatan pengiriman yang bisa diperiksa nanti.
+
+   Perhatikan bentuk tautannya: `jenis=aktivasi` **wajib ikut**. Tanpa parameter
+   itu, `POST /atur-sandi` menebaknya sebagai `reset` dan menolak tautannya
+   dengan 410 — pesan yang membingungkan, karena tautannya sebenarnya sah.
+
+   `terbitkan` menghapus token lama yang belum dipakai lebih dulu, jadi tautan
+   dari email sebelumnya langsung berhenti berlaku begitu perintah ini jalan.
+
 ### 7.5 Data tidak terlihat setelah login
 
 1. `GET /api/me` → periksa `peran` dan `wewenang[]`.

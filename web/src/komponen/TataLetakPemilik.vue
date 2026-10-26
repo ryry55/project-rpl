@@ -79,6 +79,10 @@ const semuaMenu = [
   // Paling bawah karena dibuka paling jarang: sekali saat menambah orang,
   // lalu tidak lagi.
   { nama: 'pengelola', label: 'Pengelola', ket: 'Siapa membantu dan boleh apa', hanyaPemilik: true },
+  // Bantuan diletakkan paling akhir dan tanpa `wewenang`: ia bukan tindakan
+  // atas data kos, dan justru dibutuhkan orang yang wewenangnya terbatas -
+  // pengelola yang menerima penolakan atas hal yang bukan urusannya.
+  { nama: 'bantuan', label: 'Bantuan', ket: 'Kenapa ini tidak bisa saya lakukan' },
 ]
 
 const menu = computed(() =>

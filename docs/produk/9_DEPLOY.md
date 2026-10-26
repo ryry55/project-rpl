@@ -133,15 +133,39 @@ seeder dimatikan, dan tanpa akun tidak ada yang bisa masuk:
 
 ```bash
 # Jalankan sekali dari dashboard Render → Shell
-php artisan tinker --execute="
-\App\Models\User::create([
-  'name' => 'Nama Pemilik',
-  'email' => 'pemilik@domain-anda.id',
-  'password' => \Illuminate\Support\Facades\Hash::make('sandi-yang-kuat'),
-  'peran' => \App\Models\User::PERAN_PEMILIK,
-]);
-"
+php artisan kos:buat-pemilik
 ```
+
+Perintah itu menanyakan nama, email, dan sandi satu per satu. Sandi **tidak
+ditampilkan** saat diketik dan tidak masuk ke riwayat shell. Bila sandi
+dibiarkan kosong, sistem membuatkan sandi acak dan menampilkannya sekali -
+dalam hal itu akun ditandai wajib ganti sandi saat pertama masuk.
+
+**Kenapa bukan `php artisan tinker` lagi.** Blok lama membuat baris `User`
+langsung dari shell, dan itu melewati empat hal yang semuanya penting:
+
+| Yang dilewati | Akibatnya |
+|---|---|
+| Pemeriksaan jumlah pemilik | Dua pemilik bisa ada tanpa ada yang menyadarinya, dan keduanya melihat data yang sama |
+| Aturan panjang sandi | Sandi satu huruf diterima, padahal jalur HTTP menolaknya - jadi aturan yang diuji bukan aturan yang dipakai |
+| Penandaan wajib ganti sandi | Sandi yang diketik di shell orang lain tetap berlaku selamanya |
+| Jejak audit `pemilik.tambah` | Tidak ada catatan bahwa akun pemilik pernah dibuat, oleh siapa, dan kapan |
+
+Perintah ini juga menolak berjalan bila sudah ada pemilik, kecuali diberi
+`--paksa`. Penolakan itu disengaja: akun pemilik kedua adalah perubahan
+kepemilikan, bukan penambahan pengguna biasa.
+
+```bash
+# Menambah pemilik kedua (mis. kos diwariskan) - harus disengaja
+php artisan kos:buat-pemilik --paksa
+```
+
+Perintah ini **tidak punya endpoint HTTP**, dan itu keputusan, bukan kekurangan.
+Tidak ada cara membuktikan bahwa pemanggil sebuah endpoint berhak membuat akun
+pemilik pertama - pada saat itu belum ada pemilik yang bisa memberi izin. Setiap
+endpoint semacam itu adalah pintu belakang yang tidak bisa ditutup. Yang bisa
+memberi izin adalah akses ke server itu sendiri, dan siapa pun yang punya akses
+itu sudah bisa membaca seluruh basis data secara langsung.
 
 ---
 

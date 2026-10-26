@@ -78,6 +78,40 @@ skema. Mengerjakannya setelah fase lain berarti menguji ulang semuanya.
 
 ---
 
+## FASE 0.5 — Agar bisa dipakai orang yang baru pertama melihatnya (½ hari)
+
+**Dikerjakan 26 Okt 2026, sebelum Fase 1, karena tidak butuh akun apa pun.**
+
+Fase ini menjawab satu pertanyaan yang tidak dijawab tes mana pun: *apakah orang
+yang baru menerima aplikasi ini bisa memakainya tanpa bertanya?* Semua tes yang
+ada menjawab "apakah aplikasinya benar", dan jawabannya ya. Yang tidak dijawab
+adalah "apakah orangnya tahu harus mulai dari mana".
+
+| # | Pekerjaan | Bukti |
+|---|---|---|
+| 0.5.1 | Perintah `kos:buat-pemilik`, menggantikan blok `tinker` di `9_DEPLOY.md` | 10 tes; 4 cacat disuntikkan, 4 tertangkap |
+| 0.5.2 | `GET /penyiapan` — status penyiapan dihitung dari data hidup | 12 tes; 4 cacat, 4 tertangkap |
+| 0.5.3 | Ekspor CSV rekap / tunggakan / pembayaran | 15 tes; 6 cacat, 6 tertangkap; berkas terunduh diverifikasi 1183 byte + BOM |
+| 0.5.4 | Penanda penyiapan di halaman muka + halaman Bantuan | `e2e-fase35.mjs` 18/18 |
+| 0.5.5 | SOP pemulihan email gagal (`8_OPERATIONS_SOP.md` §7.4.1) | Perintahnya dijalankan dan menghasilkan tautan sah |
+
+> **Batas yang harus dikatakan.** Fase ini **tidak** memperbaiki A3 (penjadwal
+> mati bersama container) dan **tidak** menggantikan Fase 1. Yang ia lakukan
+> adalah memastikan bahwa setelah deploy pertama berhasil, pemilik kos bisa
+> menyiapkan kosnya sendiri tanpa membaca kode.
+
+**Dua temuan yang muncul di fase ini dan berlaku di luar fase ini:**
+
+1. **`uji-proxy.mjs` hanya didaftarkan di `periksa.ps1`.** Pagar paritas CI sudah
+   merah sejak `c331d60`, dan di Linux/CI cacat A1 tidak pernah diuji sama sekali.
+   Kegagalan yang terbaca "daftar skrip berbeda" sebenarnya berarti "satu pagar
+   tidak pernah dipasang". `periksa.sh` sekarang setara.
+2. **Tes HTTP tidak bisa menguji netralisasi angka CSV.** Controller mengirim
+   `(int)`, sehingga cabang yang diuji tidak pernah dilewati dan cacatnya lulus.
+   Ditutup dengan tes penulis langsung.
+
+---
+
 ## FASE 1 — Deploy sungguhan ke Render + Neon (1 hari, butuh akun)
 
 Ini bukan pekerjaan kode. Ini **pengujian yang belum pernah dijalankan**, dan

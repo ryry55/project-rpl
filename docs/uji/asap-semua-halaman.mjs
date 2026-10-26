@@ -321,6 +321,10 @@ jalankan(async () => {
     // yang paling mudah lolos - tidak ada baris untuk memicu satu pun cabang.
     ['/pemilik/persetujuan', 'Persetujuan'],
     ['/pemilik/pengaturan-notifikasi', 'Pengaturan notifikasi'],
+    // Bantuan (Fase 3.5) ikut disapu. Ia satu-satunya halaman yang isinya
+    // seluruhnya teks dan tautan - tidak ada tabel, tidak ada formulir - jadi
+    // kesalahan render di sini tidak akan tertangkap tes lain mana pun.
+    ['/pemilik/bantuan', 'Bantuan'],
   ]
   for (const [jalur, nama] of halamanPemilik) {
     await kunjungi(jalur, nama)

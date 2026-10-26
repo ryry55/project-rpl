@@ -268,6 +268,12 @@ if [ "$CEPAT" -eq 0 ]; then
             # R5: "Belum ada ..." tidak boleh muncul saat pemuatan gagal
             # (REV-UI-04). Blokade 500 dipasang lewat CDP, bukan database.
             uji-galat-muat.mjs
+            # Fase 3.5: perintah pembuatan pemilik, penanda penyiapan, dan
+            # ekspor CSV. Ketiganya menambah permukaan yang tidak disentuh
+            # skrip mana pun di atas - perintah artisan yang tidak pernah
+            # dibuka lewat HTTP, panel yang hanya tampil saat kos belum siap,
+            # dan berkas yang diunduh alih-alih ditampilkan.
+            e2e-fase35.mjs
         )
 
         tutup_tab() {
@@ -326,6 +332,37 @@ if [ "$CEPAT" -eq 0 ]; then
             akhir="$(printf '%s\n' "$hasil" | grep -E 'langkah lulus' | tail -n1)"
             catat "$s" "$([ "$kode" -eq 0 ] && echo 0 || echo 1)" "$akhir"
         done
+
+        # Jalur proxy (FASE 0.1b).
+        #
+        # Skrip ini HARUS lewat port proxy (:3000), bukan port API langsung
+        # (:8081). Pada jalur langsung tidak ada yang menambahkan
+        # `X-Forwarded-For`, sehingga ujinya akan lulus meski perbaikannya
+        # tidak ada - dan uji yang lulus tanpa perbaikan lebih buruk daripada
+        # tidak ada uji.
+        #
+        # Skrip ini sempat HANYA didaftarkan di `periksa.ps1`. Akibatnya pagar
+        # paritas di `.github/workflows/uji.yml` gagal sejak commit yang
+        # menambahkannya, dan yang lebih penting: di Linux/CI, cacat A1 tidak
+        # pernah diuji sama sekali. Kegagalan yang terlihat seperti "daftar
+        # berbeda" itu sebenarnya berarti "satu pagar tidak pernah dipasang".
+        #
+        # Cache dibersihkan lebih dulu karena pembatas periksa-token menyimpan
+        # hitungannya di sana; sisa hitungan dari skrip sebelumnya akan membuat
+        # ujinya gagal karena sebab yang tidak ada hubungannya.
+        judul 'Jalur proxy'
+        docker compose exec -T api php artisan cache:clear >/dev/null 2>&1
+        if command -v timeout >/dev/null 2>&1; then
+            hasil="$(timeout 240 node docs/uji/uji-proxy.mjs 2>&1)"
+        else
+            hasil="$(node docs/uji/uji-proxy.mjs 2>&1)"
+        fi
+        kode=$?
+        akhir="$(printf '%s\n' "$hasil" | grep -E 'langkah lulus' | tail -n1)"
+        catat 'uji-proxy.mjs' "$([ "$kode" -eq 0 ] && echo 0 || echo 1)" "$akhir"
+        if [ "$kode" -ne 0 ]; then
+            printf '%s\n' "$hasil" | grep -E '^GAGAL' | sed 's/^/    /'
+        fi
     else
         catat "Chrome di $CDP_LABEL" 1 'uji browser dilewati'
     fi

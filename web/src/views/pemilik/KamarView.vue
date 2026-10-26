@@ -6,6 +6,7 @@ import KepalaHalaman from '../../komponen/ui/KepalaHalaman.vue'
 import PesanBaris from '../../komponen/ui/PesanBaris.vue'
 import LencanaStatus from '../../komponen/ui/LencanaStatus.vue'
 import BarisKosong from '../../komponen/ui/BarisKosong.vue'
+import PanduanPenyiapan from '../../komponen/PanduanPenyiapan.vue'
 
 const daftar = ref([])
 const memuat = ref(true)
@@ -251,6 +252,28 @@ onMounted(muat)
 
     <PesanBaris v-if="galatMuat" jenis="galat">{{ galatMuat }}</PesanBaris>
     <PesanBaris v-if="suksesFasilitas" jenis="sukses">{{ suksesFasilitas }}</PesanBaris>
+
+    <!--
+      Penanda urutan penyiapan, hanya untuk pemilik.
+
+      Ditaruh di halaman Kamar karena inilah halaman muka pemilik (lihat
+      `halamanMuka` di router). Menaruhnya di halaman tersendiri berarti pemilik
+      harus tahu ia ada lebih dulu - dan orang yang belum tahu urutan penyiapan
+      adalah orang yang paling tidak akan mencarinya.
+
+      Tidak dirender untuk pengelola: langkah-langkahnya (kebijakan, rekening)
+      memang bukan wewenangnya, dan daftar berisi tombol yang pasti ditolak
+      hanya membuatnya merasa aplikasinya rusak.
+
+      **Juga tidak dirender saat `galatMuat`.** Ini bukan kerapian: penanda ini
+      menjawab "apa yang masih kurang", dan jawaban itu hanya masuk akal bila
+      halaman memang berhasil membaca keadaannya. Saat daftar kamar gagal
+      dimuat, menampilkan "Belum ada kamar sama sekali" di atas pesan galat
+      membuat layar menyatakan dua hal yang bertentangan - dan yang dipercaya
+      orang adalah yang lebih spesifik, yaitu daftar langkahnya. Uji
+      `uji-galat-muat.mjs` menangkap tepat kekeliruan ini.
+    -->
+    <PanduanPenyiapan v-if="sesi.user.value?.peran === 'pemilik' && !galatMuat" />
 
     <section v-if="formTerbuka" class="kartu panel">
       <h2>Tambah kamar</h2>
