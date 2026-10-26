@@ -335,6 +335,17 @@ jalankan(async () => {
     )
     lapor('pengelola bisa membuka halaman Persetujuan', persetujuanPengelola)
 
+    // Menunggu isinya, bukan hanya judulnya. `h1` sudah ada sejak komponen
+    // dipasang, jauh sebelum `/usulan` menjawab, sehingga menghitung
+    // `.satu-usulan` tepat sesudahnya membaca daftar yang masih kosong dan
+    // melaporkan "0 baris" - padahal usulannya ada. Jalur pemilik di bawah
+    // sudah menunggu dengan benar; jalur pengelola ini yang tertinggal, dan
+    // itu sebabnya kegagalannya hanya muncul di runner yang lebih lambat.
+    await tungguSampai(
+      ws,
+      `[...document.querySelectorAll('.satu-usulan')].some(a => a.textContent.includes('1.750.000'))`,
+      15000,
+    )
     const tampilanPengelola = await evaluasi(
       ws,
       `({
