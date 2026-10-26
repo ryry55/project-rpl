@@ -28,6 +28,12 @@ pengujian selama ini berjalan di laptop, dan laptop tidak pernah begitu.
 **Pelajaran yang berlaku umum:** pagar yang hanya diuji di satu lingkungan akan
 lolos tepat pada hal yang hanya muncul di lingkungan lain.
 
+> **Koreksi (lihat A1).** Kalimat di atas, sebagaimana ditulis pada audit
+> pertama, terlalu luas. Lingkungan demo **memang** memuat cacat yang sama —
+> yang tidak ada bukan lingkungannya, melainkan **ujinya**. Demo diuji lewat
+> layar, sedangkan cacat ini hanya muncul di header, batas laju, dan skema URL.
+> Lihat koreksi lengkap di A1.
+
 ---
 
 ## A. Penghalang produksi
@@ -53,6 +59,40 @@ url('/')        : https://kos-kosan.my.id/api/x
 **Komentar di `docker/prod/nginx.conf.template:80` menulis** *"`X-Forwarded-Proto`
 sudah diteruskan Laravel lewat trustProxies"*. **Komentar itu tidak benar.** Ia
 menggambarkan sesuatu yang tidak pernah ditulis.
+
+**KOREKSI PENTING (26 Okt 2026, setelah diuji ulang).** Klaim di atas — bahwa
+cacat ini "hanya muncul di lingkungan yang punya proxy TLS" — **terlalu luas,
+dan salah**. `web/docker/nginx/default.conf:47-51` di laptop **juga** sebuah
+proxy, dan ia mengirim `X-Forwarded-For`/`X-Forwarded-Proto` persis seperti
+Render. Cacat ini **sudah ada di lingkungan demo**, dan bisa direproduksi di
+sini tanpa menunggu deploy.
+
+Bukti, diukur lewat `http://localhost:3000` (jalur proxy) pada 26 Okt 2026:
+
+```
+25 permintaan /api/periksa-token, masing-masing dengan X-Forwarded-For BERBEDA:
+  1..20  -> HTTP 200
+  21..25 -> HTTP 429   <-- ditolak, padahal IP-nya berbeda semua
+```
+
+Dan log aplikasi mencatat `"ip":"172.20.0.4"` — yaitu IP container `web`, bukan
+IP klien. Dua IP klien yang berbeda (`203.0.113.45`, `198.51.100.77`) sama-sama
+tercatat sebagai `172.20.0.4`.
+
+**Mengapa semua pengujian selama ini tidak menangkapnya.** Tidak ada satu pun
+uji yang mengirim header proxy:
+
+- `grep -r "X-Forwarded" api/tests/` → **nol hasil**
+- `grep -r "X-Forwarded" docs/uji/*.mjs` → **nol hasil**
+
+E2E menguji perilaku yang **tampak** di layar, dan layar tidak menampilkan IP.
+Cacat ini hanya terlihat lewat pembatas laju, yang baru menyala pada percobaan
+ke-21 dalam satu menit — dan tidak ada skrip yang melakukannya.
+
+**Pelajaran yang berlaku umum, dan lebih tepat daripada klaim saya sebelumnya:**
+*lingkungan demo bisa memuat cacat produksi, tetapi hanya kalau ada uji yang
+menyentuh jalur yang sama.* Demo yang hanya diuji lewat layar tidak akan
+menemukan cacat yang hanya muncul di header, batas laju, atau skema URL.
 
 **Akibat nyata di Render** (yang meneruskan TLS dari proxy di depannya):
 

@@ -25,6 +25,7 @@ menarik.
 | # | Pekerjaan | Bukti yang harus dipegang |
 |---|---|---|
 | 0.1 | Pasang `trustProxies(at: '*')` di `bootstrap/app.php` | Tes: request dengan `X-Forwarded-Proto: https` → `isSecure()` true; `X-Forwarded-For` → `ip()` mengembalikan IP asli |
+| 0.1b | **Uji yang menyentuh jalur proxy** — inilah yang selama ini tidak ada | Uji E2E: 25 permintaan `/api/periksa-token` dengan `X-Forwarded-For` **berbeda semua** harus tetap 200, bukan 429 mulai percobaan ke-21. Tanpa perbaikan 0.1, uji ini **gagal** (sudah dibuktikan 26 Okt 2026) |
 | 0.2 | Perbaiki komentar bohong di `docker/prod/nginx.conf.template:80` | Komentar menyebut di mana `trustProxies` benar-benar dipasang |
 | 0.3 | `'sslmode' => env('DB_SSLMODE', 'prefer')` | Tes: `DB_SSLMODE=require` benar-benar terbaca; tambahkan ke `.env.example` + `docker-compose.prod.yml` |
 | 0.4 | Pagar `MAIL_FROM_ADDRESS` di `entrypoint-prod.sh` | Dijalankan dengan nilai `kos@contoh.test` → keluar kode 1 dengan alasan terbaca |
@@ -36,6 +37,11 @@ dengan menyuntikkan cacatnya kembali.
 
 **Mengapa paling dulu:** 0.1 mengubah cara seluruh aplikasi membaca IP dan
 skema. Mengerjakannya setelah fase lain berarti menguji ulang semuanya.
+
+> **Fase 0 TIDAK butuh akun, dan tidak butuh menunggu deploy.** Seluruh
+> perbaikannya bisa dibuktikan di lingkungan demo — A1 bahkan **sudah**
+> direproduksi di sana lewat port proxy `:3000`. Yang kurang selama ini bukan
+> lingkungan, melainkan uji yang menyentuh jalur proxy (0.1b).
 
 ---
 
