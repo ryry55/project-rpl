@@ -4,7 +4,7 @@
 > bagaimana menambah tes yang benar-benar menahan.**
 >
 > Angka diambil dari aplikasi yang berjalan: **748 tes PHP (3522 asersi)** dalam
-> 36 berkas, dan **26 skrip uji** (24 browser + 2 balapan HTTP) dengan **758 langkah**.
+> 36 berkas, dan **26 skrip uji** (24 browser + 2 balapan HTTP) dengan **760 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -176,7 +176,7 @@ Dikelompokkan menurut apa yang dijaga:
 
 ---
 
-## 4. Skrip uji browser dan balapan - 26 skrip, 758 langkah
+## 4. Skrip uji browser dan balapan - 26 skrip, 760 langkah
 
 ### 4.1 Menjalankan
 

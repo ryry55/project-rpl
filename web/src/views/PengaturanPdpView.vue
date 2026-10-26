@@ -125,15 +125,15 @@ onMounted(muat)
         <dl class="daftar-data">
           <div>
             <dt>Nama akun</dt>
-            <dd>{{ data.akun?.nama || 'â€”' }}</dd>
+            <dd>{{ data.akun?.nama || '—' }}</dd>
           </div>
           <div>
             <dt>Email</dt>
-            <dd>{{ data.akun?.email || 'â€”' }}</dd>
+            <dd>{{ data.akun?.email || '—' }}</dd>
           </div>
           <div>
             <dt>Peran</dt>
-            <dd>{{ data.akun?.peran || 'â€”' }}</dd>
+            <dd>{{ data.akun?.peran || '—' }}</dd>
           </div>
           <div>
             <dt>Status akun</dt>
@@ -141,11 +141,11 @@ onMounted(muat)
           </div>
           <div v-if="data.penghuni">
             <dt>Nama pada data induk</dt>
-            <dd>{{ data.penghuni.nama || 'â€”' }}</dd>
+            <dd>{{ data.penghuni.nama || '—' }}</dd>
           </div>
           <div v-if="data.penghuni">
             <dt>Nomor HP</dt>
-            <dd>{{ data.penghuni.no_hp || 'â€”' }}</dd>
+            <dd>{{ data.penghuni.no_hp || '—' }}</dd>
           </div>
         </dl>
 
@@ -168,9 +168,9 @@ onMounted(muat)
             </thead>
             <tbody>
               <tr v-for="k in data.kontrak || []" :key="k.id">
-                <td><strong>{{ k.kamar || 'â€”' }}</strong></td>
-                <td>{{ k.tgl_masuk || 'â€”' }}</td>
-                <td>{{ k.tgl_keluar || 'â€”' }}</td>
+                <td><strong>{{ k.kamar || '—' }}</strong></td>
+                <td>{{ k.tgl_masuk || '—' }}</td>
+                <td>{{ k.tgl_keluar || '—' }}</td>
                 <td>
                   <span class="lencana-status" :class="`status-${k.status}`">{{ k.status }}</span>
                 </td>
@@ -195,7 +195,7 @@ onMounted(muat)
             <tbody>
               <tr v-for="p in data.persetujuan || []" :key="p.versi">
                 <td><strong>{{ p.versi }}</strong></td>
-                <td>{{ p.disetujui_pada || 'â€”' }}</td>
+                <td>{{ p.disetujui_pada || '—' }}</td>
               </tr>
               <BarisKosong v-if="!data.persetujuan || data.persetujuan.length === 0" :kolom="2">
                 Belum ada persetujuan tercatat.
@@ -207,7 +207,7 @@ onMounted(muat)
         <p class="bantuan mungil">
           Persetujuan bersifat bukti, bukan setelan: ia tidak bisa diubah atau dihapus, dan versi
           baru menuntut persetujuan baru. Versi yang berlaku sekarang:
-          <strong>{{ meta.versi_pdp || 'â€”' }}</strong>.
+          <strong>{{ meta.versi_pdp || '—' }}</strong>.
         </p>
       </PanelKartu>
 
@@ -227,7 +227,7 @@ onMounted(muat)
                 <td class="lemah mungil">
                   {{ j.entitas }}<template v-if="j.entitas_id"> #{{ j.entitas_id }}</template>
                 </td>
-                <td class="lemah mungil">{{ j.dibuat_pada || 'â€”' }}</td>
+                <td class="lemah mungil">{{ j.dibuat_pada || '—' }}</td>
               </tr>
               <BarisKosong v-if="!data.jejak_terkait || data.jejak_terkait.length === 0" :kolom="3">
                 Belum ada tindakan tercatat atas nama Anda.

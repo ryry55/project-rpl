@@ -577,6 +577,20 @@ jalankan(async () => {
       `status ${masukLagi.status}`,
     )
 
+    // Tangkapan layar ini dulu memotret apa pun yang sedang terbuka - dan yang
+    // terbuka adalah halaman Kamar, karena blok ini hanya memanggil API tanpa
+    // pernah berpindah halaman. Berkasnya karena itu byte-identik dengan
+    // `T28-jejak-teranonim` di bawah, dan tidak membuktikan apa pun tentang
+    // anonimisasi: dua "bukti" berbeda yang isinya sama.
+    //
+    // Di titik ini tabel penghuni memang sudah bersih - itu yang dibuktikan
+    // potretnya. Jejak audit baru berisi "pengguna dihapus" nanti, sesudah
+    // mantan pengelola melepas identitasnya sendiri, jadi potret jejaknya
+    // diambil di sana.
+    await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/penghuni` })
+    const penghuniTampil = await tungguSampai(ws, `document.querySelector('.tabel')`, 15000)
+    lapor('tangkapan penghuni terbuka di halaman yang benar', Boolean(penghuniTampil))
+
     await tangkapLayar(ws, 'T28-audit-anonim')
 
     // --- Anonimisasi jejak sudah terjadi di atas --------------------------
@@ -641,6 +655,19 @@ jalankan(async () => {
       tetapTerbayar,
       tetapTerbayar ? 'Rp 1.000 masih tercatat' : 'angka ikut hilang',
     )
+
+    // Potret ini juga dulu memotret halaman Kamar - sama seperti
+    // `T28-audit-anonim`, karena skripnya hanya memanggil API lalu memotret apa
+    // adanya. Yang ditunggu di sini adalah barisnya, bukan sekadar tabelnya:
+    // tabel yang kosong atau masih memuat nama lama akan lolos kalau yang
+    // ditunggu hanya `.tabel-audit`.
+    await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/audit` })
+    const jejakTampil = await tungguSampai(
+      ws,
+      `document.querySelector('.tabel-audit')?.textContent.includes('pengguna dihapus')`,
+      15000,
+    )
+    lapor('tangkapan jejak audit menampilkan baris "pengguna dihapus"', jejakTampil)
 
     await tangkapLayar(ws, 'T28-jejak-teranonim')
   } finally {

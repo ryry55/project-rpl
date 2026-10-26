@@ -20,11 +20,11 @@ use Tests\Concerns\MenyiapkanKebijakan;
 use Tests\TestCase;
 
 /**
- * T16 â€” kebijakan kos sebagai data, dan gerbang yang memaksanya diisi.
+ * T16 — kebijakan kos sebagai data, dan gerbang yang memaksanya diisi.
  *
  * Sebelum T16, cara menagih tertanam di kode: satuan selalu bulanan, jatuh
  * tempo selalu mengikuti tanggal masuk. Itu satu kos tertentu yang diangkat
- * jadi program, padahal tesis proyek ini justru sebaliknya â€” tiap kos berbeda.
+ * jadi program, padahal tesis proyek ini justru sebaliknya — tiap kos berbeda.
  *
  * Yang dibuktikan di sini:
  *   1. Default kos berlaku untuk semua kamar; penimpa kamar menang atas default.
@@ -158,7 +158,7 @@ class KebijakanKosTest extends TestCase
 
         $this->kebijakan(PilihanKebijakan::TIPE_SATUAN_SEWA, PilihanKebijakan::SATUAN_BULANAN);
         // Kamar A: harian. Berlaku dari tanggal yang sama, jadi yang membedakan
-        // hanya kamar_id â€” bukan tanggal.
+        // hanya kamar_id — bukan tanggal.
         $this->kebijakan(PilihanKebijakan::TIPE_SATUAN_SEWA, PilihanKebijakan::SATUAN_HARIAN, [
             'kamar_id' => $kamarA->id,
         ]);
@@ -191,7 +191,7 @@ class KebijakanKosTest extends TestCase
 
         // Yang menentukan adalah tingkatnya (kamar > global), bukan tanggalnya.
         // Kalau urutannya terbalik, mengubah default kos akan diam-diam
-        // menimpa penimpa per kamar yang lebih tua â€” kesalahan yang sulit
+        // menimpa penimpa per kamar yang lebih tua — kesalahan yang sulit
         // terlihat karena hasilnya tetap "salah satu dari dua nilai sah".
         $this->assertSame(
             PilihanKebijakan::SATUAN_HARIAN,
@@ -721,7 +721,7 @@ class KebijakanKosTest extends TestCase
 
         // Tanpa NULLS NOT DISTINCT, dua baris default (kamar_id NULL) dianggap
         // berbeda dan PenyelesaiKebijakan memilih salah satunya berdasarkan
-        // urutan fisik â€” yang tidak dijamin apa pun.
+        // urutan fisik — yang tidak dijamin apa pun.
         $this->expectException(QueryException::class);
         $this->expectExceptionCode('23505');
 
