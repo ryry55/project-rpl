@@ -131,6 +131,18 @@ lapor 'Dockerfile.prod memakai entrypoint produksi' \
 lapor 'supervisord menjalankan penjadwal' \
     "$(grep -q 'schedule:work' "$AKAR/docker/prod/supervisord.conf" && echo 0 || echo 1)"
 
+# --- .env.example tidak boleh menyesatkan ---------------------------------
+# Berkas contoh dibaca orang, bukan mesin: yang menyalinnya ke Render akan
+# mewarisi nilainya tanpa curiga. `QUEUE_CONNECTION=database` adalah bawaan
+# Laravel dan TIDAK salah secara sintaks, tetapi di sini ia menyesatkan: image
+# produksi hanya menjalankan php-fpm dan penjadwal, tidak ada `queue:work`,
+# sehingga pekerjaan yang diantrikan akan diam di tabel `jobs` tanpa pernah
+# dijalankan - dan diam adalah kegagalan yang paling sulit ditemukan.
+# Diperiksa di sini karena tidak ada tes PHP yang membaca berkas contoh.
+lapor '.env.example memakai QUEUE_CONNECTION=sync (tidak ada worker di produksi)' \
+    "$(grep -qE '^QUEUE_CONNECTION=sync$' "$AKAR/api/.env.example" && echo 0 || echo 1)" \
+    'database berarti pekerjaan antri diam tanpa queue:work'
+
 echo ''
 if [ "${#GAGAL[@]}" -eq 0 ]; then
     echo 'PROFIL PRODUKSI LULUS'

@@ -296,7 +296,7 @@ Dari `1_PRD.md` §6, dan bagaimana masing-masing dibuktikan.
 | U-2 | Kesalahan hitung prorata | 0 | `KalkulatorTest` | Lulus |
 | U-3 | Tagihan ganda per periode | 0 | `uji-balapan-t4.mjs` | Lulus 10/10 |
 | U-4 | Kebocoran data antar-penghuni | 0 | `IsolasiDanAuditTest`, `e2e-t9.mjs` | Lulus |
-| U-5 | Respons `/api` di cache PWA | 0 | `uji-pwa.mjs` — **dibuktikan bisa gagal** | Lulus 22/22 |
+| U-5 | Respons `/api` di cache PWA | 0 | `uji-pwa.mjs` — **dibuktikan bisa gagal** | Lulus 23/23 |
 | U-6 | Halaman meluber di 360px | 0 | `uji-tata-letak.mjs` | Lulus 94/94 |
 | U-7 | Tabel tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` | Lulus 65/65 |
 | U-8 | Kepala pemilik sebelum konten | < 220px | Terukur | 203px |

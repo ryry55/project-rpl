@@ -17,7 +17,7 @@ Terakhir diperbarui: QRIS + materi sidang + perbaikan bukti - 26 Oktober 2026
 | Suite PHP | **748 lulus / 3522 asersi**, 39 berkas tes; pint & eslint bersih |
 | Migrasi / endpoint / tabel domain | **41** / **81** / **23** (total 32 di skema `public`) |
 | Skrip uji | **26** (24 browser + 2 balapan), **762 langkah** |
-| `periksa-profil-produksi.sh` | **22/22 LULUS**; working tree bersih |
+| `periksa-profil-produksi.sh` | **23/23 LULUS**; working tree bersih |
 
 ---
 
@@ -90,7 +90,7 @@ git status --short                              # harus bersih
 docker compose exec -T api php artisan test      # 748 lulus / 3522 asersi
 cd api; php vendor\bin\pint --test                # di HOST, bukan container
 cd web; npx eslint src; npm run build             # bersih
-bash docs/uji/periksa-profil-produksi.sh          # 22/22 LULUS
+bash docs/uji/periksa-profil-produksi.sh          # 23/23 LULUS
 powershell -ExecutionPolicy Bypass -File periksa.ps1   # SEMUA LULUS
 node docs/akademik/build.js                       # 81 endpoint terpetakan habis
 node docs/akademik/build-dokumen.js               # 3 dokumen dibangkitkan

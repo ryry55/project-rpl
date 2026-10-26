@@ -133,6 +133,28 @@ dengan mengembalikan `url_spa` menjadi `url`.
 | ~~Deposit dibaca saat kontrak dibuat, tidak dipakai lagi~~ | ~~Deposit tidak pernah mengurangi tagihan akhir~~ | **Sudah ditutup - deposit dihapus seluruhnya (fase terakhir).** Bukan dilengkapi, melainkan dibuang: deposit dikumpulkan saat kontrak dibuat tetapi tidak pernah dicatat sebagai uang masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan saat penghuni keluar. Dua jalan keluarnya adalah merekamnya sebagai pembayaran sah lalu mengembalikan lewat baris negatif, atau berhenti berpura-pura menanganinya. Pemilik memilih yang kedua, dengan alasan yang layak dikutip: **kolom yang menyimpan angka tanpa akibat lebih buruk daripada kolom yang tidak ada, karena ia membuat orang mengira uangnya terjaga.** Yang dihapus: kolom `kontrak.deposit`, tipe kebijakan `deposit` beserta tiga nilainya, kelas `PenentuDeposit`, medan formulir dan kolom tabel di layar Kontrak, dan seluruh rujukannya di dokumen. Migrasi `2026_11_20_120000_hapus_deposit` melepas trigger append-only secara sadar untuk membuang baris kebijakan deposit, menyempitkan tiga CHECK, lalu memasang trigger kembali. Dijaga `MigrasiHapusDepositTest` (5 tes) dan `KebijakanKosTest::test_tipe_deposit_ditolak_validasi_maupun_constraint` |
 | Akun yang pernah menangani uang tidak bisa dihapus | `RESTRICT` pada FK `dicatat_oleh`/`diterima_oleh` | Disengaja: jejak uang tidak boleh yatim |
 | **DAT-03** — email dikirim sinkron (`QUEUE_CONNECTION=sync`), tanpa queue worker | Terbit massal mengirim satu email per penghuni, berurutan dalam satu permintaan: 30 penghuni = 30 email sebelum respons kembali, dan SMTP yang lambat memperlambat layar, bukan hanya emailnya | **Diterima sebagai utang, bukan cacat yang harus ditutup.** Satu layanan Render tidak bisa menjalankan queue worker persisten, dan `sync` adalah konsekuensi arsitektur itu. Kegagalan kirim sudah tidak membatalkan transaksi (R3). Jangan "memperbaikinya" dengan worker yang tidak akan hidup di produksi |
+
+**Temuan samping saat menutup utang CI: `.env.example` menulis
+`QUEUE_CONNECTION=database`.** Nilai itu adalah bawaan Laravel, dan kalau
+seseorang menyiapkan deploy dengan menyalin berkas contoh itu, setiap pekerjaan
+yang ANTRI akan ditaruh di tabel `jobs` dan menunggu `queue:work` yang tidak
+pernah dijalankan - image produksi hanya menjalankan php-fpm, dan satu layanan
+Render tidak bisa menampung worker persisten. Pekerjaan seperti itu tidak
+gagal; ia diam, dan diam adalah kegagalan yang paling sulit ditemukan.
+
+Sudah diperbaiki menjadi `sync`, dan kini keenam sumbernya sepakat:
+`.env.example`, `.env`, `docker-compose.yml`, `8_OPERATIONS_SOP.md`,
+`9_DEPLOY.md`, dan entri DAT-03 ini.
+
+Yang **tidak** berubah, dan penting dicatat supaya tidak ada yang mengira
+temuan ini lebih besar daripada kenyataannya: aplikasi mengirim email lewat
+`Mail::send()`, bukan `Mail::queue()`, sehingga `QUEUE_CONNECTION` **tidak**
+memengaruhi email hari ini. Itu dibuktikan dengan menjalankan `Mail::raw` di
+bawah `queue.default=database` di dalam container dan menghitung tabel `jobs`
+sesudahnya - hasilnya tetap 0, artinya email dikirim langsung. Dugaan awal
+saya bahwa nilai itu bisa membuat email hilang **salah**, dan yang benar hanya
+ini: nilainya menyesatkan untuk pekerjaan yang nanti benar-benar diantrikan.
+
 | ~~Pembalik pembayaran belum punya tombol di layar~~ | ~~Koreksi salah catat masih lewat API (`POST /pembayaran/{id}/pembalik`)~~ | **Sudah ditutup (fase terakhir).** Tombol **Tarik kembali** ada di panel rincian tagihan, dengan formulir alasan wajib (server menolak 422 bila kosong, dan formulirnya tetap terbuka supaya pemilik tidak mengira penarikannya berhasil). Riwayat menampilkan baris negatif bertanda "ditarik kembali", dan tombolnya hilang untuk baris yang sudah ditarik. `TagihanResource` kini mengirim `adalah_pembalik` dan `sudah_dibalik` per baris; `null` pada yang kedua berarti relasinya tidak dimuat, dan layar hanya menawarkan tombol saat nilainya benar-benar `false`. Dijaga `uji-pembalik.mjs` (13 langkah) dan dua tes baru di `PembalikPembayaranTest`. Tinggal **antrean email** (DAT-03) yang masih terbuka |
 | Pemaafan denda tidak punya halaman riwayat sendiri | Pemaafan hanya terlihat saat membuka satu tagihan, dan di `log_audit` | Disengaja: pemaafan adalah kolom pada `tagihan`, bukan entitas. Riwayat lengkapnya ada di Jejak audit dengan aksi `denda.maafkan` |
 | ~~Rekening tidak menyimpan gambar QRIS~~ | ~~`jenis: qris` hanya menyimpan teks (nama merchant dan nomor bila ada)~~ | **Sudah ditutup (fase terakhir).** Gambarnya disimpan di kolom **`bytea`** (`rekening.gambar`), bukan berkas di disk: `public/` dipasang read-only ke nginx dan Render free tidak punya disk persisten, sehingga berkas yang ditulis hari ini hilang saat restart - dan gambar QRIS yang hilang lebih buruk daripada tidak ada, karena pemilik mengira sudah mengunggah. Disajikan lewat `GET /api/rekening/{id}/gambar` dengan `Content-Type`, `nosniff`, dan CSP; penghuni hanya bisa membuka gambar rekening **aktif** (404, bukan 403). Hanya PNG/JPG/WEBP yang diterima - **SVG ditolak** karena bisa memuat skrip. Dijaga `GambarQrisRekeningTest` (19 tes) dan `uji-qris.mjs` (16 langkah). **Jebakan yang ditemukan saat mengerjakannya:** menulis `bytea` sebagai parameter teks biasa menyimpan **0 byte tanpa galat apa pun** - unggahan tampak berhasil, `gambar_ukuran` terisi, gambarnya kosong. Satu-satunya jalur tulis yang terbukti utuh adalah `decode(?, 'base64')`, dan karena itu `gambar` sengaja **tidak** masuk `$fillable`
