@@ -237,23 +237,39 @@ jalankan(async () => {
 
     await tungguSampai(ws, `location.pathname === '/persetujuan-pdp'`, 12000)
 
-    const setuju = await evaluasi(
+    // Menunggu HALAMAN TUJUAN, bukan jeda tetap.
+    //
+    // Versi sebelumnya menekan tombol lalu menunggu 1800 ms dan membaca
+    // `location.pathname`. Di laptop itu selalu cukup; di runner CI yang sedang
+    // membangun 30 skrip lain, kadang tidak - dan kegagalannya berbunyi
+    // "menyetujui membawa pengguna ke halaman kerjanya - /persetujuan-pdp",
+    // yang terbaca seperti persetujuannya tidak tersimpan padahal halamannya
+    // hanya belum berpindah.
+    //
+    // `tungguSampai` mengembalikan true/false, bukan nilai terakhirnya. Karena
+    // itu jalur akhirnya dibaca terpisah - supaya pesan kegagalannya tetap
+    // menyebut jalur yang benar-benar didapat, bukan `false`.
+    const tombolSetuju = await evaluasi(
       ws,
       `
-      (async () => {
-        const tombol = [...document.querySelectorAll('button')]
-          .find(b => /saya setuju/i.test(b.textContent))
-        if (!tombol) return 'tombol setuju tidak ada'
-        tombol.click()
-        await new Promise(r => setTimeout(r, 1800))
-        return location.pathname
+      (() => {
+        const b = [...document.querySelectorAll('button')]
+          .find(x => /saya setuju/i.test(x.textContent))
+        if (!b) return false
+        b.click()
+        return true
       })()
     `,
     )
+    lapor('tombol "Saya setuju" ada dan bisa ditekan', tombolSetuju)
+
+    const pindah = await tungguSampai(ws, `location.pathname === '/penghuni'`, 15000)
+    const jalurSetuju = await evaluasi(ws, 'location.pathname')
+
     lapor(
       'menyetujui membawa pengguna ke halaman kerjanya',
-      setuju === '/penghuni',
-      String(setuju),
+      pindah && jalurSetuju === '/penghuni',
+      jalurSetuju,
     )
 
     // Dimuat ulang: gerbang tidak boleh muncul lagi. Diperiksa setelah reload,
