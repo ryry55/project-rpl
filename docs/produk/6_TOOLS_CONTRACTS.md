@@ -6,7 +6,7 @@
 > Sumber kebenaran tetap `api/routes/api.php` dan kelas `Resource`. Dokumen ini
 > diambil dari `php artisan route:list --json` pada aplikasi yang berjalan.
 
-Versi 1.0 · 26 Oktober 2026 · **80 endpoint**
+Versi 1.0 · 26 Oktober 2026 · **81 endpoint**
 
 ---
 

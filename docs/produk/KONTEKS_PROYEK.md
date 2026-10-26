@@ -97,7 +97,7 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 | Middleware | **6** |
 | Trigger basis data | **8** (7 append-only + 1 penjaga pembalik) |
 | Tes PHP | **748** (3522 asersi) di **39** berkas |
-| Skrip browser | **24** (730 langkah) |
+| Skrip browser | **26** (760 langkah, termasuk 2 uji balapan) |
 | Halaman SPA | **26** komponen view · 22 rute bernama |
 | Wewenang pengelola | **8** |
 | Peristiwa notifikasi | **9** |
@@ -240,7 +240,7 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 ├── 3_ARCHITECTURE.md     Lapisan, 9 keputusan besar + alternatif yang ditolak
 ├── 4_AGENTS.md           Cara mengubah kode tanpa merusak apa pun
 ├── 5_SCHEMAS.md          23 tabel, CHECK, indeks, trigger (dari DB nyata)
-├── 6_TOOLS_CONTRACTS.md  80 endpoint, middleware, bentuk request/response
+├── 6_TOOLS_CONTRACTS.md  81 endpoint, middleware, bentuk request/response
 ├── 7_TESTING_EVALS.md    748 tes, 26 skrip, prinsip "buktikan bisa gagal"
 └── 8_OPERATIONS_SOP.md   Deploy, backup, pemulihan, insiden, batas gratis
 ```
