@@ -293,6 +293,17 @@ selama ini hanya ada di kepala pengembang.
    tetapi `receivedBytes` tetap 0 dan status `completed` tidak pernah datang.
    Diperbaiki dengan `os.tmpdir()`.
 
+5. **Menunggu `h1` bukan berarti halamannya sudah terisi.** `e2e-t26` menunggu
+   judul "Kamar" (dirender seketika) lalu langsung membaca `tbody tr` (baru
+   terisi setelah `GET /kamar` selesai). Di laptop selalu menang; di runner CI
+   kadang kalah, dan gejalanya "baris kamar tidak ditemukan" — terbaca seperti
+   kamarnya hilang. Balapan ini sudah ada sebelumnya dan menjadi lebih sering
+   ketika halaman Kamar memuat satu permintaan tambahan (`/penyiapan`). Yang
+   diperbaiki bukan waktunya, melainkan syarat tunggunya: tes harus menunggu hal
+   yang benar-benar dibacanya. **Pelajaran umumnya: menambah satu permintaan ke
+   sebuah halaman bisa memunculkan balapan yang sudah lama mengintai di skrip
+   ujinya, dan itu bukan salah skrip ujinya sendirian.**
+
 **Keputusan yang diambil, dan alasannya:**
 
 - **`kos:buat-pemilik` adalah perintah artisan, bukan endpoint.** Tidak ada cara
