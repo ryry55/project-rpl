@@ -253,6 +253,11 @@ if [ "$CEPAT" -eq 0 ]; then
             # R3: pembatalan tagihan, pemaafan denda, bagikan WhatsApp,
             # rekening tujuan pembayaran.
             e2e-r3.mjs
+            # Fase terakhir: tombol pembalik pembayaran (REV-FIN-01) dan gambar
+            # QRIS pada rekening. Keduanya sempat HANYA ada di periksa.ps1,
+            # sehingga gate Linux - dan karena itu CI - tidak pernah
+            # menjalankannya. Pagar yang tidak jalan di CI bukan pagar.
+            uji-pembalik.mjs uji-qris.mjs
             asap-semua-halaman.mjs uji-tata-letak.mjs
             # U2 (mobile/PWA). `uji-kartu-tabel` menutup celah yang sengaja
             # ditinggalkan `uji-tata-letak`: uji itu melewati elemen di dalam
