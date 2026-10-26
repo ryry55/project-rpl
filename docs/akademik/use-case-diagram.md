@@ -30,7 +30,7 @@ Berkas: `01-use-case.svg` (vektor) dan `01-use-case.png` (2x, siap tempel).
 ## 3. Daftar 14 Use Case dan Endpoint Pendukungnya
 
 Setiap use case menunjuk minimal satu endpoint nyata. Pemetaannya
-**tertutup**: 80 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
+**tertutup**: 81 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
 ada satu pun yang dipakai dua use case. `build.js` memeriksa ketiga hal itu
 dan gagal bila tidak terpenuhi.
 
@@ -49,7 +49,7 @@ dan gagal bila tidak terpenuhi.
 | **UC-11** | Kelola Preferensi Akun, Notifikasi & Hak Data Pribadi | `notifikasi.index`<br>`notifikasi.baca-semua`<br>`notifikasi.baca`<br>`pengaturan-notifikasi.show`<br>`pengaturan-notifikasi.update`<br>`api.persetujuan-pdp`<br>`pdp.data-saya`<br>`pdp.hapus-saya` |
 | **UC-12** | Kelola Akun Pengelola & Wewenang | `pengelola.index`<br>`pengelola.store`<br>`pengelola.show`<br>`pengelola.update`<br>`pengelola.destroy`<br>`pengelola.kirim-ulang-aktivasi` |
 | **UC-13** | Portal Penghuni | `penghuni.tagihan`<br>`penghuni.aturan`<br>`penghuni.rekening`<br>`tagihan.show`<br>`tagihan.denda`<br>`tagihan.bayar-daring` |
-| **UC-14** | Kelola Rekening Tujuan Pembayaran & Diagnostik Sistem | `rekening.index`<br>`rekening.store`<br>`rekening.update`<br>`rekening.destroy`<br>`api.health`<br>`api.pemilik-saja` |
+| **UC-14** | Kelola Rekening Tujuan Pembayaran & Diagnostik Sistem | `rekening.index`<br>`rekening.store`<br>`rekening.update`<br>`rekening.destroy`<br>`rekening.gambar`<br>`api.health`<br>`api.pemilik-saja` |
 
 ## 4. Matriks Hak Akses Aktor
 

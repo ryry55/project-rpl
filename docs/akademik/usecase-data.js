@@ -335,6 +335,10 @@ const USE_CASE = [
       'rekening.store',
       'rekening.update',
       'rekening.destroy',
+      // Gambar QRIS. Rutenya terpisah karena mengembalikan byte, bukan JSON,
+      // tetapi ia bagian dari pengelolaan rekening: pemilik mengunggahnya di
+      // layar yang sama dan penghuni melihatnya di portal.
+      'rekening.gambar',
       'api.health',
       'api.pemilik-saja',
     ],
