@@ -221,6 +221,39 @@ masing-masing menunggu sesuatu yang tidak ada di repo ini (akun, kredensial,
 disk). Menulisnya sebagai selesai akan membuat audit berikutnya mencari kode
 yang tidak pernah ada.
 
+### 4b. FASE 0 — SELESAI dan dibuktikan bisa gagal (26 Okt 2026)
+
+Empat dari lima penghalang produksi sudah ditutup. Yang **belum** hanya A3
+(penjadwal mati bersama container), dan itu memang menuntut platform yang
+benar-benar tidur.
+
+| Butir | Status | Bukti |
+|---|---|---|
+| **A1** `trustProxies` | **Selesai, DUA bagian** | `bootstrap/app.php` + `fastcgi_param` di kedua berkas nginx. `uji-proxy.mjs`: 5/5 lulus; dengan cacat disuntikkan kembali **0/5 gagal** |
+| **A2** `DB_SSLMODE` | **Selesai** | `env('DB_SSLMODE', 'prefer')`; `DB_SSLMODE=require` terbaca `require`, tanpa env tetap `prefer` |
+| **A3** penjadwal vs tidur | **Belum** | Butuh Render sungguhan. Fase 1.5 |
+| **A4** `MAIL_FROM_ADDRESS` | **Selesai** | Pagar menyala (kode keluar 1) pada image produksi sungguhan; pesannya terbaca |
+| **A5** OPcache | **Selesai** | Berkas terpisah `opcache-prod.ini`; di image produksi `validate_timestamps => Off` |
+
+**Yang membuat Fase 0 berbeda dari sekadar "menulis kode":** setiap perbaikan
+dibuktikan bisa **gagal**. A1 diuji dengan menyuntikkan cacatnya kembali, lalu
+dikembalikan. Pagar email diuji empat kasus (alamat contoh, alamat sungguhan,
+Mailpit, alamat kosong) - dua harus ditolak, dua harus diloloskan.
+
+**Tiga hal yang rencana awal salah** dan baru ketahuan saat dikerjakan:
+
+1. **`at: '*'` tidak bekerja.** Di Laravel `'*'` berarti "percayai HANYA alamat
+   pemanggil", bukan "percayai semua proxy". Demo punya dua hop, sehingga
+   hasilnya IP gateway (`172.20.0.1`), bukan IP klien. Diganti rentang privat.
+2. **`trustProxies` saja tidak cukup.** `include fastcgi_params` di nginx hanya
+   mengoper `REMOTE_ADDR` — nol header HTTP. Tanpa `fastcgi_param
+   HTTP_X_FORWARDED_*`, nginx membuang header sebelum Laravel melihatnya.
+   Terbukti: 0/5 sebelum bagian ini, 5/5 sesudahnya.
+3. **Pagar email tidak boleh memakai `APP_ENV`.** Profil produksi memang bisa
+   dijalankan di laptop, dan di sana `mailpit` + `kos@contoh.test` adalah
+   keadaan yang benar. Pagar yang menyala di situ akan memaksa orang
+   mematikannya. Karena itu pagarnya memeriksa `MAIL_HOST`.
+
 ---
 
 ## 5. Konsistensi dokumen (LANGKAH 11, T23)

@@ -20,6 +20,18 @@ diklaim selesai.
 | **C. Pengerasan** | 7 | Layak dikerjakan, tidak mendesak |
 | **D. Sengaja tidak dikerjakan** | 4 | Bukan cacat; mencatatnya mencegah pengulangan |
 
+> **Status per 26 Okt 2026: A1, A2, A4, A5 sudah DIPERBAIKI dan dibuktikan
+> dengan uji yang bisa gagal.** Hanya **A3** (penjadwal vs container tidur)
+> yang masih terbuka, dan itu memang menuntut Render sungguhan.
+>
+> Bukti yang dipegang, bukan sekadar klaim:
+> `docs/uji/uji-proxy.mjs` (5/5 lulus dengan perbaikan, **0/5 gagal** saat
+> cacatnya disuntikkan kembali), `docs/uji/uji-pagar-fase0.sh` (17 pemeriksaan),
+> image produksi dibangun dan boot bersih (`/api/health` 200,
+> `opcache.validate_timestamps => Off`), dan pagar email menyala dengan kode
+> keluar 1 pada image produksi sungguhan.
+
+
 Temuan **A1–A5 tidak ada** di `utang-teknis.md`. Itu bukan kesalahan penulisan
 dokumen itu: kelimanya hanya muncul di lingkungan yang **tidak punya proxy TLS**,
 **tidak pernah tidur**, dan **tidak memakai layanan email sungguhan**. Seluruh
@@ -107,23 +119,95 @@ menemukan cacat yang hanya muncul di header, batas laju, atau skema URL.
    `APP_URL` statis), tetapi ini ranjau laten: begitu ada `signedUrl`, tautannya
    akan memakai skema yang salah dan ditolak.
 
-**Perbaikan.** Di `bootstrap/app.php`:
+**Perbaikan.** **DUA bagian, bukan satu** — dan rencana awal hanya menyebut yang
+pertama. Keduanya baru terbukti cukup setelah diukur.
+
+Bagian 1, `bootstrap/app.php`:
 
 ```php
 ->withMiddleware(function (Middleware $middleware) {
-    $middleware->trustProxies(at: '*');
+    $middleware->trustProxies(
+        at: ['127.0.0.1', '172.16.0.0/12', '192.168.0.0/16', '10.0.0.0/8', '::1'],
+        headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO,
+    );
     // ...
 })
 ```
 
-`'*'` aman **karena** container tidak bisa dijangkau langsung di Render; satu-
-satunya pintu masuk adalah proxy Render. Bila nanti dipublikasikan langsung,
-ganti dengan rentang IP proxy.
+**`at: '*'` TIDAK dipakai, dan ini koreksi atas rekomendasi saya sendiri.**
+Di Laravel, `'*'` bukan "percayai semua proxy"; ia berarti "percayai HANYA
+alamat yang sedang memanggil" (`setTrustedProxyIpAddressesToTheCallingIp`).
+Untuk satu hop itu cukup, tetapi jalur demo punya **dua** hop — klien → `web` →
+`api-web` → php-fpm — sehingga yang memanggil php-fpm adalah `api-web`,
+sedangkan entri terakhir `X-Forwarded-For` adalah gateway `web`. Diukur
+langsung lewat tinker:
 
-**Dijaga tes.** Satu tes yang membuat request dengan `X-Forwarded-Proto: https`
-dan `X-Forwarded-For` lalu memastikan `$request->isSecure() === true` dan
-`$request->ip()` sama dengan IP asli. Tanpa tes ini, perbaikannya bisa hilang
-lagi tanpa ada yang tahu — persis seperti yang terjadi pada `continue-on-error`.
+```
+REMOTE_ADDR = 172.20.0.5, XFF = "203.0.113.1, 172.20.0.1"
+  at: '*'               -> ip() = 172.20.0.1    (gateway, SALAH)
+  at: [rentang privat]  -> ip() = 203.0.113.1   (klien, BENAR)
+```
+
+Rentang privat dipakai karena seluruh hop memang berada di jaringan privat
+(Docker di demo, internal Render di produksi). Alamat publik **tidak**
+dipercaya, sehingga `X-Forwarded-For` dari internet tidak bisa dipakai
+memalsukan IP. Bila kelak dipasang di belakang proxy ber-alamat publik
+(mis. Cloudflare tanpa jaringan privat), alamatnya harus ditambahkan —
+dan menambahkannya sembarangan membuka pemalsuan IP.
+
+`HEADER_X_FORWARDED_HOST` dan `..._PORT` sengaja **tidak** dipercaya: keduanya
+bisa dipakai menyuntikkan `Host` sembarang, dan tidak satu pun tautan di
+aplikasi ini dibangun dari `Host` permintaan — tautan memakai
+`config('app.url_spa')`.
+
+Bagian 2, `api/docker/nginx/default.conf` **dan**
+`docker/prod/nginx.conf.template`:
+
+```nginx
+fastcgi_param HTTP_X_FORWARDED_FOR $http_x_forwarded_for;
+fastcgi_param HTTP_X_FORWARDED_PROTO $http_x_forwarded_proto;
+```
+
+**Tanpa bagian 2, bagian 1 tidak bekerja sama sekali.** `include
+fastcgi_params` hanya mengoper `REMOTE_ADDR` — nol header HTTP (diperiksa:
+`grep -c HTTP_ /etc/nginx/fastcgi_params` → **0**). Artinya nginx membuang
+`X-Forwarded-For` yang sudah dikirim `web` sebelum sampai ke Laravel, dan
+`trustProxies` tidak punya apa pun untuk dipercaya.
+
+Ini bukan dugaan: uji `docs/uji/uji-proxy.mjs` gagal **0/5** ketika hanya
+bagian 1 terpasang, lalu lulus **5/5** setelah bagian 2 ditambahkan. Cacat yang
+sama ada di nginx produksi, yang hanya meneruskan `PROTO` dan tidak `FOR`.
+
+**Dijaga tes.** `docs/uji/uji-proxy.mjs` — dijalankan lewat port **proxy**
+(`:3000`), bukan langsung ke API, karena pada jalur langsung tidak ada yang
+menambahkan `X-Forwarded-For` sehingga ujinya akan lulus meski perbaikannya
+tidak ada. Tiga hal diperiksa: 25 IP berbeda → 25×200; satu IP sama → tetap
+429 pada percobaan ke-21 (membuktikan pembatasnya tidak ikut dimatikan); dan
+log mencatat IP klien, bukan IP container. Ditambah
+`docs/uji/uji-pagar-fase0.sh` yang memeriksa penerusan header di kedua berkas
+nginx.
+
+> **Pelajaran dari versi pertama uji ini, yang SALAH.** Versi pertamanya
+> memeriksa "log tidak boleh memuat IP `172.x` sama sekali", dan itu **gagal
+> di gate penuh** — bukan karena perbaikannya rusak, melainkan karena
+> pemeriksaannya terlalu luas. Permintaan yang **tidak** membawa
+> `X-Forwarded-For` (mayoritas lalu lintas sungguhan, termasuk seluruh 20
+> skrip E2E yang menembak dari host) memang tercatat dengan IP sebenarnya dari
+> sudut pandang kontainer, yaitu gateway Docker `172.20.0.1`. Itu perilaku
+> yang **benar**.
+>
+> Yang benar-benar perlu dibuktikan adalah kebalikannya: permintaan tanpa
+> header tidak boleh kehilangan IP-nya. Kalau `ip` menjadi kosong atau `null`,
+> pembatas laju kehilangan kuncinya dan semua permintaan tanpa proxy berbagi
+> satu kunci kosong — cacat yang lebih buruk daripada yang sedang diperbaiki.
+> Pemeriksaannya diganti ke itu.
+>
+> **Pelajaran yang berlaku umum:** asersi yang terlalu luas menghasilkan
+> kegagalan yang menyalahkan kode yang benar. Uji yang gagal harus dibaca
+> sebagai pertanyaan "apakah kodenya salah, atau pemeriksaannya?", bukan
+> langsung sebagai "kodenya salah".
+
+
 
 ---
 
@@ -319,6 +403,20 @@ harus **diuji ulang**, bukan diasumsikan tetap sama.
 
 **Perbaikan.** Setelah A1, jalankan ulang uji pembatas dan tambahkan satu tes
 yang memastikan dua IP berbeda tidak saling mengunci.
+
+**Status: SELESAI.** `docs/uji/uji-proxy.mjs` menutup persis dua sisi yang
+diminta B4:
+
+1. **Dua IP berbeda tidak saling mengunci** — 25 permintaan dari 25 IP berbeda,
+   seluruhnya 200.
+2. **Satu IP yang sama TETAP dibatasi** — 22 permintaan dari satu IP, 429
+   pertama tepat pada percobaan ke-21.
+
+Butir kedua itu penting dan mudah terlewat: perbaikan yang membuat semuanya 200
+selamanya sama saja dengan menghapus pembatasnya, dan itu regresi yang lebih
+buruk daripada cacat aslinya. Keduanya diuji dalam satu skrip supaya tidak
+mungkin yang satu diperbaiki dengan mengorbankan yang lain.
+
 
 ### B5. Tidak ada CSP, dan `upgrade-insecure-requests` tidak ada
 

@@ -19,6 +19,57 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // ------------------------------------------------------------------
+        // A1 (FASE 0.1) - percayai header proxy, tetapi HANYA yang dibutuhkan.
+        //
+        // Sebelum ini middleware-nya tidak ada sama sekali, sehingga
+        // `$request->ip()` mengembalikan IP proxy untuk SEMUA pengguna. Dua
+        // akibat nyata, keduanya pernah diukur:
+        //
+        //   1. Pembatas laju `periksa-token` (20/menit per IP) menghitung
+        //      seluruh pengguna sebagai satu IP, sehingga percobaan ke-21 dari
+        //      orang yang BERBEDA ikut ditolak. Ini terbukti di demo lewat
+        //      `http://localhost:3000`: 25 permintaan dengan X-Forwarded-For
+        //      berbeda, 20 dijawab 200 lalu 5 dijawab 429.
+        //   2. Log audit mencatat IP container `web` (172.20.0.4), bukan IP
+        //      klien - sehingga catatan siapa melakukan apa tidak berarti.
+        //
+        // `at` SENGAJA berisi rentang privat, BUKAN `'*'`.
+        //
+        // Ini hasil pengukuran, bukan pilihan gaya. `'*'` di Laravel TIDAK
+        // berarti "percayai semua proxy"; ia berarti "percayai HANYA alamat
+        // yang sedang memanggil" (`setTrustedProxyIpAddressesToTheCallingIp`).
+        // Untuk satu hop itu cukup. Demo ini punya DUA hop - klien -> `web`
+        // -> `api-web` -> php-fpm - sehingga yang memanggil php-fpm adalah
+        // `api-web`, sedangkan entri terakhir di X-Forwarded-For adalah
+        // gateway `web` (172.20.0.1). Hasilnya IP gateway, bukan IP klien:
+        //
+        //   at: '*'                  -> ip() = 172.20.0.1  (salah)
+        //   at: [rentang privat]     -> ip() = 203.0.113.1  (benar)
+        //
+        // Keduanya diukur langsung lewat tinker dan lewat HTTP.
+        //
+        // Rentang privat dipakai karena seluruh hop di sistem ini memang
+        // berada di jaringan privat: di demo antarkontainer Docker
+        // (172.16/12), di Render antarlayanan internal. Alamat publik TIDAK
+        // dipercaya, sehingga X-Forwarded-For yang datang dari internet
+        // tidak bisa dipakai memalsukan IP.
+        //
+        // Konsekuensi yang harus disadari: bila kelak aplikasi dipasang di
+        // belakang proxy yang alamatnya publik (mis. Cloudflare tanpa
+        // jaringan privat), daftar ini harus ditambah alamat proxy itu.
+        // Menambahkannya sembarangan membuka pemalsuan IP.
+        $middleware->trustProxies(
+            at: [
+                '127.0.0.1',        // loopback
+                '172.16.0.0/12',    // Docker, Render internal
+                '192.168.0.0/16',   // LAN
+                '10.0.0.0/8',       // VPC
+                '::1',              // loopback IPv6
+            ],
+            headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO,
+        );
+
         $middleware->alias([
             'peran' => PastikanPeran::class,
             'wewenang' => PastikanWewenang::class,

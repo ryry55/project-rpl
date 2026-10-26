@@ -59,6 +59,17 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-kos@contoh.test}
       MAIL_SCHEME: ${MAIL_SCHEME:-}
+      # Mode TLS PostgreSQL (FASE 0.3). Diteruskan apa adanya, TIDAK diberi
+      # nilai bawaan `require`.
+      #
+      # Alasannya: profil ini juga dipakai di laptop, dan di sana `db` adalah
+      # kontainer PostgreSQL tanpa TLS (`SHOW ssl` -> off). Memberi nilai
+      # bawaan `require` akan membuat profil produksi gagal dijalankan lokal -
+      # tepat pada pengujian pagar yang menjadi alasan profil ini ada.
+      #
+      # Di Render nilainya diisi di dashboard: `DB_SSLMODE=require` untuk Neon.
+      # Tanpa itu, bawaannya `prefer` (lihat api/config/database.php).
+      DB_SSLMODE: ${DB_SSLMODE:-}
     # Port tidak perlu ditutup di sini: layanan `api` memang tidak pernah
     # mempublikasikan port di docker-compose.yml. Satu-satunya pintu masuk
     # adalah `web` (nginx yang juga mem-proxy /api), sama seperti di Render

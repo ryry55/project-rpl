@@ -51,6 +51,16 @@ dan seluruh kelas masalah itu hilang, bukan diselesaikan.
 variabel ini entrypoint akan menunggu 120 detik lalu gagal dengan pesan yang
 tidak menyebut TLS sama sekali.
 
+> **Koreksi (FASE 0.3, 26 Okt 2026).** Sampai FASE 0, baris di atas **tidak
+> benar**: `api/config/database.php:97` menulis `'sslmode' => 'prefer'` secara
+> mati, sehingga menyetel `DB_SSLMODE` tidak berpengaruh apa pun. Seseorang bisa
+> mengikuti dokumen ini dengan benar, merasa sudah mengamankan koneksi, dan
+> sebenarnya tidak. Sekarang nilainya benar-benar dibaca
+> (`env('DB_SSLMODE', 'prefer')`), dan `docs/uji/uji-pagar-fase0.sh`
+> membuktikannya: `DB_SSLMODE=require` terbaca `require`, dan tanpa variabel
+> tetap `prefer` sehingga PostgreSQL lokal tanpa TLS tetap tersambung.
+
+
 ---
 
 ## 3. Render

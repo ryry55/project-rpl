@@ -99,7 +99,19 @@ http {
             fastcgi_pass php_fpm;
             fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
             fastcgi_param DOCUMENT_ROOT $realpath_root;
-            # Laravel membaca ini untuk membangun URL dan memutuskan HTTPS.
+            # FASE 0.2 - komentar ini sebelumnya menyebut `trustProxies` sebagai
+            # sesuatu yang "sudah diteruskan", padahal middleware itu tidak ada
+            # di api/bootstrap/app.php. Sekarang ia benar-benar ada, dan DI SINI
+            # letak pasangannya: `include fastcgi_params` hanya mengoper
+            # REMOTE_ADDR, tidak satu pun header HTTP. Tanpa baris-baris di
+            # bawah, Render boleh mengirim header apa pun dan Laravel tidak
+            # pernah melihatnya.
+            #
+            # Keduanya wajib, dan keduanya dipercaya di bootstrap/app.php:
+            #   FOR   -> IP klien sebenarnya, untuk pembatas laju dan log audit.
+            #   PROTO -> apakah permintaan lewat HTTPS; tanpa ini tautan di
+            #            email aktivasi dibangun sebagai http://.
+            fastcgi_param HTTP_X_FORWARDED_FOR $http_x_forwarded_for;
             fastcgi_param HTTP_X_FORWARDED_PROTO $http_x_forwarded_proto;
             include fastcgi_params;
 

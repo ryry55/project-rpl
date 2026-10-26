@@ -22,18 +22,51 @@ Tanpa fase ini, deploy pertama akan **berhasil secara teknis tetapi salah secara
 perilaku**. Inilah fase yang harus dikerjakan lebih dulu, bukan yang paling
 menarik.
 
-| # | Pekerjaan | Bukti yang harus dipegang |
-|---|---|---|
-| 0.1 | Pasang `trustProxies(at: '*')` di `bootstrap/app.php` | Tes: request dengan `X-Forwarded-Proto: https` → `isSecure()` true; `X-Forwarded-For` → `ip()` mengembalikan IP asli |
-| 0.1b | **Uji yang menyentuh jalur proxy** — inilah yang selama ini tidak ada | Uji E2E: 25 permintaan `/api/periksa-token` dengan `X-Forwarded-For` **berbeda semua** harus tetap 200, bukan 429 mulai percobaan ke-21. Tanpa perbaikan 0.1, uji ini **gagal** (sudah dibuktikan 26 Okt 2026) |
-| 0.2 | Perbaiki komentar bohong di `docker/prod/nginx.conf.template:80` | Komentar menyebut di mana `trustProxies` benar-benar dipasang |
-| 0.3 | `'sslmode' => env('DB_SSLMODE', 'prefer')` | Tes: `DB_SSLMODE=require` benar-benar terbaca; tambahkan ke `.env.example` + `docker-compose.prod.yml` |
-| 0.4 | Pagar `MAIL_FROM_ADDRESS` di `entrypoint-prod.sh` | Dijalankan dengan nilai `kos@contoh.test` → keluar kode 1 dengan alasan terbaca |
-| 0.5 | `opcache.validate_timestamps = 0` + komentar alasannya | Container produksi boot, `/api/health` 200 |
+| # | Pekerjaan | Bukti yang harus dipegang | Status |
+|---|---|---|---|
+| 0.1 | Pasang `trustProxies` di `bootstrap/app.php` | **`at:` diisi rentang privat, BUKAN `'*'`.** Lihat catatan di bawah — `'*'` tidak bekerja untuk dua hop | **SELESAI** |
+| 0.1b | **Uji yang menyentuh jalur proxy** — inilah yang selama ini tidak ada | `docs/uji/uji-proxy.mjs`: 25 permintaan dengan `X-Forwarded-For` berbeda harus 25×200; satu IP sama harus tetap kena 429 di percobaan ke-21; log harus mencatat IP klien, bukan IP container | **SELESAI** |
+| 0.1c | **`fastcgi_param HTTP_X_FORWARDED_FOR` di nginx** — tidak ada di rencana awal | Tanpa ini `trustProxies` tidak punya apa pun untuk dipercaya. Ditemukan karena uji 0.1b gagal 0/5 meski 0.1 sudah terpasang | **SELESAI** |
+| 0.2 | Perbaiki komentar bohong di `docker/prod/nginx.conf.template:80` | Komentar kini menyebut pasangannya di `bootstrap/app.php` dan **mengapa** `fastcgi_param` wajib | **SELESAI** |
+| 0.3 | `'sslmode' => env('DB_SSLMODE', 'prefer')` | `DB_SSLMODE=require` terbaca `require`; tanpa env tetap `prefer`. Ditambahkan ke `.env.example` | **SELESAI** |
+| 0.4 | Pagar `MAIL_FROM_ADDRESS` di `entrypoint-prod.sh` | Menyala hanya bila `MAIL_HOST` bukan penangkap lokal — **bukan** berdasarkan `APP_ENV`, supaya profil produksi tetap bisa dijalankan di laptop | **SELESAI** |
+| 0.5 | `opcache.validate_timestamps = 0` | Berkas **terpisah** (`opcache-prod.ini`) agar image pengembangan tidak ikut terkena | **SELESAI** |
 
 **Definisi selesai:** `periksa.ps1` lulus; `docker build -f Dockerfile.prod` +
 `docker run` boot bersih; keempat pagar 0.1/0.3/0.4/0.5 dibuktikan bisa gagal
 dengan menyuntikkan cacatnya kembali.
+
+> ### Tiga hal yang rencana awal salah, dan baru ketahuan saat dikerjakan
+>
+> **1. `at: '*'` tidak menyelesaikan masalah.** Di Laravel, `'*'` TIDAK berarti
+> "percayai semua proxy"; ia berarti "percayai HANYA alamat yang sedang
+> memanggil". Untuk satu hop itu cukup. Demo ini punya **dua** hop — klien →
+> `web` → `api-web` → php-fpm — sehingga entri terakhir di `X-Forwarded-For`
+> adalah gateway `web`. Diukur langsung:
+>
+> ```
+> at: '*'                -> ip() = 172.20.0.1    (gateway, SALAH)
+> at: [rentang privat]   -> ip() = 203.0.113.1   (klien, BENAR)
+> ```
+>
+> Karena itu `at:` berisi rentang privat (`127.0.0.1`, `172.16/12`,
+> `192.168/16`, `10/8`, `::1`). Alamat publik **tidak** dipercaya, sehingga
+> `X-Forwarded-For` dari internet tidak bisa dipakai memalsukan IP.
+>
+> **2. `trustProxies` saja tidak cukup.** `include fastcgi_params` di nginx
+> hanya mengoper `REMOTE_ADDR`, **tidak satu pun** header HTTP. Tanpa
+> `fastcgi_param HTTP_X_FORWARDED_FOR` dan `..._PROTO`, nginx membuang header
+> yang sudah dikirim `web` sebelum sampai ke Laravel. Ini terbukti: uji 0.1b
+> gagal **0/5** meski 0.1 sudah terpasang, lalu lulus 5/5 setelah 0.1c
+> ditambahkan. Rencana awal hanya menyebut 0.1.
+>
+> **3. Pagar email tidak boleh memakai `APP_ENV`.** Profil produksi memang
+> dirancang bisa dijalankan di laptop untuk menguji pagar-pagarnya, dan di sana
+> `MAIL_HOST=mailpit` dengan `kos@contoh.test` adalah keadaan yang **benar**.
+> Pagar yang menyala di situ akan memaksa orang mematikan pagar itu sendiri.
+> Karena itu pagarnya memeriksa `MAIL_HOST`: menyala hanya bila tujuannya SMTP
+> jarak jauh.
+
 
 **Mengapa paling dulu:** 0.1 mengubah cara seluruh aplikasi membaca IP dan
 skema. Mengerjakannya setelah fase lain berarti menguji ulang semuanya.

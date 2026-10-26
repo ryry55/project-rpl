@@ -94,7 +94,17 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => 'prefer',
+            // A2 (FASE 0.3) - sebelumnya nilai ini ditulis mati `'prefer'`,
+            // padahal 9_DEPLOY.md:50 dan 11_AUDIT-PRODUKSI-2.md sudah
+            // memerintahkan menyetel `DB_SSLMODE=require` untuk Neon. Yang
+            // terjadi: instruksi itu tidak berpengaruh apa pun, karena tidak
+            // ada kode yang membacanya. Seseorang mengikuti dokumen, merasa
+            // sudah mengamankan koneksi, dan sebenarnya tidak.
+            //
+            // Bawaannya tetap `prefer` supaya PostgreSQL lokal tanpa TLS
+            // (kontainer `db` di demo) tetap tersambung. Neon memakai
+            // `require`, dan itu kini benar-benar terbaca.
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
         'sqlsrv' => [

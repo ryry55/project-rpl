@@ -69,6 +69,44 @@ if [ "${RUN_SEEDER:-false}" = "true" ]; then
     export RUN_SEEDER
 fi
 
+# --- Alamat pengirim email (FASE 0.4) --------------------------------------
+# Bahaya yang ditutup: mengirim email SUNGGUHAN lewat SMTP penyedia, dengan
+# alamat pengirim pada domain yang belum diverifikasi penyedianya. Penyedia
+# menerima suratnya, lalu membuangnya atau menandainya spam - dan tautan
+# aktivasi penghuni tidak pernah sampai. Gejalanya bukan galat, melainkan
+# "emailnya tidak masuk", dan itu baru ketahuan setelah penghuni mengeluh.
+#
+# Pagar ini SENGAJA tidak memeriksa `APP_ENV`. Profil produksi memang dirancang
+# bisa dijalankan di laptop untuk menguji pagar-pagarnya, dan di sana
+# `MAIL_HOST` menunjuk Mailpit dengan alamat `kos@contoh.test` - keadaan yang
+# sepenuhnya benar. Yang berbahaya bukan "APP_ENV=production", melainkan
+# "mengirim ke SMTP jarak jauh dengan alamat karangan". Itulah yang diperiksa:
+# pagar menyala hanya bila MAIL_HOST bukan penangkap lokal.
+host_email="${MAIL_HOST:-}"
+if [ -n "$host_email" ] \
+   && [ "$host_email" != "mailpit" ] \
+   && [ "$host_email" != "localhost" ] \
+   && [ "$host_email" != "127.0.0.1" ]; then
+    alamat="${MAIL_FROM_ADDRESS:-}"
+    if [ -z "$alamat" ]; then
+        echo "[entrypoint] BERHENTI: MAIL_FROM_ADDRESS kosong, padahal MAIL_HOST" >&2
+        echo "[entrypoint]           menunjuk SMTP jarak jauh ($host_email). Email" >&2
+        echo "[entrypoint]           aktivasi akan gagal terkirim tanpa galat apa pun." >&2
+        exit 1
+    fi
+    case "$alamat" in
+        *@contoh.test|*@contoh.com|*@example.com|*@example.org|*@localhost)
+            echo "[entrypoint] BERHENTI: MAIL_FROM_ADDRESS=$alamat masih alamat contoh," >&2
+            echo "[entrypoint]           padahal MAIL_HOST=$host_email mengirim surat sungguhan." >&2
+            echo "[entrypoint]           Penyedia akan membuangnya atau menandainya spam," >&2
+            echo "[entrypoint]           sehingga tautan aktivasi penghuni tidak pernah sampai." >&2
+            echo "[entrypoint]           Setel alamat pada domain yang sudah diverifikasi (SPF+DKIM)." >&2
+            exit 1
+            ;;
+    esac
+    echo "[entrypoint] pengirim email: $alamat lewat $host_email"
+fi
+
 # --- 3. APP_KEY ------------------------------------------------------------
 # Gagal keras bila kosong. Sandi terenkripsi dan token sesi bergantung pada
 # kunci ini; membuat kunci baru di produksi akan memutus semua sesi dan
@@ -87,7 +125,13 @@ fi
 # --- 4. Render konfigurasi yang butuh PORT --------------------------------
 PORT="${PORT:-8080}"
 export PORT
-sed "s/\${PORT}/$PORT/g" /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+# Tujuan `sed` bisa dialihkan lewat NGINX_CONF_TUJUAN. Hanya dipakai oleh
+# harness uji: `sed ... > /etc/nginx/nginx.conf` dijalankan oleh SHELL, bukan
+# oleh sed, sehingga memalsukan perintah `sed` saja tidak cukup - shell tetap
+# gagal menulis ke /etc. Tanpa kait ini, seluruh uji pagar akan berhenti di
+# sini dan menutupi hasil pagar yang sedang diukur.
+TUJUAN_NGINX="${NGINX_CONF_TUJUAN:-/etc/nginx/nginx.conf}"
+sed "s/\${PORT}/$PORT/g" /etc/nginx/nginx.conf.template > "$TUJUAN_NGINX"
 echo "[entrypoint] nginx mendengarkan di port $PORT"
 
 # Pastikan direktori tulis ada. Volume tidak dipakai di Render free, jadi

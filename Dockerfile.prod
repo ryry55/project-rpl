@@ -128,7 +128,7 @@ RUN composer dump-autoload --optimize --no-dev --no-interaction \
     && chown -R www-data:www-data storage bootstrap/cache public \
     && chmod -R ug+rwX storage bootstrap/cache
 
-COPY api/docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY api/docker/php/opcache-prod.ini /usr/local/etc/php/conf.d/opcache.ini
 COPY api/docker/php/php.ini /usr/local/etc/php/conf.d/app.ini
 COPY api/docker/backup.sh /usr/local/bin/backup.sh
 

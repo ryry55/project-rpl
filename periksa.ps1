@@ -184,6 +184,23 @@ if (-not $Cepat) {
     } else {
         Catat 'profil produksi menutup tiga bahaya' $false 'docs/uji/periksa-profil-produksi.sh tidak ada'
     }
+
+    # --- 6b. Pagar FASE 0 ---------------------------------------------------
+    # Pagar yang tidak pernah dibuktikan bisa GAGAL bukan pagar. Skrip ini
+    # memeriksa DB_SSLMODE, pagar MAIL_FROM_ADDRESS, OPcache produksi, dan
+    # penerusan header proxy oleh nginx - seluruhnya berada di luar image api,
+    # sehingga tidak satu pun bisa diperiksa tes PHPUnit.
+    Judul 'Pagar FASE 0'
+    if ($adaBash -and (Test-Path docs/uji/uji-pagar-fase0.sh)) {
+        $keluaranPagar = bash docs/uji/uji-pagar-fase0.sh 2>&1
+        $pagarOk = $LASTEXITCODE -eq 0
+        Catat 'pagar FASE 0 (SSL, email, OPcache, header proxy)' $pagarOk
+        if (-not $pagarOk) {
+            $keluaranPagar | Select-String -Pattern '^  GAGAL' | ForEach-Object { Write-Host ('    ' + $_.Line) }
+        }
+    } else {
+        Write-Host '  dilewati: bash tidak ada di PATH' -ForegroundColor Yellow
+    }
 }
 
 # --- 7. Uji browser ---------------------------------------------------------
@@ -284,6 +301,28 @@ if (-not $Cepat) {
             $hasil = node "docs/uji/$s" 2>&1
             $akhir = ($hasil | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
             Catat $s ($LASTEXITCODE -eq 0) $(if ($akhir) { $akhir } else { '' })
+        }
+
+        # Jalur proxy (FASE 0.1b). Inilah uji yang selama ini TIDAK ADA, dan
+        # itulah sebabnya cacat A1 lolos 748 tes PHP plus 27 skrip E2E tanpa
+        # pernah ketahuan: E2E menguji apa yang tampak di layar, sedangkan IP
+        # tidak pernah tampil di layar.
+        #
+        # Dijalankan lewat port PROXY (:3000), bukan langsung ke API. Pada jalur
+        # langsung tidak ada yang menambahkan X-Forwarded-For, sehingga ujinya
+        # akan lulus meski perbaikannya tidak ada - dan uji yang lulus tanpa
+        # perbaikan lebih buruk daripada tidak ada uji.
+        #
+        # Cache dibersihkan lebih dulu karena pembatas periksa-token menyimpan
+        # hitungannya di sana; sisa hitungan dari skrip sebelumnya akan membuat
+        # ujinya gagal karena sebab yang tidak ada hubungannya.
+        Judul 'Jalur proxy'
+        docker compose exec -T api php artisan cache:clear 2>&1 | Out-Null
+        $hasilProxy = node 'docs/uji/uji-proxy.mjs' 2>&1
+        $akhirProxy = ($hasilProxy | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
+        Catat 'uji-proxy.mjs' ($LASTEXITCODE -eq 0) $(if ($akhirProxy) { $akhirProxy } else { '' })
+        if ($LASTEXITCODE -ne 0) {
+            $hasilProxy | Select-String -Pattern '^GAGAL' | ForEach-Object { Write-Host ('    ' + $_.Line) }
         }
     }
 } else {
