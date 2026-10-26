@@ -147,11 +147,13 @@ $body = @{ email='pengelola@kos.test'; password='password' } | ConvertTo-Json
 $token = (Invoke-RestMethod -Uri "http://localhost:8081/api/login" -Method Post `
   -Body $body -ContentType 'application/json').data.token
 
-# Coba ubah kebijakan sebagai pengelola
+# Coba ubah kebijakan sebagai pengelola.
+# Badan permintaannya SENGAJA sah - kalau salah, 403-nya tidak membuktikan
+# apa pun tentang wewenang.
 try {
   Invoke-RestMethod -Uri "http://localhost:8081/api/kebijakan" -Method Post `
     -Headers @{ Authorization = "Bearer $token" } -ContentType 'application/json' `
-    -Body '{"dimensi":"denda","nilai":"nominal","nominal":50000}'
+    -Body '{"tipe":"satuan_sewa","nilai":"bulanan","berlaku_dari":"2026-01-01"}'
 } catch {
   "STATUS: " + $_.Exception.Response.StatusCode.value__
 }
@@ -230,9 +232,9 @@ QRIS yang hilang lebih buruk daripada tidak ada — pemilik mengira sudah mengun
 persisten dan sudah dicadangkan.
 
 **"Apa yang belum selesai?"**
-Dua hal, dan keduanya tercatat di `docs/utang-teknis.md`: **antrean email** masih sinkron (tanpa
-worker), dan **verifikasi Midtrans sandbox** menunggu kunci server. Uji E2E di CI juga masih menggantung
-— itu juga tercatat, bukan disembunyikan.
+Tiga hal, dan semuanya tercatat di `docs/utang-teknis.md`: **antrean email** masih sinkron (tanpa
+worker), **verifikasi Midtrans sandbox** menunggu kunci server, dan **uji E2E di CI** masih menggantung
+17+ menit sementara lulus ~7 menit di lokal. Tidak ada yang disembunyikan.
 
 **"Bagaimana kalau angkanya dipertanyakan?"**
 Setiap perubahan angka punya jejak: `log_audit` mencatat aktor, waktu, nilai lama, dan nilai baru,
