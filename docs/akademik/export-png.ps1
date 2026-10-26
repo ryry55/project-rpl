@@ -33,10 +33,17 @@ if (-not $browser) {
 Write-Host "Memakai: $browser"
 
 # --- daftar gambar: berkas svg, lebar, tinggi ---
-# Ukuran mengikuti TATA_LETAK.kanvas (1300x1200) dan KANVAS DFD (1900x1000).
+# Lebar dan tinggi DIBACA dari sumbernya, bukan dipatok. Angka 1900x1000 di sini
+# pernah tertinggal ketika kanvas konteks bertambah tinggi untuk menampung
+# entitas keempat: SVG-nya benar, PNG-nya terpotong, dan tidak ada yang gagal.
+$ukur = node -e "const u=require('./docs/akademik/usecase-data.js');const d=require('./docs/dfd/dfd-data.js');const k=u.TATA_LETAK.kanvas;console.log(k.w,k.h,d.KANVAS.konteks.w,d.KANVAS.konteks.h)"
+$angka = $ukur -split '\s+'
+if ($angka.Count -lt 4) { throw "gagal membaca ukuran kanvas: $ukur" }
+$uW = [int]$angka[0]; $uH = [int]$angka[1]; $kW = [int]$angka[2]; $kH = [int]$angka[3]
+
 $targets = @(
-    @{ Svg = '01-use-case.svg';    Png = '01-use-case.png';    W = 1300; H = 1200 },
-    @{ Svg = '02-dfd-konteks.svg'; Png = '02-dfd-konteks.png'; W = 1900; H = 1000 }
+    @{ Svg = '01-use-case.svg';    Png = '01-use-case.png';    W = $uW; H = $uH },
+    @{ Svg = '02-dfd-konteks.svg'; Png = '02-dfd-konteks.png'; W = $kW; H = $kH }
 )
 
 $scale = 2

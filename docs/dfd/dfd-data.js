@@ -17,16 +17,22 @@
 /* --------------------------------------------------------------- kanvas */
 
 const KANVAS = {
-  konteks: { w: 1900, h: 1000 },
+  konteks: { w: 1900, h: 1260 },
   level1: { w: 2500, h: 1900 },
 };
 
 /* -------------------------------------------------------------- entitas */
 
 /**
- * Tiga entitas eksternal. `peran` menjelaskan kedudukannya terhadap sistem
+ * Empat entitas eksternal. `peran` menjelaskan kedudukannya terhadap sistem
  * dan dipakai apa adanya di README — supaya tidak ada yang menulis ulang
  * alasannya secara berbeda di dua tempat.
+ *
+ * E4 (gerbang pembayaran) ditambahkan karena tanpanya DFD tidak jujur:
+ * `POST /webhook/midtrans` menulis baris `pembayaran` dari luar batas sistem,
+ * dan `POST /tagihan/{id}/bayar-daring` mengirim permintaan keluar. Aktor yang
+ * menulis ke penyimpanan data kita tetapi tidak digambar adalah cacat yang
+ * sama kelasnya dengan Pengelola yang pernah hilang dari diagram ini.
  */
 const ENTITAS = [
   {
@@ -58,6 +64,17 @@ const ENTITAS = [
       'sendiri adalah membuka tautan bayar daring, dan itu tidak membawa data ' +
       'baru ke sistem - uangnya baru tercatat setelah gerbang pembayaran ' +
       'menyatakan settlement lewat webhook.',
+  },
+  {
+    id: 'E4',
+    nama: 'GERBANG PEMBAYARAN',
+    ringkas: 'Gerbang Pembayaran',
+    peran:
+      'Pihak ketiga (Midtrans) di luar batas sistem. Menerima permintaan ' +
+      'pembuatan transaksi dan mengirim notifikasi settlement lewat webhook. ' +
+      'Ini satu-satunya entitas yang menulis uang masuk tanpa manusia ' +
+      'menekan tombol - karena itu tanda tangannya diverifikasi dan nominalnya ' +
+      'dicocokkan dengan nilai yang dibekukan sebelum baris pembayaran dibuat.',
   },
 ];
 
@@ -263,6 +280,16 @@ const ALIRAN = [
       'Pengelola mencatat uang yang ia pegang, sehingga tunai_di_tangan dapat ' +
       'dipertanggungjawabkan per akun.',
   },
+  {
+    kunci: 'I-8', kode: 'I-8', jenis: 'masuk', dari: 'E4', ke: 'P4',
+    label: ['notifikasi', 'settlement'],
+    struktur: 'order_id, transaction_status, fraud_status, gross_amount, signature_key',
+    catatan:
+      'Webhook gateway. Satu-satunya aliran masuk yang tidak berasal dari ' +
+      'manusia, sehingga tanda tangan SHA512 wajib diverifikasi dan ' +
+      'gross_amount dicocokkan dengan nilai yang dibekukan saat transaksi dibuat. ' +
+      'Notifikasi bertanda tangan salah dijawab 401 tanpa penjelasan.',
+  },
 
   /* ---- keluar ---- */
   {
@@ -308,6 +335,16 @@ const ALIRAN = [
     label: ['daftar tunggakan', '& log audit'],
     struktur: 'daftar_tunggakan[], kategori_umur, baris_audit[]',
     catatan: 'Membawa log audit keluar dari D6, sehingga D6 tidak jadi black hole.',
+  },
+  {
+    kunci: 'O-8', kode: 'O-8', jenis: 'keluar', dari: 'P4', ke: 'E4',
+    label: ['permintaan', 'transaksi bayar'],
+    struktur: 'order_id, gross_amount, nama_penghuni, deskripsi_tagihan',
+    catatan:
+      'Sistem meminta gateway membuat transaksi, lalu menyimpan token dan ' +
+      'redirect_url yang dikembalikan. Nominal yang dikirim dibekukan di ' +
+      'transaksi_gateway supaya webhook nanti dicocokkan terhadap angka yang ' +
+      'sama, bukan terhadap tagihan yang mungkin sudah berubah.',
   },
 
   /* ---- proses ke penyimpanan ---- */
@@ -417,6 +454,18 @@ const ALIRAN = [
     label: ['riwayat pembayaran'],
     struktur: 'tagihan_id, jumlah, tanggal_pembayaran',
     catatan: 'Dibutuhkan untuk menghitung sisa tagihan pada pembayaran bertahap.',
+  },
+  {
+    kunci: 'B9', kode: '32', jenis: 'internal', dari: 'D3', ke: 'P2',
+    label: ['nilai lama', 'yang digantikan'],
+    struktur: 'tarif: kamar_id, nilai, berlaku_dari · kebijakan: tipe, nilai, angka, kamar_id',
+    catatan:
+      'Tanpa panah ini O-2 membawa nilai_lama yang tidak punya sumber. ' +
+      'Kode benar-benar membacanya: PenerapPerubahan mencari baris terakhir ' +
+      'yang berlaku sebelum tanggal baru, lalu NilaiLama::tarif() ' +
+      'membungkusnya menjadi jejak audit. Tarif dan kebijakan bersifat ' +
+      'tambah-saja, jadi "nilai lama" berarti baris sebelumnya - bukan ' +
+      'baris yang ditimpa.',
   },
 
   /* ---- penyimpanan ke proses 5.0 ---- */
@@ -578,6 +627,10 @@ const KOTAK_LEVEL1 = {
   E1: { x: 100, y: 130, w: 250, h: 85 },
   E2: { x: 1620, y: 130, w: 250, h: 85 },
   E3: { x: 2080, y: 480, w: 250, h: 300 },
+  // Gerbang pembayaran diletakkan di kanan bawah, di luar lajur kabel: ia
+  // hanya berhubungan dengan proses 4.0, jadi tidak perlu berada di baris
+  // entitas atas.
+  E4: { x: 2130, y: 1330, w: 300, h: 110 },
 
   P1: { x: 100, y: 650, w: 250, h: 160 },
   P2: { x: 480, y: 650, w: 250, h: 160 },
@@ -632,6 +685,13 @@ const RUTE_LEVEL1 = {
   'O-6': { titik: [[860, 1690], [620, 1690], [620, 1560], [60, 1560], [60, 200], [100, 200]], at: [400, 1560] },
   'O-7': { titik: [[860, 1760], [580, 1760], [580, 1800], [40, 1800], [40, 170], [100, 170]], at: [400, 1800] },
 
+  /* ---- proses 4.0 ke Gerbang Pembayaran, dan sebaliknya ---- */
+  // Keduanya memakai lajur kanan (x 2050-2280), yaitu di luar D6 (berakhir di
+  // x 2000) dan di luar E3 (y 480-780). Rute pertama menyusuri x=1490 dan
+  // menembus D5 - pemeriksa tata letak menangkapnya, bukan mata.
+  'O-8': { titik: [[1490, 730], [2050, 730], [2050, 1385], [2130, 1385]], at: [1770, 730] },
+  'I-8': { titik: [[2280, 1330], [2280, 860], [1400, 860], [1400, 810]], at: [1840, 860] },
+
   /* ---- proses ke penyimpanan ---- */
   A1: { titik: [[225, 810], [225, 1150]], at: [225, 880] },
   A2: { titik: [[300, 810], [300, 860], [555, 860], [555, 1150]], at: [430, 860] },
@@ -652,6 +712,8 @@ const RUTE_LEVEL1 = {
   B6: { titik: [[830, 1150], [830, 1110], [1360, 1110], [1360, 810]], at: [1100, 1110] },
   B7: { titik: [[1190, 1150], [1190, 780], [1240, 780]], at: [1190, 1060] },
   B8: { titik: [[1535, 1150], [1535, 1135], [1440, 1135], [1440, 810]], at: [1500, 1135] },
+  // D3 -> P2: lajur kabel di kiri, memakai celah antar-penyimpanan x 680-760.
+  B9: { titik: [[820, 1150], [820, 580], [605, 580], [605, 650]], at: [820, 560] },
 
   /* ---- penyimpanan ke proses 5.0 ---- */
   C1: { titik: [[225, 1240], [225, 1560], [900, 1560], [900, 1660]], at: [560, 1560] },
@@ -677,6 +739,10 @@ const KOTAK_KONTEKS = {
   P0: { x: 700, y: 190, w: 460, h: 480 },
   E2: { x: 1500, y: 150, w: 240, h: 240 },
   E3: { x: 1500, y: 470, w: 240, h: 240 },
+  // E4 diletakkan di BAWAH, bukan di sisi kanan: ia berhubungan dengan
+  // proses 4.0 (pembayaran), bukan 1.0/3.0 seperti Penghuni. Menaruhnya di
+  // kanan memaksa kedua panahnya memotong kotak E2/E3.
+  E4: { x: 920, y: 850, w: 320, h: 120 },
 };
 
 const RUTE_KONTEKS = {
@@ -699,6 +765,14 @@ const RUTE_KONTEKS = {
   'O-1': { titik: [[1160, 510], [1500, 510]], at: [1330, 510] },
   'O-3': { titik: [[1160, 580], [1500, 580]], at: [1330, 580] },
   'O-5': { titik: [[1160, 650], [1500, 650]], at: [1330, 650] },
+
+  /* ---- bawah: Gerbang Pembayaran ---- */
+  // O-8 keluar dari sisi bawah proses menuju sisi atas E4. I-8 masuk kembali
+  // lewat sisi bawah proses pada x yang BERBEDA dari O-8: sebelumnya ia naik
+  // sampai y=670 dan ujung panahnya menyentuh garis O-5 (y=650), sehingga
+  // terbaca seperti satu aliran yang sama.
+  'O-8': { titik: [[1000, 670], [1000, 850]], at: [1000, 760] },
+  'I-8': { titik: [[1150, 850], [1150, 670]], at: [1195, 780] },
 };
 
 module.exports = {

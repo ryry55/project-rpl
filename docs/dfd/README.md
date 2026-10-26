@@ -65,7 +65,7 @@ bisa menjadi *black hole* tanpa satu pun peringatan.
 ## 1. DFD Konteks (DFD Nol / Level 0)
 
 Proses tunggal **0.0 Sistem Informasi Operasional Kos-Kosan** menghubungkan
-**3 entitas eksternal** melalui **14 aliran data utama** (7 masuk, 7 keluar).
+**4 entitas eksternal** melalui **16 aliran data utama** (8 masuk, 8 keluar).
 
 <!-- AWAL:aliran-konteks -->
 
@@ -80,6 +80,7 @@ Proses tunggal **0.0 Sistem Informasi Operasional Kos-Kosan** menghubungkan
 | **I-5** | PEMILIK KOS | Proses 4.0 | konfirmasi setoran uang | <code>tagihan_id, tanggal, jumlah, metode, diterima_oleh</code> |
 | **I-6** | PENGELOLA | Proses 2.0 | usulan perubahan tarif & kebijakan | <code>jenis, tipe, nilai_baru, alasan, diajukan_oleh</code> |
 | **I-7** | PENGELOLA | Proses 4.0 | pencatatan pembayaran tunai | <code>tagihan_id, tanggal, jumlah, metode=tunai, diterima_oleh</code> |
+| **I-8** | GERBANG PEMBAYARAN | Proses 4.0 | notifikasi settlement | <code>order_id, transaction_status, fraud_status, gross_amount, signature_key</code> |
 
 **Aliran keluar** — dari sistem ke entitas:
 
@@ -92,15 +93,16 @@ Proses tunggal **0.0 Sistem Informasi Operasional Kos-Kosan** menghubungkan
 | **O-5** | Proses 4.0 | PENGHUNI | kuitansi & status pelunasan | <code>pembayaran_id, tanggal, jumlah, sisa_tunggakan</code> |
 | **O-6** | Proses 5.0 | PEMILIK KOS | rekap pendapatan & hunian | <code>periode, total_pendapatan, jumlah_transaksi, occupancy_rate</code> |
 | **O-7** | Proses 5.0 | PEMILIK KOS | daftar tunggakan & log audit | <code>daftar_tunggakan[], kategori_umur, baris_audit[]</code> |
+| **O-8** | Proses 4.0 | GERBANG PEMBAYARAN | permintaan transaksi bayar | <code>order_id, gross_amount, nama_penghuni, deskripsi_tagihan</code> |
 
-Jumlahnya 7 masuk dan 7 keluar. Angka yang sama muncul di level 1,
+Jumlahnya 8 masuk dan 8 keluar. Angka yang sama muncul di level 1,
 karena setiap aliran batas sistem digambar persis sekali di masing-masing tingkat.
 
 <!-- AKHIR:aliran-konteks -->
 
 Pada level ini belum ada penyimpanan data — itu muncul di level 1.
 
-### Mengapa tiga entitas, bukan dua
+### Mengapa tiga entitas manusia, bukan dua
 
 Sistem ini memisahkan **pemilik** dan **pengelola** sebagai dua akun yang berbeda. Pemilik adalah
 pemegang keputusan; pengelola adalah akun yang ia buat dan beri wewenang terbatas. Pemisahan itu
@@ -126,12 +128,26 @@ Karena itu penghuni diposisikan sebagai **sink** — penerima informasi, bukan p
 penting untuk kejujuran diagram: menggambar panah "pendaftaran sewa" dari penghuni akan
 menjanjikan fitur yang tidak ada.
 
+### Mengapa gerbang pembayaran menjadi entitas keempat
+
+Semula diagram ini hanya punya tiga entitas, dan gerbang pembayaran tidak digambar sama sekali.
+Itu cacat, bukan penyederhanaan. `POST /webhook/midtrans` adalah endpoint yang **menulis baris
+`pembayaran`** ke D5 tanpa ada manusia yang menekan tombol; kalau aktornya tidak ada di diagram,
+aliran I-8 muncul dari ruang kosong. Sebaliknya `POST /tagihan/{id}/bayar-daring` mengirim
+permintaan keluar ke Midtrans dan menyimpan `token` serta `redirect_url` yang dikembalikan — itu
+O-8.
+
+Bedanya dengan penghuni: penghuni **menerima** data dan tidak pernah memasoknya, sedangkan gerbang
+pembayaran justru satu-satunya pihak luar yang memasok data uang. Karena itu ia harus digambar,
+dan karena itu pula tanda tangannya diverifikasi serta `gross_amount`-nya dicocokkan dengan nilai
+yang dibekukan di `transaksi_gateway` sebelum baris pembayaran dibuat.
+
 ---
 
 ## 2. DFD Level 1
 
-**5 proses**, **6 penyimpanan data**, **3 entitas eksternal**, **36 aliran data**
-(14 melintasi batas sistem, 22 internal).
+**5 proses**, **6 penyimpanan data**, **4 entitas eksternal**, **39 aliran data**
+(16 melintasi batas sistem, 23 internal).
 
 ### 2.1 Proses
 
@@ -175,6 +191,7 @@ menjanjikan fitur yang tidak ada.
 | **I-5** | PEMILIK KOS | Proses 4.0 | konfirmasi setoran uang | <code>tagihan_id, tanggal, jumlah, metode, diterima_oleh</code> |
 | **I-6** | PENGELOLA | Proses 2.0 | usulan perubahan tarif & kebijakan | <code>jenis, tipe, nilai_baru, alasan, diajukan_oleh</code> |
 | **I-7** | PENGELOLA | Proses 4.0 | pencatatan pembayaran tunai | <code>tagihan_id, tanggal, jumlah, metode=tunai, diterima_oleh</code> |
+| **I-8** | GERBANG PEMBAYARAN | Proses 4.0 | notifikasi settlement | <code>order_id, transaction_status, fraud_status, gross_amount, signature_key</code> |
 
 <!-- AKHIR:aliran-masuk -->
 
@@ -189,6 +206,7 @@ menjanjikan fitur yang tidak ada.
 | **O-5** | Proses 4.0 | PENGHUNI | kuitansi & status pelunasan | <code>pembayaran_id, tanggal, jumlah, sisa_tunggakan</code> |
 | **O-6** | Proses 5.0 | PEMILIK KOS | rekap pendapatan & hunian | <code>periode, total_pendapatan, jumlah_transaksi, occupancy_rate</code> |
 | **O-7** | Proses 5.0 | PEMILIK KOS | daftar tunggakan & log audit | <code>daftar_tunggakan[], kategori_umur, baris_audit[]</code> |
+| **O-8** | Proses 4.0 | GERBANG PEMBAYARAN | permintaan transaksi bayar | <code>order_id, gross_amount, nama_penghuni, deskripsi_tagihan</code> |
 
 <!-- AKHIR:aliran-keluar -->
 
@@ -213,6 +231,7 @@ menjanjikan fitur yang tidak ada.
 | **24** | Store D3 | Proses 4.0 | kebijakan denda | <code>bentuk_denda, tarif_denda_persen, plafon_persen, masa_tenggang</code> |
 | **25** | Store D4 | Proses 4.0 | tagihan belum lunas | <code>tagihan_id, pokok, jatuh_tempo, status</code> |
 | **26** | Store D5 | Proses 4.0 | riwayat pembayaran | <code>tagihan_id, jumlah, tanggal_pembayaran</code> |
+| **32** | Store D3 | Proses 2.0 | nilai lama yang digantikan | <code>tarif: kamar_id, nilai, berlaku_dari · kebijakan: tipe, nilai, angka, kamar_id</code> |
 | **27** | Store D1 | Proses 5.0 | data kamar | <code>nomor, status_huni</code> |
 | **28** | Store D2 | Proses 5.0 | kontrak | <code>kamar, penghuni, periode</code> |
 | **29** | Store D4 | Proses 5.0 | tagihan | <code>periode, pokok, denda, status</code> |
@@ -228,8 +247,9 @@ rekap pendapatan & hunian, dan daftar tunggakan & peringatan. Pada level 1, kedu
 menjadi satu panah — kata "peringatan" hilang tanpa jejak, dan jumlah aliran yang melintasi batas
 sistem menjadi tidak seimbang.
 
-Sekarang keluaran proses 5.0 dipecah menjadi dua aliran (O-6 dan O-7), sehingga
-**7 masuk dan 7 keluar di kedua tingkat**. `build.js` memeriksa keseimbangan ini secara otomatis.
+Sekarang keluaran proses 5.0 dipecah menjadi dua aliran (O-6 dan O-7), sehingga jumlahnya
+seimbang. `build.js` memeriksa keseimbangan ini secara otomatis: setiap aliran batas wajib punya
+rute di kedua tingkat, dan hitungannya harus sama — kini **8 masuk dan 8 keluar**.
 
 ---
 

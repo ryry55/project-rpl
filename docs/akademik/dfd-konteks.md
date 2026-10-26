@@ -23,9 +23,9 @@ Yourdon/DeMarco untuk gambar yang sama ada di `docs/dfd/01-dfd-konteks-yourdon.s
 Proses tunggal **0.0 Sistem Informasi Operasional Kos-Kosan** mewakili seluruh
 sistem sebagai satu simpul. Pada level ini belum ada penyimpanan data — D1–D6
 muncul di level 1, dan jumlah aliran batas di kedua level sengaja sama
-(14) supaya tidak ada aliran yang hilang saat dekomposisi.
+(16) supaya tidak ada aliran yang hilang saat dekomposisi.
 
-## 3. Matriks 14 Aliran Data Utama
+## 3. Matriks 16 Aliran Data Utama
 
 ### A. Aliran Data Masuk (Input ke Proses Sentral 0.0)
 
@@ -38,6 +38,7 @@ muncul di level 1, dan jumlah aliran batas di kedua level sengaja sama
 | **I-5** | Pemilik Kos | Proses 4.0 | konfirmasi setoran uang | `tagihan_id, tanggal, jumlah, metode, diterima_oleh` |
 | **I-6** | Pengelola | Proses 2.0 | usulan perubahan tarif & kebijakan | `jenis, tipe, nilai_baru, alasan, diajukan_oleh` |
 | **I-7** | Pengelola | Proses 4.0 | pencatatan pembayaran tunai | `tagihan_id, tanggal, jumlah, metode=tunai, diterima_oleh` |
+| **I-8** | Gerbang Pembayaran | Proses 4.0 | notifikasi settlement | `order_id, transaction_status, fraud_status, gross_amount, signature_key` |
 
 ### B. Aliran Data Keluar (Output dari Proses Sentral 0.0)
 
@@ -50,18 +51,30 @@ muncul di level 1, dan jumlah aliran batas di kedua level sengaja sama
 | **O-5** | Proses 4.0 | Penghuni | kuitansi & status pelunasan | `pembayaran_id, tanggal, jumlah, sisa_tunggakan` |
 | **O-6** | Proses 5.0 | Pemilik Kos | rekap pendapatan & hunian | `periode, total_pendapatan, jumlah_transaksi, occupancy_rate` |
 | **O-7** | Proses 5.0 | Pemilik Kos | daftar tunggakan & log audit | `daftar_tunggakan[], kategori_umur, baris_audit[]` |
+| **O-8** | Proses 4.0 | Gerbang Pembayaran | permintaan transaksi bayar | `order_id, gross_amount, nama_penghuni, deskripsi_tagihan` |
 
-Jumlahnya **7 masuk dan 7 keluar**.
+Jumlahnya **8 masuk dan 8 keluar**.
 Angka itu diperiksa `build.js` setiap kali gambar dibangun; bila data DFD
-berubah dan jumlahnya tidak lagi 14, build gagal dan
+berubah dan jumlahnya tidak lagi 16, build gagal dan
 dokumen ini tidak ditulis.
 
 ## 4. Mengapa Bentuknya Begini
 
-**Tiga entitas, bukan dua.** Pemilik dan pengelola dipisahkan karena
+**Tiga entitas manusia, bukan dua.** Pemilik dan pengelola dipisahkan karena
 perbedaannya mengubah aliran data secara nyata: pengelola mengusulkan (I-6) dan
 pemilik memutuskan (I-3). Menggabungkan keduanya hanya menyederhanakan gambar,
 sementara kenyataan sistemnya tetap punya dua peran dengan wewenang berbeda.
+
+**Entitas keempat: gerbang pembayaran.** Diagram ini semula hanya punya tiga
+entitas dan gerbang pembayaran tidak digambar sama sekali. Itu cacat, bukan
+penyederhanaan: `POST /webhook/midtrans` menulis baris `pembayaran` dari luar
+batas sistem tanpa ada manusia menekan tombol, sehingga aliran I-8 muncul dari
+ruang kosong. Sebaliknya `POST /tagihan/{id}/bayar-daring` mengirim permintaan
+keluar ke Midtrans (O-8). Bedanya dengan penghuni: penghuni hanya **menerima**
+data, sedangkan gerbang pembayaran justru satu-satunya pihak luar yang
+**memasok** data uang — karena itu tanda tangannya diverifikasi dan
+`gross_amount`-nya dicocokkan dengan nilai yang dibekukan di
+`transaksi_gateway` sebelum baris pembayaran dibuat.
 
 **Penghuni tanpa aliran masuk data.** Portal penghuni hampir seluruhnya
 baca-saja. Pendaftaran sewa dan pencatatan uang dilakukan pemilik atau

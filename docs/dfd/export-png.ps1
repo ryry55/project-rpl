@@ -30,13 +30,21 @@ if (-not $browser) {
 
 Write-Host "Memakai: $browser"
 
-# --- daftar gambar: berkas svg, lebar, tinggi ---
-# Ukuran harus sama dengan KANVAS di dfd-data.js, kalau tidak gambar terpotong.
+# --- daftar gambar: berkas svg, tinggi ---
+# Lebar dan tinggi DIBACA dari dfd-data.js, bukan dipatok. Sebelumnya angka di
+# sini disalin tangan, dan ketika kanvas konteks bertambah tinggi untuk
+# menampung entitas keempat, PNG tetap diekspor 1900x1000 sehingga gambar
+# terpotong tanpa ada yang gagal.
+$ukur = node -e "const d=require('./docs/dfd/dfd-data.js');const g=require('fs').readFileSync('./docs/dfd/dfd-gambar.js','utf8').match(/GESER_LEVEL1\s*=\s*(\d+)/);console.log(d.KANVAS.konteks.w,d.KANVAS.konteks.h,d.KANVAS.level1.w,d.KANVAS.level1.h+Number(g[1]))"
+$angka = $ukur -split '\s+'
+if ($angka.Count -lt 4) { throw "gagal membaca KANVAS dari dfd-data.js: $ukur" }
+$kW = [int]$angka[0]; $kH = [int]$angka[1]; $lW = [int]$angka[2]; $lH = [int]$angka[3]
+
 $targets = @(
-    @{ Svg = '01-dfd-konteks.svg'; Png = '01-dfd-konteks.png'; W = 1900; H = 1000 },
-    @{ Svg = '02-dfd-level-1.svg'; Png = '02-dfd-level-1.png'; W = 2500; H = 2030 },
-    @{ Svg = '01-dfd-konteks-yourdon.svg'; Png = '01-dfd-konteks-yourdon.png'; W = 1900; H = 1000 },
-    @{ Svg = '02-dfd-level-1-yourdon.svg'; Png = '02-dfd-level-1-yourdon.png'; W = 2500; H = 2030 }
+    @{ Svg = '01-dfd-konteks.svg'; Png = '01-dfd-konteks.png'; W = $kW; H = $kH },
+    @{ Svg = '02-dfd-level-1.svg'; Png = '02-dfd-level-1.png'; W = $lW; H = $lH },
+    @{ Svg = '01-dfd-konteks-yourdon.svg'; Png = '01-dfd-konteks-yourdon.png'; W = $kW; H = $kH },
+    @{ Svg = '02-dfd-level-1-yourdon.svg'; Png = '02-dfd-level-1-yourdon.png'; W = $lW; H = $lH }
 )
 
 $scale = 2

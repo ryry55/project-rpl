@@ -99,7 +99,9 @@ rusak. Kriteria yang hanya "ada kodenya" tanpa tes tidak dicentang.
 Tidak ada. Keempat puluh tiga kriteria punya tes yang gagal bila perilakunya rusak.
 
 Yang **tidak** masuk daftar ini adalah proses 5.0 (laporan): memang di luar cakupan rilis
-demo (SPEC §11), dan tidak pernah muncul sebagai kotak centang di issue #1. R-05 (deposit)
+demo (SPEC §11), dan tidak pernah muncul sebagai kotak centang di issue #1. Deposit
 **tidak lagi** ada di daftar ini karena alasan yang berbeda — deposit dihapus seluruhnya di
 fase terakhir, dan penghapusannya punya tesnya sendiri (`MigrasiHapusDepositTest`, 5 tes).
-Status lengkapnya di `docs/uji/audit-ketertelusuran.md`.
+Deposit sengaja tidak memakai nomor aturan R-*: ia ketiadaan fitur, bukan aturan yang
+ditegakkan, sedangkan R-05 justru gerbang kebijakan wajib yang benar-benar menolak
+`POST /tagihan`. Status lengkapnya di `docs/uji/audit-ketertelusuran.md`.

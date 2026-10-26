@@ -153,6 +153,12 @@ Set-ParaText $doc "Tingkat ketersediaan dan keandalan" $kpi[5] | Out-Null
 Set-ParaText $doc "Tingkat kesesuaian dan kualitas"    $kpi[6] | Out-Null
 
 # ---------- sisipkan aturan bisnis R-01..R-07 ke bagian 2 ----------
+# R-05 semula berbunyi "sistem tidak memungut deposit". Itu keliru menempati
+# nomor aturan: deposit adalah KETIADAAN fitur, bukan aturan yang ditegakkan
+# kode. Aturan yang benar-benar ditegakkan untuk R-05 adalah gerbang kebijakan
+# wajib (KebijakanBelumLengkap) - dan itulah yang dipakai PRD, DFD, dan SPEC.
+# Deposit tetap dicatat, tetapi sebagai pernyataan batas sistem sesudah daftar,
+# supaya informasinya tidak hilang tanpa berpura-pura menjadi aturan ke-5.
 $anchorIdx = 0
 for ($i = 1; $i -le $doc.Paragraphs.Count; $i++) {
     if ($doc.Paragraphs.Item($i).Range.Text -like "*Pelaksanaan workshop serta penyusunan dokumentasi*") { $anchorIdx = $i; break }
@@ -165,9 +171,10 @@ $inserts = @(
     'R-02  Satu kontrak hanya boleh memiliki satu tagihan per periode, dan penerbitan ulang untuk periode yang sama ditolak',
     'R-03  Denda keterlambatan mulai berlaku pada hari ke-8 setelah jatuh tempo, sebesar 1% dari pokok tagihan per hari, dan dibatasi maksimal 30% dari pokok sehingga denda berhenti bertambah pada hari terlambat ke-37',
     'R-04  Tunggakan dikelompokkan menurut umur, yaitu 0 sampai 30 hari, 31 sampai 60 hari, dan lebih dari 60 hari',
-    'R-05  Sistem tidak memungut, mencatat, maupun mengembalikan deposit; kos yang memungut deposit mencatatnya di luar sistem',
+    'R-05  Kebijakan kos wajib lengkap sebelum tagihan pertama diterbitkan, yaitu satuan sewa, jatuh tempo, dan denda; selama ketiganya belum diisi, penerbitan ditolak',
     'R-06  Perubahan tarif tidak berlaku surut, hanya untuk periode berikutnya',
-    'R-07  Penghuni hanya dapat melihat tagihannya sendiri, dan setiap perubahan status tagihan tercatat dalam log audit'
+    'R-07  Penghuni hanya dapat melihat tagihannya sendiri, dan setiap perubahan status tagihan tercatat dalam log audit',
+    'Di luar tujuh aturan di atas, sistem ini juga menetapkan batas: deposit tidak dipungut, tidak dicatat, maupun dikembalikan. Kos yang memungut deposit mencatatnya di luar sistem'
 )
 
 for ($k = 0; $k -lt $inserts.Count; $k++) {

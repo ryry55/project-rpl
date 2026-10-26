@@ -447,6 +447,7 @@ function gambarKonteks(notasi) {
     E1: { ...kotak.E1, tag: 'E1 PEMILIK KOS', label: D.ENTITAS[0].nama },
     E2: { ...kotak.E2, tag: 'E2 PENGELOLA', label: D.ENTITAS[1].nama },
     E3: { ...kotak.E3, tag: 'E3 PENGHUNI', label: D.ENTITAS[2].nama },
+    E4: { ...kotak.E4, tag: 'E4 GERBANG PEMBAYARAN', label: D.ENTITAS[3].nama },
   };
 
   const p0 = {
@@ -499,30 +500,35 @@ function gambarKonteks(notasi) {
     ...periksaLabel(ruteGambar, 'DFD Konteks'),
   ];
 
+  // Legenda dan catatan diletakkan relatif terhadap tinggi kanvas, bukan pada
+  // angka tetap: kanvas ini pernah bertambah tinggi untuk menampung entitas
+  // keempat, dan koordinat yang dipatok akan menaruh legenda di tengah gambar.
+  const yLegenda = H - 260;
   const legenda = [
-    `<rect x="700" y="740" width="520" height="132" rx="10" fill="#fafafa" stroke="${C.legend}" stroke-width="1"/>`,
-    `<text x="718" y="766" font-size="12.5" font-weight="700" fill="${C.ink}">KETERANGAN SIMBOL${gane ? '' : ' (YOURDON / DeMARCO)'}</text>`,
-    `<rect x="718" y="780" width="72" height="26" fill="${C.entityFill}" stroke="${C.entityStroke}" stroke-width="2"/>`,
-    `<text x="802" y="793" font-size="12" fill="${C.sub}" dominant-baseline="central">Entitas eksternal</text>`,
+    `<rect x="700" y="${yLegenda}" width="520" height="132" rx="10" fill="#fafafa" stroke="${C.legend}" stroke-width="1"/>`,
+    `<text x="718" y="${yLegenda + 26}" font-size="12.5" font-weight="700" fill="${C.ink}">KETERANGAN SIMBOL${gane ? '' : ' (YOURDON / DeMARCO)'}</text>`,
+    `<rect x="718" y="${yLegenda + 40}" width="72" height="26" fill="${C.entityFill}" stroke="${C.entityStroke}" stroke-width="2"/>`,
+    `<text x="802" y="${yLegenda + 53}" font-size="12" fill="${C.sub}" dominant-baseline="central">Entitas eksternal</text>`,
     gane
       ? [
-          `<rect x="718" y="816" width="72" height="26" rx="8" fill="${C.procFill}" stroke="${C.procStroke}" stroke-width="2"/>`,
-          `<path d="M718 829 H790" stroke="${C.procStroke}" stroke-width="1.2"/>`,
-          `<text x="802" y="829" font-size="12" fill="${C.sub}" dominant-baseline="central">Proses</text>`,
+          `<rect x="718" y="${yLegenda + 76}" width="72" height="26" rx="8" fill="${C.procFill}" stroke="${C.procStroke}" stroke-width="2"/>`,
+          `<path d="M718 ${yLegenda + 89} H790" stroke="${C.procStroke}" stroke-width="1.2"/>`,
+          `<text x="802" y="${yLegenda + 89}" font-size="12" fill="${C.sub}" dominant-baseline="central">Proses</text>`,
         ].join('\n')
       : [
-          `<circle cx="754" cy="829" r="13" fill="${C.procFill}" stroke="${C.procStroke}" stroke-width="2"/>`,
-          `<text x="802" y="829" font-size="12" fill="${C.sub}" dominant-baseline="central">Proses (nomor + nama)</text>`,
+          `<circle cx="754" cy="${yLegenda + 89}" r="13" fill="${C.procFill}" stroke="${C.procStroke}" stroke-width="2"/>`,
+          `<text x="802" y="${yLegenda + 89}" font-size="12" fill="${C.sub}" dominant-baseline="central">Proses (nomor + nama)</text>`,
         ].join('\n'),
-    `<path d="M718 866 H782" fill="none" stroke="${C.flow}" stroke-width="1.6" marker-end="url(#arrow)"/>`,
-    `<text x="802" y="866" font-size="12" fill="${C.sub}" dominant-baseline="central">Aliran data (berlabel)</text>`,
+    `<path d="M718 ${yLegenda + 126} H782" fill="none" stroke="${C.flow}" stroke-width="1.6" marker-end="url(#arrow)"/>`,
+    `<text x="802" y="${yLegenda + 126}" font-size="12" fill="${C.sub}" dominant-baseline="central">Aliran data (berlabel)</text>`,
   ].join('\n');
 
   const jumlah = periksaSemantik().jumlah;
+  const yCatatan = H - 96;
   const catatan = [
-    `<text x="60" y="904" font-size="12.5" fill="${C.sub}">Notasi ${gane ? 'Gane-Sarson' : 'Yourdon / DeMarco'} — entitas eksternal (kotak), proses (${gane ? 'persegi sudut tumpul' : 'lingkaran'}), aliran data (panah berlabel).</text>`,
-    `<text x="60" y="930" font-size="12.5" fill="${C.sub}">Proses ${p0.id} mewakili seluruh sistem sebagai satu simpul. Rincian tiap aliran: docs/dfd/README.md</text>`,
-    `<text x="60" y="956" font-size="12.5" fill="${C.sub}">${D.ENTITAS.length} entitas eksternal  ·  ${jumlah.total} aliran data utama (${jumlah.masuk} masuk, ${jumlah.keluar} keluar)  ·  belum ada penyimpanan data pada level ini.</text>`,
+    `<text x="60" y="${yCatatan}" font-size="12.5" fill="${C.sub}">Notasi ${gane ? 'Gane-Sarson' : 'Yourdon / DeMarco'} — entitas eksternal (kotak), proses (${gane ? 'persegi sudut tumpul' : 'lingkaran'}), aliran data (panah berlabel).</text>`,
+    `<text x="60" y="${yCatatan + 26}" font-size="12.5" fill="${C.sub}">Proses ${p0.id} mewakili seluruh sistem sebagai satu simpul. Rincian tiap aliran: docs/dfd/README.md</text>`,
+    `<text x="60" y="${yCatatan + 52}" font-size="12.5" fill="${C.sub}">${D.ENTITAS.length} entitas eksternal  ·  ${jumlah.total} aliran data utama (${jumlah.masuk} masuk, ${jumlah.keluar} keluar)  ·  belum ada penyimpanan data pada level ini.</text>`,
   ].join('\n');
 
   const isi = [
@@ -534,6 +540,7 @@ function gambarKonteks(notasi) {
     entitas(entitasKotak.E1),
     entitas(entitasKotak.E2),
     entitas(entitasKotak.E3),
+    entitas(entitasKotak.E4),
     gane ? prosesGane(p0) : prosesYourdon(elipsP0),
     ruteGambar.map((f) => garisAliran(f.titik)).join('\n'),
     ruteGambar.map((f, i) => labelAliran(f, daftarAliran[i].label)).join('\n'),
@@ -576,7 +583,12 @@ function gambarLevel1(notasi) {
   );
 
   const entitasKotak = {};
-  const petaEntitas = { E1: 'PEMILIK KOS', E2: 'PENGELOLA', E3: 'PENGHUNI' };
+  const petaEntitas = {
+    E1: 'PEMILIK KOS',
+    E2: 'PENGELOLA',
+    E3: 'PENGHUNI',
+    E4: 'GERBANG PEMBAYARAN',
+  };
   for (const e of D.ENTITAS) {
     entitasKotak[e.id] = {
       ...kotak[e.id],
@@ -658,8 +670,12 @@ function gambarLevel1(notasi) {
   ];
 
   /* ---- legenda ---- */
-  const lx = 1500;
-  const ly = 1560;
+  // y=1560 semula dipakai, dan rute C4 (D5 -> P5) menembusnya di (1545, 1563):
+  // panahnya tertutup kotak legenda. Diukur dengan memeriksa setiap segmen rute
+  // terhadap kotak legenda, bukan dengan memandang gambar.
+  // y=1780 bebas dari kotak, label, dan garis.
+  const lx = 1480;
+  const ly = 1780;
   const legenda = [
     `<rect x="${lx}" y="${ly}" width="560" height="190" rx="10" fill="#fafafa" stroke="${C.legend}" stroke-width="1"/>`,
     `<text x="${lx + 18}" y="${ly + 26}" font-size="12.5" font-weight="700" fill="${C.ink}">KETERANGAN SIMBOL${gane ? '' : ' (YOURDON / DeMARCO)'}</text>`,
@@ -691,7 +707,68 @@ function gambarLevel1(notasi) {
     `<text x="${lx + 100}" y="${ly + 172}" font-size="12" fill="${C.sub}" dominant-baseline="central">Aliran data</text>`,
   ].join('\n');
 
+  // Legenda adalah kotak berisi teks. Ia TIDAK diperiksa oleh periksaTembus
+  // (yang hanya memeriksa garis aliran) dan tidak oleh periksaLabel (yang
+  // hanya memeriksa label aliran). Akibatnya ia bisa menimpa kotak proses,
+  // penyimpanan, atau label - dan itu persis yang terjadi: legenda level 1
+  // menutupi D5, D6, dan label "tagihan bulanan" tanpa satu pun peringatan.
+  // Diperiksa di sini supaya kesalahan yang sama tidak bisa terulang diam-diam.
+  {
+    const KOTAK_LEGENDA = { x: lx, y: ly, w: 560, h: 190 };
+    const bertabrakan = (a, b) =>
+      a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+
+    const kotakSemua = [
+      ...Object.values(entitasKotak),
+      ...Object.values(prosesKotak),
+      ...Object.values(storeKotak),
+    ];
+    for (const b of kotakSemua) {
+      if (bertabrakan(KOTAK_LEGENDA, b)) {
+        masalah.push(`DFD Level 1 (${notasi}): legenda menimpa kotak "${b.tag}"`);
+      }
+    }
+    for (const f of ruteGambar) {
+      const arr = asLines(f.label);
+      const size = 12.5;
+      const wMax = Math.max(...arr.map((l) => l.length)) * size * 0.545;
+      const w = wMax + 14;
+      const h = arr.length * size * 1.34 + 7;
+      const b = { x: f.at[0] - w / 2, y: f.at[1] - h / 2, w, h, tag: arr.join(' ') };
+      if (bertabrakan(KOTAK_LEGENDA, b)) {
+        masalah.push(`DFD Level 1 (${notasi}): legenda menimpa label "${b.tag}"`);
+      }
+    }
+
+    // Garis aliran juga wajib diperiksa. Inilah yang sebenarnya terjadi:
+    // rute C4 (D5 -> P5) menembus kotak legenda di (1545, 1563) dan panahnya
+    // tertutup - sementara pemeriksaan kotak dan label sama sekali tidak
+    // menyala, karena garis bukan kotak dan bukan label.
+    for (const f of ruteGambar) {
+      for (let i = 0; i < f.titik.length - 1; i++) {
+        const [x1, y1] = f.titik[i];
+        const [x2, y2] = f.titik[i + 1];
+        for (let s = 0; s <= 40; s++) {
+          const px = x1 + ((x2 - x1) * s) / 40;
+          const py = y1 + ((y2 - y1) * s) / 40;
+          if (
+            px > KOTAK_LEGENDA.x &&
+            px < KOTAK_LEGENDA.x + KOTAK_LEGENDA.w &&
+            py > KOTAK_LEGENDA.y &&
+            py < KOTAK_LEGENDA.y + KOTAK_LEGENDA.h
+          ) {
+            masalah.push(
+              `DFD Level 1 (${notasi}): legenda menutupi garis aliran "${f.label.join(' ')}"`
+            );
+            break;
+          }
+        }
+      }
+    }
+  }
+
   const jumlahAliran = D.ALIRAN.length;
+
   const catatan = [
     `<text x="60" y="${H - 70}" font-size="12.5" fill="${C.sub}">${D.PROSES.length} proses level 1  ·  ${D.STORE.length} penyimpanan data  ·  ${D.ENTITAS.length} entitas eksternal  ·  ${jumlahAliran} aliran data</text>`,
     `<text x="60" y="${H - 44}" font-size="12.5" fill="${C.sub}">Rincian tiap aliran (asal, tujuan, struktur data): docs/dfd/README.md</text>`,

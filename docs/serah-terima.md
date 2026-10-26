@@ -50,10 +50,10 @@ Jangan menyimpang dari ini tanpa keputusan pemilik.
 | Langkah deploy manual | `docs/produk/9_DEPLOY.md` |
 
 **Narasi tetap 4 halaman, bukan 3** - sudah diputuskan pemilik. Template dosen
-hanya punya 10 aliran dan 5 entitas; sistem ini 14 aliran, 12 entitas, 7 aturan.
-Kedua PDF sudah diekspor: narasi 4 halaman, diagram tepat 2 halaman. Jangan
-"merapikannya" tanpa bertanya. **Harga Charter tetap Rp 50.000.000**, jadwal
-mengikuti pertemuan kuliah mulai 8 September 2026.
+hanya punya 10 aliran dan 5 entitas; sistem ini 16 aliran, 12 entitas data, 7
+aturan. Kedua PDF sudah diekspor: narasi 4 halaman, diagram tepat 2 halaman.
+Jangan "merapikannya" tanpa bertanya. **Harga Charter tetap Rp 50.000.000**,
+jadwal mengikuti pertemuan kuliah mulai 8 September 2026.
 
 ---
 

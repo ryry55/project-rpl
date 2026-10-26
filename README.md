@@ -109,7 +109,8 @@ Tiga tipe wajib diisi sebelum tagihan pertama bisa terbit:
 **Deposit tidak ada di sistem ini.** Dulu ada kolomnya, tetapi tidak pernah dicatat sebagai uang
 masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan — jadi ia dikeluarkan
 seluruhnya di fase terakhir. Kos yang memungut deposit mencatatnya di luar sistem, dan itu batas
-yang dinyatakan terbuka, bukan cacat tersembunyi. Lihat `SPEC.md` R-05.
+yang dinyatakan terbuka, bukan cacat tersembunyi. Deposit sengaja **tidak** diberi nomor aturan
+R-*: ia ketiadaan fitur, bukan aturan yang ditegakkan. Lihat batas sistem di `SPEC.md` R-05.
 
 Selama ketiganya belum lengkap, `POST /tagihan` dijawab **422** dengan menyebut tipe mana yang
 kurang — bukan menerbitkan tagihan dengan angka tebakan. Layar Kebijakan menandai kartu yang masih

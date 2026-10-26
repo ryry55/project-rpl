@@ -3,7 +3,7 @@
 > **Dibangkitkan, jangan disunting tangan** — `node docs/akademik/build-dokumen.js`.
 > Angka dibaca dari `rute-api.json` (81 endpoint), `tabel-domain.json` (23 tabel),
 > `usecase-data.js` (14 use case), `api/composer.lock` (Laravel 12.70.1),
-> dan `docs/dfd/dfd-data.js` (14 aliran batas).
+> dan `docs/dfd/dfd-data.js` (16 aliran batas).
 
 
 ## 1. Ringkasan Eksekutif Sistem
@@ -115,11 +115,11 @@ alasannya ada di `use-case-diagram.md` §4.
 ## 5. Pemodelan Terstruktur (Data Flow Diagram / DFD Konteks)
 
 Proses sentral **0.0 Sistem Informasi Operasional Kos-Kosan** menghubungkan
-**3 entitas eksternal** melalui **14 aliran data utama (7 masuk dan 7
+**4 entitas eksternal** melalui **16 aliran data utama (8 masuk dan 8
 keluar)**. Gambarnya di `dfd-konteks.md`, dibaca dari `docs/dfd/dfd-data.js` —
 sumber tunggal yang sama dengan DFD teknis.
 
-### 5.1 Matriks 14 Aliran Data Utama (Input & Output)
+### 5.1 Matriks 16 Aliran Data Utama (Input & Output)
 
 **A. Aliran Data Masuk (Input ke Proses Sentral 0.0):**
 
@@ -130,6 +130,7 @@ sumber tunggal yang sama dengan DFD teknis.
 5. **Pemilik Kos -> Sistem:** konfirmasi setoran uang
 6. **Pengelola -> Sistem:** usulan perubahan tarif & kebijakan
 7. **Pengelola -> Sistem:** pencatatan pembayaran tunai
+8. **Gerbang Pembayaran -> Sistem:** notifikasi settlement
 
 **B. Aliran Data Keluar (Output dari Proses Sentral 0.0):**
 
@@ -140,6 +141,7 @@ sumber tunggal yang sama dengan DFD teknis.
 5. **Sistem -> Penghuni:** kuitansi & status pelunasan
 6. **Sistem -> Pemilik Kos:** rekap pendapatan & hunian
 7. **Sistem -> Pemilik Kos:** daftar tunggakan & log audit
+8. **Sistem -> Gerbang Pembayaran:** permintaan transaksi bayar
 
 Penghuni sengaja tanpa aliran masuk data (portalnya hampir seluruhnya
 baca-saja; bayar daring tidak membawa data, uangnya tercatat dari webhook), dan

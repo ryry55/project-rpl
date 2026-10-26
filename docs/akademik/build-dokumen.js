@@ -174,12 +174,16 @@ function periksaSemua() {
     masalah.push(`endpoint terpakai ${jumlahEndpoint}, potret route:list ${RUTE.length}`);
   }
 
-  // Tujuh bab template, dan tidak boleh lebih: bab tambahan adalah tanda
-  // dokumen mulai menjawab pertanyaan yang tidak ditanyakan dosen.
-  if (aliranMasuk.length !== 7 || aliranKeluar.length !== 7) {
+  // Angka ini PAGAR, bukan salinan templat. Semula 7 dan 7 karena DFD memang
+  // punya tujuh aliran tiap arah. Setelah gerbang pembayaran (E4) dimodelkan,
+  // angkanya menjadi 8 dan 8 — bukan karena templat berubah, tetapi karena
+  // diagramnya kini memuat satu aktor yang sebelumnya menulis ke basis data
+  // tanpa pernah digambar. Pagar tetap dipertahankan supaya perubahan
+  // berikutnya harus diputuskan, bukan terjadi.
+  if (aliranMasuk.length !== 8 || aliranKeluar.length !== 8) {
     masalah.push(
       `aliran batas ${aliranMasuk.length} masuk / ${aliranKeluar.length} keluar, ` +
-        'template menyebut 7 dan 7'
+        'kesepakatan dokumen menyebut 8 dan 8'
     );
   }
 
@@ -507,10 +511,21 @@ dokumen ini tidak ditulis.
 
 ## 4. Mengapa Bentuknya Begini
 
-**Tiga entitas, bukan dua.** Pemilik dan pengelola dipisahkan karena
+**Tiga entitas manusia, bukan dua.** Pemilik dan pengelola dipisahkan karena
 perbedaannya mengubah aliran data secara nyata: pengelola mengusulkan (I-6) dan
 pemilik memutuskan (I-3). Menggabungkan keduanya hanya menyederhanakan gambar,
 sementara kenyataan sistemnya tetap punya dua peran dengan wewenang berbeda.
+
+**Entitas keempat: gerbang pembayaran.** Diagram ini semula hanya punya tiga
+entitas dan gerbang pembayaran tidak digambar sama sekali. Itu cacat, bukan
+penyederhanaan: \`POST /webhook/midtrans\` menulis baris \`pembayaran\` dari luar
+batas sistem tanpa ada manusia menekan tombol, sehingga aliran I-8 muncul dari
+ruang kosong. Sebaliknya \`POST /tagihan/{id}/bayar-daring\` mengirim permintaan
+keluar ke Midtrans (O-8). Bedanya dengan penghuni: penghuni hanya **menerima**
+data, sedangkan gerbang pembayaran justru satu-satunya pihak luar yang
+**memasok** data uang — karena itu tanda tangannya diverifikasi dan
+\`gross_amount\`-nya dicocokkan dengan nilai yang dibekukan di
+\`transaksi_gateway\` sebelum baris pembayaran dibuat.
 
 **Penghuni tanpa aliran masuk data.** Portal penghuni hampir seluruhnya
 baca-saja. Pendaftaran sewa dan pencatatan uang dilakukan pemilik atau

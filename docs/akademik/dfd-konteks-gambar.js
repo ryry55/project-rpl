@@ -8,18 +8,24 @@
  * `docs/dfd/dfd-gambar.js` menggambarnya dalam notasi Gane-Sarson.
  *
  * Kenapa tidak disalin. DFD konteks sudah ada, sudah diperiksa, dan sudah
- * dipakai README `docs/dfd/`. Menyalin 14 aliran ke berkas baru berarti ada
+ * dipakai README `docs/dfd/`. Menyalin 16 aliran ke berkas baru berarti ada
  * dua daftar aliran yang harus dijaga tetap sama; cepat atau lambat salah
  * satunya tertinggal, dan pembaca tidak punya cara tahu mana yang benar.
  * Dokumen akademik karena itu menumpang pada sumber yang sama persis dengan
  * dokumen teknis — bukan salinannya.
  *
  * Yang ditambahkan hanyalah pemeriksaan tambahan yang relevan untuk dokumen
- * ini: tiga entitas, tujuh aliran masuk, tujuh aliran keluar, setiap aliran
- * menunjuk entitas yang benar-benar ada, dan setiap aliran punya label serta
- * struktur data — sebab keduanya dikutip apa adanya ke dalam matriks aliran
- * di dokumen narasi. Aliran tanpa struktur akan menjadi baris kosong di
+ * ini: empat entitas, delapan aliran masuk, delapan aliran keluar, setiap
+ * aliran menunjuk entitas yang benar-benar ada, dan setiap aliran punya label
+ * serta struktur data — sebab keduanya dikutip apa adanya ke dalam matriks
+ * aliran di dokumen narasi. Aliran tanpa struktur akan menjadi baris kosong di
  * tabel, dan baris kosong terbaca seperti aliran yang tidak pernah dianalisis.
+ *
+ * Angka-angka di bawah adalah PAGAR, bukan kebenaran. Angka ini sengaja
+ * ditulis tangan supaya perubahan pada `dfd-data.js` tidak lolos diam-diam:
+ * bila jumlah entitas atau aliran berubah, berkas ini menolak menulis dan
+ * memaksa orang memutuskan apakah perubahan itu disengaja. Ketika E4 (gerbang
+ * pembayaran) ditambahkan, pagar inilah yang menyala lebih dulu.
  *
  * Perhatikan yang TIDAK diperiksa: "setiap entitas harus punya aliran masuk".
  * Pemeriksaan itu wajar untuk DFD kebanyakan, tetapi salah untuk sistem ini.
@@ -31,14 +37,19 @@
  * pembayaran, bukan dari peramban penghuni. Menuntut aliran masuk dari
  * penghuni berarti menuntut fitur yang memang tidak ada, dan pemeriksa yang
  * menuntut hal salah akan "diperbaiki" dengan mengarang aliran.
+ *
+ * GERBANG PEMBAYARAN (E4) adalah kebalikannya: ia justru satu-satunya entitas
+ * yang punya aliran masuk TANPA manusia menekan tombol. Karena itu ia harus
+ * digambar — aktor yang menulis ke penyimpanan data kita sementara dirinya
+ * tidak ada di diagram adalah cacat, sekelas Pengelola yang pernah hilang.
  */
 
 const D = require('../dfd/dfd-data');
 const { gambarKonteks } = require('../dfd/dfd-gambar');
 
-const HARAP_ENTITAS = 3;
-const HARAP_MASUK = 7;
-const HARAP_KELUAR = 7;
+const HARAP_ENTITAS = 4;
+const HARAP_MASUK = 8;
+const HARAP_KELUAR = 8;
 
 function periksaKonteks() {
   const masalah = [];

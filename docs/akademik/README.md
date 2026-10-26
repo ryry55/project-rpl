@@ -10,7 +10,7 @@ suntingan akan hilang pada build berikutnya.
 | `Proses_Bisnis_Kos_Kosan.pdf` | Versi cetak narasi, 4 halaman (Times 11pt, A4) |
 | `Kos_Kosan_Diagrams_Pertemuan_4.pdf` | Dua halaman diagram, bentuk sama dengan template dosen |
 | `use-case-diagram.md` | Halaman 1: diagram use case, aktor, matriks, catatan kaki |
-| `dfd-konteks.md` | Halaman 2: DFD Konteks Level 0 dan matriks 14 aliran |
+| `dfd-konteks.md` | Halaman 2: DFD Konteks Level 0 dan matriks 16 aliran |
 | `01-use-case.svg` / `.png` | Diagram use case (vektor + PNG 2x) |
 | `02-dfd-konteks.svg` / `.png` | DFD konteks (vektor + PNG 2x) |
 
@@ -60,6 +60,6 @@ tidak dijelaskan entitas mana pun, atau aturan bisnis tidak sama dengan
 `docs/dfd/dfd-data.js`.
 
 Angka pada dokumen dibaca dari sumbernya, bukan diketik: 81 endpoint, 23 tabel,
-41 migrasi, 14 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
+41 migrasi, 16 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
 angka yang boleh dikarang — lihat `docs/serah-terima.md` §5 untuk cara
 memeriksanya.

@@ -172,9 +172,30 @@ hari **tidak** mengubah tagihan lama.
 Tagihan berstatus `lunas` dan `dibatalkan` **tidak pernah** masuk tunggakan. Batas 30/31 dan
 60/61 adalah titik uji wajib.
 
-### R-05 — Deposit tidak ada di sistem ini
+### R-05 — Kebijakan kos wajib lengkap sebelum tagihan pertama
+
+> Penerbitan tagihan ditolak selama satuan sewa, jatuh tempo, dan denda belum diisi pemilik.
+
+Tanpa ketiga dimensi itu, angka tagihan tidak punya arti: satuan sewa menentukan dasar hitung,
+jatuh tempo menentukan kapan denda mulai berjalan, dan denda menentukan besar konsekuensinya.
+Menebak salah satunya berarti menerbitkan tagihan yang tidak bisa dipertanggungjawabkan, dan
+tagihan yang sudah terbit **tidak bisa** ditarik kembali angkanya (R-06).
+
+Karena itu `POST /tagihan` dijawab **422** sambil menyebut tipe mana yang masih kurang, bukan
+menerbitkan tagihan dengan angka tebakan. Penegaknya `KebijakanBelumLengkap`; layar Kebijakan
+menandai kartu yang masih menghalangi penagihan supaya pemilik tahu apa yang harus diisi lebih
+dulu.
+
+Dimensi kebijakan ada **tiga** (`satuan_sewa`, `jatuh_tempo`, `denda`). Sempat direncanakan empat
+dengan `deposit` sebagai dimensi terpisah; dimensi itu dihapus bersama seluruh jejak deposit —
+lihat batas sistem di bawah.
+
+#### Batas sistem: deposit
 
 > Sistem ini **tidak** memungut, mencatat, maupun mengembalikan deposit.
+
+Deposit **bukan** salah satu dari tujuh aturan bisnis. Ia ketiadaan fitur, bukan aturan yang
+ditegakkan, dan karena itu sengaja tidak diberi nomor R-*.
 
 Deposit pernah ada sebagai kolom `kontrak.deposit` yang diisi dari kebijakan kos. Kolom itu
 dikeluarkan seluruhnya di fase terakhir, bersama tipe kebijakan `deposit` dan kelas
@@ -801,7 +822,8 @@ Lokasi: `docs/uji/audit-ketertelusuran.md`.
 | R-02 satu tagihan per periode | unique index + `PenerbitanMassal` | `test_menekan_dua_kali_menghasilkan_409_bukan_tagihan_kedua`, `uji-balapan-t4.mjs` | ✅ |
 | R-03 denda 1%/hari plafon 30% | `Kalkulator::hitungDenda` + `PenghitungDenda` | `test_batas_7_8`, `test_plafon_37`, `test_pembayaran_sebagian_tidak_menurunkan_dasar_denda` | ✅ |
 | R-04 umur tunggakan | `Kalkulator::kelompokUmur` | `test_batas_30_31`, `test_batas_60_61` | ✅ |
-| R-05 deposit | tidak ada di sistem (dihapus di fase terakhir) | `MigrasiHapusDepositTest` (5 tes), `KebijakanKosTest::test_tipe_deposit_ditolak_validasi_maupun_constraint` | ✅ |
+| R-05 kebijakan wajib lengkap | `KebijakanBelumLengkap` menolak `POST /tagihan` dengan 422 | `test_terbit_sebelum_kebijakan_lengkap_ditolak`, `test_terbit_sesudah_kebijakan_lengkap_berhasil` | ✅ |
+| Batas sistem: deposit | tidak ada di sistem (dihapus di fase terakhir) — **bukan** aturan R-* | `MigrasiHapusDepositTest` (5 tes), `KebijakanKosTest::test_tipe_deposit_ditolak_validasi_maupun_constraint` | ✅ |
 | R-06 tarif tidak surut | `tarif_sewa` append-only + snapshot `tarif_terpakai` | `test_tagihan_lama_tidak_berubah` | ✅ |
 | R-07 isolasi + audit | scope `Tagihan::terlihatOleh` + `log_audit` append-only (trigger basis data) | `IsolasiDanAuditTest` (18 tes): `test_penghuni_hanya_melihat_tagihannya_sendiri`, `test_penghuni_mengakses_tagihan_orang_lain_mendapat_404_bukan_403`, `test_penghuni_mengakses_denda_tagihan_orang_lain_mendapat_404`, `test_penghuni_memanggil_endpoint_pemilik_ditolak_403`, `test_update_langsung_ke_log_audit_ditolak_basis_data`, `test_delete_langsung_ke_log_audit_ditolak_basis_data`; `docs/uji/e2e-t9.mjs` (23/23) | ✅ |
 
@@ -815,7 +837,7 @@ Ditunda dengan sadar, bukan terlupa.
 
 | Hal | Alasan | Rencana |
 |---|---|---|
-| Deposit & kerusakan (R-05) | **Dihapus seluruhnya di fase terakhir**, bukan ditunda: deposit tidak pernah tercatat sebagai uang masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan. Lihat R-05 | Tidak ada rencana mengembalikannya |
+| Deposit & kerusakan | **Dihapus seluruhnya di fase terakhir**, bukan ditunda: deposit tidak pernah tercatat sebagai uang masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan. Batas sistem, bukan aturan R-* — lihat R-05 | Tidak ada rencana mengembalikannya |
 | Laporan & rekap lengkap (proses 5.0) | Bisa dihitung manual dari data yang ada | T10, tabel manual di laporan |
 | Pembatalan tagihan | **Sudah dikerjakan di R3** (REV-FIN-02): status berubah, baris tidak dihapus, periode bisa diterbitkan ulang | `POST /tagihan/{id}/batal`, tombol di panel rincian |
 | Pemaafan denda | **Sudah dikerjakan di R3** (REV-FIN-07): denda dibekukan pada hari pokok lunas, bukan dinolkan | `POST /tagihan/{id}/maaf-denda`, `peran:pemilik` |
