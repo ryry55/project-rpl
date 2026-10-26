@@ -162,6 +162,46 @@ gagal bukan pemeriksaan - ia hanya upacara.
 akar repo, sedangkan image api hanya berisi direktori `api/`. Tes yang berjalan
 di dalam container tidak akan pernah bisa membacanya.
 
+### Bukti pagar Fase 0.5
+
+Empat berkas yang **menyuntikkan cacatnya kembali** ke dalam container, menjalankan
+tes yang seharusnya menangkapnya, lalu mengembalikan berkasnya. Semuanya
+dijalankan manual - tidak ikut `periksa.ps1`/`periksa.sh`, karena setiap
+jalannya mengubah kode di dalam container selama beberapa detik.
+
+| Berkas | Cacat yang disuntikkan | Hasil |
+|---|---|---|
+| `uji-pagar-buat-pemilik.sh` | pagar pemilik kedua, unique email, `min:8`, penanda wajib-ganti-sandi | 4 dari 4 tertangkap |
+| `uji-pagar-penyiapan.sh` | rekening nonaktif dihitung, kebijakan bulan depan, tarif tak diperiksa, penghuni dijadikan wajib | 4 dari 4 tertangkap |
+| `uji-pagar-ekspor.sh` | pemisah koma, BOM dihapus, netralisasi rumus dicabut, angka negatif dikutip, rekap dibuka untuk pengelola, `no-store` dihapus | 6 dari 6 tertangkap |
+| `uji-pagar-ekspor-bersih.sh` | blok ringkasan dikembalikan ke `tunggakan` | 2 tes gagal |
+
+Jalankan dari dalam container:
+
+```bash
+docker compose cp docs/uji/uji-pagar-ekspor.sh api:/tmp/u.sh
+docker compose exec -T api sh /tmp/u.sh
+```
+
+**Kenapa dijalankan manual, bukan di gate.** Skrip ini mengubah berkas kode di
+dalam container. Menjalankannya otomatis berarti gate sesekali menguji kode yang
+sedang disuntik - dan bila salah satu skrip mati di tengah jalan, cacatnya
+tertinggal. Yang otomatis adalah **tesnya** (791 tes PHP, 30 skrip browser);
+yang manual adalah **bukti bahwa tesnya bisa gagal**, dijalankan setiap kali
+sebuah pagar baru ditambahkan.
+
+Dua catatan yang mahal untuk ditemukan ulang:
+
+1. **`sed` dengan regex ber-backslash ganda gagal secara diam.** Percobaan
+   pertama pada `uji-pagar-ekspor.sh` menghasilkan `bad regex`, suntikan tidak
+   terpasang, lalu `set -e` menghentikan skrip sebelum dua cacat terakhir diuji -
+   dan keluarannya terbaca seperti "hanya empat cacat yang perlu diuji".
+   Suntikan yang berisi pola regex karena itu memakai `php -r`, bukan `sed`.
+2. **`sed` yang menyisipkan kunci array PHP di DEPAN kunci yang sudah ada tidak
+   menyuntikkan apa pun.** Kunci ganda di PHP: yang terakhir menang. Gejalanya
+   adalah "tes lulus padahal cacat terpasang" - dan itu terbaca sebagai pagar
+   yang bekerja.
+
 ## Tiga jebakan yang sudah memakan korban
 
 **Kotak centang `v-model` butuh satu putaran di antaranya.** Dua event `change`
