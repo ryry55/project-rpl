@@ -97,7 +97,7 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 | Middleware | **6** |
 | Trigger basis data | **8** (7 append-only + 1 penjaga pembalik) |
 | Tes PHP | **748** (3522 asersi) di **39** berkas |
-| Skrip browser | **26** (761 langkah, termasuk 2 uji balapan) |
+| Skrip browser | **26** (762 langkah, termasuk 2 uji balapan) |
 | Halaman SPA | **26** komponen view · 22 rute bernama |
 | Wewenang pengelola | **8** |
 | Peristiwa notifikasi | **9** |
@@ -161,7 +161,7 @@ Diurutkan menurut **risiko**, bukan kemudahan.
 | **Penerbitan tagihan tidak terjadwal** | Sedang — pemilik harus menekan tombol tiap bulan | Tanpa cron |
 | **Antrean email** | Sedang — 30 penghuni = 30 pengiriman berurutan | Tanpa worker persisten |
 | ~~**Deposit tidak dipakai**~~ | ~~Sedang — dibaca saat kontrak, lalu tidak pernah dipakai~~ | **Sudah ditutup.** Deposit dihapus seluruhnya di fase terakhir: kolom `kontrak.deposit`, tipe kebijakan `deposit`, dan seluruh alurnya. Kolom yang menyimpan angka tanpa akibat membuat orang mengira uangnya terjaga |
-| ~~**E2E menggantung di CI**~~ | ~~Sedang - CI tidak membuktikan frontend~~ | **Sudah ditutup.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip (34-41 dtk), sehingga E2E tidak pernah berjalan. Kini 26 skrip / 761 langkah lulus di runner; `continue-on-error` dicabut |
+| ~~**E2E menggantung di CI**~~ | ~~Sedang - CI tidak membuktikan frontend~~ | **Sudah ditutup.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip (34-41 dtk), sehingga E2E tidak pernah berjalan. Kini 26 skrip / 762 langkah lulus di runner; `continue-on-error` dicabut |
 | **Uji aksesibilitas otomatis** | Rendah | Waktu |
 | **Lanskap ponsel belum diuji** | Rendah | Waktu |
 | **Uji luring sungguhan** | Rendah | Waktu |

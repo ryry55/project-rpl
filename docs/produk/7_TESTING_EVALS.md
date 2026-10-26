@@ -4,7 +4,7 @@
 > bagaimana menambah tes yang benar-benar menahan.**
 >
 > Angka diambil dari aplikasi yang berjalan: **748 tes PHP (3522 asersi)** dalam
-> 36 berkas, dan **26 skrip uji** (24 browser + 2 balapan HTTP) dengan **761 langkah**.
+> 36 berkas, dan **26 skrip uji** (24 browser + 2 balapan HTTP) dengan **762 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -176,7 +176,7 @@ Dikelompokkan menurut apa yang dijaga:
 
 ---
 
-## 4. Skrip uji browser dan balapan - 26 skrip, 761 langkah
+## 4. Skrip uji browser dan balapan - 26 skrip, 762 langkah
 
 ### 4.1 Menjalankan
 
@@ -318,7 +318,7 @@ seberapa besar kepercayaan pada hijau.
 | Orientasi lanskap ponsel | Waktu | 640×360 belum pernah diukur |
 | Uji luring sungguhan | `Network.emulateNetworkConditions` belum dipakai | Kerangka ter-cache, tetapi belum dibuktikan bisa dibuka tanpa jaringan |
 | Email sungguhan (Brevo) | Hanya Mailpit | Batas kirim Brevo dan reputasi domain belum diuji |
-| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 26 skrip / 761 langkah lulus di runner, 375 dtk |
+| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 26 skrip / 762 langkah lulus di runner, 375 dtk |
 | Tes komponen Vue | Tidak ada | Regresi di dalam komponen hanya tertangkap E2E |
 
 **E2E di CI sudah dipercaya lagi.** `continue-on-error` sudah **dicabut**;

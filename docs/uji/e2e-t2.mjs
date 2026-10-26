@@ -275,6 +275,21 @@ async function jalan() {
   await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/kamar` })
   await tungguSampai(ws, `document.querySelector('h1')?.textContent.includes('Kamar')`)
 
+  // Menunggu baris A2 benar-benar ada SEBELUM mencari tombolnya.
+  //
+  // `h1` muncul saat komponen dipasang, jauh sebelum `GET /kamar` menjawab.
+  // Tanpa penantian ini, `.find()` mengembalikan undefined, fungsinya
+  // mengembalikan false, dan langkah berikutnya menulis ke `#nilai-tarif` yang
+  // tidak pernah dirender - gagal sebagai `TypeError: Cannot set properties of
+  // null`, gejala yang menunjuk ke formulir padahal sebabnya tabel yang belum
+  // terisi. Terbukti di CI (run 40257169502), lulus di lokal.
+  const barisA2 = await tungguSampai(
+    ws,
+    `[...document.querySelectorAll('tbody tr')].some(tr => tr.textContent.includes('A2'))`,
+    15000,
+  )
+  lapor('baris kamar A2 tampil di tabel', barisA2)
+
   const bukaTarif = await evaluasi(ws, `
     (async () => {
       const baris = [...document.querySelectorAll('tbody tr')].find(tr => tr.textContent.includes('A2'))
@@ -287,6 +302,7 @@ async function jalan() {
     })()
   `)
   lapor('panel riwayat tarif terbuka', Boolean(bukaTarif))
+  if (!bukaTarif) throw new Error('panel tarif tidak terbuka, sisa langkah tidak bisa dijalankan')
 
   await evaluasi(ws, `
     (async () => {
