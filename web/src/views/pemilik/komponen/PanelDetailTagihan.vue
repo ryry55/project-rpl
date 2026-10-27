@@ -21,6 +21,7 @@ import {
   galatPerBidang,
 } from '../../../format.js'
 import { pesanTagihan, tautanWa, salinTeks } from '../../../bagikan.js'
+import { cetakKuitansi, isianKuitansi } from '../../../kuitansi.js'
 import { simulasiTanggal } from '../../../simulasi.js'
 import PanelKartu from '../../../komponen/ui/PanelKartu.vue'
 import MedanForm from '../../../komponen/ui/MedanForm.vue'
@@ -989,6 +990,17 @@ onMounted(() => {
                     @click="bukaBalik(p)"
                   >
                     Tarik kembali
+                  </button>
+                  <!-- Kuitansi untuk uang yang benar-benar diterima. Baris
+                       pembalik tidak punya kuitansi: yang bisa dicetak untuknya
+                       hanyalah bukti penarikan, dan itu dokumen yang berbeda. -->
+                  <button
+                    v-if="!p.adalah_pembalik"
+                    type="button"
+                    class="halus mungil tombol-kuitansi"
+                    @click="cetakKuitansi(isianKuitansi(p, detail))"
+                  >
+                    Kuitansi
                   </button>
                   <!-- Baris yang sudah ditarik menyebutkan alasannya di sini,
                        bukan hanya menghilang dari daftar tombol. -->

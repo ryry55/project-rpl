@@ -369,6 +369,63 @@ async function jalan() {
   lapor('tarif efektif Oktober tetap Rp 2.000.000, bukan tarif November',
     hanyaSatuBerlaku.length >= 1 && hanyaSatuBerlaku[0].nilai === 2000000)
 
+  // --- Komponen biaya lewat UI (REV-UI-02) ---------------------------------
+  //
+  // Tanggal berlakunya sengaja TIDAK diisi: formulir sudah default ke awal
+  // bulan berjalan, dan justru tanggal itulah yang membuat baris baru langsung
+  // menagih. Kalau skrip ini menuliskan tanggal sendiri, asersinya bergantung
+  // pada tanggal sistem - kelas cacat yang sudah menggigit dua skrip lain.
+  const isiKomponen = await evaluasi(ws, `
+    (() => {
+      const set = (sel, v) => {
+        const el = document.querySelector(sel)
+        if (!el) return false
+        el.value = v
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        return true
+      }
+      if (!document.querySelector('#komponen-berlaku')?.value) return false
+      if (!set('#komponen-nama', 'Listrik AC')) return false
+      if (!set('#komponen-nilai', '150000')) return false
+      document.querySelector('#form-komponen').dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true }))
+      return true
+    })()
+  `)
+  lapor('form komponen biaya bisa diisi dan dikirim', isiKomponen === true, String(isiKomponen))
+
+  const tampilKomponen = await tungguSampai(ws, `
+    (() => {
+      const teks = document.body.innerText
+      return teks.includes('Listrik AC') && teks.includes('150.000')
+    })()
+  `, 6000)
+  lapor('komponen biaya baru tampil di tabel panel kamar', tampilKomponen)
+
+  // Dibuktikan lewat API, bukan hanya dari layar: yang harus benar adalah
+  // barisnya tersimpan untuk kamar A2, bukan hanya teksnya muncul.
+  const simpanKomponen = await evaluasi(ws, `
+    (async () => {
+      const headers = {
+        Accept: 'application/json',
+        Authorization: 'Bearer ' + localStorage.getItem('kos.token'),
+      }
+      const kamar = await fetch('${API}/kamar', { headers }).then(r => r.json())
+      const a2 = kamar.data.find(k => k.nomor === 'A2')
+      if (!a2) return { galat: 'kamar A2 tidak ditemukan' }
+      const hasil = await fetch('${API}/komponen-biaya?kamar_id=' + a2.id, { headers })
+        .then(r => r.json())
+      return { kamar_id: a2.id, baris: hasil.data || [] }
+    })().catch(e => ({ galat: String(e) }))
+  `)
+
+  const barisKomponen = simpanKomponen?.baris || []
+  lapor('komponen biaya tersimpan untuk kamar A2, bukan global',
+    barisKomponen.some((k) => k.nama === 'Listrik AC'
+      && k.nilai === 150000
+      && k.kamar_id === simpanKomponen.kamar_id),
+    JSON.stringify(simpanKomponen))
+
   // --- Tangkapan layar -----------------------------------------------------
   for (const [nama, url] of [
     ['T2-kamar', `${APP}/pemilik/kamar`],

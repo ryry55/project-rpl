@@ -96,7 +96,7 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 | Pengendali | **26** |
 | Middleware | **6** |
 | Trigger basis data | **8** (7 append-only + 1 penjaga pembalik) |
-| Tes PHP | **792** (3654 asersi) di **43** berkas |
+| Tes PHP | **799** (3674 asersi) di **45** berkas |
 | Skrip browser | **29** `.mjs` (28 terdaftar di gate; `uji-proxy.mjs` terpisah) |
 | Halaman SPA | **27** komponen view · **31** rute bernama |
 | Wewenang pengelola | **8** |

@@ -15,6 +15,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { sesi } from '../sesi.js'
 import { rupiah, tanggal, pesanGalat } from '../format.js'
+import { cetakKuitansi, isianKuitansi } from '../kuitansi.js'
 import { salinTeks } from '../bagikan.js'
 import { simulasiTanggal } from '../simulasi.js'
 import LencanaStatus from '../komponen/ui/LencanaStatus.vue'
@@ -47,6 +48,12 @@ const galatAturan = ref('')
 const rekening = ref([])
 const galatRekening = ref('')
 const tersalinId = ref(null)
+
+// Kontrak sewa sendiri (O-1). Null berarti belum ada kontrak aktif - akun
+// penghuni yang belum dihubungkan ke kontrak adalah data yang belum lengkap,
+// bukan galat.
+const kontrak = ref(null)
+const galatKontrak = ref('')
 
 const ringkasan = computed(() => {
   const belum = daftar.value.filter((t) => t.status !== 'lunas' && t.status !== 'dibatalkan')
@@ -210,6 +217,26 @@ async function muatRekening() {
 }
 
 /**
+ * Kontrak sewa sendiri (O-1).
+ *
+ * DFD menyebut aliran keluaran Proses 1.0 sebagai "konfirmasi sewa & kontrak"
+ * ke penghuni. Sebelum ini portal tidak pernah menyebut kapan ia mulai menyewa
+ * atau berapa tarif awalnya - jawabannya hanya ada di layar pemilik.
+ *
+ * Kegagalannya tidak menjadi galat halaman, sama seperti aturan dan rekening:
+ * penghuni datang untuk melihat tagihan, dan satu baris keterangan yang gagal
+ * dimuat tidak boleh menutupi tagihannya.
+ */
+async function muatKontrak() {
+  try {
+    const hasil = await sesi.panggil('/penghuni/kontrak')
+    kontrak.value = hasil.data || null
+  } catch (e) {
+    galatKontrak.value = pesanGalat(e)
+  }
+}
+
+/**
  * Salin satu nomor rekening.
  *
  * Yang disalin hanya nomornya, bukan seluruh baris: penghuni menempelkannya ke
@@ -237,6 +264,7 @@ async function salinNomor(r) {
 onMounted(muat)
 onMounted(muatAturan)
 onMounted(muatRekening)
+onMounted(muatKontrak)
 </script>
 
 <template>
@@ -267,6 +295,18 @@ onMounted(muatRekening)
     </p>
 
     <p v-if="galatMuat" class="pesan-galat">{{ galatMuat }}</p>
+
+    <!-- Kontrak sewa (O-1). Satu baris, bukan kartu: penghuni datang untuk
+         tagihannya, dan tiga angka di kartu sendiri akan terbaca sebagai
+         ringkasan tagihan. -->
+    <p v-if="kontrak" class="lemah mungil kontrak-saya">
+      Kontrak sewa: kamar <strong>{{ kontrak.kamar?.nomor || '—' }}</strong>, mulai
+      <strong>{{ tanggal(kontrak.tgl_masuk) }}</strong>, tarif awal
+      <strong>{{ rupiah(kontrak.tarif_awal) }}</strong> per bulan.
+    </p>
+    <p v-if="galatKontrak" class="lemah mungil">
+      Kontrak sewa belum bisa dimuat. {{ galatKontrak }}
+    </p>
 
     <section v-if="!memuat && daftar.length > 0" class="ringkas">
       <div class="petak">
@@ -430,6 +470,21 @@ onMounted(muatRekening)
                               <template v-if="p.catatan"> · {{ p.catatan }}</template>
                             </p>
                           </div>
+                          <!-- Kuitansi bisa dicetak penghuni sendiri (O-5).
+                               Yang dicetak adalah catatan pembayaran yang sudah
+                               tercatat di server; kuitansi tidak mengubah status
+                               apa pun. Baris pembalik tidak ditawari: uangnya
+                               ditarik kembali, dan mencetak "bukti terima" untuk
+                               uang yang sudah tidak dipegang adalah kebalikan
+                               dari yang sebenarnya. -->
+                          <button
+                            v-if="!p.adalah_pembalik"
+                            type="button"
+                            class="halus mungil tombol-kuitansi"
+                            @click="cetakKuitansi(isianKuitansi(p, t))"
+                          >
+                            Kuitansi
+                          </button>
                         </li>
                       </ul>
                     </div>
@@ -683,6 +738,10 @@ onMounted(muatRekening)
   background: var(--permukaan);
   border: 1px solid var(--garis-lemah);
   border-radius: var(--radius-kecil);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .daftar-bayar p {

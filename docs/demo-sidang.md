@@ -270,7 +270,7 @@ persisten dan sudah dicadangkan.
 **"Apa yang belum selesai?"**
 Tiga hal, dan semuanya tercatat di `docs/utang-teknis.md`: **antrean email** masih sinkron (tanpa
 worker), **verifikasi Midtrans sandbox** menunggu kunci server, dan **deploy Render/Neon** menunggu
-akun pemilik. Uji E2E di CI **sudah hijau** - 26 skrip / 762 langkah, 375 detik. Tidak ada yang
+akun pemilik. Uji E2E di CI **sudah hijau** - 28 skrip / 792 langkah, 416 detik. Tidak ada yang
 disembunyikan.
 
 **"Bagaimana kalau angkanya dipertanyakan?"**

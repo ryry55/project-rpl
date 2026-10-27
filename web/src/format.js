@@ -21,6 +21,20 @@ export function rupiah(nilai) {
   return pemformatRupiah.format(Number(nilai))
 }
 
+/**
+ * Persentase dengan koma desimal, satu angka di belakang koma.
+ *
+ * `null` berarti "belum bisa dihitung" - kos yang belum punya kamar membagi
+ * nol - dan ditampilkan sebagai tanda hubung. Menampilkannya sebagai "0%"
+ * akan terbaca sebagai "tidak ada yang menempati", dua keadaan yang berbeda.
+ */
+export function persen(nilai) {
+  if (nilai === null || nilai === undefined) {
+    return '—'
+  }
+  return `${String(nilai).replace('.', ',')}%`
+}
+
 const pemformatTanggal = new Intl.DateTimeFormat('id-ID', {
   day: 'numeric',
   month: 'short',

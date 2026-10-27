@@ -254,7 +254,7 @@ onMounted(muat)
 
     <PesanBaris jenis="netral" mungil>
       Fasilitas hanya dicatat, tidak menagih. Untuk menagih sesuatu (mis. listrik AC Rp 100.000
-      per bulan), tambahkan lewat komponen biaya di halaman Tagihan.
+      per bulan), tambahkan komponen biaya di panel Atur tarif kamar yang bersangkutan.
     </PesanBaris>
   </div>
 </template>

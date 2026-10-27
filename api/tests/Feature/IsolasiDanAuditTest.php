@@ -114,6 +114,64 @@ class IsolasiDanAuditTest extends TestCase
 
     // --- Isolasi penghuni --------------------------------------------------
 
+    public function test_penghuni_melihat_kontrak_sewanya_sendiri(): void
+    {
+        $a = $this->buatPenghuniDenganTagihan('A1', 'Ani', 'ani@kos.test');
+        $this->buatPenghuniDenganTagihan('B1', 'Budi', 'budi@kos.test');
+
+        $data = $this->sebagai($a['user'])
+            ->getJson('/api/penghuni/kontrak')
+            ->assertOk()
+            ->json('data');
+
+        // O-1: kamar, tanggal mulai, dan tarif awal - tiga hal yang diminta
+        // aliran "konfirmasi sewa & kontrak".
+        $this->assertSame('A1', $data['kamar']['nomor']);
+        $this->assertSame('2026-01-15', $data['tgl_masuk']);
+        $this->assertSame(1_500_000, $data['tarif_awal']);
+    }
+
+    public function test_kontrak_penghuni_lain_tidak_ikut_terkirim(): void
+    {
+        $a = $this->buatPenghuniDenganTagihan('A1', 'Ani', 'ani@kos.test');
+        $this->buatPenghuniDenganTagihan('B1', 'Budi', 'budi@kos.test');
+
+        $isi = $this->sebagai($a['user'])
+            ->getJson('/api/penghuni/kontrak')
+            ->assertOk()
+            ->json('data');
+
+        // Kamar B1 milik penghuni lain tidak boleh muncul di respons mana pun.
+        $this->assertStringNotContainsString('B1', json_encode($isi));
+    }
+
+    public function test_pemilik_tidak_boleh_memakai_portal_penghuni(): void
+    {
+        // R-07: portal adalah pintu penghuni. Pemilik punya endpoint sendiri
+        // yang lebih lengkap, dan membuka pintu ini untuknya berarti dua
+        // bentuk respons untuk satu data.
+        $this->sebagai($this->pemilik)
+            ->getJson('/api/penghuni/kontrak')
+            ->assertForbidden();
+    }
+
+    public function test_penghuni_tanpa_kontrak_aktif_mendapat_data_null(): void
+    {
+        $penghuni = Penghuni::create(['nama' => 'Tanpa Kontrak', 'email' => 'tanpa@kos.test']);
+        $akun = User::create([
+            'name' => 'Tanpa Kontrak',
+            'email' => 'tanpa@kos.test',
+            'password' => Hash::make('password'),
+            'peran' => User::PERAN_PENGHUNI,
+            'penghuni_id' => $penghuni->id,
+        ]);
+
+        $this->sebagai($akun)
+            ->getJson('/api/penghuni/kontrak')
+            ->assertOk()
+            ->assertJsonPath('data', null);
+    }
+
     public function test_penghuni_hanya_melihat_tagihannya_sendiri(): void
     {
         $a = $this->buatPenghuniDenganTagihan('A1', 'Ani', 'ani@kos.test');

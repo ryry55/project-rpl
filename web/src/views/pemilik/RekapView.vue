@@ -31,7 +31,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { sesi } from '../../sesi.js'
-import { rupiah, tanggal, pesanGalat } from '../../format.js'
+import { rupiah, tanggal, persen, pesanGalat } from '../../format.js'
 import { simulasiTanggal } from '../../simulasi.js'
 import KendaliSimulasi from '../../komponen/KendaliSimulasi.vue'
 import KepalaHalaman from '../../komponen/ui/KepalaHalaman.vue'
@@ -373,18 +373,48 @@ onMounted(muat)
             Selama belum dibayar, ia piutang — dan tidak ikut dihitung di total di atas.
           </p>
         </template>
-        <div class="kisi-piutang">
+        <div class="kisi-statistik">
           <div>
-            <span class="piutang-label mungil lemah">Denda belum dibayar</span>
-            <strong class="piutang-angka">{{ rupiah(piutang.denda_belum_dibayar) }}</strong>
+            <span class="statistik-label mungil lemah">Denda belum dibayar</span>
+            <strong class="statistik-angka">{{ rupiah(piutang.denda_belum_dibayar) }}</strong>
           </div>
           <div>
-            <span class="piutang-label mungil lemah">Tagihan terbuka</span>
-            <strong class="piutang-angka">{{ piutang.tagihan_terbuka }}</strong>
+            <span class="statistik-label mungil lemah">Tagihan terbuka</span>
+            <strong class="statistik-angka">{{ piutang.tagihan_terbuka }}</strong>
           </div>
           <div>
-            <span class="piutang-label mungil lemah">Diterima pada periode ini</span>
-            <strong class="piutang-angka">{{ rupiah(total) }}</strong>
+            <span class="statistik-label mungil lemah">Diterima pada periode ini</span>
+            <strong class="statistik-angka">{{ rupiah(total) }}</strong>
+          </div>
+        </div>
+      </PanelKartu>
+
+      <!-- Hunian ada di sini karena DFD menyebut aliran keluaran Proses 5.0
+           sebagai "rekap pendapatan & hunian" (O-6). Angkanya hari-kamar,
+           bukan jumlah kamar terisi hari ini: penghuni yang masuk tanggal 21
+           hanya menyumbang 10 dari 30, dan pemilik yang membaca angka ini
+           berdampingan dengan daftar kamar harus menemukan keduanya cocok. -->
+      <PanelKartu v-if="data.hunian" judul="Hunian" kelas="panel-hunian">
+        <template #keterangan>
+          <p class="bantuan mungil">
+            Dihitung dalam hari-kamar: satu kamar yang terisi 30 hari menyumbang 30, dan
+            penghuni yang masuk di tengah periode hanya menyumbang sisa harinya.
+          </p>
+        </template>
+        <div class="kisi-statistik">
+          <div>
+            <span class="statistik-label mungil lemah">Tingkat hunian</span>
+            <strong class="statistik-angka">{{ persen(data.hunian.occupancy_rate) }}</strong>
+          </div>
+          <div>
+            <span class="statistik-label mungil lemah">Hari-kamar terisi</span>
+            <strong class="statistik-angka">
+              {{ data.hunian.hari_terisi }} / {{ data.hunian.hari_tersedia }}
+            </strong>
+          </div>
+          <div>
+            <span class="statistik-label mungil lemah">Jumlah kamar</span>
+            <strong class="statistik-angka">{{ data.hunian.jumlah_kamar }}</strong>
           </div>
         </div>
       </PanelKartu>
@@ -569,18 +599,18 @@ onMounted(muat)
   color: var(--peredam);
 }
 
-.kisi-piutang {
+.kisi-statistik {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
-.kisi-piutang > div {
+.kisi-statistik > div {
   display: grid;
   gap: 2px;
 }
 
-.piutang-angka {
+.statistik-angka {
   font-size: 18px;
   font-weight: 660;
   font-variant-numeric: tabular-nums;
@@ -638,7 +668,7 @@ onMounted(muat)
     grid-template-columns: 1fr;
   }
 
-  .kisi-piutang {
+  .kisi-statistik {
     grid-template-columns: 1fr;
     gap: 10px;
   }

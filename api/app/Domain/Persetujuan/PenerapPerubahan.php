@@ -207,6 +207,15 @@ class PenerapPerubahan
     public function komponen(array $data, string $aksi = PencatatAudit::AKSI_KOMPONEN_TAMBAH, bool $beritahu = true): HasilPenerapan
     {
         return DB::transaction(function () use ($data, $aksi, $beritahu) {
+            // `satuan` boleh kosong di API tetapi NOT NULL di basis data dengan
+            // bawaan 'rupiah/bulan'. Null eksplisit karena itu menabrak
+            // constraint dan berakhir 500, bukan 422 - terbukti saat formulir
+            // komponen pertama kali dipakai. Kuncinya dibuang supaya bawaan
+            // kolom yang berlaku, bukan tebakan PHP.
+            if (($data['satuan'] ?? null) === null) {
+                unset($data['satuan']);
+            }
+
             // Baris yang digantikan: komponen dengan nama dan kamar yang sama,
             // berlaku sebelum tanggal yang baru. `kamar_id` dibandingkan
             // eksplisit seperti pada kebijakan - `= null` tidak pernah cocok di
@@ -225,6 +234,11 @@ class PenerapPerubahan
                 ->first();
 
             $komponen = KomponenBiaya::create($data);
+
+            // Bawaan di atas diisi basis data, bukan Eloquent: tanpa muat ulang,
+            // model di memori tetap membawa null dan baik respons maupun jejak
+            // audit akan mencatat satuan yang tidak sama dengan isi tabel.
+            $komponen->refresh();
 
             $this->audit->catat(
                 aksi: $aksi,

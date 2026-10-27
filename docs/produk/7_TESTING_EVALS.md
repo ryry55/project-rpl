@@ -3,8 +3,8 @@
 > Dokumen ini menjawab: **apa yang dibuktikan tes, bagaimana menjalankannya, dan
 > bagaimana menambah tes yang benar-benar menahan.**
 >
-> Angka diambil dari aplikasi yang berjalan: **748 tes PHP (3522 asersi)** dalam
-> 36 berkas, dan **26 skrip uji** (24 browser + 2 balapan HTTP) dengan **762 langkah**.
+> Angka diambil dari aplikasi yang berjalan: **799 tes PHP (3674 asersi)** dalam
+> 45 berkas, dan **28 skrip uji** (26 browser + 2 balapan HTTP) dengan **792 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -70,7 +70,7 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
 
 ```
         ┌──────────────────────────────────────┐
-        │  26 skrip uji                        │  lambat (~300 dtk), tetapi
+        │  28 skrip uji                        │  lambat (~300 dtk), tetapi
         │  (22 browser + 2 balapan)            │  satu-satunya yang melihat
         └──────────────────────────────────────┘
       ┌──────────────────────────────────────┐
@@ -89,7 +89,7 @@ menguji implementasi, bukan perilaku.
 
 ---
 
-## 3. Tes PHP — 748 tes, 3522 asersi
+## 3. Tes PHP — 799 tes, 3674 asersi
 
 ### 3.1 Menjalankan
 
@@ -176,7 +176,7 @@ Dikelompokkan menurut apa yang dijaga:
 
 ---
 
-## 4. Skrip uji browser dan balapan - 26 skrip, 762 langkah
+## 4. Skrip uji browser dan balapan - 28 skrip, 792 langkah
 
 ### 4.1 Menjalankan
 
@@ -300,7 +300,7 @@ Dari `1_PRD.md` §6, dan bagaimana masing-masing dibuktikan.
 | U-6 | Halaman meluber di 360px | 0 | `uji-tata-letak.mjs` | Lulus 94/94 |
 | U-7 | Tabel tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` | Lulus 65/65 |
 | U-8 | Kepala pemilik sebelum konten | < 220px | Terukur | 203px |
-| U-9 | Cakupan tes PHP | 748 tes | CI | Lulus 3522 asersi |
+| U-9 | Cakupan tes PHP | 799 tes | CI | Lulus 3674 asersi |
 | U-10 | Pemuatan gagal menyamar sebagai data kosong | 0 layar | `uji-galat-muat.mjs` — **dibuktikan bisa gagal** | Lulus 30/30 |
 
 ---
@@ -318,7 +318,7 @@ seberapa besar kepercayaan pada hijau.
 | Orientasi lanskap ponsel | Waktu | 640×360 belum pernah diukur |
 | Uji luring sungguhan | `Network.emulateNetworkConditions` belum dipakai | Kerangka ter-cache, tetapi belum dibuktikan bisa dibuka tanpa jaringan |
 | Email sungguhan (Brevo) | Hanya Mailpit | Batas kirim Brevo dan reputasi domain belum diuji |
-| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 26 skrip / 762 langkah lulus di runner, 375 dtk |
+| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 28 skrip / 792 langkah lulus di runner, 416 dtk |
 | Tes komponen Vue | Tidak ada | Regresi di dalam komponen hanya tertangkap E2E |
 
 **E2E di CI sudah dipercaya lagi.** `continue-on-error` sudah **dicabut**;

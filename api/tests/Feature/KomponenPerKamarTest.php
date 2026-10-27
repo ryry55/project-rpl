@@ -68,6 +68,24 @@ class KomponenPerKamarTest extends TestCase
         }
     }
 
+    /**
+     * `satuan` dinyatakan nullable di API, jadi null harus diterima.
+     *
+     * Sebelum diperbaiki, null eksplisit - bentuk yang dikirim formulir ketika
+     * kolom satuan dibiarkan kosong, karena `ConvertEmptyStringsToNull`
+     * mengubah `''` menjadi null - menabrak NOT NULL di basis data dan berakhir
+     * 500, bukan 422.
+     */
+    public function test_satuan_null_tetap_tersimpan_dengan_bawaan_kolom(): void
+    {
+        $this->sebagaiPemilik()->postJson('/api/komponen-biaya', [
+            'nama' => 'Listrik AC',
+            'nilai' => 150000,
+            'satuan' => null,
+            'berlaku_dari' => '2026-10-01',
+        ])->assertCreated()->assertJsonPath('data.satuan', 'rupiah/bulan');
+    }
+
     public function test_komponen_khusus_kamar_hanya_muncul_di_kamar_itu(): void
     {
         $kamarA = Kamar::create(['nomor' => 'A1']);

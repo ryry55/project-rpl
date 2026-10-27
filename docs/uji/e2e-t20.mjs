@@ -319,6 +319,24 @@ jalankan(async () => {
     String(tunai.baris[0] || ''),
   )
 
+  // Kuitansi (O-5). Yang bisa diperiksa tanpa dialog cetak hanyalah tombolnya
+  // ada di baris pembayaran; isi dokumennya diuji terpisah, karena `print()`
+  // membuka dialog dan tidak bisa ditutup dari CDP.
+  const kuitansi = await evaluasi(ws, `
+    (() => {
+      const panel = [...document.querySelectorAll('.kartu.panel')]
+        .find(p => /Gita Dua Puluh/.test(p.textContent))
+      const baris = panel?.querySelector('.tabel-riwayat tbody tr')
+      const tombol = baris?.querySelector('.tombol-kuitansi')
+      return { ada: Boolean(tombol), teks: tombol?.textContent.trim() || '' }
+    })()
+  `)
+  lapor(
+    'baris pembayaran menawarkan kuitansi',
+    kuitansi.ada && kuitansi.teks === 'Kuitansi',
+    JSON.stringify(kuitansi),
+  )
+
   // --- Verifikasi: tolak tanpa alasan harus ditolak ----------------------
   const tolakKosong = await evaluasi(ws, `
     (async () => {

@@ -169,6 +169,12 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/penghuni/rekening', [PortalPenghuniController::class, 'rekening'])
                 ->name('penghuni.rekening');
 
+            // Kontrak sewa milik penghuni sendiri (O-1). DFD menyebut aliran
+            // "konfirmasi sewa & kontrak" ke penghuni, dan sebelum ini portal
+            // tidak pernah menyebut kapan ia masuk atau berapa tarifnya.
+            Route::get('/penghuni/kontrak', [PortalPenghuniController::class, 'kontrak'])
+                ->name('penghuni.kontrak');
+
             // Pembayaran daring (T22). Penghuni memulai pembayaran untuk
             // tagihannya sendiri. Diletakkan di sini, bukan di grup
             // `catat_pembayaran`, karena penghuni memang tidak punya wewenang

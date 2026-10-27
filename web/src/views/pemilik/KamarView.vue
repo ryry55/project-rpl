@@ -1,7 +1,14 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { sesi } from '../../sesi.js'
-import { rupiah, tanggal, tanggalHariIni, pesanGalat, galatPerBidang } from '../../format.js'
+import {
+  rupiah,
+  tanggal,
+  tanggalHariIni,
+  tanggalBerlakuBulanIni,
+  pesanGalat,
+  galatPerBidang,
+} from '../../format.js'
 import KepalaHalaman from '../../komponen/ui/KepalaHalaman.vue'
 import PesanBaris from '../../komponen/ui/PesanBaris.vue'
 import LencanaStatus from '../../komponen/ui/LencanaStatus.vue'
@@ -27,6 +34,38 @@ const galatTarif = ref('')
 const galatTarifBidang = ref({})
 const menyimpanTarif = ref(false)
 const suksesTarif = ref('')
+
+/**
+ * Komponen biaya tetap kamar ini (REV-UI-02).
+ *
+ * `null` berarti "belum atau gagal dimuat", dan itu dibedakan dari `[]` yang
+ * berarti "sudah dimuat, memang kosong". Tanpa pembedaan ini, permintaan yang
+ * gagal tampil sebagai "belum ada komponen biaya" - layar yang berbohong dengan
+ * tenang, cacat yang sudah pernah terjadi di portal (REV-UI-04).
+ *
+ * Daftarnya diambil lewat `berlaku_pada`, bukan seluruh riwayat: yang perlu
+ * dijawab panel ini adalah "kenapa tagihan kamar ini sebesar itu", dan
+ * jawabannya hanya baris yang benar-benar menagih bulan ini.
+ */
+const komponen = ref(null)
+const formKomponen = ref(kosongkanKomponen())
+const galatKomponen = ref('')
+const galatKomponenBidang = ref({})
+const menyimpanKomponen = ref(false)
+const suksesKomponen = ref('')
+
+function kosongkanKomponen() {
+  return {
+    nama: '',
+    nilai: '',
+    satuan: '',
+    // Awal bulan, bukan hari ini: komponen diselesaikan terhadap awal periode,
+    // jadi tanggal hari ini membuat baris baru belum menagih sampai bulan
+    // depan. Alasannya sama dengan `tanggalBerlakuBulanIni` di format.js.
+    berlaku_dari: tanggalBerlakuBulanIni(),
+    semuaKamar: false,
+  }
+}
 
 // Kamar yang fasilitasnya sedang diatur (T18).
 const kamarFasilitas = ref(null)
@@ -91,13 +130,26 @@ async function simpan() {
 async function bukaTarif(kamar) {
   kamarTarif.value = kamar
   riwayat.value = []
+  komponen.value = null
   galatTarif.value = ''
   galatTarifBidang.value = {}
+  galatKomponen.value = ''
+  galatKomponenBidang.value = {}
   formTarif.value = { nilai: '', berlaku_dari: tanggalHariIni() }
+  formKomponen.value = kosongkanKomponen()
   memuatRiwayat.value = true
   try {
-    const hasil = await sesi.panggil(`/tarif?kamar_id=${kamar.id}`)
+    // Dua permintaan sekaligus: keduanya mengisi panel yang sama, dan
+    // memuatnya berurutan membuat separuh panel tampak kosong selama
+    // permintaan kedua berjalan.
+    const [hasil, hasilKomponen] = await Promise.all([
+      sesi.panggil(`/tarif?kamar_id=${kamar.id}`),
+      sesi.panggil(
+        `/komponen-biaya?kamar_id=${kamar.id}&berlaku_pada=${tanggalHariIni()}`,
+      ),
+    ])
     riwayat.value = hasil.data
+    komponen.value = hasilKomponen.data
   } catch (e) {
     galatTarif.value = pesanGalat(e)
   } finally {
@@ -108,7 +160,9 @@ async function bukaTarif(kamar) {
 function tutupTarif() {
   kamarTarif.value = null
   riwayat.value = []
+  komponen.value = null
   suksesTarif.value = ''
+  suksesKomponen.value = ''
 }
 
 /**
@@ -234,6 +288,66 @@ async function simpanTarif() {
   }
 }
 
+/**
+ * Menyimpan komponen biaya tetap.
+ *
+ * Nasibnya sama dengan tarif dan harus dibedakan di layar:
+ *
+ *   pemilik   -> 201, baris komponen tertulis
+ *   pengelola -> 202, usulan tercatat, komponen BELUM menagih
+ *
+ * Kalau 202 diperlakukan seperti 201, pengelola akan melihat daftar yang tidak
+ * bertambah setelah menekan tombolnya dan menyimpulkan aplikasinya rusak.
+ */
+async function simpanKomponen() {
+  menyimpanKomponen.value = true
+  galatKomponen.value = ''
+  galatKomponenBidang.value = {}
+  suksesKomponen.value = ''
+
+  // Kolom nilai kosong menjadi `Number('') === 0`, dan 0 berarti "komponen
+  // dihentikan". Tanpa penjagaan ini, formulir yang dikirim dengan kolom nilai
+  // kosong akan menghentikan penagihan tanpa satu pun peringatan.
+  if (String(formKomponen.value.nilai).trim() === '') {
+    galatKomponenBidang.value = {
+      nilai: 'Nilai wajib diisi. Isi 0 hanya bila ingin menghentikan komponen.',
+    }
+    menyimpanKomponen.value = false
+    return
+  }
+
+  const berlaku = formKomponen.value.berlaku_dari
+  try {
+    const hasil = await sesi.panggil('/komponen-biaya', {
+      method: 'POST',
+      body: JSON.stringify({
+        kamar_id: formKomponen.value.semuaKamar ? null : kamarTarif.value.id,
+        nama: formKomponen.value.nama.trim(),
+        nilai: Number(formKomponen.value.nilai),
+        satuan: formKomponen.value.satuan.trim() || null,
+        berlaku_dari: berlaku,
+      }),
+    })
+
+    if (hasil?.meta?.diajukan) {
+      suksesKomponen.value =
+        hasil.meta.pesan ||
+        'Usulan terkirim. Komponen belum menagih sampai pemilik menyetujuinya.'
+    } else {
+      suksesKomponen.value =
+        `Komponen tersimpan dan menagih mulai ${tanggal(berlaku)}.`
+    }
+
+    await bukaTarif(kamarTarif.value)
+    await muat()
+  } catch (e) {
+    galatKomponen.value = pesanGalat(e)
+    galatKomponenBidang.value = galatPerBidang(e)
+  } finally {
+    menyimpanKomponen.value = false
+  }
+}
+
 onMounted(muat)
 </script>
 
@@ -315,7 +429,7 @@ onMounted(muat)
     <section v-if="kamarTarif" class="kartu panel">
       <div class="panel-kepala">
         <div>
-          <h2>Tarif kamar {{ kamarTarif.nomor }}</h2>
+          <h2>Tarif &amp; komponen kamar {{ kamarTarif.nomor }}</h2>
           <p class="lemah mungil">
             Mengubah tarif menambah baris baru. Baris lama tetap tersimpan sebagai riwayat.
           </p>
@@ -387,6 +501,115 @@ onMounted(muat)
           </button>
         </div>
       </form>
+
+      <!-- Komponen biaya tetap. Satu blok dengan tarif karena keduanya angka
+           uang per kamar dan digerbang wewenang yang sama (`ubah_tarif`);
+           memisahkannya ke halaman lain membuat pemilik mengira biaya
+           tambahan tidak ada tempatnya. -->
+      <div class="komponen-blok">
+        <h3>Komponen biaya tetap</h3>
+        <p class="lemah mungil">
+          Yang menagih pada bulan berjalan. Untuk menghentikan sebuah komponen, tambahkan baris
+          baru bernilai 0 dengan nama yang sama.
+        </p>
+
+        <p v-if="komponen === null" class="lemah mungil">Komponen biaya belum bisa dimuat.</p>
+
+        <div v-else class="tabel-bungkus">
+          <table class="tabel" v-kartu-tabel>
+            <thead>
+              <tr>
+                <th>Nama</th>
+                <th class="kanan">Nilai</th>
+                <th>Satuan</th>
+                <th>Berlaku dari</th>
+                <th>Cakupan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="k in komponen" :key="k.id">
+                <td>{{ k.nama }}</td>
+                <td class="kanan">
+                  <span v-if="k.dihentikan" class="lemah">Dihentikan</span>
+                  <template v-else>{{ rupiah(k.nilai) }}</template>
+                </td>
+                <td>{{ k.satuan || '—' }}</td>
+                <td>{{ tanggal(k.berlaku_dari) }}</td>
+                <td class="mungil">{{ k.kamar_id === null ? 'Semua kamar' : 'Kamar ini' }}</td>
+              </tr>
+              <BarisKosong v-if="komponen.length === 0" :kolom="5">
+                Belum ada komponen biaya yang menagih kamar ini.
+              </BarisKosong>
+            </tbody>
+          </table>
+        </div>
+
+        <form id="form-komponen" class="bidang riwayat-form" @submit.prevent="simpanKomponen">
+          <div class="baris-bidang">
+            <div>
+              <label for="komponen-nama">Nama komponen</label>
+              <input
+                id="komponen-nama"
+                v-model="formKomponen.nama"
+                placeholder="Listrik AC"
+                autocomplete="off"
+                :aria-invalid="Boolean(galatKomponenBidang.nama)"
+              />
+              <p v-if="galatKomponenBidang.nama" class="galat-bidang">{{ galatKomponenBidang.nama }}</p>
+            </div>
+            <div>
+              <label for="komponen-nilai">Nilai per bulan</label>
+              <input
+                id="komponen-nilai"
+                v-model="formKomponen.nilai"
+                inputmode="numeric"
+                placeholder="100000"
+                autocomplete="off"
+                :aria-invalid="Boolean(galatKomponenBidang.nilai)"
+              />
+              <p v-if="galatKomponenBidang.nilai" class="galat-bidang">{{ galatKomponenBidang.nilai }}</p>
+            </div>
+          </div>
+
+          <div class="baris-bidang">
+            <div>
+              <label for="komponen-satuan">Satuan <span class="lemah">(opsional)</span></label>
+              <input
+                id="komponen-satuan"
+                v-model="formKomponen.satuan"
+                placeholder="per bulan"
+                autocomplete="off"
+              />
+            </div>
+            <div>
+              <label for="komponen-berlaku">Berlaku dari</label>
+              <input
+                id="komponen-berlaku"
+                v-model="formKomponen.berlaku_dari"
+                type="date"
+                :aria-invalid="Boolean(galatKomponenBidang.berlaku_dari)"
+              />
+              <p v-if="galatKomponenBidang.berlaku_dari" class="galat-bidang">
+                {{ galatKomponenBidang.berlaku_dari }}
+              </p>
+            </div>
+          </div>
+
+          <label class="pilihan-fasilitas">
+            <input id="komponen-semua" v-model="formKomponen.semuaKamar" type="checkbox" />
+            <span>Berlaku untuk semua kamar</span>
+          </label>
+
+          <p v-if="galatKomponen" class="pesan-galat">{{ galatKomponen }}</p>
+          <PesanBaris v-if="suksesKomponen" jenis="sukses" mungil>{{ suksesKomponen }}</PesanBaris>
+
+          <div class="aksi">
+            <button type="submit" class="halus" :disabled="menyimpanKomponen">
+              {{ menyimpanKomponen ? 'Menyimpan.' : (sesi.user.value?.peran === 'pemilik' ? 'Tambah komponen' : 'Ajukan komponen') }}
+            </button>
+          </div>
+        </form>
+      </div>
     </section>
 
     <section v-if="kamarFasilitas" class="kartu panel">
@@ -394,8 +617,8 @@ onMounted(muat)
         <div>
           <h2>Fasilitas kamar {{ kamarFasilitas.nomor }}</h2>
           <p class="lemah mungil">
-            Fasilitas hanya dicatat, tidak menagih. Untuk menagih sesuatu, tambahkan komponen biaya
-            di halaman Tagihan.
+            Fasilitas hanya dicatat, tidak menagih. Untuk menagih sesuatu, tambahkan komponen
+            biaya di panel Atur tarif kamar ini.
           </p>
         </div>
         <button class="halus mungil" @click="tutupFasilitas">Tutup</button>
@@ -516,6 +739,16 @@ onMounted(muat)
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid var(--garis);
+}
+
+.komponen-blok {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--garis);
+}
+
+.komponen-blok h3 {
+  margin-bottom: 4px;
 }
 
 /* Kisi, bukan satu kolom: daftar fasilitas biasanya 4-8 butir, dan satu kolom

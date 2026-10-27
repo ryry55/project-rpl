@@ -117,6 +117,13 @@ akan lolos dari guardrail selamanya tanpa ada yang memberi tahu.
 - **Tes harus lewat container.** PHP lokal (8.3.30) tidak punya `pdo_pgsql`:
   `docker compose exec api php artisan test`. Pengecualiannya pint, yang justru
   harus di HOST — di dalam container ia memeriksa kode lama.
+- **Kolom yang `nullable` di validasi belum tentu `NOT NULL` di basis data.** `komponen_biaya.satuan`
+  punya `default('rupiah/bulan')`, tetapi formulir yang membiarkan kolomnya kosong mengirim `null`
+  eksplisit (karena `ConvertEmptyStringsToNull`), dan `null` eksplisit **mengalahkan bawaan kolom**:
+  hasilnya `SQLSTATE[23502]`, 500, bukan 422. Perbaikannya membuang kuncinya sebelum `create()`
+  (`PenerapPerubahan::komponen()`), lalu `refresh()` supaya respons dan jejak audit sama dengan isi
+  tabel. Sebelum menambah kolom berdefault, periksa apakah request-nya mengizinkan `null` untuk kolom
+  yang sama.
 - **Tab Chrome yatim merusak E2E berikutnya.** Bersihkan sebelum menjalankan:
   `Invoke-RestMethod http://127.0.0.1:9222/json/list`, lalu `/json/close/<id>`
   untuk tiap entri `page`. `periksa.ps1` melakukannya otomatis.

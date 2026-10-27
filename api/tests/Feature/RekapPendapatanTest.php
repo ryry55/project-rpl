@@ -192,6 +192,58 @@ class RekapPendapatanTest extends TestCase
         $this->assertSame(1_000_000, $oktober['total']);
     }
 
+    /**
+     * Hunian dihitung dalam hari-kamar, bukan jumlah kamar terisi pada satu
+     * tanggal. Penghuni yang masuk tanggal 21 karena itu menyumbang 10, bukan
+     * 30 - itulah bedanya angka ini dengan "berapa kamar terisi hari ini".
+     */
+    public function test_rekap_menghitung_hunian_dalam_hari_kamar(): void
+    {
+        // Empat kamar x 30 hari November = 120 hari-kamar tersedia.
+        foreach (['A1', 'A2', 'A3', 'A4'] as $nomor) {
+            Kamar::create(['nomor' => $nomor]);
+        }
+
+        $this->buatKontrak('A1', '2026-01-01', null); // sebulan penuh: 30
+        $this->buatKontrak('A2', '2026-11-21', null); // masuk 21 Nov: 10
+        $this->buatKontrak('A4', '2026-10-01', '2026-11-11'); // keluar 11 Nov: 11
+        // A3 tidak pernah ditempati.
+
+        $hunian = $this->rekap()->assertOk()->json('data.hunian');
+
+        $this->assertSame(4, $hunian['jumlah_kamar']);
+        $this->assertSame(30, $hunian['hari']);
+        $this->assertSame(120, $hunian['hari_tersedia']);
+        // 30 + 10 + 11. Hari `tgl_keluar` ikut dihitung terisi.
+        $this->assertSame(51, $hunian['hari_terisi']);
+        $this->assertSame(42.5, $hunian['occupancy_rate']);
+    }
+
+    public function test_hunian_tanpa_kamar_dilaporkan_null_bukan_nol_persen(): void
+    {
+        $hunian = $this->rekap()->assertOk()->json('data.hunian');
+
+        $this->assertSame(0, $hunian['jumlah_kamar']);
+        $this->assertNull($hunian['occupancy_rate']);
+    }
+
+    private function buatKontrak(string $nomor, string $masuk, ?string $keluar): void
+    {
+        $kamar = Kamar::query()->where('nomor', $nomor)->firstOrFail();
+        $penghuni = Penghuni::create([
+            'nama' => "Penghuni {$nomor}",
+            'email' => strtolower($nomor).'-hunian@kos.test',
+        ]);
+
+        Kontrak::create([
+            'kamar_id' => $kamar->id,
+            'penghuni_id' => $penghuni->id,
+            'tgl_masuk' => $masuk,
+            'tgl_keluar' => $keluar,
+            'tarif_awal' => 1_500_000,
+        ]);
+    }
+
     public function test_periode_memakai_tanggal_bayar_bukan_periode_tagihan(): void
     {
         // Tagihan periode November, dibayar Oktober (membayar di muka).

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AturanResource;
+use App\Http\Resources\KontrakResource;
 use App\Http\Resources\RekeningResource;
 use App\Http\Resources\TagihanResource;
 use App\Models\AturanKos;
@@ -79,6 +80,33 @@ class PortalPenghuniController extends Controller
             ->get();
 
         return response()->json(['data' => AturanResource::collection($daftar)]);
+    }
+
+    /**
+     * Kontrak sewa milik penghuni yang sedang login (O-1).
+     *
+     * DFD menyebut aliran keluaran Proses 1.0 sebagai "konfirmasi sewa &
+     * kontrak" ke penghuni, dan sebelum ini portal tidak pernah menyebut kapan
+     * ia masuk atau berapa tarif awalnya - dua hal pertama yang ditanyakan
+     * penghuni baru.
+     *
+     * Hanya kontrak berstatus aktif. Kontrak lama tetap tersimpan, tetapi
+     * menampilkannya di portal membuat penghuni yang sudah pindah kamar membaca
+     * dua tarif sekaligus tanpa tahu mana yang berlaku.
+     */
+    public function kontrak(Request $request): JsonResponse
+    {
+        $kontrak = $request->user()->penghuni
+            ?->kontrakAktif()
+            ->with('kamar')
+            ->first();
+
+        // `data` null, bukan 404: akun yang belum terhubung ke data penghuni
+        // adalah data yang belum lengkap, bukan alamat yang salah. Layar
+        // membacanya sebagai "belum ada kontrak aktif".
+        return response()->json([
+            'data' => $kontrak === null ? null : new KontrakResource($kontrak),
+        ]);
     }
 
     /**

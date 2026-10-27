@@ -373,6 +373,29 @@ dari entitas (kotak) dan penyimpanan (dua garis) — satu-satunya hal yang penti
 Bila dosen menuntut lingkaran baku, ganti `prosesYourdon` di `dfd-gambar.js` dan perpendek
 `namaYourdon` di `dfd-data.js`.
 
+---
+
+## 7. Bukti implementasi aliran
+
+Gambar DFD menjanjikan aliran, bukan tombol. Tiga aliran yang sempat hanya ada di diagram karena
+itu dicatat di sini beserta tempat membuktikannya saat sidang - supaya pertanyaan "mana wujudnya"
+tidak dijawab dengan "ada di kode".
+
+| Aliran | Wujud di aplikasi | Bukti |
+|---|---|---|
+| **O-1** konfirmasi sewa & kontrak | Satu baris "Kontrak sewa: kamar ..., mulai ..., tarif awal ... per bulan" di portal penghuni | `GET /api/penghuni/kontrak`; tes `IsolasiDanAuditTest::test_penghuni_melihat_kontrak_sewanya_sendiri` |
+| **O-5** kuitansi & status pelunasan | Tombol **Kuitansi** pada tiap baris pembayaran, di panel rincian tagihan dan di portal penghuni; dokumennya dicetak peramban | `web/src/kuitansi.js`; tes `e2e-t20` langkah "baris pembayaran menawarkan kuitansi" |
+| **O-6** rekap pendapatan & hunian | Panel **Hunian** di halaman Rekap: tingkat hunian, hari-kamar terisi/tersedia, jumlah kamar | `RekapPendapatan::hunian()`; tes `RekapPendapatanTest::test_rekap_menghitung_hunian_dalam_hari_kamar` |
+
+Dua keputusan yang tidak tertulis di diagram, dan harus disebut bila ditanya:
+
+- **`occupancy_rate` dihitung dalam hari-kamar**, bukan jumlah kamar terisi pada satu tanggal.
+  Penghuni yang masuk tanggal 21 hanya menyumbang 10 hari dari 30. Kedua ujung tanggal inklusif,
+  dan kontrak yang belum ditutup dihitung sampai akhir rentang laporan.
+- **Kuitansi tidak bernomor urut.** Penandanya id pembayaran dan periode tagihan. Nomor urut
+  berarti kolom baru dan kuitansi cetak ulang yang bisa bernomor berbeda dari yang sudah dipegang
+  penghuni. Kuitansi boleh dicetak pemilik, pengelola, dan penghuni.
+
 Nomor proses juga mengikuti konvensi masing-masing notasi: `1.0`–`5.0` pada Gane-Sarson, `1`–`5`
 pada Yourdon. Dekomposisi level 2 di `03-dfd-level-2.md` memakai penomoran Gane-Sarson
 (`3.1`, `3.2`, …); bila memakai versi Yourdon, baca sebagai `3.1`, `3.2`, … dengan proses induk `3`.

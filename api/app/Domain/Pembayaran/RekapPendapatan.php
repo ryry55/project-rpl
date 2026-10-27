@@ -3,6 +3,8 @@
 namespace App\Domain\Pembayaran;
 
 use App\Domain\Billing\PenghitungDenda;
+use App\Models\Kamar;
+use App\Models\Kontrak;
 use App\Models\Pembayaran;
 use App\Models\Tagihan;
 use App\Models\User;
@@ -105,6 +107,12 @@ class RekapPendapatan
             // membandingkan rekap dengan jumlah tagihan dan mengira ada uang
             // yang hilang. Ia sengaja TIDAK ikut ke `total`.
             'piutang' => $this->piutang(),
+            // Hunian, bukan uang. Ada di sini karena DFD menyebut aliran
+            // keluaran Proses 5.0 sebagai "rekap pendapatan & hunian" (O-6):
+            // pemilik yang membaca rekap bulan ini hampir selalu bertanya
+            // "berapa kamar terisi", dan jawaban yang tidak ada di rekap akan
+            // dicari dengan membuka daftar kamar lalu menghitung sendiri.
+            'hunian' => $this->hunian($dari, $sampai),
             // Diumumkan, bukan disimpulkan layar: `APP_DEMO_MODE` yang mati
             // membuat header simulasi diabaikan, dan rekap yang mengklaim
             // "tanggal simulasi" padahal angkanya angka hari ini adalah
@@ -297,6 +305,55 @@ class RekapPendapatan
         return [
             'tagihan_terbuka' => $tagihan->count(),
             'denda_belum_dibayar' => $denda,
+        ];
+    }
+
+    /**
+     * Tingkat hunian pada rentang ini, dihitung dalam **hari-kamar**.
+     *
+     * `hari_terisi / hari_tersedia`: satu kamar yang terisi 30 hari menyumbang
+     * 30, bukan 1. Rata-rata jumlah kamar pada akhir bulan (cara yang jauh
+     * lebih murah) salah untuk penghuni yang keluar tanggal 2 - ia tetap
+     * terhitung sebulan penuh, dan pemilik yang membandingkan angka itu dengan
+     * daftar kamar akan menemukan selisih yang tidak bisa dijelaskan.
+     *
+     * Kedua ujung inklusif: hari `tgl_masuk` dan hari `tgl_keluar` dihitung
+     * terisi, dan kontrak yang belum ditutup dihitung sampai `sampai`. Pilihan
+     * ini harus bisa disebut saat ditanya, karena selisihnya satu hari per
+     * kontrak.
+     */
+    private function hunian(CarbonInterface $dari, CarbonInterface $sampai): array
+    {
+        $jumlahKamar = Kamar::query()->count();
+        $hari = (int) $dari->copy()->startOfDay()->diffInDays($sampai->copy()->startOfDay()) + 1;
+
+        $kontrak = Kontrak::query()
+            ->whereDate('tgl_masuk', '<=', $sampai)
+            ->where(fn ($q) => $q->whereNull('tgl_keluar')->orWhereDate('tgl_keluar', '>=', $dari))
+            ->get(['tgl_masuk', 'tgl_keluar']);
+
+        $terisi = 0;
+        foreach ($kontrak as $satu) {
+            $mulai = $satu->tgl_masuk->greaterThan($dari) ? $satu->tgl_masuk : $dari;
+            $selesai = $satu->tgl_keluar === null || $satu->tgl_keluar->greaterThan($sampai)
+                ? $sampai
+                : $satu->tgl_keluar;
+
+            $terisi += (int) $mulai->copy()->startOfDay()
+                ->diffInDays($selesai->copy()->startOfDay()) + 1;
+        }
+
+        $tersedia = $jumlahKamar * $hari;
+
+        return [
+            'jumlah_kamar' => $jumlahKamar,
+            'hari' => $hari,
+            'hari_tersedia' => $tersedia,
+            'hari_terisi' => $terisi,
+            // Persen satu desimal. `null`, bukan 0, bila kos ini belum punya
+            // kamar: 0/0 berarti "belum bisa dihitung", dan "0%" akan terbaca
+            // sebagai "tidak ada yang menempati".
+            'occupancy_rate' => $tersedia > 0 ? round($terisi / $tersedia * 100, 1) : null,
         ];
     }
 }

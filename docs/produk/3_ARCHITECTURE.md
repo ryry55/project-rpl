@@ -73,7 +73,7 @@ return (new TagihanResource($hasil->tagihan))->response()->setStatusCode(201);
 
 ### 2.2 Domain — tempat semua aturan tinggal
 
-43 kelas di `app/Domain/`, dikelompokkan per masalah, bukan per tabel:
+52 kelas di `app/Domain/`, dikelompokkan per masalah, bukan per tabel:
 
 | Folder | Isi | Contoh |
 |---|---|---|
@@ -406,20 +406,20 @@ penutupan. Daftar yang tidak dicatat akan terlupakan.
 
 ```
 api/
-  app/Domain/            50 kelas, 11 folder - semua aturan
-  app/Http/Controllers/  24 pengendali — hanya menerjemahkan
+  app/Domain/            52 kelas, 11 folder - semua aturan
+  app/Http/Controllers/  26 pengendali — hanya menerjemahkan
   app/Http/Middleware/   6 middleware
   app/Http/Requests/     validasi
   app/Http/Resources/    14 resource — bentuk JSON
   app/Models/            21 model — hanya bentuk data
   database/migrations/   41 migrasi
-  tests/                 39 berkas tes, 748 tes
+  tests/                 45 berkas tes, 800 tes
 
 web/
-  src/views/             26 view (7 publik + 14 pemilik + 5 panel pemilik)
-  src/komponen/          6 komponen ui + 4 komponen bersama
+  src/views/             27 view (7 publik + 20 pemilik dan panelnya)
+  src/komponen/          7 komponen ui + 5 komponen bersama
   src/direktif/          kartu-tabel.js
-  src/style.css          651 baris — seluruh design system
+  src/style.css          954 baris — seluruh design system
   src/bagikan.js         pesan WhatsApp & salin papan klip (REV-UI-03)
   public/                manifest, sw.js, ikon
   skrip/                 buat-ikon.mjs, pasang-kartu-tabel.mjs
