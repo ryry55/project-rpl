@@ -209,17 +209,16 @@ baris.push(
 );
 baris.push('');
 baris.push(
-  `LRS dipecah menjadi ${gambarLrs.length} lembar menurut alur data, bukan ` +
-    `dipaksakan satu halaman. Pada satu lembar, ${SKEMA.jumlah_tabel} tabel ` +
-    'menghasilkan huruf efektif sekitar 0,52% lebar A4 — kira-kira satu milimeter, ' +
-    'tidak terbaca saat dicetak. Tiga lembar menaikkannya menjadi 1,28%–1,57%.',
+  'LRS digambar dalam satu lembar, mengikuti bentuk laporan: yang digambar hanya ' +
+    'kolom kunci — kunci primer dan kunci asing — karena itulah yang membentuk ' +
+    'struktur relasional. Dengan cara itu seluruh tabel terbaca dalam satu bagan ' +
+    'pada huruf efektif 1,35% lebar A4. Atribut lengkap setiap tabel ada di ' +
+    'Tabel 4.1 sampai Tabel 4.9.',
 );
 baris.push('');
 
 for (const g of gambarLrs) tulisGambar(g.berkas, g.keterangan, g.catatan);
 
-// Tiga lembar LRS lainnya sudah ditulis di atas lewat GAMBAR; pastikan
-// urutannya lengkap.
 baris.push(`Seluruh ${SKEMA.jumlah_tabel} tabel hasil normalisasi:`);
 baris.push('');
 tabel(

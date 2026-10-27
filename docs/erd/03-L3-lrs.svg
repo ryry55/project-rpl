@@ -1,0 +1,288 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1412" height="1944" viewBox="0 0 1412 1944" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
+<title>LRS — Logical Record Structure</title>
+<rect width="1412" height="1944" fill="#ffffff"/>
+<text x="80" y="100.4" text-anchor="start" dominant-baseline="central" font-size="34" font-weight="700" fill="#0f172a">LRS — Logical Record Structure</text>
+<text x="80" y="138.2" text-anchor="start" dominant-baseline="central" font-size="18" font-weight="400" fill="#475569">23 tabel · hanya kolom kunci · kunci primer digaris bawahi · kunci asing bertanda bintang</text>
+<path d="M 1095 271.2 L 1073 271.2 L 1073 303.5 L 1072 303.5 L 1072 383.6 L 1059.5 383.6 L 1059.5 601.6 L 1050.5 601.6 L 1050.5 1228.6 L 732.6 1228.6 L 732.6 1250.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 837.5 758.2 L 859.5 758.2 L 859.5 368.1 L 878 368.1 L 878 271.2 L 956 271.2 L 956 265.5 L 1095 265.5" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 356 790.2 L 378 790.2 L 378 595.5 L 815.5 595.5 L 815.5 374.6 L 1097 374.6 L 1097 368.1 L 1167.4 368.1 L 1167.4 319.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 1294 952.2 L 1316 952.2 L 1316 790.2 L 1337.5 790.2 L 1337.5 265.5 L 1293 265.5" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 706 860.6 L 706 790.2 L 859.5 790.2 L 859.5 757.5 L 878 757.5 L 878 368.1 L 956 368.1 L 956 271.2 L 1073 271.2 L 1073 247.7 L 1095 247.7" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 1194 405.6 L 1194 319.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 1194 546.6 L 1194 498.2 L 1202.9 498.2 L 1202.9 368.1 L 1211.8 368.1 L 1211.8 319.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 601.5 563.5 L 579.5 563.5 L 579.5 643.6 L 552.5 643.6 L 552.5 1423.6 L 244.6 1423.6 L 244.6 1445.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 810.5 531.2 L 832.5 531.2 L 832.5 643.6 L 956 643.6 L 956 1381.6 L 1167.4 1381.6 L 1167.4 1444.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 299.5 985.2 L 321.5 985.2 L 321.5 1033.6 L 339 1033.6 L 339 1342.9 L 1073 1342.9 L 1073 1445.6 L 1097 1445.6 L 1097 1478.2 L 1146.5 1478.2" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 1288 1147.1 L 1310 1147.1 L 1310 1228.6 L 1315 1228.6 L 1315 1381.6 L 1220.6 1381.6 L 1220.6 1444.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 793.5 1148.1 L 815.5 1148.1 L 815.5 1513.6 L 1146.5 1513.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 317 563.2 L 339 563.2 L 339 563.5 L 340 563.5 L 340 643.6 L 350 643.6 L 350 692.9 L 456 692.9 L 456 1327.6 L 628 1327.6 L 628 1342.1 L 706 1342.1 L 706 1349.6 L 1072 1349.6 L 1072 1380.6 L 1167.4 1380.6 L 1167.4 1381.6 L 1185.1 1381.6 L 1185.1 1444.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 317 595.5 L 339 595.5 L 339 643.6 L 340 643.6 L 340 675.6 L 456 675.6 L 456 692.9 L 534 692.9 L 534 1228.6 L 679.4 1228.6 L 679.4 1250.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 856 335.8 L 1034 335.8 L 1034 238.9 L 1073 238.9 L 1073 230 L 1095 230" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 856 303.5 L 878 303.5 L 878 303.5 L 1050.5 303.5 L 1050.5 247.7 L 1072 247.7 L 1072 230 L 1073 230 L 1073 212.2 L 1095 212.2" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 556 271.2 L 534 271.2 L 534 498.9 L 339 498.9 L 339 504.2 L 317 504.2" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 318 1180.1 L 340 1180.1 L 340 828.6 L 378 828.6 L 378 795.6 L 556 795.6 L 556 265.5 L 556 265.5" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 218 178.6 L 218 156.6 L 1167.4 156.6 L 1167.4 178.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 328 335.8 L 350 335.8 L 350 368.1 L 832.5 368.1 L 832.5 383.6 L 956 383.6 L 956 368.1 L 1073 368.1 L 1073 303.5 L 1078 303.5 L 1078 249.1 L 1095 249.1 L 1095 247.7 L 1293 247.7" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 328 271.2 L 350 271.2 L 350 247.7 L 556 247.7" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 1194 632.6 L 1194 563.2 L 1316 563.2 L 1316 557.5 L 1328.5 557.5 L 1328.5 230 L 1293 230" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 1056 725.2 L 1034 725.2 L 1034 610.6 L 608 610.6 L 608 601.6 L 596.5 601.6 L 596.5 498.2 L 339 498.2 L 339 465.9 L 235.8 465.9 L 235.8 384.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 1081.5 1342.1 L 1059.5 1342.1 L 1059.5 790.2 L 1034 790.2 L 1034 725.2 L 856 725.2 L 856 265.5 L 856 265.5" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1095" y="178.6" width="198" height="141" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 1095 222.7 L 1293 222.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="1095" y="178.6" width="198" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="1095" y="213.7" width="198" height="9" fill="#1e293b"/>
+<text x="1194" y="200.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">users</text>
+<text x="1113" y="238.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="1137.9" y="238.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="1096" y="255" width="196" height="32.3" fill="#f8fafc"/>
+<text x="1113" y="271.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="1137.9" y="271.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">penghuni_id</text>
+<text x="1113" y="303.5" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="1137.9" y="303.5" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">pemilik_id</text>
+<rect x="650" y="1250.6" width="112" height="77" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 650 1294.7 L 762 1294.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="650" y="1250.6" width="112" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="650" y="1285.7" width="112" height="9" fill="#1e293b"/>
+<text x="706" y="1272.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">penghuni</text>
+<text x="668" y="1310.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="692.9" y="1310.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="574.5" y="665.6" width="263" height="109" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 574.5 709.7 L 837.5 709.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="574.5" y="665.6" width="263" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="574.5" y="700.7" width="263" height="9" fill="#1e293b"/>
+<text x="706" y="687.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">pengelola_kewenangan</text>
+<text x="592.5" y="725.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="617.4" y="725.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="575.5" y="742" width="261" height="32.3" fill="#f8fafc"/>
+<text x="592.5" y="758.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="617.4" y="758.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">user_id</text>
+<rect x="80" y="697.6" width="276" height="109" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 80 741.7 L 356 741.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="80" y="697.6" width="276" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="80" y="732.7" width="276" height="9" fill="#1e293b"/>
+<text x="218" y="719.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">pengaturan_notifikasi</text>
+<text x="98" y="757.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="122.9" y="757.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="81" y="774" width="274" height="32.3" fill="#f8fafc"/>
+<text x="98" y="790.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="122.9" y="790.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">user_id</text>
+<rect x="1094" y="859.6" width="200" height="109" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 1094 903.7 L 1294 903.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="1094" y="859.6" width="200" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="1094" y="894.7" width="200" height="9" fill="#1e293b"/>
+<text x="1194" y="881.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">persetujuan_pdp</text>
+<text x="1112" y="919.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="1136.9" y="919.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="1095" y="936" width="198" height="32.3" fill="#f8fafc"/>
+<text x="1112" y="952.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="1136.9" y="952.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">user_id</text>
+<rect x="630" y="860.6" width="152" height="109" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 630 904.7 L 782 904.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="630" y="860.6" width="152" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="630" y="895.7" width="152" height="9" fill="#1e293b"/>
+<text x="706" y="882.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">token_akun</text>
+<text x="648" y="920.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="672.9" y="920.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="631" y="937" width="150" height="32.3" fill="#f8fafc"/>
+<text x="648" y="953.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="672.9" y="953.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">user_id</text>
+<rect x="1072.5" y="405.6" width="243" height="141" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 1072.5 449.7 L 1315.5 449.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="1072.5" y="405.6" width="243" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="1072.5" y="440.7" width="243" height="9" fill="#1e293b"/>
+<text x="1194" y="427.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">usulan_perubahan</text>
+<text x="1090.5" y="465.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="1115.4" y="465.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="1073.5" y="482" width="241" height="32.3" fill="#f8fafc"/>
+<text x="1090.5" y="498.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="1115.4" y="498.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">diajukan_oleh</text>
+<text x="1090.5" y="530.5" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="1115.4" y="530.5" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">diputuskan_oleh</text>
+<rect x="155.5" y="1282.6" width="125" height="77" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 155.5 1326.7 L 280.5 1326.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="155.5" y="1282.6" width="125" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="155.5" y="1317.7" width="125" height="9" fill="#1e293b"/>
+<text x="218" y="1304.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">log_audit</text>
+<text x="173.5" y="1342.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="198.4" y="1342.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="618.5" y="1413.6" width="175" height="77" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 618.5 1457.7 L 793.5 1457.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="618.5" y="1413.6" width="175" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="618.5" y="1448.7" width="175" height="9" fill="#1e293b"/>
+<text x="706" y="1435.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">notifications</text>
+<text x="636.5" y="1473.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="661.4" y="1473.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="1146.5" y="1444.6" width="95" height="77" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 1146.5 1488.7 L 1241.5 1488.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="1146.5" y="1444.6" width="95" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="1146.5" y="1479.7" width="95" height="9" fill="#1e293b"/>
+<text x="1194" y="1466.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">kamar</text>
+<text x="1164.5" y="1504.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="1189.4" y="1504.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="155.5" y="1445.6" width="125" height="77" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 155.5 1489.7 L 280.5 1489.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="155.5" y="1445.6" width="125" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="155.5" y="1480.7" width="125" height="9" fill="#1e293b"/>
+<text x="218" y="1467.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">fasilitas</text>
+<text x="173.5" y="1505.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="198.4" y="1505.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="601.5" y="438.6" width="209" height="141" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 601.5 482.7 L 810.5 482.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="601.5" y="438.6" width="209" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="601.5" y="473.7" width="209" height="9" fill="#1e293b"/>
+<text x="706" y="460.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">kamar_fasilitas</text>
+<text x="619.5" y="498.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="644.4" y="498.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="602.5" y="515" width="207" height="32.3" fill="#f8fafc"/>
+<text x="619.5" y="531.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="644.4" y="531.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">kamar_id</text>
+<text x="619.5" y="563.5" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="644.4" y="563.5" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">fasilitas_id</text>
+<rect x="136.5" y="892.6" width="163" height="109" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 136.5 936.7 L 299.5 936.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="136.5" y="892.6" width="163" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="136.5" y="927.7" width="163" height="9" fill="#1e293b"/>
+<text x="218" y="914.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">tarif_sewa</text>
+<text x="154.5" y="952.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="179.4" y="952.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="137.5" y="969" width="161" height="32.3" fill="#f8fafc"/>
+<text x="154.5" y="985.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="179.4" y="985.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">kamar_id</text>
+<rect x="1100" y="1054.6" width="188" height="109" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 1100 1098.7 L 1288 1098.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="1100" y="1054.6" width="188" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="1100" y="1089.7" width="188" height="9" fill="#1e293b"/>
+<text x="1194" y="1076.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">komponen_biaya</text>
+<text x="1118" y="1114.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="1142.9" y="1114.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="1101" y="1131" width="186" height="32.3" fill="#f8fafc"/>
+<text x="1118" y="1147.1" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="1142.9" y="1147.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">kamar_id</text>
+<rect x="618.5" y="1055.6" width="175" height="109" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 618.5 1099.7 L 793.5 1099.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="618.5" y="1055.6" width="175" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="618.5" y="1090.7" width="175" height="9" fill="#1e293b"/>
+<text x="706" y="1077.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">kebijakan_kos</text>
+<text x="636.5" y="1115.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="661.4" y="1115.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="619.5" y="1132" width="173" height="32.3" fill="#f8fafc"/>
+<text x="636.5" y="1148.1" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="661.4" y="1148.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">kamar_id</text>
+<rect x="637.5" y="1576.6" width="137" height="77" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 637.5 1620.7 L 774.5 1620.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="637.5" y="1576.6" width="137" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="637.5" y="1611.7" width="137" height="9" fill="#1e293b"/>
+<text x="706" y="1598.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">aturan_kos</text>
+<text x="655.5" y="1636.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="680.4" y="1636.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="1138" y="1607.6" width="112" height="77" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 1138 1651.7 L 1250 1651.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="1138" y="1607.6" width="112" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="1138" y="1642.7" width="112" height="9" fill="#1e293b"/>
+<text x="1194" y="1629.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">rekening</text>
+<text x="1156" y="1667.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="1180.9" y="1667.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="119" y="470.6" width="198" height="141" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 119 514.7 L 317 514.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="119" y="470.6" width="198" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="119" y="505.7" width="198" height="9" fill="#1e293b"/>
+<text x="218" y="492.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">kontrak</text>
+<text x="137" y="530.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="161.9" y="530.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="120" y="547" width="196" height="32.3" fill="#f8fafc"/>
+<text x="137" y="563.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="161.9" y="563.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">kamar_id</text>
+<text x="137" y="595.5" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="161.9" y="595.5" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">penghuni_id</text>
+<rect x="556" y="178.6" width="300" height="174" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 556 222.7 L 856 222.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="556" y="178.6" width="300" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="556" y="213.7" width="300" height="9" fill="#1e293b"/>
+<text x="706" y="200.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">tagihan</text>
+<text x="574" y="238.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="598.9" y="238.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="557" y="255" width="298" height="32.3" fill="#f8fafc"/>
+<text x="574" y="271.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="598.9" y="271.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">kontrak_id</text>
+<text x="574" y="303.5" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="598.9" y="303.5" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">dibatalkan_oleh</text>
+<rect x="557" y="319.6" width="298" height="32.3" fill="#f8fafc"/>
+<text x="574" y="335.8" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="598.9" y="335.8" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">denda_dimaafkan_oleh</text>
+<rect x="118" y="1087.6" width="200" height="109" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 118 1131.7 L 318 1131.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="118" y="1087.6" width="200" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="118" y="1122.7" width="200" height="9" fill="#1e293b"/>
+<text x="218" y="1109.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">tagihan_rincian</text>
+<text x="136" y="1147.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="160.9" y="1147.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="119" y="1164" width="198" height="32.3" fill="#f8fafc"/>
+<text x="136" y="1180.1" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="160.9" y="1180.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">tagihan_id</text>
+<rect x="108" y="178.6" width="220" height="206" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 108 222.7 L 328 222.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="108" y="178.6" width="220" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="108" y="213.7" width="220" height="9" fill="#1e293b"/>
+<text x="218" y="200.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">pembayaran</text>
+<text x="126" y="238.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="150.9" y="238.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="109" y="255" width="218" height="32.3" fill="#f8fafc"/>
+<text x="126" y="271.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="150.9" y="271.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">tagihan_id</text>
+<text x="126" y="303.5" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="150.9" y="303.5" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">dicatat_oleh</text>
+<rect x="109" y="319.6" width="218" height="32.3" fill="#f8fafc"/>
+<text x="126" y="335.8" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="150.9" y="335.8" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">diterima_oleh</text>
+<text x="126" y="368.1" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="150.9" y="368.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">pembalik_id</text>
+<rect x="1056" y="632.6" width="276" height="141" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 1056 676.7 L 1332 676.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="1056" y="632.6" width="276" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="1056" y="667.7" width="276" height="9" fill="#1e293b"/>
+<text x="1194" y="654.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">verifikasi_pembayaran</text>
+<text x="1074" y="692.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="1098.9" y="692.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="1057" y="709" width="274" height="32.3" fill="#f8fafc"/>
+<text x="1074" y="725.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="1098.9" y="725.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">pembayaran_id</text>
+<text x="1074" y="757.5" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="1098.9" y="757.5" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">diverifikasi_oleh</text>
+<rect x="1081.5" y="1249.6" width="225" height="109" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 1081.5 1293.7 L 1306.5 1293.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="1081.5" y="1249.6" width="225" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="1081.5" y="1284.7" width="225" height="9" fill="#1e293b"/>
+<text x="1194" y="1271.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">transaksi_gateway</text>
+<text x="1099.5" y="1309.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="1124.4" y="1309.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<rect x="1082.5" y="1326" width="223" height="32.3" fill="#f8fafc"/>
+<text x="1099.5" y="1342.1" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="1124.4" y="1342.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">tagihan_id</text>
+<path d="M 732.6 1250.6 L 722.2 1228.8 L 743.1 1228.8 Z" fill="#334155"/>
+<path d="M 1095 265.5 L 1073.2 275.9 L 1073.2 255 Z" fill="#334155"/>
+<path d="M 1167.4 319.6 L 1177.8 341.5 L 1156.9 341.5 Z" fill="#334155"/>
+<path d="M 1293 265.5 L 1314.9 255 L 1314.9 275.9 Z" fill="#334155"/>
+<path d="M 1095 247.7 L 1073.2 258.2 L 1073.2 237.3 Z" fill="#334155"/>
+<path d="M 1194 319.6 L 1204.5 341.5 L 1183.6 341.5 Z" fill="#334155"/>
+<path d="M 1211.8 319.6 L 1222.2 341.5 L 1201.3 341.5 Z" fill="#334155"/>
+<path d="M 244.6 1445.6 L 234.2 1423.8 L 255.1 1423.8 Z" fill="#334155"/>
+<path d="M 1167.4 1444.6 L 1156.9 1422.8 L 1177.8 1422.8 Z" fill="#334155"/>
+<path d="M 1146.5 1478.2 L 1124.7 1488.7 L 1124.7 1467.8 Z" fill="#334155"/>
+<path d="M 1220.6 1444.6 L 1210.2 1422.8 L 1231.1 1422.8 Z" fill="#334155"/>
+<path d="M 1146.5 1513.6 L 1124.7 1524.1 L 1124.7 1503.1 Z" fill="#334155"/>
+<path d="M 1185.1 1444.6 L 1174.7 1422.8 L 1195.6 1422.8 Z" fill="#334155"/>
+<path d="M 679.4 1250.6 L 668.9 1228.8 L 689.8 1228.8 Z" fill="#334155"/>
+<path d="M 1095 230 L 1073.2 240.4 L 1073.2 219.5 Z" fill="#334155"/>
+<path d="M 1095 212.2 L 1073.2 222.7 L 1073.2 201.8 Z" fill="#334155"/>
+<path d="M 317 504.2 L 338.9 493.8 L 338.9 514.7 Z" fill="#334155"/>
+<path d="M 1167.4 178.6 L 1156.9 156.8 L 1177.8 156.8 Z" fill="#334155"/>
+<path d="M 1293 247.7 L 1271.2 258.2 L 1271.2 237.3 Z" fill="#334155"/>
+<path d="M 556 247.7 L 534.2 258.2 L 534.2 237.3 Z" fill="#334155"/>
+<path d="M 1293 230 L 1314.9 219.5 L 1314.9 240.4 Z" fill="#334155"/>
+<path d="M 235.8 384.6 L 246.2 406.5 L 225.3 406.5 Z" fill="#334155"/>
+<rect x="80" y="1702.8" width="1100" height="165.2" rx="9" fill="#fafafa" stroke="#94a3b8" stroke-width="1"/>
+<text x="104" y="1732.8" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">PK = kunci primer · FK = kunci asing · UQ = unik · garis = hubungan kunci asing</text>
+<text x="104" y="1765.6" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">Bentuk LRS: hanya kolom kunci yang digambar (49 dari 201 kolom). Atribut lengkap ada di tingkat 2 dan di</text>
+<text x="104" y="1798.4" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">03-lrs.md.</text>
+<text x="104" y="1831.2" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">kunci asing menunjuk tabelnya sendiri: users.pemilik_id · pembayaran.pembalik_id</text>
+</svg>

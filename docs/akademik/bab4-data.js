@@ -178,8 +178,13 @@ const TABEL_AKHIR = [
 /* ---------------------------------------------------------------- gambar */
 
 // ERD memakai tingkat logikal: Chen, 12 entitas, dengan atribut kunci.
-// LRS dipecah tiga lembar karena 23 tabel tidak terbaca dalam satu halaman —
-// pada satu lembar, huruf efektifnya terukur 0,52% lebar A4 (sekitar 1 mm).
+//
+// LRS digambar dalam SATU lembar, mengikuti bentuk laporan referensi — bisa
+// begitu karena yang digambar hanya kolom kunci (PK + FK): 49 kolom dari 201.
+// Diukur, huruf efektifnya 1,35% lebar A4, di atas ambang keterbacaan 1,2%.
+// Dengan seluruh 201 kolom, satu lembar hanya mencapai 0,97% dan tidak terbaca
+// — karena itu bentuk kolom-kunci yang dipakai, bukan pemecahan menjadi tiga
+// lembar. Atribut lengkap setiap tabel ada di tingkat fisikal dan di 03-lrs.md.
 const GAMBAR = [
   {
     berkas: '../erd/01-L1-logikal.png',
@@ -190,19 +195,13 @@ const GAMBAR = [
       'karena tidak menambah pemahaman konsep; daftarnya ada di dokumen ERD.',
   },
   {
-    berkas: '../erd/03-L3-lrs-a.png',
-    keterangan: 'Gambar 4.6 LRS (a) Akun dan Tata Kelola — 9 tabel',
-    catatan: 'Kunci primer digarisbawahi, kunci asing bertanda bintang.',
-  },
-  {
-    berkas: '../erd/03-L3-lrs-b.png',
-    keterangan: 'Gambar 4.7 LRS (b) Kamar, Tarif, dan Kebijakan — 8 tabel',
-    catatan: 'Memuat rantai tarif_sewa → kamar → kamar_fasilitas → fasilitas.',
-  },
-  {
-    berkas: '../erd/03-L3-lrs-c.png',
-    keterangan: 'Gambar 4.8 LRS (c) Kontrak, Tagihan, dan Pembayaran — 6 tabel',
-    catatan: 'Memuat rantai kontrak → tagihan → tagihan_rincian → pembayaran.',
+    berkas: '../erd/03-L3-lrs.png',
+    keterangan: 'Gambar 4.6 Logical Record Structure (LRS)',
+    catatan:
+      'Dua puluh tiga tabel dalam satu bagan. Kunci primer digarisbawahi, kunci asing ' +
+      'bertanda bintang dan dihubungkan panah ke tabel yang dituju. Yang digambar hanya ' +
+      'kolom kunci (49 dari 201 kolom) supaya seluruh skema terbaca dalam satu halaman; ' +
+      'atribut lengkapnya ada di Tabel 4.1 sampai Tabel 4.9 dan di dokumen ERD.',
   },
 ]
 

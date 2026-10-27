@@ -201,18 +201,24 @@ const L1 = {
 /**
  * Lembar level 2 (fisikal) dan level 3 (LRS).
  *
- * DIPECAH MENJADI TIGA LEMBAR, DAN JUMLAHNYA DITENTUKAN OLEH PENGUKURAN.
+ * LEVEL 2 DIPECAH MENJADI TIGA LEMBAR; LEVEL 3 CUKUP SATU. Keduanya diputuskan
+ * oleh pengukuran, bukan selera.
  *
- * Percobaan pertama memakai satu lembar berisi 23 tabel. Hasilnya ditolak oleh
- * penjaga keterbacaan: setelah dipaskan ke satu halaman A4, hurufnya hanya
- * 0,52% lebar halaman - sekitar 1 mm. Mustahil dibaca. Itu bukan soal skala
- * ekspor; 201 kolom memang tidak muat di satu halaman.
+ * Percobaan pertama memakai satu lembar berisi 23 tabel untuk KEDUANYA.
+ * Hasilnya ditolak oleh penjaga keterbacaan: setelah dipaskan ke satu halaman
+ * A4, hurufnya hanya 0,97% lebar halaman. Itu bukan soal skala ekspor; 201
+ * kolom memang tidak muat di satu halaman.
  *
- * Percobaan kedua memecah per modul menjadi empat lembar. Itu lolos, tetapi
- * lembar keempat hanya punya SATU relasi internal - modulnya terlalu sempit,
- * dan hubungannya justru pindah menjadi garis lintas lembar.
+ * Yang kemudian disadari: yang membuatnya tidak muat adalah JUMLAH KOLOM, bukan
+ * jumlah tabel. LRS klasik tidak menggambar seluruh atribut — yang digambar
+ * hanya kunci primer dan kunci asing, karena itulah yang membentuk struktur
+ * relasional. Dengan 49 kolom (dari 201), seluruh 23 tabel muat dalam SATU
+ * lembar pada huruf efektif 1,35%, di atas ambang 1,2%. Karena itu:
  *
- * Versi ini memakai pembagian menurut ALUR DATA: tiap lembar adalah satu rantai
+ *   - level 3 (LRS)  : satu lembar, hanya kolom kunci;
+ *   - level 2 (fisikal): tiga lembar, seluruh kolom dan tipenya.
+ *
+ * Tingkat 2 tetap dipecah menurut ALUR DATA: tiap lembar adalah satu rantai
  * yang benar-benar saling terhubung, bukan satu topik yang kebetulan mirip.
  * `users` sengaja ditaruh bersama tabel-tabel yang menunjuknya, supaya garisnya
  * bisa ditarik dan tidak menjadi kunci asing lintas lembar.
@@ -285,9 +291,6 @@ const KOLOM_OVERRIDE = { b: 2, c: 2 };
 const CATATAN_FISIKAL =
   'Kunci asing yang menyeberang ke lembar lain tidak bisa ditarik garisnya; tujuannya disebut di legenda.';
 
-const CATATAN_LRS =
-  'Notasi relasional: PK digaris bawahi, FK bertanda bintang. Setara dengan daftar formal di 03-lrs.md.';
-
 /** Susun definisi satu lembar level 2 (fisikal). */
 function lembarFisikal(m) {
   return {
@@ -302,26 +305,11 @@ function lembarFisikal(m) {
   };
 }
 
-/** Susun definisi satu lembar level 3 (LRS). */
-function lembarLrs(m) {
-  return {
-    kode: `L3-${m.kode}`,
-    berkas: `03-L3-lrs-${m.kode}.svg`,
-    judul: `LRS — Level 3 (${m.kode.toUpperCase()})`,
-    sub: `${m.nama} · ${m.tabel.length} tabel · kunci primer digaris bawahi · kunci asing bertanda bintang`,
-    mode: 'lrs',
-    jumlahKolom: KOLOM_OVERRIDE[m.kode] ?? KOLOM_LEMBAR,
-    tabel: m.tabel,
-    catatan: CATATAN_LRS,
-  };
-}
-
 module.exports = {
   L0,
   L1,
   MODUL,
   KOLOM_LEMBAR,
   lembarFisikal,
-  lembarLrs,
   RELASI_KONSEPTUAL,
 };

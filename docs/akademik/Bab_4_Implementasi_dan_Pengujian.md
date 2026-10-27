@@ -77,25 +77,13 @@ ERD menggambarkan entitas beserta relasinya memakai notasi Chen: persegi panjang
 
 LRS adalah kelanjutan ERD: entitas dan relasinya diubah menjadi struktur tabel dengan kolom, kunci primer, dan kunci asing. Kunci primer digarisbawahi dan kunci asing bertanda bintang.
 
-LRS dipecah menjadi 3 lembar menurut alur data, bukan dipaksakan satu halaman. Pada satu lembar, 23 tabel menghasilkan huruf efektif sekitar 0,52% lebar A4 — kira-kira satu milimeter, tidak terbaca saat dicetak. Tiga lembar menaikkannya menjadi 1,28%–1,57%.
+LRS digambar dalam satu lembar, mengikuti bentuk laporan: yang digambar hanya kolom kunci — kunci primer dan kunci asing — karena itulah yang membentuk struktur relasional. Dengan cara itu seluruh tabel terbaca dalam satu bagan pada huruf efektif 1,35% lebar A4. Atribut lengkap setiap tabel ada di Tabel 4.1 sampai Tabel 4.9.
 
-*Gambar 4.6 LRS (a) Akun dan Tata Kelola — 9 tabel*
+*Gambar 4.6 Logical Record Structure (LRS)*
 
-![](../erd/03-L3-lrs-a.png)
+![](../erd/03-L3-lrs.png)
 
-> Kunci primer digarisbawahi, kunci asing bertanda bintang.
-
-*Gambar 4.7 LRS (b) Kamar, Tarif, dan Kebijakan — 8 tabel*
-
-![](../erd/03-L3-lrs-b.png)
-
-> Memuat rantai tarif_sewa → kamar → kamar_fasilitas → fasilitas.
-
-*Gambar 4.8 LRS (c) Kontrak, Tagihan, dan Pembayaran — 6 tabel*
-
-![](../erd/03-L3-lrs-c.png)
-
-> Memuat rantai kontrak → tagihan → tagihan_rincian → pembayaran.
+> Dua puluh tiga tabel dalam satu bagan. Kunci primer digarisbawahi, kunci asing bertanda bintang dan dihubungkan panah ke tabel yang dituju. Yang digambar hanya kolom kunci (49 dari 201 kolom) supaya seluruh skema terbaca dalam satu halaman; atribut lengkapnya ada di Tabel 4.1 sampai Tabel 4.9 dan di dokumen ERD.
 
 Seluruh 23 tabel hasil normalisasi:
 

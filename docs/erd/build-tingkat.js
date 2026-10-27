@@ -28,7 +28,7 @@ const fs = require('fs');
 const path = require('path');
 
 const S = require('./skema.json');
-const { L0, L1, MODUL, lembarFisikal, lembarLrs } = require('./tingkat-data');
+const { L0, L1, MODUL, lembarFisikal } = require('./tingkat-data');
 const { gambar } = require('./chen');
 const { gambarPapan, hurufEfektif, HURUF_BAKU } = require('./papan');
 
@@ -184,23 +184,29 @@ for (const definisi of lembarL2) {
 }
 
 console.log('');
-console.log('Tingkat LRS (notasi relasional):');
+console.log('Tingkat LRS (notasi relasional, kolom kunci):');
 
-const lembarL3 = MODUL.flatMap((m) => {
-  const potongan = pecahTerbaca(m.tabel, 'lrs', PILIHAN_KOLOM);
-  return potongan.map(({ tabel, kolom }, i) => ({
-    ...lembarLrs(m),
-    kode: potongan.length > 1 ? `L3-${m.kode}${i + 1}` : `L3-${m.kode}`,
-    berkas: `03-L3-lrs-${m.kode}${potongan.length > 1 ? i + 1 : ''}.svg`,
-    judul:
-      potongan.length > 1
-        ? `LRS — Level 3 (${m.kode.toUpperCase()}${i + 1})`
-        : `LRS — Level 3 (${m.kode.toUpperCase()})`,
-    sub: `${m.nama}${potongan.length > 1 ? ` · bagian ${i + 1} dari ${potongan.length}` : ''} · ${tabel.length} tabel`,
-    jumlahKolom: kolom,
-    tabel,
-  }));
-});
+// LRS SENGAJA SATU LEMBAR berisi seluruh 23 tabel, mengikuti bentuk laporan
+// referensi. Bisa begitu karena yang digambar hanya kolom kunci (PK + FK) —
+// 49 kolom, bukan 201. Diukur: 1,38% lebar A4 pada 3 kolom, di atas ambang
+// 1,2%. Dengan seluruh kolom, satu lembar hanya mencapai 0,97% dan TIDAK
+// terbaca, jadi bentuk itulah yang dipakai. Atribut lengkap tetap ada di
+// tingkat 2 dan di 03-lrs.md.
+const semuaTabelLrs = MODUL.flatMap((m) => m.tabel);
+
+const lembarL3 = [
+  {
+    kode: 'L3',
+    berkas: '03-L3-lrs.svg',
+    judul: 'LRS — Logical Record Structure',
+    sub: `${semuaTabelLrs.length} tabel · hanya kolom kunci · kunci primer digaris bawahi · kunci asing bertanda bintang`,
+    mode: 'lrs-kunci',
+    jumlahKolom: 3,
+    tabel: semuaTabelLrs,
+    catatan:
+      'Bentuk LRS: hanya kolom kunci yang digambar (49 dari 201 kolom). Atribut lengkap ada di tingkat 2 dan di 03-lrs.md.',
+  },
+];
 
 for (const definisi of lembarL3) {
   const { svg, masalah: m, kanvas, jumlahRelasi, jumlahTabel, nisbah } = gambarPapan(definisi);

@@ -41,7 +41,7 @@ BAB IV  IMPLEMENTASI DAN PENGUJIAN
 
 | Laporan contoh | Proyek ini | Alasan |
 |---|---|---|
-| LRS satu gambar | LRS tiga lembar (a, b, c) | 23 tabel pada satu lembar menghasilkan huruf efektif 0,52% lebar A4 (sekitar 1 mm) — tidak terbaca saat dicetak |
+| LRS satu gambar | **Sama — LRS satu gambar** | Ternyata bisa, dan bukan dengan mengecilkan huruf: LRS memang hanya menggambar kolom kunci (49 dari 201 kolom), sehingga 23 tabel muat satu lembar pada huruf efektif 1,35% — di atas ambang 1,2%. Dengan seluruh 201 kolom, satu lembar hanya 0,97% dan tidak terbaca; itu sebabnya bentuk kolom-kunci yang dipakai |
 | Spesifikasi Data tanpa kunci | Menyebut kunci primer dan kunci asing | Kunci asing adalah inti LRS; menghilangkannya membuat LRS dan spesifikasi tidak saling terhubung |
 | ERD semua entitas | ERD 12 entitas inti | Tabel teknis (token, jejak audit, notifikasi) tidak menambah pemahaman konsep; daftarnya tetap ada di dokumen ERD |
 | Data contoh dikarang | Data contoh konsisten dengan skema nyata | Nama kolom dan tipenya diambil dari `docs/erd/skema.json` |

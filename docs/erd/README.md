@@ -7,7 +7,7 @@ Delapan gambar, satu dokumen teks, satu sumber: **basis data yang berjalan**.
 | `00-L0-konseptual.svg` / `.png` | 0 — konseptual | 11 entitas inti, relasi, **tanpa atribut** |
 | `01-L1-logikal.svg` / `.png` | 1 — logikal | 12 entitas, relasi + atribut kunci |
 | `02-L2-fisikal-{a,b,c}.svg` / `.png` | 2 — fisikal | 23 tabel, **seluruh kolom dan tipenya** |
-| `03-L3-lrs-{a,b,c}.svg` / `.png` | 3 — LRS | 23 tabel, notasi relasional |
+| `03-L3-lrs.svg` / `.png` | 3 — LRS | 23 tabel dalam **satu lembar**, hanya kolom kunci |
 | `03-lrs.md` | 3 — LRS | LRS lengkap sebagai teks: 201 kolom, 26 kunci asing |
 | `skema.json` | — | Potret skema dari basis data; sumber semua berkas di atas |
 
@@ -15,15 +15,21 @@ Delapan gambar, satu dokumen teks, satu sumber: **basis data yang berjalan**.
 
 ERD yang menggambar 23 tabel dan 201 kolom sekaligus **tidak bisa dibaca**, dan
 itu bukan soal resolusi. Sudah diukur: pada satu lembar berisi seluruh tabel,
-huruf efektif setelah gambar dipaskan ke satu halaman A4 hanya **0,52% lebar
-halaman** — sekitar 1 mm. Mustahil. Menambah skala ekspor tidak menolong sama
+huruf efektif setelah gambar dipaskan ke satu halaman A4 hanya **0,97% lebar
+halaman**, di bawah ambang 1,2%. Menambah skala ekspor tidak menolong sama
 sekali, karena yang menentukan adalah nisbah huruf terhadap ukuran lembar, dan
 nisbah itu tidak berubah oleh jumlah piksel.
 
-Karena itu satu tingkat tidak sama dengan satu gambar. Yang dipecah bukan
-tingkatnya, melainkan **lembar** pada tingkat 2 dan 3 — dan jumlah lembarnya
-ditentukan oleh pengukuran, bukan ditebak. Lihat `pecahTerbaca` di
-`build-tingkat.js`.
+Yang perlu dicatat: **kegagalan itu bukan karena jumlah tabelnya, melainkan
+karena jumlah kolomnya.** LRS klasik justru tidak menggambar seluruh atribut —
+yang digambar hanya kunci primer dan kunci asing, karena itulah yang membentuk
+struktur relasional. Dengan 49 kolom (dari 201) pada tiga kolom, huruf
+efektifnya **1,35%** dan seluruh 23 tabel muat dalam **satu lembar**. Karena itu
+LRS digambar satu lembar, sedangkan tingkat 2 (fisikal) tetap dipecah tiga
+lembar karena di sanalah seluruh kolom dan tipenya wajib tampil.
+
+Pemecahan lembar pada tingkat 2 ditentukan oleh pengukuran, bukan ditebak. Lihat
+`pecahTerbaca` di `build-tingkat.js`.
 
 Empat tingkat itu sendiri menjawab empat pertanyaan berbeda:
 
@@ -60,7 +66,7 @@ Yang ditulis tangan hanya tiga hal: **tata letak** dan **kata kerja relasi**
 
 ```bash
 node docs/erd/ambil-skema.js       # ambil skema dari basis data (hanya bila skema berubah)
-node docs/erd/build-tingkat.js     # bangun L0, L1, L2 (3 lembar), L3 (3 lembar)
+node docs/erd/build-tingkat.js     # bangun L0, L1, L2 (3 lembar), L3 (1 lembar)
 node docs/erd/build-lrs.js         # bangun 03-lrs.md
 powershell -ExecutionPolicy Bypass -File docs/erd/export-png.ps1   # SVG -> PNG (2x)
 ```
@@ -182,7 +188,10 @@ akan menarik tujuh garis panjang ke satu kotak yang sama, dan hasilnya bukan
 diagram yang lebih lengkap melainkan diagram yang tidak terbaca.
 
 Kolomnya tetap ada, tetap tergambar di tingkat 2 sebagai `FK`, dan tetap punya
-keterangan di `03-lrs.md` §4.
+keterangan di `03-lrs.md` §4. Di lembar LRS, ketujuh kunci asing itu **memang
+digambar** — di sana `users` bukan kotak yang harus dijelaskan konsepnya,
+melainkan tabel yang dituju panah, dan sembilan panah yang berlabuh di titik
+berbeda sepanjang sisinya masih terbaca.
 
 ### Atribut di tingkat 0
 
@@ -212,7 +221,22 @@ Konvensi tingkat 2–3 (kotak tabel):
 - kepala gelap — nama tabel;
 - `PK` / `FK` / `UQ` — kunci primer, kunci asing, unik;
 - tipe kolom di kanan (hanya tingkat 2);
-- garis ortogonal antar kotak — hubungan kunci asing.
+- garis ortogonal antar kotak — hubungan kunci asing;
+- panah di ujung garis menunjuk tabel induk (hanya tingkat 3);
+- label `1` / `N` hanya di tingkat 2, tidak di LRS.
+
+Kenapa begitu: LRS adalah notasi **relasional** — hubungan dinyatakan oleh kunci
+asing yang menunjuk tabel induk, bukan oleh angka kardinalitas. Angka `1`/`N`
+milik notasi Chen. Pada satu lembar berisi 23 tabel, `users` menerima sembilan
+panah; menambahkan delapan belas label di sekelilingnya memenuhi gambar dengan
+angka yang tidak menambah informasi, dan sebagian tidak mendapat tempat sama
+sekali. Arah hubungan karena itu dibawa oleh **panah**, bukan angka.
+
+Sembilan panah yang menuju `users` berlabuh di titik yang berbeda-beda supaya
+tidak menumpuk menjadi satu kepala panah. Titik labuhnya dipilih oleh perutean
+sendiri: setiap sisi kotak menawarkan beberapa titik, dan titik yang sudah
+terpakai dihukum — jadi penyebarannya muncul dari pengukuran, bukan dari angka
+yang ditebak.
 
 Untuk LRS, bentuk teks formalnya:
 

@@ -121,7 +121,18 @@ function ukurKotak(nama, mode) {
 
   const fkPeta = new Map(t.asing.map((a) => [a.kolom, a]));
 
-  const baris = t.kolom.map((k) => {
+  // Mode `lrs-kunci` menggambar bentuk LRS klasik: hanya kunci primer dan
+  // kunci asing. Bentuk inilah yang membuat 23 tabel bisa muat dalam SATU
+  // lembar dengan huruf 1,38% lebar A4 — sedangkan seluruh 201 kolom hanya
+  // mencapai 0,97% pada 4 kolom, di bawah ambang keterbacaan. Yang digambar
+  // adalah struktur relasionalnya, bukan seluruh atribut; atribut lengkapnya
+  // ada di tingkat 2 (fisikal) dan di 03-lrs.md.
+  const hanyaKunci = mode === 'lrs-kunci';
+  const kolomTampil = hanyaKunci
+    ? t.kolom.filter((k) => t.kunci_primer.includes(k.nama) || fkPeta.has(k.nama))
+    : t.kolom;
+
+  const baris = kolomTampil.map((k) => {
     const pk = t.kunci_primer.includes(k.nama);
     const fk = fkPeta.get(k.nama);
     const uq = !pk && t.unik.some((u) => u.kolom.length === 1 && u.kolom[0] === k.nama);
@@ -288,9 +299,15 @@ class Tumpukan {
  * Kisi Hanan sederhana: garis x dan y di lorong antarkotak, ditambah garis
  * tepi tiap kotak. Titik potongnya menjadi simpul pencarian.
  */
-function buatKisi(kotak, kanvasW, kanvasH) {
+function buatKisi(kotak, kanvasW, kanvasH, tambahan = { xs: [], ys: [] }) {
   const xs = new Set([H.tepi * 0.4, kanvasW - H.tepi * 0.4]);
   const ys = new Set([H.tepi * 0.4, kanvasH - 40]);
+
+  // Titik sambung yang dihitung di luar kisi (mis. titik induk yang digeser
+  // agar dua kunci asing tidak berangkat dari titik yang sama) harus ikut
+  // masuk. Tanpa ini perutean menganggapnya tidak ada dan jalurnya gagal.
+  for (const x of tambahan.xs) xs.add(x);
+  for (const y of tambahan.ys) ys.add(y);
 
   for (const b of kotak) {
     xs.add(b.x);
@@ -299,6 +316,15 @@ function buatKisi(kotak, kanvasW, kanvasH) {
     xs.add(b.x + b.hw + 22);
     ys.add(b.y - b.hh - 22);
     ys.add(b.y + b.hh + 22);
+
+    // Titik sambung tiap baris kolom. Garis kunci asing berangkat dari baris
+    // kolomnya sendiri (lihat `hubungkan`), jadi koordinat itu HARUS ada di
+    // kisi. Kalau tidak, perutean gagal dan dua garis ke tabel yang sama
+    // kembali berimpit di titik tengah sisi.
+    for (let i = 0; i < b.baris.length; i++) {
+      const y = b.y - b.hh + b.tinggiKepala + (i + 0.5) * b.tinggiBaris;
+      ys.add(y);
+    }
   }
 
   const isiCelah = (daftar) => {
@@ -315,9 +341,42 @@ function buatKisi(kotak, kanvasW, kanvasH) {
   return { xs: [...xs].sort((a, b) => a - b), ys: [...ys].sort((a, b) => a - b) };
 }
 
+/** Panjang bagian dua segmen ortogonal yang berimpit. */
+function panjangBerimpitSegmen(x1, y1, x2, y2, sudah) {
+  let total = 0;
+  const horizontal = Math.abs(y1 - y2) < 0.5;
+  for (const lain of sudah) {
+    for (let k = 1; k < lain.length; k++) {
+      const a1 = lain[k - 1];
+      const a2 = lain[k];
+      const lainHorizontal = Math.abs(a1.y - a2.y) < 0.5;
+      if (horizontal !== lainHorizontal) continue;
+      if (horizontal) {
+        if (Math.abs(y1 - a1.y) > 0.5) continue;
+        const kiri = Math.max(Math.min(x1, x2), Math.min(a1.x, a2.x));
+        const kanan = Math.min(Math.max(x1, x2), Math.max(a1.x, a2.x));
+        if (kanan > kiri) total += kanan - kiri;
+      } else {
+        if (Math.abs(x1 - a1.x) > 0.5) continue;
+        const atas = Math.max(Math.min(y1, y2), Math.min(a1.y, a2.y));
+        const bawah = Math.min(Math.max(y1, y2), Math.max(a1.y, a2.y));
+        if (bawah > atas) total += bawah - atas;
+      }
+    }
+  }
+  return total;
+}
+
 /** Dijkstra pada kisi; mengembalikan daftar titik belok, atau null. */
-function cariJalur(kisi, mulai, selesai, kotak, abaikan) {
+function cariJalur(kisi, mulai, selesai, kotak, abaikan, sudah = []) {
   const { xs, ys } = kisi;
+  // Titik sambung hasil penggeseran ke baris kolom bisa TIDAK ada di kisi,
+  // karena kisi hanya memuat koordinat tepi kotak. Tanpa pemeriksaan ini,
+  // indexOf mengembalikan -1 dan jalur dianggap gagal — lalu pemanggil
+  // memakai titik tengah sisi, dan dua garis ke tabel yang sama berimpit.
+  if (!xs.includes(mulai.x) || !ys.includes(mulai.y) || !xs.includes(selesai.x) || !ys.includes(selesai.y)) {
+    return null;
+  }
   const ix = xs.indexOf(mulai.x);
   const iy = ys.indexOf(mulai.y);
   const jx = xs.indexOf(selesai.x);
@@ -362,7 +421,17 @@ function cariJalur(kisi, mulai, selesai, kotak, abaikan) {
       if (!bebas(ni, nj)) continue;
       if (!segmenBebas(xs[i], ys[j], xs[ni], ys[nj], kotak, abaikan)) continue;
 
-      const biaya = Math.abs(xs[ni] - xs[i]) + Math.abs(ys[nj] - ys[j]);
+      const biayaDasar = Math.abs(xs[ni] - xs[i]) + Math.abs(ys[nj] - ys[j]);
+
+      // Biaya berimpit dimasukkan KE DALAM pencarian, bukan hanya dihitung
+      // sesudahnya. Tanpa ini, Dijkstra menemukan jalur TERPENDEK dan tidak
+      // tahu bahwa jalur itu sudah dipakai kunci asing lain — dua kunci asing
+      // ke tabel yang sama lalu mendapat jalur identik dan terbaca sebagai
+      // satu hubungan. Penalti di luar pencarian tidak menolong: kandidat
+      // jalurnya memang hanya satu yang terpendek.
+      const berimpit = panjangBerimpitSegmen(xs[i], ys[j], xs[ni], ys[nj], sudah);
+      const biaya = biayaDasar + berimpit * 90;
+
       const kn = kunci(ni, nj);
       const dn = dSekarang + biaya;
       if (dn < (jarak.get(kn) ?? Infinity)) {
@@ -448,8 +517,7 @@ function panjangBerimpit(a, b) {
 
 /** Jarak titik ke ruas garis. */
 function jarakTitikGaris(px, py, ax, ay, bx, by) {
-  const dx = bx - ax;
-  const dy = by - ay;
+  const dx = bx - ax;  const dy = by - ay;
   const panjang2 = dx * dx + dy * dy;
   if (panjang2 === 0) return Math.hypot(px - ax, py - ay);
   let t = ((px - ax) * dx + (py - ay) * dy) / panjang2;
@@ -467,46 +535,152 @@ function jarakTitikGaris(px, py, ax, ay, bx, by) {
  * `usulan_perubahan.diajukan_oleh` dan `diputuskan_oleh`, keduanya menunjuk
  * `users`. Overlap sekarang dihukum berat, bukan sekadar diabaikan.
  */
-function hubungkan(anak, induk, kisi, kotak, sudah = []) {
+function hubungkan(
+  anak,
+  induk,
+  kisi,
+  kotak,
+  sudah = [],
+  kolomAnak = null,
+  kolomInduk = null,
+  labuhInduk = []
+) {
   let terbaik = null;
   let panjangTerbaik = Infinity;
   const abaikan = [anak.nama, induk.nama];
 
+  // Titik sambung di BARIS kolomnya, bukan di tengah sisi.
+  //
+  // Satu tabel bisa punya dua kunci asing ke tabel yang sama (misalnya
+  // `pembayaran.dicatat_oleh` dan `diterima_oleh`, keduanya ke `users`). Bila
+  // keduanya berangkat dari titik tengah sisi yang sama, garisnya berimpit dan
+  // terbaca sebagai SATU hubungan. Menambatkan garis ke baris kolom membuat
+  // kedua garis berangkat dari ketinggian berbeda, sehingga tidak pernah
+  // bertumpuk.
+  //
+  // `selisih` dipakai untuk menggeser titik sambung ke baris kolom itu. Nol
+  // berarti tetap di tengah sisi (perilaku lama, untuk tabel yang tidak punya
+  // kolom itu di daftar tampil).
+  const selisihBaris = (kotak, mode, kolom) => {
+    if (!kolom || !mode) return 0;
+    const i = mode.baris.findIndex((b) => b.nama === kolom);
+    if (i < 0) return 0;
+    // Titik tengah kotak berada di antara baris; baris ke-i berjarak
+    // (i + 1.5) * tinggiBaris dari puncak kotak.
+    const puncak = kotak.y - kotak.hh;
+    const yBaris = puncak + kotak.tinggiKepala + (i + 0.5) * kotak.tinggiBaris;
+    return yBaris - kotak.y;
+  };
+
+  const dAnak = selisihBaris(anak, anak, kolomAnak);
+  const dInduk = selisihBaris(induk, induk, kolomInduk);
+
+  // Jarak minimum antar titik labuh pada kotak induk yang sama. Dua garis yang
+  // berlabuh lebih dekat dari ini terbaca sebagai satu garis, dan panahnya
+  // bertumpuk menjadi satu kepala panah yang tebal.
+  const JARAK_LABUH = H.kolom * 0.85;
+
+  // Koordinat titik labuh harus ada di kisi; kalau tidak, perutean menolaknya
+  // dan jatuh ke perilaku lama.
+  const pastikanDiKisi = (x, y) => {
+    if (!kisi.xs.includes(x)) {
+      kisi.xs.push(x);
+      kisi.xs.sort((a, b) => a - b);
+    }
+    if (!kisi.ys.includes(y)) {
+      kisi.ys.push(y);
+      kisi.ys.sort((a, b) => a - b);
+    }
+  };
+
+  const batasY = induk.hh - 8;
+  const batasX = induk.hw - 8;
+
+  // Titik labuh yang DITAWARKAN pada tiap sisi, bukan satu titik tetap.
+  //
+  // Tanpa ini, penalti titik labuh tidak ada gunanya: semua jalur yang memilih
+  // sisi yang sama berlabuh di koordinat yang persis sama, sehingga hukumannya
+  // bernilai sama untuk semua kandidat dan tidak mengubah pilihan apa pun.
+  // Dengan beberapa tawaran di sepanjang sisi, jalur bisa memilih titik yang
+  // masih longgar — dan penyebarannya muncul dari keputusan perutean sendiri.
+  const tawaran = (si) => {
+    const daftar = [];
+    for (const geser of [0, -1, 1, -2, 2, -3, 3]) {
+      if (si.ny === 0) {
+        const y = si.y(induk) + Math.max(-batasY, Math.min(batasY, dInduk + geser * JARAK_LABUH * 0.55));
+        if (Math.abs(y - si.y(induk)) <= batasY) daftar.push({ x: si.x(induk), y });
+      } else {
+        const x = si.x(induk) + Math.max(-batasX, Math.min(batasX, geser * JARAK_LABUH * 0.55));
+        if (Math.abs(x - si.x(induk)) <= batasX) daftar.push({ x, y: si.y(induk) });
+      }
+    }
+    return daftar;
+  };
+
   for (const sa of SISI) {
     for (const si of SISI) {
       const a = { x: sa.x(anak), y: sa.y(anak) };
-      const b = { x: si.x(induk), y: si.y(induk) };
-      const keluar = { x: a.x + sa.nx * 22, y: a.y + sa.ny * 22 };
-      const masuk = { x: b.x + si.nx * 22, y: b.y + si.ny * 22 };
+      if (sa.ny === 0 && dAnak) a.y += dAnak;
 
-      if (!segmenBebas(a.x, a.y, keluar.x, keluar.y, kotak, abaikan)) continue;
+      for (const b of tawaran(si)) {
+        pastikanDiKisi(b.x, b.y);
+        const keluar = { x: a.x + sa.nx * 22, y: a.y + sa.ny * 22 };
+        const masuk = { x: b.x + si.nx * 22, y: b.y + si.ny * 22 };
+        pastikanDiKisi(masuk.x, masuk.y);
 
-      const jalur = cariJalur(kisi, keluar, masuk, kotak, abaikan);
-      if (!jalur) continue;
+        if (!segmenBebas(a.x, a.y, keluar.x, keluar.y, kotak, abaikan)) continue;
 
-      if (!segmenBebas(masuk.x, masuk.y, b.x, b.y, kotak, abaikan)) continue;
+        const jalur = cariJalur(kisi, keluar, masuk, kotak, abaikan, sudah);
+        if (!jalur) continue;
 
-      const titik = rapatkan([a, ...jalur, b]);
-      let panjang = 0;
-      for (let i = 1; i < titik.length; i++) {
-        panjang += Math.abs(titik[i].x - titik[i - 1].x) + Math.abs(titik[i].y - titik[i - 1].y);
-      }
-      // Hukuman kecil untuk jalur berbelok banyak.
-      panjang += titik.length * 10;
+        if (!segmenBebas(masuk.x, masuk.y, b.x, b.y, kotak, abaikan)) continue;
 
-      // Hukuman besar untuk berimpit dengan jalur lain. Angkanya jauh lebih
-      // besar daripada panjang wajar mana pun, supaya jalur dipindahkan walau
-      // harus memutar: garis yang menimpa garis lain adalah cacat, sedangkan
-      // garis yang memutar hanya kurang rapi.
-      let berimpit = 0;
-      for (const lain of sudah) berimpit += panjangBerimpit(titik, lain);
-      panjang += berimpit * 60;
+        const titik = rapatkan([a, ...jalur, b]);
+        let panjang = 0;
+        for (let i = 1; i < titik.length; i++) {
+          panjang += Math.abs(titik[i].x - titik[i - 1].x) + Math.abs(titik[i].y - titik[i - 1].y);
+        }
+        // Hukuman kecil untuk jalur berbelok banyak.
+        panjang += titik.length * 10;
 
-      if (panjang < panjangTerbaik) {
-        panjangTerbaik = panjang;
-        terbaik = { titik };
+        // Hukuman untuk berimpit dengan jalur lain. Angkanya jauh lebih besar
+        // daripada panjang wajar mana pun, supaya jalur dipindahkan walau harus
+        // memutar: garis yang menimpa garis lain adalah cacat, sedangkan garis
+        // yang memutar hanya kurang rapi.
+        //
+        // Hukumannya KUADRATIK, bukan sebanding. Dengan penalti sebanding, dua
+        // jalur yang terpaksa berbagi koridor sempit akan tetap memilih koridor
+        // itu karena memutar lebih mahal — dan hasilnya dua garis yang terbaca
+        // sebagai satu hubungan. Kuadratik membuat berbagi koridor panjang
+        // menjadi mahal tanpa batas, sehingga jalur memilih memutar.
+        let berimpit = 0;
+        for (const lain of sudah) berimpit += panjangBerimpit(titik, lain);
+        panjang += berimpit * berimpit * 0.5 + berimpit * 60;
+
+        // Hukuman titik labuh yang terlalu dekat dengan titik labuh lain pada
+        // kotak induk yang sama. Tanpa ini, sembilan kunci asing ke `users`
+        // boleh berlabuh di satu titik: garisnya berimpit di ujung dan
+        // panahnya menumpuk jadi satu kepala panah tebal — terbaca sebagai
+        // satu hubungan, padahal ada sembilan.
+        for (const l of labuhInduk) {
+          if (l.kotak !== induk.nama) continue;
+          const dekat = Math.abs(l.x - b.x) + Math.abs(l.y - b.y);
+          if (dekat < JARAK_LABUH) {
+            panjang += (JARAK_LABUH - dekat) * 120;
+          }
+        }
+
+        if (panjang < panjangTerbaik) {
+          panjangTerbaik = panjang;
+          terbaik = { titik };
+        }
       }
     }
+  }
+
+  if (terbaik) {
+    const ujung = terbaik.titik[terbaik.titik.length - 1];
+    labuhInduk.push({ kotak: induk.nama, x: ujung.x, y: ujung.y });
   }
 
   return terbaik;
@@ -551,7 +725,7 @@ function gambarPapan(definisi) {
         keluarLembar.push(`${k.nama}.${a.kolom} → ${a.ke_tabel}`);
         continue;
       }
-      relasi.push({ anak: k.nama, induk: a.ke_tabel, kolom: a.kolom });
+      relasi.push({ anak: k.nama, induk: a.ke_tabel, kolom: a.kolom, keKolom: a.ke_kolom });
     }
   }
 
@@ -566,7 +740,9 @@ function gambarPapan(definisi) {
 
   const barisLegenda = [];
   barisLegenda.push('PK = kunci primer · FK = kunci asing · UQ = unik · garis = hubungan kunci asing');
-  barisLegenda.push('1 = tepat satu · N = banyak · angka di sisi anak menunjukkan berapa baris yang boleh menunjuk');
+  if (definisi.mode !== 'lrs-kunci') {
+    barisLegenda.push('1 = tepat satu · N = banyak · angka di sisi anak menunjukkan berapa baris yang boleh menunjuk');
+  }
   if (definisi.catatan) barisLegenda.push(definisi.catatan);
   if (diriSendiri.length) barisLegenda.push(`kunci asing menunjuk tabelnya sendiri: ${diriSendiri.join(' · ')}`);
   if (keluarLembar.length) {
@@ -581,6 +757,23 @@ function gambarPapan(definisi) {
   const kanvas = { w: tata.kanvasW, h: tata.kanvasH };
 
   // --- perutean ---
+
+  // Beberapa kunci asing bisa menunjuk kolom induk yang SAMA. Yang paling
+  // sering: sembilan kunci asing menuju `users.id` — `pembayaran.dicatat_oleh`,
+  // `tagihan.dibatalkan_oleh`, `verifikasi_pembayaran.diverifikasi_oleh`, dan
+  // seterusnya. Bila semuanya berlabuh di satu titik, garisnya berimpit sejak
+  // titik pangkal, panahnya menumpuk, dan pembaca melihat satu hubungan
+  // padahal ada sembilan.
+  //
+  // Penyebaran yang dipaksakan (membagi rata tinggi kotak) tidak cukup: sisi
+  // yang dipilih tiap jalur berbeda-beda, jadi dua jalur yang kebetulan
+  // memilih sisi berbeda tetap bisa berlabuh di titik yang sama. Yang dipakai
+  // di sini adalah daftar titik labuh yang SUDAH terpakai, dan `hubungkan`
+  // menghukum titik labuh yang terlalu dekat dengan salah satunya. Dengan
+  // begitu penyebarannya muncul dari pemilihan jalur itu sendiri, bukan dari
+  // angka yang ditebak.
+  const labuhInduk = [];
+
   const kisi = buatKisi(kotak, kanvas.w, kanvas.h);
   const petaKotak = new Map(kotak.map((k) => [k.nama, k]));
   const jalur = [];
@@ -589,12 +782,17 @@ function gambarPapan(definisi) {
     const anak = petaKotak.get(r.anak);
     const induk = petaKotak.get(r.induk);
     if (!anak || !induk || anak === induk) continue;
+    // Titik sambung induk memakai kolom yang DIRUJUK (mis. `id`), anak memakai
+    // kolom kunci asingnya sendiri. Keduanya sudah ada di data skema.
     const hasil = hubungkan(
       anak,
       induk,
       kisi,
       kotak,
-      jalur.map((j) => j.titik)
+      jalur.map((j) => j.titik),
+      r.kolom,
+      r.keKolom,
+      labuhInduk
     );
     if (!hasil) {
       masalah.push(`tidak ada jalur bebas untuk ${r.anak}.${r.kolom} -> ${r.induk}`);
@@ -735,6 +933,16 @@ function gambarPapan(definisi) {
     return daftar;
   };
 
+  // Kardinalitas hanya digambar pada notasi yang memang memakainya.
+  //
+  // LRS adalah notasi relasional: hubungan dinyatakan oleh kunci asing
+  // bertanda bintang yang menunjuk tabel induk, bukan oleh angka `1`/`N`.
+  // Angka itu milik notasi Chen (tingkat 0 dan 1). Pada lembar LRS satu
+  // lembar, `users` menerima enam kunci asing; menambahkan dua belas label
+  // di sekelilingnya membuat gambar penuh angka yang tidak menambah informasi
+  // apa pun, dan sebagian tidak mendapat tempat sama sekali.
+  const pakaiLabel = definisi.mode !== 'lrs-kunci';
+
   const label = [];
   const taruhLabel = (calon, isi, warna, titikJalur) => {
     const hw = lebarTeks(isi, H.kolom * 1.05) / 2 + 6;
@@ -763,7 +971,11 @@ function gambarPapan(definisi) {
           const p = lain.titik[i - 1];
           const q = lain.titik[i];
           const jarak = jarakTitikGaris(c.x, c.y, p.x, p.y, q.x, q.y);
-          if (jarak < hh * 1.5) return false;
+          // Label boleh berdekatan dengan garis lain, asal TIDAK MENYENTUHNYA.
+          // Syarat lama (1,5x tinggi label) terlalu keras: pada lembar padat
+          // semua calon label jadi tertolak, dan label sisi induk hilang sama
+          // sekali — lebih buruk daripada label yang berdekatan.
+          if (jarak < hh * 0.75) return false;
         }
       }
       return true;
@@ -775,22 +987,63 @@ function gambarPapan(definisi) {
     return true;
   };
 
-  for (const j of jalur) {
-    const t = petaTabel.get(j.anak);
-    const unik = t.unik.some((u) => u.kolom.length === 1 && u.kolom[0] === j.kolom);
-    if (!taruhLabel(calonLabel(j.titik), unik ? '1' : 'N', unik ? C.uq : C.pk, j.titik)) {
-      masalah.push(`tidak ada tempat untuk label sisi anak ${j.anak}.${j.kolom}`);
-    }
+  // `pakaiLabel` bernilai salah pada LRS (lihat alasannya di atas). Pemeriksaan
+  // ditaruh di sini, bukan sebagai `break` di dalam loop, supaya maksudnya
+  // terbaca: label memang tidak dipakai sejak awal, bukan dihentikan.
+  if (pakaiLabel) {
+    for (const j of jalur) {
+      const t = petaTabel.get(j.anak);
+      const unik = t.unik.some((u) => u.kolom.length === 1 && u.kolom[0] === j.kolom);
+      if (!taruhLabel(calonLabel(j.titik), unik ? '1' : 'N', unik ? C.uq : C.pk, j.titik)) {
+        masalah.push(`tidak ada tempat untuk label sisi anak ${j.anak}.${j.kolom}`);
+      }
 
-    // Sisi induk: balik jalurnya supaya segmen terpanjang di sisi induk yang
-    // dipakai, bukan segmen yang sama dengan label anak.
-    if (!taruhLabel(calonLabel([...j.titik].reverse()), '1', C.uq, j.titik)) {
-      masalah.push(`tidak ada tempat untuk label sisi induk ${j.anak}.${j.kolom}`);
+      // Sisi induk: balik jalurnya supaya segmen terpanjang di sisi induk yang
+      // dipakai, bukan segmen yang sama dengan label anak.
+      if (!taruhLabel(calonLabel([...j.titik].reverse()), '1', C.uq, j.titik)) {
+        masalah.push(`tidak ada tempat untuk label sisi induk ${j.anak}.${j.kolom}`);
+      }
     }
   }
 
   for (const l of label) {
     isi.push(teksTengah(l.x, l.y, l.isi, H.kolom * 1.05, 700, l.warna));
+  }
+
+  // --- panah arah hubungan (khusus LRS) ---
+  //
+  // Digambar SESUDAH kotak, bukan sebagai `marker-end` pada jalurnya.
+  // Dengan `marker-end`, kepala panah menempel tepat di tepi kotak induk —
+  // dan karena kotak digambar sesudah garis, kepala panah itu tertimbun
+  // kotak dan tidak terlihat sama sekali. Yang tergambar hanya ujung garis
+  // polos, sehingga arah hubungan tidak terbaca.
+  //
+  // Kepala panah diletakkan sedikit di luar tepi kotak, mengikuti arah segmen
+  // TERAKHIR jalurnya, sehingga tetap benar walau jalurnya berbelok.
+  if (definisi.mode === 'lrs-kunci') {
+    const panjangKepala = H.kolom * 1.15;
+    const lebarKepala = H.kolom * 0.55;
+    for (const j of jalur) {
+      const n = j.titik.length;
+      if (n < 2) continue;
+      const ujung = j.titik[n - 1];
+      const sebelumnya = j.titik[n - 2];
+      const dx = ujung.x - sebelumnya.x;
+      const dy = ujung.y - sebelumnya.y;
+      const panjang = Math.abs(dx) + Math.abs(dy);
+      if (panjang < 1) continue;
+      const ux = dx / panjang;
+      const uy = dy / panjang;
+      // Pangkal kepala panah, mundur dari tepi kotak.
+      const px = ujung.x - ux * panjangKepala;
+      const py = ujung.y - uy * panjangKepala;
+      // Dua titik sayap, tegak lurus arah.
+      const sx = -uy * lebarKepala;
+      const sy = ux * lebarKepala;
+      isi.push(
+        `<path d="M ${r1(ujung.x)} ${r1(ujung.y)} L ${r1(px + sx)} ${r1(py + sy)} L ${r1(px - sx)} ${r1(py - sy)} Z" fill="${C.garis}"/>`
+      );
+    }
   }
 
   // --- legenda ---
