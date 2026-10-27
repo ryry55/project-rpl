@@ -22,7 +22,8 @@ const KELUARAN = join(AKAR, 'public', 'ikon')
 // Warna diambil dari `src/style.css` (`--aksen`) supaya ikon dan antarmuka
 // tidak berbeda biru. Kalau aksen berubah di sana, ubah juga di sini - dan
 // itulah harga menulis generator sendiri alih-alih memakai pustaka tema.
-const AKSEN = [47, 111, 235]
+// `--aksen` = #1f4b99.
+const AKSEN = [31, 75, 153]
 const PUTIH = [255, 255, 255]
 
 // --- CRC32 -----------------------------------------------------------------

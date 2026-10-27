@@ -36,17 +36,24 @@ jalankan(async () => {
     )
     lapor('index.html menautkan manifest', tautanManifest === '/manifest.webmanifest', String(tautanManifest))
 
-    const tema = await evaluasi(
-      ws,
-      `document.querySelector('meta[name="theme-color"]')?.getAttribute('content') || null`,
-    )
-    lapor('meta theme-color terpasang', tema === '#2f6feb', String(tema))
-
     const isiManifest = await evaluasi(
       ws,
       `fetch('/manifest.webmanifest').then(r => r.ok ? r.json() : null).catch(() => null)`,
     )
     lapor('manifest terbaca sebagai JSON', Boolean(isiManifest), isiManifest ? '' : 'gagal diambil')
+
+    const tema = await evaluasi(
+      ws,
+      `document.querySelector('meta[name="theme-color"]')?.getAttribute('content') || null`,
+    )
+    // Dibandingkan dengan manifest, bukan dengan angka yang diketik di sini.
+    // Warna tema pernah tertinggal di biru lama setelah palet berubah, dan
+    // tidak ada yang gagal: halaman tetap terbuka, hanya bilahnya salah warna.
+    lapor(
+      'meta theme-color sama dengan theme_color manifest',
+      Boolean(tema) && tema === isiManifest?.theme_color,
+      `${tema} vs ${isiManifest?.theme_color}`,
+    )
 
     if (isiManifest) {
       lapor('manifest punya name dan short_name', Boolean(isiManifest.name && isiManifest.short_name))

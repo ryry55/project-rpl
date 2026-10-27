@@ -86,45 +86,53 @@ memakai token; tidak ada nilai heksadesimal lepas di view.
 
 | Token | Nilai | Dipakai untuk |
 |---|---|---|
-| `--bg` | `#f6f7f9` | Latar halaman |
-| `--permukaan` | `#ffffff` | Kartu, panel, sidebar |
-| `--garis` | `#e2e5ea` | Garis pemisah yang terlihat |
-| `--garis-lemah` | `#eef0f3` | Garis di dalam tabel |
-| `--teks` | `#16181d` | Teks utama |
-| `--teks-lemah` | `#5c636e` | Label, keterangan, teks sekunder |
-| `--aksen` | `#2f6feb` | Tombol utama, tautan aktif, lencana |
-| `--aksen-lemah` | `#eaf0fd` | Latar lencana aksen, cincin fokus |
-| `--sukses` | `#17795e` | Lunas, aktif, terisi |
-| `--sukses-lemah` | `#e7f5f0` | Latar lencana sukses |
-| `--bahaya` | `#c0392b` | Galat, gerbang, tunggakan lewat 60 hari |
-| `--bahaya-lemah` | `#fdeceb` | Latar lencana bahaya |
+| `--bg` | `#efe8d8` | Latar halaman (kertas) |
+| `--permukaan` | `#faf6ec` | Kartu, panel, sidebar |
+| `--permukaan-turun` | `#f4eddd` | Baris rincian, kotak form di dalam kartu |
+| `--garis` | `#c9bfa8` | Garis pemisah yang terlihat |
+| `--garis-lemah` | `#ded5c0` | Garis di dalam tabel |
+| `--teks` | `#1a1712` | Teks utama; latar cap terbalik |
+| `--teks-lemah` | `#5f594c` | Label, keterangan, teks sekunder |
+| `--aksen` | `#1f4b99` | Tombol utama, tautan aktif |
+| `--aksen-lemah` | `#dde5f4` | Latar lembut aksen, cincin fokus |
+| `--aksen-tua` | `#163a75` | Aksen saat ditekan |
+| `--sukses` | `#2f6b46` | Lunas, aktif, terisi |
+| `--sukses-lemah` | `#dfeade` | Latar lembut sukses |
+| `--bahaya` | `#a8322a` | Galat, gerbang, tunggakan lewat 60 hari |
+| `--bahaya-lemah` | `#f6e0da` | Latar lembut bahaya |
+| `--peredam` | `#8a5a00` | Denda, piutang, peringatan |
+| `--peredam-lemah` | `#f5e8cb` | Latar lembut peredam |
 
-`--aksen` juga dipakai sebagai `theme_color` di `manifest.webmanifest` dan
-sebagai warna ikon PWA (`web/skrip/buat-ikon.mjs`). **Mengubahnya berarti
-mengubah tiga tempat.** Itu harga dari tidak memakai pustaka tema.
+`--aksen` juga dipakai sebagai warna ikon PWA (`web/skrip/buat-ikon.mjs`), dan
+`--permukaan` sebagai `theme_color` di dua tempat: `web/public/manifest.webmanifest`
+dan `<meta name="theme-color">` di `web/index.html`. **Mengubah salah satunya
+berarti mengubah keempatnya.** Itu harga dari tidak memakai pustaka tema; uji
+`uji-pwa.mjs` membandingkan meta dengan manifest supaya tidak ada yang tertinggal.
 
 ### 2.2 Bentuk dan bayangan
 
 | Token | Nilai | Catatan |
 |---|---|---|
-| `--radius` | `10px` | Kartu dan panel |
-| `--bayang` | `0 1px 2px rgba(16,24,40,.04), 0 4px 12px rgba(16,24,40,.06)` | Sangat tipis; kartu dibedakan dari latar oleh bayangan ini **dan** garis, bukan salah satunya |
+| `--radius` | `3px` | Kartu dan panel |
+| `--radius-kecil` | `2px` | Tombol, input, cap |
+| `--bayang` | `0 1px 0 rgba(26,23,18,.06), 0 2px 6px rgba(26,23,18,.08)` | Sangat tipis; kartu dibedakan dari latar oleh bayangan ini **dan** garis, bukan salah satunya |
 
-Radius tombol dan input `8px` — lebih kecil dari kartu, supaya elemen yang bisa
-ditekan terbaca sebagai objek yang berbeda dari wadahnya.
+Radius kecil disengaja: arah "kartu indeks katalog" memakai sudut hampir tegak.
+Bentuk yang membulat besar terbaca sebagai aplikasi konsumen, bukan lembar
+catatan.
 
 ### 2.3 Tipografi
 
 | Peran | Ukuran | Berat |
 |---|---|---|
-| `h1` | 22px | 650 |
-| `h2` | 17px | 620 |
-| `h3` | 12-13px | 650, huruf besar |
+| `h1` | 30px | 700, tracking -0.03em |
+| `h2` | 19px | 650 |
+| `h3` | 14px | 700, huruf besar, spasi 0.08em |
 | Badan | 15px | 400 |
 | Label | 13px | 560 |
-| Tabel | 13.5px | 400 |
-| Judul kolom | 11.5px | 620, huruf besar, spasi 0.04em |
-| Tombol | 14px | 570 |
+| Tabel | 14px | 400 |
+| Judul kolom | 11px | 700, huruf besar, spasi 0.14em |
+| Tombol | 14px | 600 |
 
 Font: `ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`.
 Tidak ada font yang diunduh. Alasannya bukan malas: font kustom menambah satu
@@ -335,7 +343,7 @@ utang teknis yang dicatat, bukan yang diabaikan.
 
 | Berkas | Isi |
 |---|---|
-| `web/public/manifest.webmanifest` | `standalone`, `theme_color: #2f6feb`, ikon 192/512/maskable, 2 pintasan |
+| `web/public/manifest.webmanifest` | `standalone`, `theme_color: #faf6ec`, `background_color: #efe8d8`, ikon 192/512/maskable, 2 pintasan |
 | `web/public/sw.js` | Kerangka jaringan-dulu, aset ber-hash cache-dulu, **`/api` dilewatkan** |
 | `web/skrip/buat-ikon.mjs` | Generator PNG tanpa dependensi |
 

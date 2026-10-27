@@ -25,6 +25,42 @@ Buka **http://localhost:3000**. Akun demo:
 Data awal hanya berisi akun dan satu penghuni — **kebijakan kos sengaja kosong**. Itu bukan data
 yang lupa di-seed; itu justru hal pertama yang layak ditunjukkan.
 
+### Kalau demo dilakukan bertiga
+
+Token login disimpan di `localStorage`, dan `localStorage` dipakai bersama oleh semua tab di satu
+profil peramban. **Tiga tab di satu profil akan saling menendang** — login sebagai penghuni membuat
+pemilik keluar. Pakai tiga profil terpisah, misalnya Chrome, Edge, dan Firefox, atau tiga profil
+Chrome (`chrome://settings/manageProfile`).
+
+Untuk tiga perangkat dalam satu Wi-Fi: cari IPv4 laptop (`ipconfig`), lalu buka
+`http://<ip-laptop>:3000`. Port 3000 sudah terbuka ke jaringan, dan `/api` diteruskan oleh nginx
+sehingga tetap satu origin. Bila tidak bisa dibuka, izinkan Docker Desktop di jaringan Private pada
+Windows Firewall.
+
+Sebelum demo, segarkan data **dan** cache — penghitung percobaan masuk disimpan di cache, sehingga
+login gagal saat latihan bisa membuat login yang benar ditolak (429) di tengah demo:
+
+```powershell
+docker compose exec api php artisan migrate:fresh --seed
+docker compose exec api php artisan cache:clear
+```
+
+### PWA: hanya bekerja di `localhost` atau HTTPS
+
+Service worker menolak mendaftar di `http://192.168.x.x` — itu aturan peramban, bukan bug aplikasi.
+Artinya PWA **tidak bisa dipasang dari HP lewat Wi-Fi biasa**. Dua jalan yang benar:
+
+- **Di laptop:** buka `http://localhost:3000`, ikon install muncul di address bar.
+- **Di HP:** jalankan `cloudflared tunnel --url http://localhost:3000`, buka URL `https://` yang
+  dicetak, lalu "Add to Home screen" (iPhone: Share → Add to Home Screen, tidak ada prompt otomatis).
+
+Demo luring yang meyakinkan: pasang aplikasi, buka sekali, tutup, matikan Wi-Fi, buka lagi — kerangka
+tetap muncul dengan pesan galat yang rapi, bukan layar putih. Lalu buka DevTools → Application →
+Cache Storage: hanya `kos-kerangka-*` dan `kos-aset-*`, **tidak ada URL `/api/`**.
+
+> "Yang tidak disimpan justru datanya. Cache peramban dipakai bersama semua akun di perangkat itu;
+> satu respons tagihan yang tersimpan bisa terbaca penghuni berikutnya."
+
 ---
 
 ## Menit 1 — "Kenapa kos ini tidak bisa disamakan"
