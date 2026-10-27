@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="929" height="264" viewBox="0 0 929 264" font-family="Arial, Helvetica, sans-serif">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="14" y="30" font-size="16" font-weight="bold" fill="#111">Third Normal Form (3NF) — Hasil Akhir</text>
+<rect x="14" y="46" width="209.30232558139537" height="26" fill="#e8eef7" stroke="#5a6b85" stroke-width="1"/>
+<text x="22" y="63" font-size="12" font-weight="bold" fill="#123">Relasi</text>
+<rect x="223.30232558139537" y="46" width="167.4418604651163" height="26" fill="#e8eef7" stroke="#5a6b85" stroke-width="1"/>
+<text x="231.30232558139537" y="63" font-size="12" font-weight="bold" fill="#123">Kunci Primer</text>
+<rect x="390.7441860465117" y="46" width="209.30232558139537" height="26" fill="#e8eef7" stroke="#5a6b85" stroke-width="1"/>
+<text x="398.7441860465117" y="63" font-size="12" font-weight="bold" fill="#123">Kunci Asing</text>
+<rect x="600.0465116279071" y="46" width="313.95348837209303" height="26" fill="#e8eef7" stroke="#5a6b85" stroke-width="1"/>
+<text x="608.0465116279071" y="63" font-size="12" font-weight="bold" fill="#123">Atribut Non-Kunci</text>
+<rect x="14" y="72" width="209.30232558139537" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="21" y="89" font-size="12" fill="#222">tarif_sewa</text>
+<rect x="223.30232558139537" y="72" width="167.4418604651163" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="230.30232558139537" y="89" font-size="12" fill="#222">id</text>
+<rect x="390.7441860465117" y="72" width="209.30232558139537" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="397.7441860465117" y="89" font-size="12" fill="#222">kamar_id</text>
+<rect x="600.0465116279071" y="72" width="313.95348837209303" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="607.0465116279071" y="89" font-size="12" fill="#222">nilai, berlaku_dari</text>
+<rect x="14" y="98" width="209.30232558139537" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="21" y="115" font-size="12" fill="#222">fasilitas</text>
+<rect x="223.30232558139537" y="98" width="167.4418604651163" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="230.30232558139537" y="115" font-size="12" fill="#222">id</text>
+<rect x="390.7441860465117" y="98" width="209.30232558139537" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="397.7441860465117" y="115" font-size="12" fill="#222">—</text>
+<rect x="600.0465116279071" y="98" width="313.95348837209303" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="607.0465116279071" y="115" font-size="12" fill="#222">nama, ikon, urutan</text>
+<rect x="14" y="124" width="209.30232558139537" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="21" y="141" font-size="12" fill="#222">kamar_fasilitas</text>
+<rect x="223.30232558139537" y="124" width="167.4418604651163" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="230.30232558139537" y="141" font-size="12" fill="#222">id</text>
+<rect x="390.7441860465117" y="124" width="209.30232558139537" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="397.7441860465117" y="141" font-size="12" fill="#222">kamar_id, fasilitas_id</text>
+<rect x="600.0465116279071" y="124" width="313.95348837209303" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="607.0465116279071" y="141" font-size="12" fill="#222">— (pasangan kamar–fasilitas unik)</text>
+<rect x="14" y="150" width="209.30232558139537" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="21" y="167" font-size="12" fill="#222">kontrak</text>
+<rect x="223.30232558139537" y="150" width="167.4418604651163" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="230.30232558139537" y="167" font-size="12" fill="#222">id</text>
+<rect x="390.7441860465117" y="150" width="209.30232558139537" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="397.7441860465117" y="167" font-size="12" fill="#222">kamar_id, penghuni_id</text>
+<rect x="600.0465116279071" y="150" width="313.95348837209303" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="607.0465116279071" y="167" font-size="12" fill="#222">tgl_masuk, tgl_keluar, tarif_awal, status</text>
+<rect x="14" y="176" width="209.30232558139537" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="21" y="193" font-size="12" fill="#222">pembayaran</text>
+<rect x="223.30232558139537" y="176" width="167.4418604651163" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="230.30232558139537" y="193" font-size="12" fill="#222">id</text>
+<rect x="390.7441860465117" y="176" width="209.30232558139537" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="397.7441860465117" y="193" font-size="12" fill="#222">tagihan_id, dicatat_oleh</text>
+<rect x="600.0465116279071" y="176" width="313.95348837209303" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="607.0465116279071" y="193" font-size="12" fill="#222">jumlah, tanggal_pembayaran, metode, sumber</text>
+<rect x="14" y="202" width="209.30232558139537" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="21" y="219" font-size="12" fill="#222">users</text>
+<rect x="223.30232558139537" y="202" width="167.4418604651163" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="230.30232558139537" y="219" font-size="12" fill="#222">id</text>
+<rect x="390.7441860465117" y="202" width="209.30232558139537" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="397.7441860465117" y="219" font-size="12" fill="#222">penghuni_id, pemilik_id</text>
+<rect x="600.0465116279071" y="202" width="313.95348837209303" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="607.0465116279071" y="219" font-size="12" fill="#222">name, email, password, peran</text>
+</svg>

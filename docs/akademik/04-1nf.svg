@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="928" height="238" viewBox="0 0 928 238" font-family="Arial, Helvetica, sans-serif">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="14" y="30" font-size="16" font-weight="bold" fill="#111">Unnormalized Form (NF0)</text>
+<rect x="14" y="46" width="67.16417910447761" height="26" fill="#e8eef7" stroke="#5a6b85" stroke-width="1"/>
+<text x="22" y="63" font-size="12" font-weight="bold" fill="#123">No</text>
+<rect x="81.16417910447761" y="46" width="134.32835820895522" height="26" fill="#e8eef7" stroke="#5a6b85" stroke-width="1"/>
+<text x="89.16417910447761" y="63" font-size="12" font-weight="bold" fill="#123">Nama Penghuni</text>
+<rect x="215.49253731343282" y="46" width="107.46268656716417" height="26" fill="#e8eef7" stroke="#5a6b85" stroke-width="1"/>
+<text x="223.49253731343282" y="63" font-size="12" font-weight="bold" fill="#123">No. HP</text>
+<rect x="322.955223880597" y="46" width="67.16417910447761" height="26" fill="#e8eef7" stroke="#5a6b85" stroke-width="1"/>
+<text x="330.955223880597" y="63" font-size="12" font-weight="bold" fill="#123">Kamar</text>
+<rect x="390.1194029850746" y="46" width="87.31343283582089" height="26" fill="#e8eef7" stroke="#5a6b85" stroke-width="1"/>
+<text x="398.1194029850746" y="63" font-size="12" font-weight="bold" fill="#123">Tarif</text>
+<rect x="477.4328358208955" y="46" width="214.92537313432834" height="26" fill="#e8eef7" stroke="#5a6b85" stroke-width="1"/>
+<text x="485.4328358208955" y="63" font-size="12" font-weight="bold" fill="#123">Fasilitas Kamar</text>
+<rect x="692.3582089552239" y="46" width="67.16417910447761" height="26" fill="#e8eef7" stroke="#5a6b85" stroke-width="1"/>
+<text x="700.3582089552239" y="63" font-size="12" font-weight="bold" fill="#123">Bulan</text>
+<rect x="759.5223880597015" y="46" width="67.16417910447761" height="26" fill="#e8eef7" stroke="#5a6b85" stroke-width="1"/>
+<text x="767.5223880597015" y="63" font-size="12" font-weight="bold" fill="#123">Status</text>
+<rect x="826.6865671641791" y="46" width="87.31343283582089" height="26" fill="#e8eef7" stroke="#5a6b85" stroke-width="1"/>
+<text x="834.6865671641791" y="63" font-size="12" font-weight="bold" fill="#123">Dibayar</text>
+<rect x="14" y="72" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="21" y="89" font-size="12" fill="#222">1</text>
+<rect x="81.16417910447761" y="72" width="134.32835820895522" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="88.16417910447761" y="89" font-size="12" fill="#222">Budi Santoso</text>
+<rect x="215.49253731343282" y="72" width="107.46268656716417" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="222.49253731343282" y="89" font-size="12" fill="#222">081200000001</text>
+<rect x="322.955223880597" y="72" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="329.955223880597" y="89" font-size="12" fill="#222">A-01</text>
+<rect x="390.1194029850746" y="72" width="87.31343283582089" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="397.1194029850746" y="89" font-size="12" fill="#222">1.500.000</text>
+<rect x="477.4328358208955" y="72" width="214.92537313432834" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="484.4328358208955" y="89" font-size="12" fill="#222">AC, Kamar mandi dalam, Wi-Fi</text>
+<rect x="692.3582089552239" y="72" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="699.3582089552239" y="89" font-size="12" fill="#222">2026-01</text>
+<rect x="759.5223880597015" y="72" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="766.5223880597015" y="89" font-size="12" fill="#222">Lunas</text>
+<rect x="826.6865671641791" y="72" width="87.31343283582089" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="833.6865671641791" y="89" font-size="12" fill="#222">1.500.000</text>
+<rect x="14" y="98" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="21" y="115" font-size="12" fill="#222">2</text>
+<rect x="81.16417910447761" y="98" width="134.32835820895522" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="88.16417910447761" y="115" font-size="12" fill="#222">Budi Santoso</text>
+<rect x="215.49253731343282" y="98" width="107.46268656716417" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="222.49253731343282" y="115" font-size="12" fill="#222">081200000001</text>
+<rect x="322.955223880597" y="98" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="329.955223880597" y="115" font-size="12" fill="#222">A-01</text>
+<rect x="390.1194029850746" y="98" width="87.31343283582089" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="397.1194029850746" y="115" font-size="12" fill="#222">1.500.000</text>
+<rect x="477.4328358208955" y="98" width="214.92537313432834" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="484.4328358208955" y="115" font-size="12" fill="#222">AC, Kamar mandi dalam, Wi-Fi</text>
+<rect x="692.3582089552239" y="98" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="699.3582089552239" y="115" font-size="12" fill="#222">2026-02</text>
+<rect x="759.5223880597015" y="98" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="766.5223880597015" y="115" font-size="12" fill="#222">Lunas</text>
+<rect x="826.6865671641791" y="98" width="87.31343283582089" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="833.6865671641791" y="115" font-size="12" fill="#222">1.500.000</text>
+<rect x="14" y="124" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="21" y="141" font-size="12" fill="#222">3</text>
+<rect x="81.16417910447761" y="124" width="134.32835820895522" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="88.16417910447761" y="141" font-size="12" fill="#222">Sari Dewi</text>
+<rect x="215.49253731343282" y="124" width="107.46268656716417" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="222.49253731343282" y="141" font-size="12" fill="#222">081200000002</text>
+<rect x="322.955223880597" y="124" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="329.955223880597" y="141" font-size="12" fill="#222">A-02</text>
+<rect x="390.1194029850746" y="124" width="87.31343283582089" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="397.1194029850746" y="141" font-size="12" fill="#222">1.500.000</text>
+<rect x="477.4328358208955" y="124" width="214.92537313432834" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="484.4328358208955" y="141" font-size="12" fill="#222">AC, Lemari</text>
+<rect x="692.3582089552239" y="124" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="699.3582089552239" y="141" font-size="12" fill="#222">2026-01</text>
+<rect x="759.5223880597015" y="124" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="766.5223880597015" y="141" font-size="12" fill="#222">Belum</text>
+<rect x="826.6865671641791" y="124" width="87.31343283582089" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="833.6865671641791" y="141" font-size="12" fill="#222">0</text>
+<rect x="14" y="150" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="21" y="167" font-size="12" fill="#222">4</text>
+<rect x="81.16417910447761" y="150" width="134.32835820895522" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="88.16417910447761" y="167" font-size="12" fill="#222">Sari Dewi</text>
+<rect x="215.49253731343282" y="150" width="107.46268656716417" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="222.49253731343282" y="167" font-size="12" fill="#222">081200000002</text>
+<rect x="322.955223880597" y="150" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="329.955223880597" y="167" font-size="12" fill="#222">A-02</text>
+<rect x="390.1194029850746" y="150" width="87.31343283582089" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="397.1194029850746" y="167" font-size="12" fill="#222">1.500.000</text>
+<rect x="477.4328358208955" y="150" width="214.92537313432834" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="484.4328358208955" y="167" font-size="12" fill="#222">AC, Lemari</text>
+<rect x="692.3582089552239" y="150" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="699.3582089552239" y="167" font-size="12" fill="#222">2026-02</text>
+<rect x="759.5223880597015" y="150" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="766.5223880597015" y="167" font-size="12" fill="#222">Lunas</text>
+<rect x="826.6865671641791" y="150" width="87.31343283582089" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="833.6865671641791" y="167" font-size="12" fill="#222">1.500.000</text>
+<rect x="14" y="176" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="21" y="193" font-size="12" fill="#222">5</text>
+<rect x="81.16417910447761" y="176" width="134.32835820895522" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="88.16417910447761" y="193" font-size="12" fill="#222">Budi Santoso</text>
+<rect x="215.49253731343282" y="176" width="107.46268656716417" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="222.49253731343282" y="193" font-size="12" fill="#222">081200000001</text>
+<rect x="322.955223880597" y="176" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="329.955223880597" y="193" font-size="12" fill="#222">A-01</text>
+<rect x="390.1194029850746" y="176" width="87.31343283582089" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="397.1194029850746" y="193" font-size="12" fill="#222">1.500.000</text>
+<rect x="477.4328358208955" y="176" width="214.92537313432834" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="484.4328358208955" y="193" font-size="12" fill="#222">AC, Kamar mandi dalam, Wi-Fi</text>
+<rect x="692.3582089552239" y="176" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="699.3582089552239" y="193" font-size="12" fill="#222">2026-03</text>
+<rect x="759.5223880597015" y="176" width="67.16417910447761" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="766.5223880597015" y="193" font-size="12" fill="#222">Lunas</text>
+<rect x="826.6865671641791" y="176" width="87.31343283582089" height="26" fill="#ffffff" stroke="#a8b4c6" stroke-width="1"/>
+<text x="833.6865671641791" y="193" font-size="12" fill="#222">1.500.000</text>
+</svg>
