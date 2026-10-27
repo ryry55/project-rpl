@@ -215,19 +215,20 @@ onMounted(muat)
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 7px 12px;
-  font-size: 12.5px;
-  font-weight: 600;
+  min-height: 32px;
+  padding: 5px 11px;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--teks-lemah);
-  background: transparent;
-  border: 1px solid var(--garis);
-  border-radius: var(--radius-kecil, 3px);
+  background: var(--permukaan);
+  border: 1px solid var(--kendali);
+  border-radius: var(--radius-kecil);
 }
 
 .lonceng:hover {
   color: var(--teks);
   border-color: var(--teks-lemah);
-  background: var(--permukaan-turun, #f4eddd);
+  background: var(--permukaan-turun);
 }
 
 .lonceng.berdenyut {
@@ -255,14 +256,17 @@ onMounted(muat)
   border-radius: 999px;
 }
 
+/* Panel mengambang di bawah bilah atas, bukan menempel pada lonceng: di
+   sidebar lebar 256px panel 340px akan keluar layar, dan di bilah atas ponsel
+   ia menutupi dirinya sendiri. Posisi tetap membuatnya selalu muat. */
 .panel-lonceng {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 8px);
-  z-index: 30;
+  position: fixed;
+  top: 64px;
+  right: 16px;
+  z-index: 80;
   width: 340px;
   max-width: calc(100vw - 32px);
-  max-height: 420px;
+  max-height: min(420px, calc(100vh - 88px));
   overflow-y: auto;
   padding: 12px;
   background: var(--permukaan);
@@ -281,7 +285,7 @@ onMounted(muat)
 
 .kepala-lonceng h2 {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 14px;
 }
 
 .pad {
@@ -327,8 +331,8 @@ onMounted(muat)
 }
 
 .judul-lonceng {
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .pesan-lonceng {

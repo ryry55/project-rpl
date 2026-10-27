@@ -10,6 +10,9 @@
  * bayar") alih-alih dari peta label. Peta label berarti setiap status baru
  * harus didaftarkan di sini juga, dan yang lupa didaftarkan akan tampil sebagai
  * nilai mentah bercampur label — persis yang sulit dikenali saat memeriksa layar.
+ *
+ * Huruf pertama dinaikkan di sini, bukan lewat `text-transform`, supaya hanya
+ * kata pertama yang berhuruf besar: "Belum bayar", bukan "Belum Bayar".
  */
 const props = defineProps({
   /** Nilai status dari API, mis. `lunas`, `belum_bayar`, `terisi`. */
@@ -18,7 +21,10 @@ const props = defineProps({
   label: { type: String, default: '' },
 })
 
-const teks = () => props.label || String(props.status).replace(/_/g, ' ')
+const teks = () => {
+  const mentah = props.label || String(props.status).replace(/_/g, ' ')
+  return mentah.charAt(0).toUpperCase() + mentah.slice(1)
+}
 </script>
 
 <template>

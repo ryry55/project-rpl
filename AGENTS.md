@@ -152,6 +152,21 @@ akan lolos dari guardrail selamanya tanpa ada yang memberi tahu.
   `migrate:fresh` sebelum tiap skrip. Kalau sebuah uji tiba-tiba gagal di
   langkah login padahal kredensialnya benar, periksa penghitung ini lebih dulu:
   `masuk:<email>|<ip>` (5/menit) dan `masuk-email:<email>` (20/jam).
+- **Satu komponen yang dirender dua kali punya dua state.** `LoncengNotifikasi`
+  sempat dipasang di bilah atas DAN di sidebar dengan maksud "yang satu untuk
+  layar sempit". Keduanya hidup bersamaan dan menghitung belum-dibaca sendiri:
+  menandai terbaca di panel yang satu tidak mengubah lencana yang lain, jadi
+  `e2e-t25` gagal pada asersi yang benar. Yang benar: satu instance, dipilih
+  lewat `v-if` dari `matchMedia` (`layarSempit` di `TataLetakPemilik.vue`).
+  Gejalanya menyesatkan - tampak seperti bug API karena angka di layar berbeda
+  dari angka di basis data.
+- **`node ... 2>&1` langsung mematikan gate, bukan menggagalkannya.** Di
+  PowerShell 5.1 dengan `$ErrorActionPreference='Stop'`, satu baris ke stderr
+  menjadi `NativeCommandError` dan `periksa.ps1` berhenti di situ: uji
+  sesudahnya tidak pernah dilaporkan sebagai GAGAL, dan hasilnya terbaca seperti
+  crash. Semua perintah luar kini lewat fungsi `Jalankan`, yang menurunkan
+  preferensi hanya selama perintah berjalan. Jangan menambah panggilan
+  `& node`, `& npm`, atau `bash` langsung di skrip itu.
 
 ### Menulis skrip uji
 

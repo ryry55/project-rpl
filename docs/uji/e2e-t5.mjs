@@ -359,9 +359,12 @@ async function jalan() {
       }
     })()
   `)
+  // Label status ditampilkan sebagai kalimat ("Lunas"), bukan nilai mentah API.
+  // Yang diuji adalah statusnya, bukan kapitalisasinya, jadi dibandingkan tanpa
+  // membedakan huruf besar-kecil.
   lapor(
     'daftar menampilkan status lunas',
-    !diDaftar.galat && diDaftar.status === 'lunas',
+    !diDaftar.galat && diDaftar.status.toLowerCase() === 'lunas',
     diDaftar.galat || diDaftar.status,
   )
   lapor(

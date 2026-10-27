@@ -142,10 +142,10 @@ const langkahTampil = computed(() => {
 
 <style scoped>
 .panel-penyiapan {
-  /* Garis kiri, bukan latar berwarna: penanda ini perlu terlihat lebih dulu
-     tanpa terlihat seperti galat. Galat memakai warna bahaya, dan penyiapan
-     yang belum selesai bukan kesalahan siapa pun. */
-  border-left: 3px solid var(--aksen, #2563eb);
+  /* Tinta, bukan warna: penanda ini harus terlihat lebih dulu tanpa terbaca
+     sebagai galat. Galat memakai warna bahaya, dan penyiapan yang belum selesai
+     bukan kesalahan siapa pun. */
+  border-left: 3px solid var(--teks);
 }
 
 .daftar-penyiapan {
@@ -168,7 +168,7 @@ const langkahTampil = computed(() => {
 }
 
 .daftar-penyiapan li.selesai .penyiapan-judul {
-  color: var(--teks-lemah, #64748b);
+  color: var(--teks-lemah);
   text-decoration: line-through;
 }
 
@@ -179,7 +179,7 @@ const langkahTampil = computed(() => {
 
 .penyiapan-judul {
   margin: 0 0 2px;
-  font-weight: 600;
+  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -192,8 +192,8 @@ const langkahTampil = computed(() => {
 
 .penyiapan-rincian {
   margin: 4px 0 0;
-  font-size: 12.5px;
-  color: var(--teks-lemah, #64748b);
+  font-size: 12px;
+  color: var(--teks-lemah);
 }
 
 .penyiapan-catatan {

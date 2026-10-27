@@ -641,9 +641,7 @@ onMounted(muatRekening)
 .rincian h3 {
   margin: 0 0 7px;
   font-size: 12px;
-  font-weight: 650;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-weight: 500;
   color: var(--teks-lemah);
 }
 
@@ -739,15 +737,12 @@ onMounted(muatRekening)
 }
 
 .lencana-kategori {
-  padding: 1px 7px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 400;
   color: var(--teks-lemah);
-  background: transparent;
-  border: 1px solid var(--garis);
-  border-radius: var(--radius-kecil);
+  background: var(--aktif);
+  border-radius: 999px;
   vertical-align: 1px;
 }
 
@@ -794,15 +789,12 @@ onMounted(muatRekening)
 
 .lencana-jenis {
   justify-self: start;
-  padding: 1px 7px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 400;
   color: var(--teks-lemah);
-  background: transparent;
-  border: 1px solid var(--garis);
-  border-radius: var(--radius-kecil);
+  background: var(--aktif);
+  border-radius: 999px;
 }
 
 .nama-rekening {

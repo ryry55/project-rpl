@@ -7,7 +7,7 @@
 > isinya begitu, dan menandai bagian mana yang **tidak boleh** diubah tanpa
 > memahami akibatnya.
 
-Versi 1.0 · 26 Oktober 2026
+Versi 2.0 · 28 Oktober 2026 — arah "buku besar tanpa warna"
 
 ---
 
@@ -21,36 +21,38 @@ Pemilik membuka aplikasi ini untuk membaca angka: sisa tagihan, jumlah
 tunggakan, total masuk. Setiap piksel yang tidak membantu membaca angka adalah
 piksel yang salah tempat.
 
-> **Keputusan ini dilonggarkan pada 27 Oktober 2026.** Versi aslinya berbunyi
-> "tidak ada ilustrasi, tidak ada gradien dekoratif, tidak ada animasi selain
-> transisi 120ms" — dan itu **dibatalkan** oleh pemilik untuk redesign UI/UX.
-> Alasannya: prinsip itu, ditegakkan terlalu ketat, menghasilkan layar yang
-> benar tetapi tidak terasa dirancang, dan pemilik menilai aplikasinya "kurang
-> menarik".
+> **Keputusan ini dilonggarkan pada 27 Oktober 2026, lalu diarahkan ulang pada
+> 28 Oktober 2026.** Versi aslinya berbunyi "tidak ada ilustrasi, tidak ada
+> gradien dekoratif, tidak ada animasi selain transisi 120ms" — dan itu
+> dibatalkan oleh pemilik: layarnya benar tetapi tidak terasa dirancang.
 >
-> Yang berlaku sekarang: **karakter visual boleh masuk** — palet dengan suhu,
-> kedalaman satu arah, transisi halus, dan satu gerakan khas — **selama tidak
-> memperlambat atau mengaburkan pembacaan angka**. Batas kerasnya: tidak ada
-> animasi yang menunda munculnya nominal, tidak ada hiasan di belakang angka,
-> tidak ada warna yang dipakai semata-mata sebagai hiasan (§1.2 tetap utuh).
+> Percobaan pertama memberi aplikasi **suhu** (kertas manila, biru aksen, cap
+> karet). Pemilik menolaknya: terlalu kuning, terasa kuno, dan warna merek
+> bersaing dengan angka. Arah yang berlaku sekarang adalah **buku besar tanpa
+> warna** — kerangka sepenuhnya tinta dan abu-abu, warna hanya di data.
 >
-> Prinsip lain di dokumen ini tetap mengikat, termasuk §1.2, §1.3, dan §1.4.
-> Percobaan redesign yang ternyata mengganggu pembacaan angka dicatat di
-> `web/src/style.css` sebagai komentar beserta angka pengukurannya.
+> Yang boleh masuk: rupa huruf, palet, densitas, dan satu gerakan khas (pil
+> status) — **selama tidak memperlambat atau mengaburkan pembacaan angka**.
+> Batas kerasnya: tidak ada animasi yang menunda munculnya nominal, tidak ada
+> hiasan di belakang angka, tidak ada warna yang dipakai semata-mata sebagai
+> hiasan (§1.2 tetap utuh). Prinsip lain di dokumen ini tetap mengikat, termasuk
+> §1.2, §1.3, dan §1.4. Percobaan yang ternyata mengganggu pembacaan angka
+> dicatat di `web/src/style.css` sebagai komentar beserta angka pengukurannya.
 
 Konsekuensi nyata: tidak ada pustaka komponen (Vuetify, PrimeVue) — semuanya
-~560 baris CSS yang bisa dibaca dalam satu duduk.
+~950 baris CSS yang bisa dibaca dalam satu duduk.
 
 ### 1.2 Warna hanya untuk arti
 
-Warna aksen dipakai untuk satu hal: **tindakan utama**. Merah untuk bahaya dan
-sesuatu yang menuntut tindakan. Hijau untuk berhasil dan lunas. Abu-abu untuk
-netral.
+Warna dipakai untuk tiga hal: **keadaan uang** (hijau lunas, amber belum
+bayar, merah terlambat), **bahaya** (galat, tindakan merusak), dan **satu warna
+data** (bilah kemajuan). Kerangka — sidebar, bilah atas, tombol, kepala halaman —
+tidak berwarna. Tombol utama hampir hitam, bukan biru.
 
-Ini bukan preferensi estetika. `--bahaya` dipakai pada gerbang kebijakan, dan
-gerbang itu **bukan galat** — ia langkah yang belum dikerjakan. Karena itu
-gerbang memakai garis kiri merah + latar merah lemah, bukan latar merah penuh:
-warna penuh membuat pemilik mengira ada yang rusak.
+Ini bukan preferensi estetika. `--peredam` (amber) dipakai pada gerbang
+kebijakan, dan gerbang itu **bukan galat** — ia langkah yang belum dikerjakan.
+Karena itu gerbang memakai garis kiri amber + latar amber lemah, bukan merah:
+merah membuat pemilik mencari kesalahan yang tidak ada.
 
 ### 1.3 Satu implementasi, bukan dua puluh salinan
 
@@ -86,22 +88,26 @@ memakai token; tidak ada nilai heksadesimal lepas di view.
 
 | Token | Nilai | Dipakai untuk |
 |---|---|---|
-| `--bg` | `#efe8d8` | Latar halaman (kertas) |
-| `--permukaan` | `#faf6ec` | Kartu, panel, sidebar |
-| `--permukaan-turun` | `#f4eddd` | Baris rincian, kotak form di dalam kartu |
-| `--garis` | `#c9bfa8` | Garis pemisah yang terlihat |
-| `--garis-lemah` | `#ded5c0` | Garis di dalam tabel |
-| `--teks` | `#1a1712` | Teks utama; latar cap terbalik |
-| `--teks-lemah` | `#5f594c` | Label, keterangan, teks sekunder |
-| `--aksen` | `#1f4b99` | Tombol utama, tautan aktif |
-| `--aksen-lemah` | `#dde5f4` | Latar lembut aksen, cincin fokus |
-| `--aksen-tua` | `#163a75` | Aksen saat ditekan |
-| `--sukses` | `#2f6b46` | Lunas, aktif, terisi |
-| `--sukses-lemah` | `#dfeade` | Latar lembut sukses |
-| `--bahaya` | `#a8322a` | Galat, gerbang, tunggakan lewat 60 hari |
-| `--bahaya-lemah` | `#f6e0da` | Latar lembut bahaya |
-| `--peredam` | `#8a5a00` | Denda, piutang, peringatan |
-| `--peredam-lemah` | `#f5e8cb` | Latar lembut peredam |
+| `--bg` | `#f8f8f8` | Latar halaman |
+| `--permukaan` | `#ffffff` | Kartu, panel, sidebar, bilah atas |
+| `--permukaan-turun` | `#f2f2f2` | Hover tombol sekunder, blok netral |
+| `--aktif` | `#ececec` | Item navigasi aktif, pil netral |
+| `--hover` | `#fafafa` | Baris tabel saat disorot |
+| `--garis` | `#e6e6e6` | Batas struktur, garis bawah kepala tabel |
+| `--garis-lemah` | `#f0f0f0` | Pemisah antar baris tabel |
+| `--kendali` | `#d4d4d4` | Bingkai masukan dan tombol sekunder |
+| `--teks` | `#0a0a0a` | Teks utama |
+| `--teks-lemah` | `#6b6b6b` | Label, keterangan, teks sekunder |
+| `--aksen` | `#141414` | Satu tombol utama per layar |
+| `--aksen-lemah` | `#ececec` | Cincin fokus, latar netral |
+| `--aksen-tua` | `#2a2a2a` | Tombol utama saat hover |
+| `--sukses` | `#2e7d32` | Lunas |
+| `--sukses-lemah` | `#dcfae5` | Latar lunas |
+| `--bahaya` | `#c4242a` | Galat, tindakan merusak, terlambat |
+| `--bahaya-lemah` | `#ffedea` | Latar bahaya |
+| `--peredam` | `#92400e` | Belum bayar, sebagian, peringatan |
+| `--peredam-lemah` | `#fffbeb` | Latar peredam |
+| `--grafik` | `#1d5fbf` | Bilah kemajuan — satu-satunya warna data |
 
 `--aksen` juga dipakai sebagai warna ikon PWA (`web/skrip/buat-ikon.mjs`), dan
 `--permukaan` sebagai `theme_color` di dua tempat: `web/public/manifest.webmanifest`
@@ -113,35 +119,41 @@ berarti mengubah keempatnya.** Itu harga dari tidak memakai pustaka tema; uji
 
 | Token | Nilai | Catatan |
 |---|---|---|
-| `--radius` | `3px` | Kartu dan panel |
-| `--radius-kecil` | `2px` | Tombol, input, cap |
-| `--bayang` | `0 1px 0 rgba(26,23,18,.06), 0 2px 6px rgba(26,23,18,.08)` | Sangat tipis; kartu dibedakan dari latar oleh bayangan ini **dan** garis, bukan salah satunya |
+| `--radius` | `8px` | Kartu dan panel |
+| `--radius-kecil` | `6px` | Tombol, input |
+| `--baris` | `44px` | Tinggi baris tabel |
+| `--kendali-tinggi` | `36px` | Tinggi tombol dan input |
+| `--bayang` | `0 8px 24px rgba(10,10,10,.12)` | **Hanya** panel notifikasi yang mengambang |
 
-Radius kecil disengaja: arah "kartu indeks katalog" memakai sudut hampir tegak.
-Bentuk yang membulat besar terbaca sebagai aplikasi konsumen, bukan lembar
-catatan.
+Tidak ada bayangan pada kartu atau tombol saat diam. Kedalaman dibawa oleh nada
+bidang (bidang → putih → turun) dan garis. Kartu yang tampak mengambang bersaing
+dengan isi tabel, dan isi tabel itulah yang dibaca pemilik.
 
 ### 2.3 Tipografi
 
 | Peran | Ukuran | Berat |
 |---|---|---|
-| `h1` | 30px | 700, tracking -0.03em |
-| `h2` | 19px | 650 |
-| `h3` | 14px | 700, huruf besar, spasi 0.08em |
-| Badan | 15px | 400 |
-| Label | 13px | 560 |
-| Tabel | 14px | 400 |
-| Judul kolom | 11px | 700, huruf besar, spasi 0.14em |
-| Tombol | 14px | 600 |
+| `h1` | 24px | 600, tracking -0.015em |
+| `h2` | 16px | 600 |
+| `h3` | 13px | 600 |
+| Badan | 14px/20px | 400 |
+| Label | 12px | 500 |
+| Tabel | 13px | 400 |
+| Judul kolom | 12px | 400, abu-abu, tanpa huruf besar |
+| Tombol | 13px | 500 |
+| Uang | 13px Geist Mono | 400, tabular |
 
-Font: `ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`.
-Tidak ada font yang diunduh. Alasannya bukan malas: font kustom menambah satu
-permintaan jaringan yang bisa gagal, dan pada Render gratis cold start sudah
-~50 detik — tidak perlu ditambah.
+Font: **Geist** untuk teks dan **Geist Mono** untuk nominal, di-host sendiri di
+`web/public/font/` dan dimuat lewat `@font-face` variabel (100–900). Di-host
+sendiri, bukan dari CDN: satu permintaan pihak ketiga lebih sedikit, aplikasi
+tetap utuh saat luring lewat service worker, dan tidak ada kilatan font pengganti.
 
-**Angka uang memakai `font-variant-numeric: tabular-nums`** supaya kolom nominal
-rata. Tanpa ini, `Rp 1.500.000` dan `Rp 900.000` tidak sejajar dan mata harus
-lebih lama mencari.
+Skala bergerak 12/13/14/16/24 — lompatan yang bisa dirasakan. Skala 0,5px
+membuat semua teks terbaca "normal" dan hierarki hilang.
+
+**Angka uang memakai `font-variant-numeric: tabular-nums`** yang dipasang di
+`body`, bukan diingat per tabel, dan dirender dengan Geist Mono. Tanpa ini,
+`Rp 1.500.000` dan `Rp 900.000` tidak sejajar dan mata harus lebih lama mencari.
 
 ---
 
@@ -178,6 +190,19 @@ kadang perlu memuat elemen (mis. lencana), dan prop teks tidak bisa.
 
 Memetakan status ke kelas `.lencana-status.status-*`. Kelas `.lencana-status`
 **dipakai uji**; mengganti namanya mematahkan `e2e-t9.mjs` dan `e2e-t3.mjs`.
+
+Bentuknya pil 22px, tetapi **hanya pengecualian yang diberi tint**:
+
+| Keadaan | Tampilan |
+|---|---|
+| `terisi`, `aktif` | Teks biasa, tanpa pil — ini keadaan normal |
+| `lunas` | Pil hijau |
+| `belum_bayar`, `sebagian` | Pil amber |
+| `kosong`, `selesai`, `dibatalkan`, `nonaktif`, `dipesan` | Pil abu |
+
+Sebelas pil hijau di satu tabel membuat warna berhenti berarti. Huruf pertama
+dinaikkan di komponen, bukan lewat `text-transform`, supaya hanya kata pertama
+berhuruf besar: "Belum bayar", bukan "Belum Bayar".
 
 ### 3.4 `PesanBaris`
 
@@ -256,12 +281,14 @@ keduanya sekaligus.
 | Kolom aksi `<th>`-nya kosong | Tidak ada label untuk diturunkan; sel itu dibiarkan tanpa `data-label` |
 | Baris kosong memakai `BarisKosong` | `colspan` penuh, tanpa label |
 | `white-space: nowrap` hanya di kolom aksi | Menahan tombol satu baris; kolom teks harus boleh membungkus |
+| Kepala 38px, baris 44px, padding sel `10px 12px` | Cukup padat untuk 11 kolom tagihan, cukup lapang untuk dua baris teks |
+| Kolom tindakan memakai `.kolom-aksi` | Hanya kolom itu yang menempel di kanan; `:last-child` akan menutupi angka di tabel lain |
 
 ### 4.3 Yang **tidak** boleh dilakukan
 
 - Jangan menambahkan `overflow-x: hidden` pada `.tabel-bungkus`. Itu
   menyembunyikan kolom, bukan membuatnya muat.
-- Jangan menghapus `.tabel-bungkus`. Di layar 621-860px tabel masih bisa lebih
+- Jangan menghapus `.tabel-bungkus`. Di layar 621–900px tabel masih bisa lebih
   lebar dari layar, dan bungkus itulah yang menggulir.
 - Jangan menambah tabel baru tanpa `v-kartu-tabel`.
 
@@ -276,7 +303,8 @@ keduanya sekaligus.
   display: grid;
   gap: 16px;
   grid-template-columns: minmax(0, 1fr);
-  max-width: 1020px;
+  max-width: 1100px;
+  margin-inline: auto;
 }
 ```
 
@@ -287,36 +315,45 @@ halaman bergulir mendatar di ponsel.
 
 Ini bukan teori. Terukur 753px pada viewport 390px sebelum diperbaiki.
 
-Varian: `.halaman-lebar` (1080px, untuk tabel 11 kolom), `.halaman-penuh`
+Varian: `.halaman-lebar` (1240px, untuk tabel 11 kolom), `.halaman-penuh`
 (tanpa batas).
 
 ### 5.2 Kepala halaman
 
-`.kepala` memakai `flex-wrap: wrap` **di dalam** media query, bukan global. Pada
-layar lebar judul dan tombol memang muat sebaris, dan membiarkan `wrap` aktif di
-sana berarti tata letak desktop bisa berubah hanya karena satu keterangan
-menjadi panjang.
+`.kepala` memakai `flex-wrap: wrap` **global**, dan `.aksi-kepala` juga. Yang
+kedua itu yang mudah terlewat: `flex-wrap` pada induk hanya memindahkan seluruh
+kelompok tombol ke barisnya sendiri; selama kelompoknya masih `flex-shrink: 0`,
+ia tetap lebih lebar daripada layar dan luberannya keluar ke dokumen. Karena itu
+`.aksi-kepala` wajib `flex-wrap: wrap`, `flex-shrink: 0` dibuang, dan
+`min-width: 0` dipasang.
+
+Terukur: pada viewport 200px dokumen berhenti menyusut di 328px; penyebabnya
+`.aksi-kepala` (291px, dua tombol sebaris).
 
 ### 5.3 Sidebar pemilik
 
-`.tata-letak` = `244px minmax(0, 1fr)`. Di bawah 860px menjadi satu kolom, menu
-mendatar yang menggulir sendiri.
+`.tata-letak` = `256px minmax(0, 1fr)`. Di bawah **900px** sidebar berhenti
+menjadi kolom dan menjadi **laci** dari kiri, lebar `min(320px, 86vw)`, ditutup
+lewat tombol yang sama atau `Esc`. Bilah atas 52px muncul dengan nama produk dan
+tombol menu.
 
-`min-width: 0` pada `.sisi` wajib: grid item memakai `min-width: auto`, jadi
+`min-width: 0` pada kolom isi wajib: grid item memakai `min-width: auto`, jadi
 menu `max-content` membuat sidebar melebar melewati layar.
+
+Menu dikelompokkan (tanpa judul, Uang, Kos, Akses, Bantuan) dengan item 30px dan
+ikon 16px, supaya 15 item muat pada tinggi 760px tanpa menggulir sidebar.
 
 ### 5.4 Kepala pemilik di ponsel
 
-Diukur pada 360×800: **203px** dari atas sampai konten pertama. Sebelum
-dipadatkan: **360px** — hampir setengah layar.
+Diukur pada 360×800: **52px** bilah atas, konten pertama segera setelahnya.
+Sebelum dipadatkan, kepala lama memakan 203px — hampir seperempat layar.
 
-| Bagian | Perlakuan di < 620px |
+| Bagian | Perlakuan di < 900px |
 |---|---|
-| Merek + lonceng | Satu baris (`.kepala-sisi`) |
-| Menu | Deret mendatar, batang gulir disembunyikan |
-| Email akun | Disembunyikan |
-| Tombol Keluar | Sebaris dengan avatar (`.baris-akun`) |
-| Dua tautan akun | Satu deret (`.tautan-akun`) |
+| Merek + tombol menu | Bilah atas 52px, `position: sticky` |
+| Menu lengkap | Laci dari kiri, dengan latar penutup |
+| Nama halaman | Sudah menjadi `h1` di dalam isi; bilah atas menyebut produk |
+| Email akun | Tetap di kaki laci |
 
 Semuanya tetap ada dan tetap bisa ditekan. Yang hilang hanya tinggi.
 
@@ -326,11 +363,12 @@ Semuanya tetap ada dan tetap bisa ditekan. Yang hilang hanya tinggi.
 
 | Hal | Aturan |
 |---|---|
-| Fokus | `input:focus` → `border-color: --aksen` + `box-shadow: 0 0 0 3px --aksen-lemah`. Cincin fokus **tidak boleh** dihapus tanpa pengganti |
+| Fokus | `:focus-visible` → `outline: 2px solid var(--teks); outline-offset: 2px`; `input:focus` → bingkai `--teks` + cincin `0 0 0 3px var(--aksen-lemah)`. Cincin fokus **tidak boleh** dihapus tanpa pengganti |
 | Galat bidang | `aria-invalid="true"` pada input, bukan hanya teks merah |
 | Pesan galat | `role="alert"` |
 | Sasaran sentuh | ≥ 44px pada `(pointer: coarse)`. Tombol `.mungil` memakai `::after` dengan `inset: -6px` agar area sentuh meluas tanpa menggeser tata letak |
-| Kontras | Teks utama `#16181d` di `#ffffff` = 17.8:1. `--teks-lemah` di `--permukaan` = 6.1:1. Keduanya lolos AA |
+| Kontras | Teks utama `#0a0a0a` di `#ffffff` = 19,6:1. `--teks-lemah` di `--permukaan` = 5,3:1. Keduanya lolos AA |
+| Status | Tidak pernah hanya warna: teks status selalu ikut ditulis |
 | Tabel kartu | `thead` disembunyikan dengan `clip-path: inset(50%)`, **bukan** `display: none` — pembaca layar masih menemukannya |
 | Bahasa | `<html lang="id">` |
 
@@ -343,7 +381,7 @@ utang teknis yang dicatat, bukan yang diabaikan.
 
 | Berkas | Isi |
 |---|---|
-| `web/public/manifest.webmanifest` | `standalone`, `theme_color: #faf6ec`, `background_color: #efe8d8`, ikon 192/512/maskable, 2 pintasan |
+| `web/public/manifest.webmanifest` | `standalone`, `theme_color: #ffffff`, `background_color: #f8f8f8`, ikon 192/512/maskable, 2 pintasan |
 | `web/public/sw.js` | Kerangka jaringan-dulu, aset ber-hash cache-dulu, **`/api` dilewatkan** |
 | `web/skrip/buat-ikon.mjs` | Generator PNG tanpa dependensi |
 
@@ -400,9 +438,9 @@ Ini bukan kemungkinan teoretis: sudah terjadi sekali, dan versi tanpa pagar
 
 | Tidak dipakai | Kenapa |
 |---|---|
-| Pustaka komponen (Vuetify, PrimeVue) | ~560 baris CSS bisa dibaca dalam satu duduk; pustaka menambah ribuan baris yang tidak dibaca siapa pun |
+| Pustaka komponen (Vuetify, PrimeVue) | ~900 baris CSS bisa dibaca dalam satu duduk; pustaka menambah ribuan baris yang tidak dibaca siapa pun |
 | Tailwind | Kelas panjang di template menyulitkan melihat struktur; dan tata letak di sini hanya butuh ~15 aturan |
-| Font web | Satu permintaan jaringan tambahan pada koneksi yang sudah lambat |
+| Font dari CDN | Dua berkas Geist di-host sendiri; CDN menambah permintaan pihak ketiga dan gagal saat luring |
 | Animasi | Tidak ada yang perlu dianimasikan; angka tidak bergerak sendiri |
 | Mode gelap | Belum diminta, dan menambah satu dimensi uji untuk seluruh 25 layar |
 | CSS-in-JS | `<style scoped>` sudah cukup dan tidak menambah dependensi build |

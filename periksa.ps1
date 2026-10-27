@@ -21,6 +21,24 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $gagal = @()
+
+# Node menulis sebagian galatnya ke stderr, dan PowerShell 5.1 mengubah stderr
+# menjadi error record. Dengan $ErrorActionPreference='Stop' itu MEMATIKAN
+# gerbang di tengah jalan: uji yang belum berjalan tidak pernah dilaporkan, dan
+# hasilnya terbaca seperti crash - bukan seperti "e2e-t25 gagal", padahal itulah
+# yang perlu diperbaiki. Perintah luar karena itu dijalankan lewat fungsi ini,
+# yang menurunkan preferensi ke Continue selama perintah berjalan. Keberhasilan
+# tetap dinilai dari $LASTEXITCODE, bukan dari ada-tidaknya stderr.
+function Jalankan([string]$perintah, [string[]]$argumen = @()) {
+    if ($null -eq $argumen) { $argumen = @() }
+    $lama = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & $perintah @argumen 2>&1
+    } finally {
+        $ErrorActionPreference = $lama
+    }
+}
 $mulai = Get-Date
 
 # --- penjaga: satu gerbang pada satu waktu ---------------------------------
@@ -86,15 +104,12 @@ try {
 # gagal padahal image-nya terbangun. Karena itu preferensi diturunkan sementara
 # dan keberhasilan dinilai dari $LASTEXITCODE, bukan dari ada-tidaknya stderr.
 function Jalankan-Docker {
-    $lama = $ErrorActionPreference
-    $ErrorActionPreference = 'Continue'
     try {
-        & docker @args 2>&1 | Out-Null
+        $hasil = Jalankan 'docker' $args
+        $hasil | Out-Null
         return ($LASTEXITCODE -eq 0)
     } catch {
         return $false
-    } finally {
-        $ErrorActionPreference = $lama
     }
 }
 
@@ -186,7 +201,7 @@ Judul 'Lint frontend'
 if (Test-Path web\node_modules) {
     Push-Location web
     try {
-        $keluaranLint = & npm run lint 2>&1
+        $keluaranLint = Jalankan 'npm' 'run', 'lint'
         $lintOk = $LASTEXITCODE -eq 0
     } finally {
         Pop-Location
@@ -207,14 +222,14 @@ if (Test-Path web\node_modules) {
 # menit, dan tidak butuh aplikasi hidup.
 Judul 'Kesesuaian dokumen'
 
-$keluaranAngka = node docs\uji\cek-angka-dokumen.js 2>&1
+$keluaranAngka = Jalankan 'node' 'docs\uji\cek-angka-dokumen.js'
 $angkaOk = $LASTEXITCODE -eq 0
 Catat 'angka dokumen cocok dengan sumbernya' $angkaOk
 if (-not $angkaOk) {
     $keluaranAngka | Select-String -Pattern 'BEDA|ADA ANGKA' | ForEach-Object { Write-Host ('    ' + $_.Line.Trim()) }
 }
 
-$keluaranKontrak = node docs\uji\cek-cakupan-kontrak.js 2>&1
+$keluaranKontrak = Jalankan 'node' 'docs\uji\cek-cakupan-kontrak.js'
 $kontrakOk = $LASTEXITCODE -eq 0
 Catat 'setiap endpoint tercatat di kontrak' $kontrakOk
 if (-not $kontrakOk) {
@@ -225,7 +240,7 @@ if (-not $kontrakOk) {
 # yang salah terlihat persis seperti gambar yang benar. Pemeriksa ini
 # membandingkan skema.json dengan basis data yang berjalan, lalu memastikan
 # setiap tabel dan setiap kunci asing benar-benar muncul di dokumen.
-$keluaranErd = node docs\uji\cek-erd-lrs.js 2>&1
+$keluaranErd = Jalankan 'node' 'docs\uji\cek-erd-lrs.js'
 $erdOk = $LASTEXITCODE -eq 0
 Catat 'ERD dan LRS cocok dengan basis data' $erdOk
 if (-not $erdOk) {
@@ -248,7 +263,7 @@ if (-not $Cepat) {
     if (-not $adaBash) {
         Write-Host '  dilewati: bash tidak ada di PATH (dipakai CI, bukan langkah wajib di Windows)' -ForegroundColor Yellow
     } elseif (Test-Path docs/uji/periksa-profil-produksi.sh) {
-        $keluaranProfil = bash docs/uji/periksa-profil-produksi.sh 2>&1
+        $keluaranProfil = Jalankan 'bash' 'docs/uji/periksa-profil-produksi.sh'
         $profilOk = $LASTEXITCODE -eq 0
         Catat 'profil produksi menutup tiga bahaya' $profilOk
         if (-not $profilOk) {
@@ -265,7 +280,7 @@ if (-not $Cepat) {
     # sehingga tidak satu pun bisa diperiksa tes PHPUnit.
     Judul 'Pagar FASE 0'
     if ($adaBash -and (Test-Path docs/uji/uji-pagar-fase0.sh)) {
-        $keluaranPagar = bash docs/uji/uji-pagar-fase0.sh 2>&1
+        $keluaranPagar = Jalankan 'bash' 'docs/uji/uji-pagar-fase0.sh'
         $pagarOk = $LASTEXITCODE -eq 0
         Catat 'pagar FASE 0 (SSL, email, OPcache, header proxy)' $pagarOk
         if (-not $pagarOk) {
@@ -284,9 +299,9 @@ if (-not $Cepat) {
     #
     # Alasannya bukan kecepatan, melainkan waktu tunggu. Tanpa langkah ini,
     # satu backtick yang salah tempat di dalam template literal baru ketahuan
-    # setelah build image, 594 tes PHP, pint, dan eslint selesai - sekitar lima
-    # menit - dan pesannya muncul sebagai galat PowerShell yang menyebut baris
-    # `$hasil = node ...`, bukan baris yang rusak. `node --check` menjawabnya
+    # setelah build image, seluruh tes PHP, pint, dan eslint selesai - sekitar
+    # lima menit - dan pesannya muncul sebagai galat PowerShell yang menyebut baris
+    # `Jalankan`, bukan baris yang rusak. `node --check` menjawabnya
     # dalam hitungan detik dan menyebut berkas serta barisnya.
     #
     # Backtick di dalam template literal memang menutup literalnya lebih awal.
@@ -294,7 +309,7 @@ if (-not $Cepat) {
     # paling mudah terjadi saat menyunting skrip ini.
     $rusak = @()
     foreach ($s in Get-ChildItem docs\uji\*.mjs) {
-        & node --check $s.FullName 2>&1 | Out-Null
+        Jalankan 'node' '--check', $s.FullName | Out-Null
         if ($LASTEXITCODE -ne 0) { $rusak += $s.Name }
     }
     Catat 'sintaks seluruh skrip uji' ($rusak.Count -eq 0) $(if ($rusak.Count -eq 0) { '' } else { 'rusak: ' + ($rusak -join ', ') })
@@ -365,7 +380,7 @@ if (-not $Cepat) {
             # skrip membuat skrip berikutnya menerima 429 pada login yang BENAR.
             docker compose exec -T api php artisan cache:clear 2>&1 | Out-Null
 
-            $hasil = node "docs/uji/$s" 2>&1
+            $hasil = Jalankan 'node' "docs/uji/$s"
             $akhir = ($hasil | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
             Catat $s ($LASTEXITCODE -eq 0) $(if ($akhir) { $akhir } else { '' })
             if ($LASTEXITCODE -ne 0) {
@@ -377,7 +392,7 @@ if (-not $Cepat) {
         foreach ($s in @('uji-balapan-t4.mjs', 'uji-balapan-t5.mjs')) {
             docker compose exec -T api php artisan migrate:fresh --seed 2>&1 | Out-Null
             docker compose exec -T api php artisan cache:clear 2>&1 | Out-Null
-            $hasil = node "docs/uji/$s" 2>&1
+            $hasil = Jalankan 'node' "docs/uji/$s"
             $akhir = ($hasil | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
             Catat $s ($LASTEXITCODE -eq 0) $(if ($akhir) { $akhir } else { '' })
         }
@@ -397,7 +412,7 @@ if (-not $Cepat) {
         # ujinya gagal karena sebab yang tidak ada hubungannya.
         Judul 'Jalur proxy'
         docker compose exec -T api php artisan cache:clear 2>&1 | Out-Null
-        $hasilProxy = node 'docs/uji/uji-proxy.mjs' 2>&1
+        $hasilProxy = Jalankan 'node' 'docs/uji/uji-proxy.mjs'
         $akhirProxy = ($hasilProxy | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
         Catat 'uji-proxy.mjs' ($LASTEXITCODE -eq 0) $(if ($akhirProxy) { $akhirProxy } else { '' })
         if ($LASTEXITCODE -ne 0) {

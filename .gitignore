@@ -83,3 +83,8 @@ docs/akademik/_*.html
 # di-track ada di `docs/uji/*.png` dan ditulis ulang oleh skrip E2E sendiri.
 # Berkas di sini hanya untuk dibaca mata selama satu sesi.
 .impeccable/review/
+
+# Ruang kerja skill desain (prototipe arah, perkakas tangkap layar, log gerbang).
+# Prototipe adalah kertas kerja, bukan kode produksi: arah yang disetujui sudah
+# tinggal di `web/src/style.css` dan dijelaskan di `DESIGN.md`.
+.taste-skill/

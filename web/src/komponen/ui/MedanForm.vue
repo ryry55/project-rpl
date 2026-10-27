@@ -26,7 +26,7 @@ defineProps({
 
 <template>
   <div>
-    <label :for="id">{{ label }}<slot name="label-ekstra" /></label>
+    <label :for="id">{{ label }} <slot name="label-ekstra" /></label>
     <slot />
     <p v-if="galat" class="galat-bidang">{{ galat }}</p>
     <p v-else-if="bantuan || $slots.bantuan" class="bantuan">

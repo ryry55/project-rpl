@@ -288,6 +288,12 @@ onMounted(muat)
 </template>
 
 <style scoped>
+/* Status di sini datang mentah dari API ("aktif", "selesai"). Huruf besar di
+   awal kata cukup, dan `capitalize` aman karena semuanya satu kata. */
+.lencana-status {
+  text-transform: capitalize;
+}
+
 .daftar-data {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -297,7 +303,7 @@ onMounted(muat)
 
 .daftar-data dt {
   font-size: 12px;
-  font-weight: 560;
+  font-weight: 500;
   color: var(--teks-lemah);
   margin-bottom: 2px;
 }

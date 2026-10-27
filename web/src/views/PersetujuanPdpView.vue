@@ -150,15 +150,12 @@ onMounted(() => {
 .lencana-versi {
   display: inline-block;
   margin-bottom: 12px;
-  padding: 2px 8px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 400;
   color: var(--teks-lemah);
-  background: transparent;
-  border: 1px solid var(--garis);
-  border-radius: var(--radius-kecil);
+  background: var(--aktif);
+  border-radius: 999px;
 }
 
 .kepala-pdp h1 {

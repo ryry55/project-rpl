@@ -88,14 +88,20 @@ akuntansi, inventaris aset, chat di dalam aplikasi, prediksi/analitik.
 Keputusan desain yang **dibatalkan pemilik pada 27 Oktober 2026**:
 `docs/produk/2_DESIGN_SYSTEM.md` §1.1 mengunci "angka lebih penting daripada
 hiasan — tanpa ilustrasi, tanpa gradien, tanpa animasi". Pemilik melonggarkan
-prinsip itu untuk redesign ini: karakter visual boleh masuk (warna status lebih
-berani, kedalaman, transisi halus) selama tidak mengganggu pembacaan angka.
-Prinsip lain tetap mengikat: warna hanya untuk arti, satu implementasi bukan dua
-puluh salinan, dan ponsel sebagai sasaran utama.
+prinsip itu untuk redesign: karakter visual boleh masuk selama tidak mengganggu
+pembacaan angka. Prinsip lain tetap mengikat: warna hanya untuk arti, satu
+implementasi bukan dua puluh salinan, dan ponsel sebagai sasaran utama.
+
+Arah visual pertama ("kartu indeks katalog": kertas manila, biru aksen, cap
+karet) **ditolak pemilik pada 28 Oktober 2026** — terlalu kuning dan kuno, biru
+tombolnya tidak cocok, dan warna merek bersaing dengan angka. Arah yang berlaku
+adalah **"buku besar tanpa warna"**: kerangka sepenuhnya tinta dan abu-abu, satu
+tombol hampir hitam per layar, Geist untuk teks dan Geist Mono untuk nominal,
+warna hanya pada data dan keadaan uang.
 
 Pemilik juga mengizinkan **nama kelas dan markup berubah**, dengan konsekuensi
-28 skrip uji browser dan selektornya ikut diperbarui. Redesign menyentuh
-seluruh 25 view.
+skrip uji browser dan selektornya ikut diperbarui. Redesign menyentuh seluruh
+25 layar.
 
 Batasan keras yang tidak boleh dilanggar redesign apa pun:
 - R-07: penghuni hanya melihat miliknya; data orang lain → 404, bukan 403.
@@ -107,14 +113,15 @@ Batasan keras yang tidak boleh dilanggar redesign apa pun:
 
 ## Brand Commitments
 
-Nama yang dipakai: **Kos-Kosan** (lencana "KOS", biru `#2f6feb` saat ini).
-Bahasa antarmuka: Indonesia, menyapa pemilik dengan "Anda". Nada kalimat
-menjelaskan sebab, bukan memerintah — mis. "Kos ini belum siap dipakai"
-disertai alasan dan langkah berikutnya.
+Nama yang dipakai: **Kos-Kosan** (lencana "KOS" putih di atas kotak hampir
+hitam `#0a0a0a`, radius 6px). Bahasa antarmuka: Indonesia, menyapa pemilik dengan
+"Anda". Nada kalimat menjelaskan sebab, bukan memerintah — mis. "Kos ini belum
+siap dipakai" disertai alasan dan langkah berikutnya.
 
-Tidak ada font yang diunduh (keputusan sadar: satu permintaan jaringan
-tambahan pada koneksi yang sudah lambat). Tidak ada logo atau aset merek lain
-di luar lencana teks tersebut.
+Dua berkas font di-host sendiri di `web/public/font/`: **Geist** untuk teks dan
+**Geist Mono** untuk nominal uang. Bukan dari CDN — satu permintaan pihak ketiga
+lebih sedikit, dan aplikasi tetap utuh saat luring. Tidak ada logo atau aset
+merek lain di luar lencana teks tersebut.
 
 ## Evidence on Hand
 
@@ -148,7 +155,7 @@ pengguna, angka pendapatan, logo, foto properti, atau studi kasus.
 ## Accessibility & Inclusion
 
 - Target sentuh ≥ 44×44px pada `(pointer: coarse)`.
-- Kontras teks utama 17,8:1; teks sekunder 6,1:1 — keduanya lolos WCAG AA.
+- Kontras teks utama 19,6:1; teks sekunder 5,3:1 — keduanya lolos WCAG AA.
 - Galat tidak boleh disampaikan lewat warna saja: `aria-invalid` + pesan teks.
 - Tabel yang berubah menjadi kartu di ponsel tetap menyimpan `<table>`,
   `<tbody>`, `<tr>`, `<td>` agar pembaca layar tidak kehilangan struktur.

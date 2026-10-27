@@ -261,7 +261,7 @@ async function unduhTunggakan() {
   gap: 2px;
   padding: 14px 16px;
   font: inherit;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 400;
   color: var(--teks);
   text-align: left;
@@ -269,26 +269,27 @@ async function unduhTunggakan() {
   background: var(--permukaan);
   border: 1px solid var(--garis);
   border-radius: var(--radius);
-  transition: border-color 120ms ease, box-shadow 120ms ease;
+  transition: border-color 150ms ease, background-color 150ms ease;
 }
 
+/* Tanpa bayangan saat diam maupun saat disentuh: kartu ini bukan lapisan
+   mengambang, hanya satu pilihan di antara empat. */
 .kartu-kelompok:hover {
   border-color: var(--teks-lemah);
-  box-shadow: var(--bayang);
+  background: var(--hover);
 }
 
 .kelompok-judul {
-  font-weight: 600;
+  font-weight: 400;
   color: var(--teks-lemah);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 /* Angka kelompok adalah hal pertama yang dicari mata, jadi paling besar. */
 .kelompok-angka {
-  font-size: 30px;
-  font-weight: 680;
-  line-height: 1.1;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 

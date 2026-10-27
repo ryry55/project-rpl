@@ -234,13 +234,13 @@ onMounted(muat)
               </td>
               <td>{{ p.kontrak_aktif ? tanggal(p.kontrak_aktif.tgl_masuk) : '—' }}</td>
               <td>
-                <span v-if="p.sudah_aktif" class="lencana-status status-aktif">aktif</span>
+                <span v-if="p.sudah_aktif" class="lencana-status status-aktif">Aktif</span>
                 <template v-else>
-                  <span class="lencana-status status-belum_bayar">belum aktif</span>
+                  <span class="lencana-status status-belum_bayar">Belum aktif</span>
                   <button
                     v-if="sesi.boleh('kelola_penghuni')"
                     type="button"
-                    class="tombol-tautan mungil"
+                    class="halus mungil"
                     :disabled="kirimUlangId === p.id"
                     @click="kirimUlang(p)"
                   >

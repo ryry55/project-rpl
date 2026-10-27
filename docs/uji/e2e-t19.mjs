@@ -256,9 +256,10 @@ jalankan(async () => {
       })()
     `,
     )
+    // Lencana menampilkan kalimat ("Nonaktif"); yang diuji keadaannya.
     lapor(
       'tombol Sembunyikan mengubah status di tabel',
-      teksMemuat(String(disembunyikan), 'nonaktif'),
+      teksMemuat(String(disembunyikan).toLowerCase(), 'nonaktif'),
       String(disembunyikan),
     )
 

@@ -357,8 +357,8 @@ onMounted(muat)
             <tr v-for="p in daftar" :key="p.id">
               <td>
                 <strong>{{ p.nama }}</strong>
-                <span v-if="p.sudah_aktif" class="lencana-status status-aktif lencana-akun">aktif</span>
-                <span v-else class="lencana-status status-belum_bayar lencana-akun">belum aktif</span>
+                <span v-if="p.sudah_aktif" class="lencana-status status-aktif lencana-akun">Aktif</span>
+                <span v-else class="lencana-status status-belum_bayar lencana-akun">Belum aktif</span>
               </td>
               <td class="lemah mungil">{{ p.email }}</td>
               <td>
@@ -418,7 +418,7 @@ onMounted(muat)
 .lencana-akun {
   margin-left: 6px;
   vertical-align: 1px;
-  font-size: 10.5px;
+  font-size: 12px;
 }
 
 .kelompok {
@@ -476,15 +476,12 @@ onMounted(muat)
 
 .lencana-wewenang {
   display: inline-block;
-  padding: 1px 7px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 400;
   color: var(--teks-lemah);
-  background: transparent;
-  border: 1px solid var(--garis);
-  border-radius: var(--radius-kecil);
+  background: var(--aktif);
+  border-radius: 999px;
 }
 
 .lencana-wewenang.sensitif {

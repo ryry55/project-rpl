@@ -1241,14 +1241,11 @@ onMounted(() => {
    bukan merah: ia bukan masalah, hanya sesuatu yang belum dikerjakan. */
 .lencana-verifikasi {
   display: inline-block;
-  padding: 1px 7px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 500;
   white-space: nowrap;
-  border: 1px solid currentColor;
-  border-radius: var(--radius-kecil);
+  border-radius: 999px;
 }
 
 .verifikasi-belum {

@@ -598,13 +598,10 @@ onMounted(muat)
 
 .lencana-aktif {
   display: inline-block;
-  padding: 1px 7px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  border: 1px solid currentColor;
-  border-radius: var(--radius-kecil);
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 999px;
 }
 
 .lencana-aktif.aktif {

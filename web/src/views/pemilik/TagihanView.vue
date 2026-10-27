@@ -202,7 +202,7 @@ onMounted(muat)
       <template #aksi>
         <RouterLink
           v-if="kebijakanKurang.length && sesi.boleh('ubah_kebijakan')"
-          class="tombol-tautan"
+          class="tombol-tautan halus"
           :to="{ name: 'pemilik-kebijakan' }"
         >
           Isi kebijakan dulu
@@ -287,13 +287,16 @@ onMounted(muat)
 
 <style scoped>
 /* Gerbang ditandai garis kiri, sama seperti di layar Kebijakan, supaya dua
-   tempat yang membicarakan hal yang sama terlihat sebagai satu hal. */
+   tempat yang membicarakan hal yang sama terlihat sebagai satu hal. Warna
+   peringatan, bukan bahaya: belum lengkapnya kebijakan bukan kerusakan, hanya
+   langkah yang belum dikerjakan - dan merah di sini membuat pemilik mencari
+   kesalahan yang tidak ada. */
 .gerbang-tagihan {
-  border-left: 3px solid var(--bahaya);
-  background: var(--bahaya-lemah);
+  border-left: 3px solid var(--peredam);
+  background: var(--peredam-lemah);
 }
 
 .gerbang-tagihan :deep(h2) {
-  color: var(--bahaya);
+  color: var(--teks);
 }
 </style>

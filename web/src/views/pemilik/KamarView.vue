@@ -467,7 +467,7 @@ onMounted(muat)
               <td class="kanan">
                 <template v-if="k.tarif_terakhir">
                   {{ rupiah(k.tarif_terakhir.nilai) }}
-                  <span class="lemah mungil">sejak {{ tanggal(k.tarif_terakhir.berlaku_dari) }}</span>
+                  <span class="lemah mungil tarif-sejak">sejak {{ tanggal(k.tarif_terakhir.berlaku_dari) }}</span>
                 </template>
                 <span v-else class="lemah mungil">Belum ditetapkan</span>
               </td>
@@ -547,16 +547,20 @@ onMounted(muat)
 }
 
 .label-fasilitas-satu {
-  padding: 1px 7px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 400;
   color: var(--teks-lemah);
-  background: transparent;
-  border: 1px solid var(--garis);
-  border-radius: var(--radius-kecil);
+  background: var(--aktif);
+  border-radius: 999px;
   white-space: nowrap;
+}
+
+/* Tanggal tarif berlaku turun ke baris kedua: satu baris berisi "Rp 1.250.000
+   sejak 1 Jan 2026" memaksa kolom nominal selebar dua kali angkanya, dan di
+   layar sempit nominalnya terpotong di tengah angka. */
+.tarif-sejak {
+  display: block;
 }
 
 /* Tombol aksi ditahan satu baris: "Fasilitas" yang terlipat ke bawah "Atur

@@ -1,331 +1,337 @@
 ---
 name: Kos-Kosan
-description: Sistem informasi operasional kos-kosan — kartu indeks katalog untuk pemilik kos 5–30 kamar.
+description: Sistem informasi operasional kos-kosan — buku besar tanpa warna untuk pemilik kos 5–30 kamar.
 colors:
-  ground-manila: "#efe8d8"
-  surface-card: "#faf6ec"
-  surface-sunken: "#f4eddd"
-  rule-line: "#c9bfa8"
-  rule-hairline: "#ded5c0"
-  ink: "#1a1712"
-  ink-muted: "#5f594c"
-  ink-accent: "#1f4b99"
-  ink-accent-wash: "#dde5f4"
-  ink-accent-deep: "#163a75"
-  settled-green: "#2f6b46"
-  settled-green-wash: "#dfeade"
-  overdue-red: "#a8322a"
-  overdue-red-wash: "#f6e0da"
-  pending-amber: "#8a5a00"
-  pending-amber-wash: "#f5e8cb"
+  ground: "#f8f8f8"
+  surface: "#ffffff"
+  raised: "#f2f2f2"
+  active: "#ececec"
+  hover: "#fafafa"
+  border: "#e6e6e6"
+  rule: "#f0f0f0"
+  control: "#d4d4d4"
+  ink: "#0a0a0a"
+  ink-muted: "#6b6b6b"
+  primary: "#141414"
+  primary-hover: "#2a2a2a"
+  chart-hue: "#1d5fbf"
+  positive: "#2e7d32"
+  positive-wash: "#dcfae5"
+  negative: "#c4242a"
+  negative-wash: "#ffedea"
+  warning: "#92400e"
+  warning-wash: "#fffbeb"
 typography:
   display:
-    fontFamily: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "30px"
-    fontWeight: 700
-    lineHeight: 1.15
-    letterSpacing: "-0.03em"
+    fontFamily: "Geist, Inter, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "24px"
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: "-0.015em"
   headline:
-    fontFamily: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "19px"
-    fontWeight: 650
-    lineHeight: 1.15
-    letterSpacing: "-0.02em"
-  label:
-    fontFamily: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "11px"
-    fontWeight: 700
-    lineHeight: 1.15
-    letterSpacing: "0.14em"
+    fontFamily: "Geist, Inter, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "16px"
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: "-0.015em"
+  title:
+    fontFamily: "Geist, Inter, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "13px"
+    fontWeight: 600
+    lineHeight: 1.2
   body:
-    fontFamily: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "15px"
+    fontFamily: "Geist, Inter, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "14px"
     fontWeight: 400
-    lineHeight: 1.55
-    letterSpacing: "normal"
+    lineHeight: "20px"
+  label:
+    fontFamily: "Geist, Inter, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "12px"
+    fontWeight: 500
+  money:
+    fontFamily: "Geist Mono, ui-monospace, Cascadia Mono, monospace"
+    fontSize: "13px"
+    fontWeight: 400
+    letterSpacing: "-0.01em"
 rounded:
-  kecil: "2px"
-  dasar: "3px"
+  kartu: "8px"
+  kendali: "6px"
+  pil: "999px"
 spacing:
-  xs: "3px"
-  sm: "9px"
-  md: "14px"
-  lg: "18px"
-  xl: "26px"
+  xs: "4px"
+  sm: "8px"
+  md: "12px"
+  lg: "16px"
+  xl: "32px"
 components:
   tombol-utama:
-    backgroundColor: "{colors.ink-accent}"
-    textColor: "{colors.surface-card}"
-    rounded: "{rounded.kecil}"
-    padding: "9px 15px"
+    backgroundColor: "{colors.primary}"
+    textColor: "#ffffff"
+    rounded: "{rounded.kendali}"
+    height: "36px"
+    padding: "7px 13px"
   tombol-utama-hover:
-    backgroundColor: "{colors.ink-accent-deep}"
-    textColor: "{colors.surface-card}"
+    backgroundColor: "{colors.primary-hover}"
   tombol-sekunder:
-    backgroundColor: "transparent"
+    backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.kecil}"
-    padding: "9px 15px"
+    rounded: "{rounded.kendali}"
+    height: "36px"
   kartu:
-    backgroundColor: "{colors.surface-card}"
+    backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.dasar}"
-  cap-status:
-    backgroundColor: "transparent"
-    textColor: "{colors.settled-green}"
-    rounded: "{rounded.kecil}"
-    padding: "2px 8px"
+    rounded: "{rounded.kartu}"
+  pil-status:
+    backgroundColor: "{colors.active}"
+    textColor: "#3d3d3d"
+    rounded: "{rounded.pil}"
+    height: "22px"
+    padding: "0 9px"
   masukan:
-    backgroundColor: "{colors.surface-card}"
+    backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.kecil}"
-    padding: "9px 11px"
+    rounded: "{rounded.kendali}"
+    height: "36px"
+    padding: "8px 11px"
 ---
 
 # Design System: Kos-Kosan
 
 ## Overview
 
-**Creative North Star: "Kartu indeks di laci katalog"**
+**Creative North Star: "Buku besar tanpa warna"**
 
-Setiap catatan adalah satu kartu di laci: kamar, penghuni, tagihan. Kamu tidak
-menggulir tabel tanpa identitas — kamu membaca entri yang menyebut dirinya
-sendiri di kepala, dengan nomor di kiri dan nominal rata kanan pada garis dasar
-yang sama. Sistem ini dibangun dari karton manila hangat, tinta ketikan hampir
-hitam, dan garis rambut — benda kerja yang dipakai orang yang menghitung uang
-setiap hari, bukan papan iklan.
+Aplikasi ini adalah buku besar, bukan katalog. Isinya angka yang harus terbaca
+sama setiap pagi: siapa belum bayar, berapa, sejak kapan. Karena itu kerangkanya
+sepenuhnya tinta dan abu-abu — tidak ada warna merek di sidebar, tombol, atau
+kepala halaman. Warna hanya muncul di tempat yang membawa arti: hijau untuk lunas,
+amber untuk perlu ditindak, merah untuk terlambat, dan satu biru untuk data.
 
-Keputusan ini lahir dari penolakan yang jelas: **tabel abu-abu tanpa batas di
-atas bidang putih tanpa suhu**. Versi sebelumnya benar secara fungsi tetapi
-terasa dirakit, bukan dirancang — skala tipografinya bergerak 11,5–22px dengan
-selisih 0,5px, sehingga judul tidak pernah terasa sebagai judul. Sekarang skala
-bergerak 12/14/16/19/24/30, pangkat dibawa oleh berat, huruf besar, dan garis.
+Yang membuatnya terasa dirancang bukan hiasan, melainkan keputusan yang konsisten:
+satu aksi gelap per layar, angka uang berjarak tetap di kolom kanan, dan kepala
+tabel yang dibaca sebagai kalimat — bukan cap huruf besar berspasi.
 
-Batas keras yang membentuk seluruh dokumen ini: aplikasi ini **mode Operate**.
-Pemilik membukanya untuk menyelesaikan pekerjaan, bukan menikmati halaman.
-Karena itu dunia visual hanya menyumbang empat hal — rupa huruf, palet,
-densitas, dan satu gerakan khas. Ia **tidak** menyumbang tata letak, model
-navigasi, atau bentuk kendali. Tabel tetap tabel; sidebar tetap sidebar; tombol
-tetap tombol. Lembar bergaris yang menggantikan tabel adalah kostum, bukan
-desain.
+Batas kerasnya: aplikasi ini **mode Operate**. Pemilik membukanya untuk
+menyelesaikan pekerjaan. Dunia visual hanya menyumbang empat hal — rupa huruf,
+palet, densitas, dan satu gerakan khas (pil status). Ia tidak menyumbang tata
+letak, model navigasi, atau bentuk kendali. Tabel tetap tabel; sidebar tetap
+sidebar; tombol tetap tombol.
 
 **Key Characteristics:**
 
-- Bidang karton manila hangat, bukan putih; tinta hampir hitam, bukan hitam murni.
-- Satu warna aksen untuk tindakan utama saja; aksi sekunder bergaris tanpa isian.
-- Kepala tabel bergaris ganda; baris dipisah garis rambut, bukan latar belang.
-- Keadaan dirender sebagai **cap karet**, bukan lencana pil.
-- Angka uang selalu `tabular-nums`, rata kanan, pada garis dasar bersama.
-- Sudut hampir siku (2–3px); bayangan satu arah, bukan halo.
+- Bidang `#f8f8f8`, panel putih, garis `#e6e6e6`; tanpa warna merek di kerangka.
+- Satu tombol gelap (`#141414`) per layar; aksi lain bergaris tipis.
+- Huruf Geist untuk teks, Geist Mono untuk nominal uang.
+- Keadaan normal adalah teks biasa; hanya pengecualian yang menjadi pil.
+- Kepala tabel 12px abu-abu tanpa huruf besar; baris 44px.
+- Tanpa bayangan saat diam. Satu bayangan hanya untuk panel mengambang.
+- Sudut 8px untuk panel, 6px untuk kendali.
 
 ## Colors
 
-Palet dua suhu: kertas hangat untuk bidang, tinta dingin untuk teks, dan satu
-biru tinta yang langka untuk menandai satu-satunya tindakan utama di layar.
-
 ### Primary
 
-- **Tinta aksen** (`#1f4b99` / `--aksen`): hanya untuk tindakan utama, tautan
-  dalam teks, dan penanda halaman aktif di sidebar. Satu per layar. Versi
-  gelapnya (`#163a75` / `--aksen-tua`) dipakai saat hover saja. Latar bilasnya
-  (`#dde5f4` / `--aksen-lemah`) dipakai untuk baris menu aktif dan cap
-  "sebagian" — bukan untuk tombol.
+- **Tinta aksi** (`#141414` / `--aksen`): hanya untuk satu tindakan utama per
+  layar. Hover menggelap ke `#2a2a2a` (`--aksen-tua`). Bilasnya `#ececec`
+  (`--aksen-lemah`) dipakai untuk baris menu aktif dan pil netral — tidak pernah
+  sebagai isian tombol kedua.
 
 ### Neutral
 
-- **Karton manila** (`#efe8d8` / `--bg`): bidang halaman. Ini yang memberi
-  aplikasi suhunya; putih bersih membuat tabel terbaca sebagai lembar kerja
-  kosong.
-- **Permukaan kartu** (`#faf6ec` / `--permukaan`): panel, kartu, sidebar,
-  kepala tabel yang menempel. Satu tingkat lebih terang dari bidang.
-- **Permukaan turun** (`#f4eddd` / `--permukaan-turun`): baris tabel saat
-  hover, kolom aksi yang menempel saat baris disorot, latar blok netral.
-- **Garis** (`#c9bfa8` / `--garis`): batas struktur — tepi kartu, garis bawah
-  kepala sidebar, bingkai cap.
-- **Garis rambut** (`#ded5c0` / `--garis-lemah`): pemisah di dalam struktur —
-  antar baris tabel, antar butir daftar.
-- **Tinta** (`#1a1712` / `--teks`): seluruh teks utama dan garis ganda kepala
-  tabel.
-- **Tinta redup** (`#5f594c` / `--teks-lemah`): label kolom, keterangan,
-  teks sekunder. Kontras 6,1:1 terhadap permukaan kartu — lolos WCAG AA.
+- **Bidang** (`#f8f8f8` / `--bg`): latar halaman.
+- **Permukaan** (`#ffffff` / `--permukaan`): panel, kartu, sidebar, bilah atas.
+- **Permukaan turun** (`#f2f2f2` / `--permukaan-turun`): hover tombol sekunder
+  dan latar blok netral.
+- **Aktif** (`#ececec` / `--aktif`): item navigasi aktif, pil netral.
+- **Hover** (`#fafafa` / `--hover`): baris tabel saat disorot.
+- **Garis** (`#e6e6e6` / `--garis`): batas struktur — tepi kartu, garis bawah
+  kepala tabel.
+- **Garis rambut** (`#f0f0f0` / `--garis-lemah`): pemisah antar baris tabel dan
+  antar butir daftar.
+- **Kendali** (`#d4d4d4` / `--kendali`): bingkai masukan dan tombol sekunder.
+- **Tinta** (`#0a0a0a` / `--teks`): seluruh teks utama.
+- **Tinta redup** (`#6b6b6b` / `--teks-lemah`): label kolom, keterangan, teks
+  sekunder. Kontras 5,3:1 terhadap putih — lolos WCAG AA.
+
+### State
+
+- **Lunas** `#2e7d32` di atas `#dcfae5` (`--sukses`, `--sukses-lemah`).
+- **Belum bayar / sebagian** `#92400e` di atas `#fffbeb` (`--peredam`,
+  `--peredam-lemah`). Amber, bukan merah: belum dibayar adalah keadaan yang perlu
+  ditindak, bukan kerusakan.
+- **Terlambat / bahaya** `#c4242a` di atas `#ffedea` (`--bahaya`,
+  `--bahaya-lemah`).
+- **Data** `#1d5fbf` (`--grafik`): satu-satunya warna data, dipakai bilah
+  kemajuan di ringkasan tagihan.
 
 ### Named Rules
 
-**The One Accent Rule.** Biru aksen dipakai pada **satu** tindakan utama per
-layar, dan tidak pernah sebagai hiasan atau latar tombol sekunder. Ketika semua
-tombol berwarna sama, mata kehilangan jalan untuk tahu mana yang ditekan lebih
-dulu — itu cacat keterbacaan, bukan soal selera.
+**The Achromatic Chrome Rule.** Sidebar, bilah atas, kepala halaman, dan tombol
+tidak memakai warna merek. Kalau sebuah elemen kerangka berwarna, warnanya harus
+sedang menyampaikan keadaan.
 
-**The Colour Earns Its Place Rule.** Warna hanya dipakai untuk arti: hijau =
-lunas/selesai, amber = perlu ditindak, merah = terlambat/bahaya, biru =
-tindakan. Warna yang tidak membawa salah satu arti itu tidak dipakai.
+**The One Primary Rule.** Satu tombol gelap penuh per layar. Ketika semua tombol
+berwarna sama, mata kehilangan jalan untuk tahu mana yang ditekan lebih dulu.
+
+**The Colour Earns Its Place Rule.** Warna hanya untuk arti: hijau = lunas, amber
+= perlu ditindak, merah = terlambat, biru = data. Warna tanpa salah satu arti itu
+tidak dipakai.
 
 ## Typography
 
-**Display Font:** tumpukan sistem (`ui-sans-serif`, `system-ui`, Segoe UI,
-Roboto) — tanpa unduhan
-**Body Font:** sama
-**Label Font:** sama, dengan huruf besar dan spasi lebar
+**Display / Body / Label Font:** Geist, di-host sendiri dari
+`/font/geist.woff2` (variabel 100–900).
+**Money Font:** Geist Mono, `/font/geist-mono.woff2`.
 
-**Character:** satu keluarga untuk semua pangkat. Tidak ada font yang diunduh:
-itu keputusan sadar, satu permintaan jaringan tambahan pada koneksi yang sudah
-lambat di kos. Pangkat dibawa oleh **berat, huruf besar, dan garis** — bukan
-oleh ukuran yang berbeda 0,5px.
+**Character:** satu keluarga untuk semua pangkat; mono hanya untuk angka. Geist
+memberi bentuk huruf yang tegas pada ukuran kecil tanpa menjadi grotesk yang
+berteriak. Di-host sendiri, bukan dari CDN: satu permintaan jaringan lebih sedikit
+pada koneksi kos, dan aplikasi tetap utuh saat luring lewat service worker.
 
 ### Hierarchy
 
-- **Display** (700, 30px, 1.15, -0.03em): judul halaman. Satu per layar.
-- **Headline** (650, 19px, 1.15, -0.02em): judul panel dan bagian.
-- **Title** (700, 14px, huruf besar, 0.08em): sub-bagian di dalam panel.
-- **Body** (400, 15px, 1.55): seluruh teks isi dan sel tabel. Angka uang
-  memakai `tabular-nums` dari `body`, sehingga kolom nominal sejajar tanpa
-  aturan per-tabel.
-- **Label** (700, 11px, huruf besar, 0.14em): kepala tabel, label medan,
-  keterangan kecil.
+- **Display** (600, 24px, 1.2, -0.015em): judul halaman. Satu per layar.
+- **Headline** (600, 16px, 1.2): judul panel dan bagian.
+- **Title** (600, 13px): sub-bagian di dalam panel.
+- **Body** (400, 14px/20px): teks isi dan sel tabel.
+- **Label** (500, 12px): label medan, keterangan, kepala tabel. Bukan huruf
+  besar, bukan berspasi lebar.
+- **Money** (400, 13px, Geist Mono, -0.01em): seluruh nominal rupiah.
 
 ### Named Rules
 
-**The Measured Steps Rule.** Skala tipografi harus bergerak dalam lompatan yang
-bisa dirasakan (12/14/16/19/24/30), bukan 0,5px. Skala yang terlalu rapat
-membuat semua teks terbaca "normal", dan seluruh layar kehilangan hierarki.
+**The Measured Steps Rule.** Skala bergerak 12/13/14/16/24, bukan 0,5px. Skala
+yang terlalu rapat membuat semua teks terbaca "normal", dan layar kehilangan
+hierarki.
 
-**The Tabular Money Rule.** Setiap nominal rupiah memakai angka tabular dan
-rata kanan. Angka yang tidak sejajar kolomnya memaksa mata membaca ulang tiap
-baris — dan pada tabel tagihan itu pekerjaan yang dilakukan setiap hari.
+**The Tabular Money Rule.** `font-variant-numeric: tabular-nums` dipasang di
+`body`, bukan diingat per tabel, dan nominal memakai Geist Mono. Angka yang tidak
+sejajar kolomnya memaksa mata membaca ulang tiap baris — pekerjaan yang dilakukan
+setiap hari di tabel tagihan.
 
 ## Layout
 
-Grid dua kolom: sidebar tetap 244px dan kolom isi `minmax(0, 1fr)`. Sidebar
-adalah **tiga baris tetap** — kepala (merek + lonceng), menu yang menggulir
-sendiri, dan kaki (akun + Keluar) yang menempel di dasar. Hanya kolom isi yang
-menggulir halaman; sidebar tidak ikut berpindah.
+Grid dua kolom: sidebar tetap `256px` dan kolom isi `minmax(0, 1fr)`. Sidebar
+adalah **tiga baris tetap** — merek + lonceng, menu, dan kaki akun + Keluar.
+Hanya kolom isi yang menggulir.
 
-Batas lebar isi: `1240px` untuk halaman bertabel lebar, mengikuti ruang yang
-tersedia (sidebar 244px + padding 56px), bukan angka tetap. Padding kolom isi
-`26px 28px 40px`; jarak antar-blok `18px`.
+Lebar isi `1100px`, terpusat (`margin-inline: auto`); halaman bertabel lebar
+menimpanya dengan `.halaman-lebar` (`1240px`). Padding kolom isi
+`32px 32px 56px`; jarak antar-blok `16px`.
 
-Densitas tabel: padding sel `9px` mendatar dan `10px` tegak. Angka ini diukur,
-bukan ditebak — pada tabel tagihan 11 kolom, padding 14px menghabiskan 308px
-hanya untuk ruang kosong dan memotong tombol "Rincian" di kolom terakhir.
+Densitas tabel: kepala `38px`, baris `44px` (`--baris`), padding sel
+`10px 12px`. Padding 14px mendatar memotong tombol di kolom terakhir tabel
+tagihan 11 kolom pada 1440px — angka ini diukur, bukan ditebak.
 
-**Breakpoint.** `860px` — sidebar berhenti menjadi kolom samping dan menjadi
-kepala yang ikut menggulir; menu berubah menjadi deret mendatar yang bisa
-digeser. `620px` — tabel 4+ kolom dilipat menjadi kartu, kepala halaman
-membungkus, dan formulir dua kolom menjadi satu. `(pointer: coarse)` — sasaran
-sentuh minimal 44×44px.
+**Breakpoint.**
 
-**Kolom aksi menempel.** Pada tabel yang lebih lebar daripada bungkusnya,
-kolom tindakan memakai `position: sticky; right: 0` dengan latar buram. Bukan
-tabelnya yang harus muat, melainkan tindakannya yang harus selalu terlihat.
+- `900px` — sidebar menjadi laci yang menutupi isi; bilah atas `52px` muncul
+  dengan nama produk dan tombol menu.
+- `620px` — tabel 4+ kolom dilipat menjadi kartu lewat direktif `v-kartu-tabel`;
+  formulir dua kolom menjadi satu; kepala halaman membungkus.
+- `(pointer: coarse)` — sasaran sentuh minimal 44×44px.
+
+**Kolom aksi menempel.** Pada tabel yang lebih lebar daripada bungkusnya, kolom
+bertanda `.kolom-aksi` memakai `position: sticky; right: 0` dengan latar buram
+dan garis pemisah 1px. Bukan tabelnya yang harus muat, melainkan tindakannya
+yang harus selalu terlihat. Bungkusnya tetap bisa digeser mendatar, dengan bilah
+gulir tipis yang terlihat.
 
 ## Elevation & Depth
 
-Sistem ini **hampir datar**: kedalaman dibawa oleh perbedaan nada bidang
-(karton → permukaan kartu → permukaan turun) dan oleh garis, bukan oleh
-bayangan. Satu bayangan saja dipakai, dan arahnya satu: ke bawah, seperti
-kartu yang menumpuk di laci.
-
-### Shadow Vocabulary
-
-- **Kartu terangkat** (`box-shadow: 0 1px 0 rgba(26,23,18,0.06), 0 2px 6px rgba(26,23,18,0.08)`):
-  hanya pada `.kartu` — panel, kotak formulir, dan kartu tabel di ponsel.
+Sistem ini **datar**. Kedalaman dibawa oleh nada bidang (bidang → putih → turun)
+dan oleh garis, bukan bayangan. Satu bayangan ada, dan hanya untuk satu hal:
+panel notifikasi yang benar-benar mengambang di atas halaman
+(`0 8px 24px rgba(10,10,10,0.12)` / `--bayang`).
 
 ### Named Rules
 
-**The One-Direction Rule.** Bayangan selalu punya offset ke bawah dan blur
-lembut. Halo berwarna tanpa offset adalah hiasan, bukan kedalaman, dan tidak
-dipakai di sini.
+**The Flat-at-Rest Rule.** Tidak ada `box-shadow` pada kartu, panel, atau tombol
+saat diam maupun saat hover. Kartu yang tampak mengambang bersaing dengan isi
+tabel — dan isi tabel yang dibayar pemilik untuk dibaca.
 
 ## Shapes
 
-Sudut hampir siku: `3px` untuk kartu dan panel, `2px` untuk kendali (tombol,
-masukan, cap). Karton tidak membulat. Satu-satunya bentuk bulat penuh yang
-tersisa adalah avatar akun dan penanda jumlah pada lonceng — keduanya penanda
-identitas, bukan wadah konten.
+Sudut `8px` untuk panel dan kartu (`--radius`), `6px` untuk kendali — tombol,
+masukan, tautan bergaya tombol (`--radius-kecil`). Pil status dan penanda jumlah
+melingkar penuh (`999px`), karena bentuknya menyampaikan "label", bukan "kotak
+isian".
 
-Garis adalah bahasa bentuk utama sistem ini: garis ganda (atas dan bawah) pada
-kepala tabel, garis rambut antar baris, garis tepi pada cap, dan garis kiri
-sebagai penanda. Ada **dua** garis kiri, dan angkanya berbeda karena
-pekerjaannya berbeda:
-
-- **2px** menandai **pilihan**: halaman aktif di sidebar, butir yang sedang
-  dibuka. Ia bergerak bersama pengguna.
-- **3px** menandai **keadaan**: panel yang menuntut perhatian (gerbang
-  kebijakan, piutang, kelompok wewenang sensitif, kotak pembatalan). Ia
-  diam dan menunggu dibaca.
-
-Angka yang berbeda itu disengaja, bukan kelalaian. Garis 2px yang juga dipakai
-untuk keadaan akan terbaca sebagai pilihan — pemilik akan mengira panelnya bisa
-diklik. **`impeccable detect` menandai garis kiri pada kartu sebagai `side-tab`**;
-di sini ia diterima karena membawa arti keadaan, bukan hiasan, dan karena itu
-didaftarkan sebagai pengecualian di `.impeccable/config.json` beserta alasannya.
-
-Bingkai lebih dipercaya daripada latar berwarna, karena bingkai tidak menambah
-bidang warna yang harus dibaca.
+Garis adalah bahasa bentuk kedua. Ia menandai struktur (tepi kartu, kepala
+tabel) dan keadaan (garis kiri 3px pada panel yang menuntut perhatian: gerbang
+kebijakan, penyiapan, pembatalan). Garis kiri itu diterima karena membawa arti,
+bukan hiasan.
 
 ## Components
 
 ### Buttons
 
-- **Shape:** hampir siku (2px), bingkai 1px, padding `9px 15px`, teks 14px/600.
-- **Primary:** isian penuh `--aksen` dengan teks `--permukaan`. Satu per layar.
-- **Hover / Focus:** hover menggelap ke `--aksen-tua`; fokus memakai cincin
-  `outline: 2px solid var(--aksen); outline-offset: 2px` yang tidak boleh
+- **Shape:** `6px`, tinggi `36px` (`--kendali-tinggi`), padding `7px 13px`,
+  teks 13px/500.
+- **Primary:** isian `--aksen` dengan teks putih. Satu per layar.
+- **Hover / Focus:** hover ke `--aksen-tua`; fokus memakai
+  `outline: 2px solid var(--teks); outline-offset: 2px` yang tidak boleh
   dihapus tanpa pengganti.
-- **Secondary (`.halus`):** latar tembus, bingkai `--garis`, teks `--teks`.
-  Hover memakai `--permukaan-turun`, bukan warna aksen — aksi sekunder tidak
-  boleh bersaing dengan aksi utama.
-- **Danger (`.bahaya`):** isian penuh `--bahaya`; hanya untuk membatalkan,
-  menghapus, menolak.
-- **Compact (`.mungil`):** padding `5px 10px`, teks 13px — untuk tombol di
-  dalam baris tabel, bukan untuk tindakan halaman.
+- **Secondary (`.halus`):** latar putih, bingkai `--kendali`, teks `--teks`.
+  Hover memakai `--permukaan-turun`.
+- **Danger (`.bahaya`):** isian `--bahaya`; hanya untuk membatalkan, menghapus,
+  menolak.
+- **Compact (`.mungil`):** tinggi 28px, teks 12px — untuk tombol di dalam baris
+  tabel. Di layar sentuh area sentuhnya diperluas ke 44px lewat `::after` tanpa
+  mengubah tata letak.
+- **Link (`.tautan-teks`):** teks redup tanpa bingkai; hover menjadi tinta penuh
+  dan bergaris bawah. Untuk aksi sekunder yang tidak boleh tampil sebagai
+  tombol kedua.
 
-### Cap (gerakan khas)
+### Status pill (gerakan khas)
 
-- **Style:** huruf kapital 10,5px, berat 700, spasi `0.12em`, bingkai 1px
-  `currentColor`, radius 2px, `transform: rotate(-1.5deg)`, opasitas 0.9 —
-  seperti cap karet yang ditekan tangan.
-- **Warna:** mengikuti arti keadaan, bukan hiasan. `--sukses` untuk lunas dan
-  terisi, `--peredam` untuk belum bayar, `--aksen` untuk sebagian,
-  `--teks-lemah` untuk keadaan netral.
+- **Style:** tinggi 22px, padding `0 9px`, radius `999px`, teks 12px/500.
+- **Normal bukan pil.** `status-terisi` dan `status-aktif` dirender sebagai teks
+  biasa. Pengecualian yang diberi tint: lunas (hijau), belum bayar / sebagian
+  (amber), terlambat (merah), kosong/selesai/dibatalkan/nonaktif (abu).
+  Sebelas pil hijau di satu tabel membuat warna berhenti berarti.
+- **Teks:** kalimat, bukan kapital berspasi — "Belum bayar", bukan "BELUM BAYAR".
+  Huruf pertama dinaikkan di `LencanaStatus.vue`, sehingga hanya kata pertama
+  yang berhuruf besar.
 - **Kelas `.lencana-status` dipertahankan** meski bentuknya berubah: delapan
   tempat di skrip uji memilihnya, dan nama kelas bukan bagian dari desain.
 
 ### Cards / Containers
 
-- **Corner Style:** 3px.
+- **Corner:** `8px`.
 - **Background:** `--permukaan` di atas bidang `--bg`.
-- **Shadow Strategy:** satu bayangan terangkat (lihat Elevation).
-- **Border:** 1px `--garis`.
-- **Internal Padding:** 16–20px.
+- **Border:** 1px `--garis`. Tanpa bayangan.
+- **Internal padding:** 14–20px.
 
 ### Inputs / Fields
 
-- **Style:** latar `--permukaan`, bingkai 1px `--garis`, radius 2px, padding
-  `9px 11px`, teks 14px. `select` memakai panah SVG sendiri agar tingginya
-  seragam dengan `input` di sebelahnya.
-- **Focus:** bingkai `--aksen` + cincin `0 0 0 3px var(--aksen-lemah)`.
-- **Error:** bingkai `--bahaya` lewat `aria-invalid="true"`, disertai pesan
-  teks — galat tidak boleh disampaikan lewat warna saja.
-- **Disabled:** teks `--teks-lemah`, latar `--permukaan-turun`.
+- **Style:** latar putih, bingkai 1px `--kendali`, radius `6px`, tinggi 36px,
+  padding `8px 11px`, teks 14px. `select` memakai panah SVG sendiri agar
+  tingginya seragam dengan `input` di sebelahnya.
+- **Focus:** bingkai `--teks` + cincin `0 0 0 3px var(--aksen-lemah)`.
+- **Error:** bingkai `--bahaya` lewat `aria-invalid="true"`, disertai pesan teks
+  — galat tidak boleh disampaikan lewat warna saja.
+- **Disabled:** teks redup, latar `--permukaan-turun`.
 
 ### Navigation
 
-- **Style:** sidebar 244px, tiga baris tetap. Item menu menyebut nama dan
-  keterangan satu baris; keterangan disembunyikan di bawah 860px.
-- **Default / Hover:** teks `--teks-lemah`; hover memakai `--permukaan-turun`
-  dan teks `--teks`.
-- **Active:** teks `--aksen`, latar `--aksen-lemah`, dan **garis kiri 2px**
-  `--aksen` — bahasa tab pemisah katalog, tanpa mengubah menu menjadi tab rail.
-- **Mobile:** deret mendatar yang bisa digeser, bilah gulirnya disembunyikan.
+- **Style:** sidebar `256px`, tiga baris tetap, item 30px dengan ikon 16px.
+  Item dikelompokkan (tanpa judul, Uang, Kos, Akses, Bantuan).
+- **Default / Hover:** teks `--teks-lemah`; hover latar `--permukaan-turun` dan
+  teks `--teks`.
+- **Active:** latar `--aktif`, teks `--teks`, berat 500. Tanpa garis kiri —
+  bilah latar sudah cukup, dan garis kiri dipesan untuk keadaan.
+- **Mobile:** laci dari kiri, lebar `min(320px, 86vw)`, ditutup dengan tombol
+  yang sama atau `Esc`.
 
 ### Tables
 
-- **Header:** huruf kapital 11px, spasi `0.14em`, garis **ganda** (`border-top`
-  dan `border-bottom` 1px `--teks`), latar transparan. Garis ganda adalah
-  bahasa buku besar dan memisahkan tajuk dari isi tanpa memerlukan latar.
-- **Rows:** dipisah garis rambut 1px; hover memakai `--permukaan-turun`.
-- **Numeric cells:** kelas `.kanan` untuk rata kanan, angka tabular.
+- **Header:** 12px/400 `--teks-lemah`, satu garis rambut `--garis` di bawahnya,
+  tanpa latar, tanpa huruf besar. Judul kolom dibaca sebagai kalimat.
+- **Rows:** 44px, dipisah `--garis-lemah`; hover `--hover`.
+- **Numeric cells:** kelas `.kanan` untuk rata kanan; Geist Mono dipasang lewat
+  `.tabel td.kanan:not(:has(button))`, sehingga sel yang berisi tombol tidak ikut
+  menjadi mono.
 - **Mobile (<620px):** tabel 4+ kolom dilipat menjadi kartu lewat direktif
   `v-kartu-tabel`, dengan label per sel diturunkan dari `<th>` — bukan ditulis
   ulang. Struktur `<table>`, `<tbody>`, `<tr>`, `<td>` tetap ada agar pembaca
@@ -335,15 +341,12 @@ bidang warna yang harus dibaca.
 
 ### Do:
 
-- **Do** beri satu tindakan utama per layar, bergaya isian tinta penuh; semua
-  aksi lain bergaris tipis tanpa isian.
-- **Do** pakai `tabular-nums` dan rata kanan untuk setiap nominal rupiah.
-- **Do** render keadaan sebagai cap: kapital, berspasi, berbingkai, sedikit
-  miring.
-- **Do** bawa pangkat dengan berat, huruf besar, dan garis — bukan dengan
-  ukuran yang berbeda 0,5px.
-- **Do** jaga kontras teks utama ≥ 4,5:1 dan teks sekunder ≥ 4,5:1; teks
-  sekunder diwarnai dari hue yang sama, bukan abu-abu netral.
+- **Do** beri satu tindakan utama per layar, bergaya isian gelap penuh; semua
+  aksi lain bergaris tipis.
+- **Do** pakai Geist Mono dan angka tabular untuk setiap nominal rupiah.
+- **Do** render keadaan normal sebagai teks dan hanya pengecualian sebagai pil.
+- **Do** bawa pangkat dengan berat dan ukuran yang bisa dirasakan, bukan 0,5px.
+- **Do** jaga kontras teks utama dan sekunder ≥ 4,5:1.
 - **Do** pertahankan `role="alert"` pada pesan galat, `aria-invalid` pada medan
   galat, dan cincin fokus yang terlihat.
 - **Do** biarkan kolom aksi menempel di tepi kanan saat tabel lebih lebar
@@ -353,15 +356,16 @@ bidang warna yang harus dibaca.
 
 ### Don't:
 
-- **Don't** beri isian biru penuh pada lebih dari satu tombol di satu layar —
-  itu menghapus hierarki tindakan.
-- **Don't** pakai lencana pil, latar biru lembut, atau sudut 8–10px: itu bahasa
-  sistem sebelumnya, bukan sistem ini.
-- **Don't** ganti tabel dengan kartu atau lembar bergaris, dan **don't** ganti
-  sidebar dengan tab rail — dunia visual mode Operate tidak boleh memasok tata
-  letak maupun model navigasi.
-- **Don't** pakai bayangan berhalo tanpa offset, atau gradien sebagai hiasan.
+- **Don't** beri warna merek pada sidebar, bilah atas, atau lebih dari satu
+  tombol per layar.
+- **Don't** pakai huruf besar berspasi untuk kepala tabel atau label medan.
+- **Don't** beri tint hijau pada setiap status yang selesai — warna yang muncul
+  di mana-mana berhenti berarti.
+- **Don't** pakai bayangan pada kartu atau tombol saat diam.
+- **Don't** ganti tabel dengan kartu di layar lebar, atau sidebar dengan tab
+  rail: dunia visual mode Operate tidak boleh memasok tata letak maupun model
+  navigasi.
+- **Don't** pakai gradien atau bayangan berhalo sebagai hiasan.
 - **Don't** animasikan nominal: tidak ada animasi yang menunda munculnya angka.
-- **Don't** sembunyikan angka di balik hiasan — hiasan yang menggeser nominal
-  ke bawah lipatan adalah cacat, bukan gaya.
-- **Don't** pakai warna yang tidak membawa arti.
+- **Don't** sembunyikan angka di balik hiasan — hiasan yang menggeser nominal ke
+  bawah lipatan adalah cacat, bukan gaya.
