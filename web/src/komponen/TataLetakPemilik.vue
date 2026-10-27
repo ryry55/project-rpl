@@ -248,21 +248,43 @@ async function keluar() {
 .tata-letak {
   display: grid;
   grid-template-columns: 244px minmax(0, 1fr);
-  min-height: 100%;
+  /* Hanya kolom isi yang boleh menggulir; sidebar tinggal diam. Tanpa ini,
+     sidebar ikut setinggi DOKUMEN (terukur 1204px pada layar 900px), dan blok
+     akun beserta tombol Keluar — yang diletakkan di kaki sidebar — terdorong
+     ke bawah garis pandang. Pemilik harus menggulir ke dasar halaman hanya
+     untuk menemukan tombol keluar. */
+  height: 100vh;
+  overflow: hidden;
 }
 
+/* Sidebar bertiga baris: kepala (tetap), menu (bergulir sendiri), kaki
+ * (menempel di dasar).
+ *
+ * Terukur sebelum perbaikan ini: 15 item menu dua baris = 979px, ditambah
+ * kepala 67px dan kaki 110px = 1231px. Pada layar 900px kaki terdorong 331px
+ * ke bawah lipatan — dan itu terjadi juga pada 1080px, karena isinya memang
+ * selalu 1231px. Akibatnya tombol Keluar dan tautan "Data pribadi saya"
+ * hanya bisa ditemukan dengan menggulir seluruh menu lebih dulu.
+ *
+ * Dengan grid tiga baris, hanya baris menu yang menggulir; kaki tidak pernah
+ * ikut berpindah. Sidebar yang menggulir sebagai satu kesatuan adalah
+ * penyebabnya, jadi memperkecil padding menu hanya akan menunda cacatnya.
+ */
 .sisi {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 18px;
   padding: 20px 16px;
   background: var(--permukaan);
   border-right: 1px solid var(--garis);
   /* `min-width: 0` wajib di sini juga. Grid item memakai `min-width: auto`,
      jadi menu mendatar yang isinya `max-content` membuat `.sisi` melebar
-     melewati layar - dan luberannya keluar ke dokumen, bukan ke `.menu` yang
-     sudah punya `overflow-x: auto`. */
+     melewati layar. */
   min-width: 0;
+  /* `min-height: 0` mengizinkan baris menu menyusut di bawah tinggi isinya,
+     sehingga `overflow-y` di `.menu` benar-benar bekerja. Tanpa ini baris
+     `1fr` tetap selebar isinya dan tidak pernah menggulir. */
+  min-height: 0;
 }
 
 .merek {
@@ -270,10 +292,46 @@ async function keluar() {
   align-items: center;
   gap: 11px;
   padding: 0 4px;
+  /* Merek tidak boleh menyusut: nama "Kos-Kosan" terukur terbelah menjadi dua
+     baris ("Kos-" / "Kosan") pada sidebar 244px karena tombol Notifikasi
+     mengambil ruangnya. Yang boleh menyusut adalah teks peran di bawahnya. */
+  min-width: 0;
+  flex: none;
+}
+
+/* Nama produk tidak boleh terbelah. Ia dua kata berhubung yang sudah menjadi
+   satu merek — memenggalnya di tanda hubung membuat kepala sidebar terbaca
+   sebagai dua baris keterangan, bukan nama. */
+.merek strong {
+  display: block;
+  white-space: nowrap;
 }
 
 .merek p {
   margin: 0;
+}
+
+/* Lonceng menyusut lebih dulu daripada merek, karena labelnya bisa dipendekkan
+   tanpa kehilangan arti. */
+.kepala-sisi > :last-child {
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+/* Di sidebar, lonceng tampil sebagai ikon saja.
+ *
+ * Terukur: tombol berlabel "Notifikasi" memakan 128px dari 212px ruang kepala
+ * sidebar 244px, sehingga nama produk terbelah menjadi "Kos-" / "Kosan" dan
+ * terbaca sebagai dua baris keterangan, bukan sebagai nama. Label itu juga
+ * mubazir di sini — ikon lonceng sudah menyatakan hal yang sama, dan
+ * `aria-label` pada tombolnya tetap membawa teks untuk pembaca layar.
+ */
+.kepala-sisi :deep(.lonceng > span:not(.jumlah)) {
+  display: none;
+}
+
+.kepala-sisi :deep(.lonceng) {
+  padding: 7px 9px;
 }
 
 /* Merek di kiri, lonceng di kanan. Di ponsel keduanya harus sebaris: kalau
@@ -288,43 +346,73 @@ async function keluar() {
 .lencana {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--aksen);
-  background: var(--aksen-lemah);
-  border-radius: 9px;
+  letter-spacing: 0.1em;
+  color: var(--permukaan);
+  background: var(--teks);
+  border-radius: var(--radius-kecil);
 }
 
 .menu {
   display: grid;
   gap: 3px;
+  align-content: start;
+  /* Menu yang lebih tinggi dari ruang tersedia menggulir di dalam dirinya
+     sendiri, bukan mendorong kaki keluar layar. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+  /* Ruang untuk bilah gulir supaya nama menu tidak tertutup saat menu
+     menggulir. `scrollbar-gutter` memesan ruangnya sejak awal, jadi label
+     tidak bergeser saat bilah muncul. */
+  scrollbar-gutter: stable;
+  padding-right: 2px;
+}
+
+.menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.menu::-webkit-scrollbar-thumb {
+  background: var(--garis);
+  border-radius: 999px;
+}
+
+.menu::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .tautan {
   display: grid;
   gap: 1px;
-  padding: 9px 11px;
+  padding: 8px 11px;
   color: var(--teks-lemah);
   text-decoration: none;
-  border-radius: 8px;
-  transition: background 120ms ease, color 120ms ease;
+  border-left: 2px solid transparent;
+  border-radius: 0 var(--radius-kecil) var(--radius-kecil) 0;
+  transition: background-color 120ms ease, color 120ms ease,
+    border-color 120ms ease;
 }
 
 .tautan:hover {
-  background: #f6f7f9;
+  background: var(--permukaan-turun);
+  color: var(--teks);
 }
 
+/* Halaman aktif ditandai garis tebal di tepi kiri — bahasa yang sama dengan
+   tab pemisah katalog, tanpa mengubah menu menjadi tab rail. */
 .tautan.aktif {
   color: var(--aksen);
   background: var(--aksen-lemah);
+  border-left-color: var(--aksen);
 }
 
 .tautan-label {
-  font-size: 13.5px;
-  font-weight: 570;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 /* Lencana jumlah menunggu. Bentuknya bulat dan kecil supaya tidak terbaca
@@ -355,7 +443,8 @@ async function keluar() {
 }
 
 .kaki {
-  margin-top: auto;
+  /* Baris ketiga sudah `auto`, jadi kaki selalu menempel di dasar tanpa
+     `margin-top: auto`. */
   display: grid;
   gap: 10px;
   padding-top: 14px;
@@ -395,10 +484,12 @@ async function keluar() {
   flex: none;
   width: 30px;
   height: 30px;
-  font-size: 11.5px;
-  font-weight: 650;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   color: var(--teks-lemah);
-  background: #eef0f3;
+  background: var(--permukaan-turun);
+  border: 1px solid var(--garis);
   border-radius: 999px;
 }
 
@@ -417,6 +508,10 @@ async function keluar() {
 .utama {
   padding: 26px 28px 40px;
   min-width: 0;
+  /* Kolom isi yang menggulir, bukan dokumen. Pasangan dari `height: 100vh` di
+     `.tata-letak`. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .tautan-data {
@@ -437,18 +532,36 @@ async function keluar() {
        bergulir mendatar. Dengan 0, menu yang menggulir sendiri di dalam
        `.menu` (yang memang `overflow-x: auto`), bukan halamannya. */
     grid-template-columns: minmax(0, 1fr);
+    /* Di layar sempit sidebar bukan lagi kolom samping yang tetap: ia kepala
+       yang ikut menggulir bersama isi. `100vh` + `overflow: hidden` di sini
+       akan mengurung isi halaman dalam kotak yang tidak bisa dicapai. */
+    height: auto;
+    overflow: visible;
   }
 
   .sisi {
     gap: 12px;
     border-right: none;
     border-bottom: 1px solid var(--garis);
+    /* Di layar sempit sidebar bukan kolom setinggi layar lagi: ia kepala
+       biasa yang ikut menggulir bersama isi. Tiga baris `auto minmax(0,1fr)
+       auto` di sini akan mengurung menu di kotak mati. */
+    grid-template-rows: auto;
+    min-height: 0;
+  }
+
+  .utama {
+    overflow-y: visible;
   }
 
   .menu {
     grid-auto-flow: column;
     grid-auto-columns: max-content;
     overflow-x: auto;
+    overflow-y: visible;
+    align-content: stretch;
+    padding-right: 0;
+    scrollbar-gutter: auto;
     /* Batang gulir disembunyikan: di ponsel ia memakan tinggi dan tampil
        sebagai garis abu-abu yang tidak menjelaskan apa pun. Menu tetap bisa
        digeser; yang hilang hanya penandanya. */

@@ -67,7 +67,7 @@ function pakaiHariIni() {
 /* Panel simulasi dibuat menonjol tapi tenang: ia alat demo, bukan bagian alur
    kerja sehari-hari. Garis putus-putus menandainya sebagai kendali, bukan data. */
 .simulasi-panel {
-  background: #f8f9fb;
+  background: var(--permukaan-turun);
   border-style: dashed;
 }
 

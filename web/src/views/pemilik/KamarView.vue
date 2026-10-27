@@ -548,11 +548,14 @@ onMounted(muat)
 
 .label-fasilitas-satu {
   padding: 1px 7px;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--teks-lemah);
-  background: #eef0f3;
-  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-kecil);
   white-space: nowrap;
 }
 

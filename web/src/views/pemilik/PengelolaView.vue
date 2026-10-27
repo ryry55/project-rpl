@@ -425,7 +425,7 @@ onMounted(muat)
   margin: 0;
   padding: 12px 14px;
   border: 1px solid var(--garis);
-  border-radius: 10px;
+  border-radius: var(--radius);
 }
 
 .kelompok legend {
@@ -476,11 +476,15 @@ onMounted(muat)
 
 .lencana-wewenang {
   display: inline-block;
-  padding: 2px 7px;
-  font-size: 11.5px;
+  padding: 1px 7px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--teks-lemah);
-  background: #eef0f3;
-  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-kecil);
 }
 
 .lencana-wewenang.sensitif {

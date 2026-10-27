@@ -9,10 +9,8 @@
  * mana yang punya akun di kos ini, padahal daftar penghuni adalah data pribadi.
  */
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink } from 'vue-router'
 import { sesi } from '../sesi.js'
-
-const router = useRouter()
 
 const email = ref('')
 const terkirim = ref(false)
@@ -87,9 +85,9 @@ async function kirim() {
       </template>
 
       <p class="kembali lemah mungil">
-        <button type="button" class="tombol-tautan" @click="router.replace({ name: 'masuk' })">
+        <RouterLink :to="{ name: 'masuk' }" replace class="tautan-teks">
           Kembali ke halaman masuk
-        </button>
+        </RouterLink>
       </p>
     </div>
   </div>
@@ -119,12 +117,12 @@ async function kirim() {
   width: 38px;
   height: 38px;
   margin-bottom: 14px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--aksen);
-  background: var(--aksen-lemah);
-  border-radius: 9px;
+  letter-spacing: 0.1em;
+  color: var(--permukaan);
+  background: var(--teks);
+  border-radius: var(--radius-kecil);
 }
 
 .kepala-masuk h1 {

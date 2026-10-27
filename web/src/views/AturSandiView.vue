@@ -313,12 +313,12 @@ function lanjut() {
   width: 38px;
   height: 38px;
   margin-bottom: 14px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--aksen);
-  background: var(--aksen-lemah);
-  border-radius: 9px;
+  letter-spacing: 0.1em;
+  color: var(--permukaan);
+  background: var(--teks);
+  border-radius: var(--radius-kecil);
 }
 
 .kepala-masuk h1 {
@@ -349,8 +349,8 @@ function lanjut() {
 .akun-lemah {
   margin: 0 0 16px;
   padding: 8px 10px;
-  background: #f7f8fa;
-  border-radius: 8px;
+  background: var(--permukaan-turun);
+  border-radius: var(--radius);
 }
 
 .aksi {

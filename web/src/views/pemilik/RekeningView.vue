@@ -576,9 +576,9 @@ onMounted(muat)
   align-items: flex-end;
   gap: 12px;
   padding: 12px;
-  background: #fbfcfe;
+  background: var(--permukaan);
   border: 1px solid var(--garis);
-  border-radius: 10px;
+  border-radius: var(--radius);
 }
 
 .pratinjau-gambar img {
@@ -598,9 +598,13 @@ onMounted(muat)
 
 .lencana-aktif {
   display: inline-block;
-  padding: 1px 8px;
-  font-weight: 600;
-  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-kecil);
 }
 
 .lencana-aktif.aktif {
@@ -610,6 +614,6 @@ onMounted(muat)
 
 .lencana-aktif.nonaktif {
   color: var(--teks-lemah);
-  background: #eef0f3;
+  background: var(--permukaan-turun);
 }
 </style>

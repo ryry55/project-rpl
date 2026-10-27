@@ -9,6 +9,12 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 
+# Penanda build demo. Default-nya kosong (= produksi), sehingga petunjuk akun
+# demo di halaman masuk tidak ikut terkirim ke produksi. `docker-compose.yml`
+# mengesetnya `true` untuk layanan dev.
+ARG VITE_MODE_DEMO=false
+ENV VITE_MODE_DEMO=${VITE_MODE_DEMO}
+
 COPY package.json package-lock.json* ./
 RUN npm install --no-audit --no-fund
 

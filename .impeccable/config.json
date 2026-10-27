@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "web/src/views/pemilik/PengelolaView.vue"
+        ],
+        "createdAt": "2026-10-27T17:27:31.707Z",
+        "reason": "Agent: 3px left rule marks a state panel (sensitive permission group, revoke panel), documented in DESIGN.md Shapes; not decorative"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "web/src/views/pemilik/RekapView.vue"
+        ],
+        "createdAt": "2026-10-27T17:27:39.498Z",
+        "reason": "Agent: 3px left rule marks the outstanding-money (piutang) panel, same language as the tagihan gate; documented in DESIGN.md Shapes"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "web/src/views/pemilik/komponen/PanelDetailTagihan.vue"
+        ],
+        "createdAt": "2026-10-27T17:27:39.578Z",
+        "reason": "Agent: 3px left rule marks destructive/forgiveness action boxes; documented in DESIGN.md Shapes"
+      }
+    ]
+  }
+}

@@ -6,6 +6,20 @@ import { sesi } from '../sesi.js'
 const route = useRoute()
 const router = useRouter()
 
+// Petunjuk akun demo hanya untuk build demo.
+//
+// Sebelumnya baris ini tampil tanpa syarat. Di produksi itu bukan sekadar
+// keterangan salah tempat: ia mengundang siapa pun mencoba `pemilik@kos.test`
+// dengan sandi `password`, dan `docs/uji/smoke-produksi.sh` memang memeriksa
+// bahwa akun itu mati. Menyembunyikannya di sini membuat build produksi
+// berhenti mengiklankan pintu yang seharusnya terkunci.
+//
+// Nilainya datang dari `VITE_MODE_DEMO` saat build, bukan ditebak saat jalan:
+// halaman masuk belum punya sesi, jadi tidak ada API terautentikasi yang bisa
+// ditanyai apakah mode demo aktif. Default-nya mati — lupa mengeset variabel
+// berarti petunjuk tidak muncul, bukan sebaliknya.
+const MODE_DEMO = import.meta.env.VITE_MODE_DEMO === 'true'
+
 const email = ref('')
 const password = ref('')
 const galat = ref('')
@@ -93,15 +107,19 @@ async function kirim() {
       </form>
 
       <p class="lupa">
-        <RouterLink :to="{ name: 'lupa-sandi' }" class="tombol-tautan">
+        <RouterLink :to="{ name: 'lupa-sandi' }" class="tautan-teks">
           Lupa kata sandi?
         </RouterLink>
       </p>
 
-      <p class="petunjuk lemah mungil">
-        Akun demo: <code>pemilik@kos.test</code> atau <code>penghuni@kos.test</code>,
-        kata sandi <code>password</code>.
-      </p>
+      <div v-if="MODE_DEMO" class="petunjuk lemah mungil">
+        <p>Akun demo</p>
+        <p class="deret-akun">
+          <code>pemilik@kos.test</code>
+          <code>penghuni@kos.test</code>
+          <code>password</code>
+        </p>
+      </div>
     </div>
   </div>
 </template>
@@ -133,12 +151,12 @@ async function kirim() {
   width: 38px;
   height: 38px;
   margin-bottom: 14px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--aksen);
-  background: var(--aksen-lemah);
-  border-radius: 9px;
+  letter-spacing: 0.1em;
+  color: var(--permukaan);
+  background: var(--teks);
+  border-radius: var(--radius-kecil);
 }
 
 .kepala-masuk h1 {
@@ -158,6 +176,15 @@ async function kirim() {
   margin: 0 0 14px;
 }
 
+/* "Lupa kata sandi?" adalah tautan, bukan tindakan utama.
+ *
+ * Sebelum ini ia memakai `.tombol-tautan` — biru penuh, selebar tombol Masuk.
+ * Dua bidang biru sebesar itu di satu kartu membuat mata tidak tahu mana yang
+ * harus ditekan lebih dulu, dan yang benar-benar tindakan utama (Masuk) justru
+ * tidak menonjol. Sekarang ia memakai `.tautan-teks` global (style.css),
+ * sejajar kanan di bawah tombol — perlakuan yang sama dengan "Kembali ke
+ * halaman masuk" di layar lupa sandi.
+ */
 .lupa {
   margin: 12px 0 0;
   text-align: right;
@@ -170,10 +197,46 @@ async function kirim() {
   text-align: center;
 }
 
+.petunjuk p {
+  margin: 0;
+}
+
+/* Deret akun demo.
+ *
+ * Dibuat flex-wrap, bukan kalimat yang dibiarkan membungkus sendiri. Terukur:
+ * saat ditulis sebagai satu kalimat, chip `password` terlempar ke baris ketiga
+ * sendirian di kartu 380px — terlihat seperti kesalahan tata letak. Dengan
+ * flex, ketiganya duduk sebaris dan hanya patah bila memang tidak muat, dengan
+ * jarak yang sama rata.
+ */
+.deret-akun {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px 10px;
+  margin-top: 5px;
+}
+
 code {
   font-size: 12px;
   padding: 1px 5px;
-  background: #f1f3f6;
-  border-radius: 4px;
+  color: var(--teks);
+  background: var(--permukaan-turun);
+  border: 1px solid var(--garis-lemah);
+  border-radius: var(--radius-kecil);
+}
+
+/* Chip kode di tengah kalimat.
+ *
+ * Versi sebelumnya menambahkan `margin` pada setiap `code` untuk memberi jarak
+ * dari kata sebelumnya. Itu salah sasaran: masalahnya bukan jarak, melainkan
+ * bahwa chip diikuti tanda baca — padding chip membuat titik penutup kalimat
+ * tampak terpisah ("password ."). Kalimatnya kini disusun ulang supaya chip
+ * tidak pernah diikuti tanda baca, jadi tidak ada aturan jarak yang dibutuhkan.
+ *
+ * Yang tersisa hanya satu hal: chip tidak boleh terbelah dua baris.
+ */
+.petunjuk code {
+  white-space: nowrap;
 }
 </style>

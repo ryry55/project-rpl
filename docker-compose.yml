@@ -122,6 +122,11 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
+      args:
+        # Lingkungan compose ini adalah lingkungan demo/kelas: petunjuk akun
+        # demo di halaman masuk boleh tampil. Build produksi tidak mengirim
+        # argumen ini, sehingga default `false` berlaku dan petunjuknya hilang.
+        VITE_MODE_DEMO: "true"
     ports:
       - "${WEB_PORT:-3000}:80"
     depends_on:

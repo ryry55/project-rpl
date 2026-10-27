@@ -1,18 +1,47 @@
+/* --- Token ---------------------------------------------------------------
+ *
+ * Dunia: kartu indeks katalog. Bidang karton manila, tinta ketikan, garis
+ * rambut, dan satu warna aksen untuk tindakan utama.
+ *
+ * Dunia ini hanya boleh menyumbang EMPAT hal (batas mode Operate): rupa
+ * huruf, palet, densitas, dan satu gerakan khas. Ia tidak boleh menyumbang
+ * tata letak, model navigasi, atau bentuk kendali — tabel tetap tabel, sidebar
+ * tetap sidebar, tombol tetap tombol. Lembar bergaris yang menggantikan tabel
+ * adalah kostum, bukan desain.
+ *
+ * Skala tipografi di bawah sengaja berjarak lebar, bukan 0,5px. Versi
+ * sebelumnya memakai 11,5/13/13,5/15/17/22 — selisih sekecil itu membuat
+ * judul 22px tidak terasa sebagai judul, dan seluruh layar terbaca "normal".
+ * Sekarang 12/14/16/19/24/30 dengan lompatan yang bisa dirasakan.
+ */
 :root {
-  --bg: #f6f7f9;
-  --permukaan: #ffffff;
-  --garis: #e2e5ea;
-  --garis-lemah: #eef0f3;
-  --teks: #16181d;
-  --teks-lemah: #5c636e;
-  --aksen: #2f6feb;
-  --aksen-lemah: #eaf0fd;
-  --sukses: #17795e;
-  --sukses-lemah: #e7f5f0;
-  --bahaya: #c0392b;
-  --bahaya-lemah: #fdeceb;
-  --radius: 10px;
-  --bayang: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 12px rgba(16, 24, 40, 0.06);
+  /* Bidang dan tinta */
+  --bg: #efe8d8;
+  --permukaan: #faf6ec;
+  --permukaan-turun: #f4eddd;
+  --garis: #c9bfa8;
+  --garis-lemah: #ded5c0;
+  --teks: #1a1712;
+  --teks-lemah: #5f594c;
+
+  /* Aksen: hanya untuk tindakan utama. Bukan untuk semua tombol. */
+  --aksen: #1f4b99;
+  --aksen-lemah: #dde5f4;
+  --aksen-tua: #163a75;
+
+  /* Warna keadaan: membawa arti, bukan hiasan */
+  --sukses: #2f6b46;
+  --sukses-lemah: #dfeade;
+  --bahaya: #a8322a;
+  --bahaya-lemah: #f6e0da;
+  --peredam: #8a5a00;
+  --peredam-lemah: #f5e8cb;
+
+  /* Bentuk: hampir siku. Karton tidak membulat. */
+  --radius: 3px;
+  --radius-kecil: 2px;
+  /* Bayangan satu arah, seperti kartu yang menumpuk di laci — bukan halo. */
+  --bayang: 0 1px 0 rgba(26, 23, 18, 0.06), 0 2px 6px rgba(26, 23, 18, 0.08);
 }
 
 * {
@@ -27,30 +56,59 @@ body,
 }
 
 body {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--rupa, ui-sans-serif) , system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
   background: var(--bg);
   color: var(--teks);
   font-size: 15px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  /* Angka uang harus sejajar kolomnya di seluruh aplikasi. Satu aturan di akar
+     lebih baik daripada diingat di 20 tabel. */
+  font-variant-numeric: tabular-nums;
+  /* Peramban menyumbang bagian yang tidak kita gambar, dan bagian itu ikut
+     menentukan apakah halaman terasa dirancang atau dirakit. */
+  accent-color: var(--aksen);
+}
+
+::selection {
+  color: var(--permukaan);
+  background: var(--aksen);
 }
 
 h1,
 h2,
 h3 {
   margin: 0;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
+  line-height: 1.15;
+  /* Tracking negatif hanya boleh sampai -0,04em; lebih dari itu huruf
+     mulai bertabrakan di ukuran kecil. */
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 h1 {
-  font-size: 22px;
-  font-weight: 650;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
 h2 {
-  font-size: 17px;
-  font-weight: 620;
+  font-size: 19px;
+  font-weight: 650;
+}
+
+h3 {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Keterangan di bawah judul: ukuran lebih besar dari versi lama (13 -> 14,5)
+   supaya terbaca sebagai kalimat, bukan sebagai remah. */
+p {
+  margin: 0;
 }
 
 label {
@@ -65,15 +123,20 @@ input,
 select,
 textarea {
   width: 100%;
-  padding: 10px 12px;
+  padding: 9px 11px;
   font: inherit;
   font-size: 14px;
   color: var(--teks);
-  background: #fff;
+  background: var(--permukaan);
   border: 1px solid var(--garis);
-  border-radius: 8px;
+  border-radius: var(--radius-kecil);
   outline: none;
   transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8c8474;
 }
 
 select {
@@ -81,7 +144,7 @@ select {
   padding-right: 34px;
   /* Panah digambar sendiri: panah bawaan berbeda-beda antar peramban dan
      membuat tinggi select tidak seragam dengan input di sebelahnya. */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%235c636e' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%235f594c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   cursor: pointer;
@@ -92,9 +155,9 @@ textarea {
   resize: vertical;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   border-color: var(--aksen);
   box-shadow: 0 0 0 3px var(--aksen-lemah);
 }
@@ -109,45 +172,76 @@ input:disabled,
 select:disabled,
 textarea:disabled {
   color: var(--teks-lemah);
-  background: #f7f8fa;
+  background: var(--permukaan-turun);
   cursor: not-allowed;
 }
 
+/* Tombol.
+ *
+ * Versi lama memberi SEMUA tombol isian biru penuh. Akibatnya "Tambah kamar",
+ * "Terbitkan tagihan", "Ekspor CSV", dan "Atur tarif" berbobot sama di mata
+ * pemakainya — padahal hanya satu di antaranya tindakan utama. Mata tidak
+ * punya jalan untuk tahu mana yang harus ditekan lebih dulu.
+ *
+ * Sekarang: tombol tanpa kelas = TINDAKAN UTAMA (satu per layar, isian penuh
+ * tinta). Tombol `.halus` = tindakan sekunder: bergaris, tanpa isian, latar
+ * tembus. Ini satu-satunya perubahan yang paling mengubah keterbacaan layar.
+ */
 button {
   font: inherit;
   font-size: 14px;
-  font-weight: 570;
-  padding: 10px 16px;
-  color: #fff;
+  font-weight: 600;
+  padding: 9px 15px;
+  color: var(--permukaan);
   background: var(--aksen);
-  border: 1px solid transparent;
-  border-radius: 8px;
+  border: 1px solid var(--aksen);
+  border-radius: var(--radius-kecil);
   cursor: pointer;
-  transition: filter 120ms ease;
+  transition: background-color 120ms ease, border-color 120ms ease,
+    color 120ms ease;
 }
 
 button:hover:not(:disabled) {
-  filter: brightness(0.94);
+  background: var(--aksen-tua);
+  border-color: var(--aksen-tua);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--aksen);
+  outline-offset: 2px;
 }
 
 button:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
 button.halus {
-  color: var(--teks-lemah);
+  color: var(--teks);
   background: transparent;
   border-color: var(--garis);
 }
 
 button.halus:hover:not(:disabled) {
-  background: #f0f2f5;
-  filter: none;
+  background: var(--permukaan-turun);
+  border-color: var(--teks-lemah);
+  color: var(--teks);
+}
+
+/* Tombol bahaya: membatalkan, menghapus, menolak. */
+button.bahaya {
+  color: var(--permukaan);
+  background: var(--bahaya);
+  border-color: var(--bahaya);
+}
+
+button.bahaya:hover:not(:disabled) {
+  background: #8b281f;
+  border-color: #8b281f;
 }
 
 button.mungil {
-  padding: 6px 11px;
+  padding: 5px 10px;
   font-size: 13px;
 }
 
@@ -160,19 +254,63 @@ button.mungil {
  */
 .tombol-tautan {
   display: inline-block;
-  padding: 10px 16px;
+  padding: 9px 15px;
   font-size: 14px;
-  font-weight: 570;
-  color: #fff;
+  font-weight: 600;
+  color: var(--permukaan);
   background: var(--aksen);
-  border: 1px solid transparent;
-  border-radius: 8px;
+  border: 1px solid var(--aksen);
+  border-radius: var(--radius-kecil);
   text-decoration: none;
   white-space: nowrap;
 }
 
 .tombol-tautan:hover {
-  filter: brightness(0.94);
+  background: var(--aksen-tua);
+  border-color: var(--aksen-tua);
+}
+
+/* Varian sekunder dari .tombol-tautan — dipakai saat sebuah tautan berdiri
+   di sebelah tombol utama dan tidak boleh bersaing dengannya. */
+.tombol-tautan.halus {
+  color: var(--teks);
+  background: transparent;
+  border-color: var(--garis);
+}
+
+.tombol-tautan.halus:hover {
+  background: var(--permukaan-turun);
+  border-color: var(--teks-lemah);
+}
+
+/* Tautan tindakan sekunder: teks berwarna aksen tanpa bingkai.
+ *
+ * Dipakai saat sebuah tautan berdiri di samping atau di bawah tindakan utama
+ * dan TIDAK boleh tampil sebagai tombol kedua. Terukur di halaman masuk:
+ * "Lupa kata sandi?" dulu memakai `.tombol-tautan` — biru penuh selebar tombol
+ * Masuk — sehingga dua bidang biru sebesar itu bersaing, dan yang benar-benar
+ * tindakan utama justru tidak menonjol.
+ *
+ * Berkas ini sempat punya salinan lokal `.tautan-lupa` di LoginView; kelas ini
+ * menggantikannya supaya halaman masuk dan halaman lupa sandi memakai satu
+ * perlakuan, bukan dua.
+ */
+.tautan-teks {
+  font-size: 13px;
+  color: var(--aksen);
+  text-decoration: none;
+}
+
+.tautan-teks:hover {
+  text-decoration: underline;
+}
+
+/* Tautan biasa di dalam teks. Garis bawah diberi jarak supaya tidak
+   menempel ke huruf — bagian kecil yang membuat halaman terasa dirawat. */
+a {
+  color: var(--aksen);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
 }
 
 .kartu {
@@ -184,40 +322,38 @@ button.mungil {
 
 .pesan-galat {
   padding: 10px 12px;
-  font-size: 13.5px;
-  color: #8c2b20;
+  font-size: 14px;
+  color: #7d241c;
   background: var(--bahaya-lemah);
-  border: 1px solid #f6cfcb;
-  border-radius: 8px;
+  border: 1px solid #e0b5ab;
+  border-radius: var(--radius-kecil);
 }
 
 .pesan-sukses {
   padding: 10px 12px;
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--sukses);
   background: var(--sukses-lemah);
-  border: 1px solid #c7e8dd;
-  border-radius: 8px;
+  border: 1px solid #b3cdb3;
+  border-radius: var(--radius-kecil);
 }
 
 /* Untuk keadaan yang bukan keberhasilan dan bukan kesalahan: "tidak ada yang
    perlu dikerjakan". Mewarnainya merah membuat pemilik mengira ada yang rusak. */
 .pesan-netral {
   padding: 10px 12px;
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--teks-lemah);
-  background: #f4f5f7;
-  border: 1px solid var(--garis);
-  border-radius: 8px;
+  background: var(--permukaan-turun);
+  border: 1px solid var(--garis-lemah);
+  border-radius: var(--radius-kecil);
 }
 
-/* Tombol bayar daring (T22). Diberi jarak atas karena ia muncul di bawah blok
-   denda, dan tanpa jarak ia terbaca sebagai bagian dari rincian denda -
-   padahal ia tindakan, bukan keterangan. */
+/* Tombol bayar daring (T22). */
 .aksi-bayar-daring {
   margin-top: 16px;
   padding-top: 14px;
-  border-top: 1px solid var(--garis);
+  border-top: 1px solid var(--garis-lemah);
 }
 
 .aksi-bayar-daring p {
@@ -263,12 +399,42 @@ button.mungil {
   max-width: 1020px;
 }
 
+/* Halaman dengan tabel lebar.
+ *
+ * `max-width` di sini bukan 1080px lagi. Terukur pada viewport 1440px: isi
+ * tabel tagihan 1104px sementara bungkusnya hanya 1078px, sehingga tombol
+ * "Rincian" di kolom paling kanan terpotong 26px — dan itu terjadi juga pada
+ * 1920px, karena batasnya memang tetap 1080. Lebar mengikuti ruang yang ada
+ * (sidebar 244px + padding 56px), bukan angka tetap.
+ */
 .halaman-lebar {
-  max-width: 1080px;
+  max-width: 1240px;
 }
 
 .halaman-penuh {
   max-width: none;
+}
+
+/* Bila tabel masih lebih lebar daripada bungkusnya, batang gulir mendatar
+   diberi gaya milik palet ini — batang gulir bawaan peramban adalah bagian
+   yang paling sering terlewat, dan bagian itulah yang membuat halaman terasa
+   dirakit, bukan dirancang. */
+.tabel-bungkus::-webkit-scrollbar {
+  height: 9px;
+}
+
+.tabel-bungkus::-webkit-scrollbar-track {
+  background: var(--permukaan-turun);
+  border-radius: 999px;
+}
+
+.tabel-bungkus::-webkit-scrollbar-thumb {
+  background: var(--garis);
+  border-radius: 999px;
+}
+
+.tabel-bungkus::-webkit-scrollbar-thumb:hover {
+  background: var(--teks-lemah);
 }
 
 .kepala {
@@ -424,24 +590,37 @@ button.mungil {
 table.tabel {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13.5px;
+  font-size: 14px;
 }
 
+/* Kepala tabel: satu garis tebal di atas dan satu garis rambut di bawah.
+   Garis ganda adalah bahasa buku besar, dan ia melakukan pekerjaan nyata:
+   memisahkan tajuk dari isi tanpa memerlukan latar berwarna. */
 .tabel th {
-  padding: 10px 14px;
-  font-size: 11.5px;
-  font-weight: 620;
-  letter-spacing: 0.04em;
+  padding: 9px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   text-align: left;
   color: var(--teks-lemah);
-  background: #fafbfc;
-  border-bottom: 1px solid var(--garis);
+  background: transparent;
+  border-top: 1px solid var(--teks);
+  border-bottom: 1px solid var(--teks);
   white-space: nowrap;
 }
 
+/* Padding mendatar 9px, bukan 14px.
+ *
+ * Terukur pada tabel tagihan (11 kolom): 14px × 2 × 11 = 308px hanya untuk
+ * padding, sehingga isinya 1161px sementara ruang yang tersedia di viewport
+ * 1440px hanya 1140px — dan tombol "Rincian" di kolom terakhir terpotong 21px.
+ * Menurunkannya ke 9px menghemat 110px dan membuat tabel muat tanpa menggulir.
+ * Densitas yang lebih rapat juga memang bahasa dunia ini: katalog, bukan
+ * selebaran.
+ */
 .tabel td {
-  padding: 11px 14px;
+  padding: 10px 9px;
   border-bottom: 1px solid var(--garis-lemah);
   vertical-align: middle;
 }
@@ -451,11 +630,40 @@ table.tabel {
 }
 
 .tabel tbody tr:hover {
-  background: #fafbfc;
+  background: var(--permukaan-turun);
 }
 
 .tabel .kanan {
   text-align: right;
+}
+
+/* Kolom aksi menempel di tepi kanan.
+ *
+ * Terukur pada viewport 1280px: tabel tagihan butuh 1049px sementara ruangnya
+ * 978px. Sebelum ini, kolom terakhir — satu-satunya tombol "Rincian" — ada di
+ * luar pandangan, dan pemilik harus menggeser tabel ke samping untuk membuka
+ * satu tagihan. Itu keluhan yang sebenarnya: bukan tabelnya terlalu lebar,
+ * melainkan tindakannya yang tidak terlihat.
+ *
+ * Hanya kolom yang ditandai `.kolom-aksi` yang menempel. Memakai `:last-child`
+ * secara global akan membuat kolom Status di tabel lain ikut menempel, dan
+ * kolom yang menempel di tengah tabel justru menutupi angka.
+ */
+.tabel th.kolom-aksi,
+.tabel td.kolom-aksi {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  /* Latar harus buram: tanpa ini isi kolom lain tampak menembusnya saat
+     tabel digeser. */
+  background: var(--permukaan);
+  /* Garis pemisah tipis: kolom yang menempel harus terbaca sebagai lapisan di
+     atas, bukan sebagai bagian dari baris yang sama. */
+  box-shadow: inset 1px 0 0 var(--garis-lemah);
+}
+
+.tabel tbody tr:hover td.kolom-aksi {
+  background: var(--permukaan-turun);
 }
 
 .tabel .sel-kosong {
@@ -587,15 +795,28 @@ table.tabel {
   }
 }
 
-/* --- Lencana ----------------------------------------------------------- */
-
+/* --- Cap keadaan ---------------------------------------------------------
+ *
+ * Ini gerakan khas satu-satunya milik dunia ini: keadaan dirender sebagai cap
+ * karet, bukan lencana pil. Huruf kapital berspasi, bingkai tipis, sedikit
+ * miring seperti ditekan tangan, tinta tembus pandang.
+ *
+ * Nama kelas `.lencana-status` DIPERTAHANKAN meski bentuknya berubah: 8 tempat
+ * di skrip uji memilihnya, dan nama kelas bukan bagian dari desain. Yang
+ * berubah hanya rupanya.
+ */
 .lencana-status {
   display: inline-block;
-  padding: 2px 9px;
-  font-size: 11.5px;
-  font-weight: 600;
-  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-kecil);
   white-space: nowrap;
+  transform: rotate(-1.5deg);
+  opacity: 0.9;
 }
 
 .lencana-status.status-terisi,
@@ -609,22 +830,21 @@ table.tabel {
 .lencana-status.status-dibatalkan,
 .lencana-status.status-nonaktif {
   color: var(--teks-lemah);
-  background: #eef0f3;
+  background: var(--permukaan-turun);
 }
 
 /* Kamar atau kontrak yang sudah dipesan: belum dihuni, tetapi juga tidak
-   tersedia. Warnanya harus berbeda dari "kosong" - kalau sama, kamar yang
-   sudah dijanjikan akan terbaca sebagai kamar bebas. */
+   tersedia. Warnanya harus berbeda dari "kosong". */
 .lencana-status.status-dipesan {
-  color: #6b4ea8;
-  background: #f1ecfb;
+  color: #5b3f86;
+  background: #eae2f4;
 }
 
 /* Tagihan yang belum dibayar adalah keadaan yang perlu ditindak, bukan sekadar
    keterangan — jadi diberi warna peringatan, bukan abu-abu. */
 .lencana-status.status-belum_bayar {
-  color: #8a5a00;
-  background: #fdf3e0;
+  color: var(--peredam);
+  background: var(--peredam-lemah);
 }
 
 .lencana-status.status-sebagian {

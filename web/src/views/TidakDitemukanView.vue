@@ -92,10 +92,10 @@ code {
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
-  color: #fff;
+  color: var(--permukaan);
   text-decoration: none;
   background: var(--aksen);
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 
 .tombol-pulang:hover {

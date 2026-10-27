@@ -1105,7 +1105,7 @@ onMounted(() => {
 <style scoped>
 .baris-total td {
   border-top: 1px solid var(--garis);
-  background: #fafbfc;
+  background: var(--permukaan-turun);
 }
 
 .snapshot {
@@ -1122,9 +1122,9 @@ onMounted(() => {
   margin: 10px 0 0;
   padding: 12px;
   overflow-x: auto;
-  background: #f6f7f9;
+  background: var(--permukaan-turun);
   border: 1px solid var(--garis);
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 
 .denda-uraian {
@@ -1154,26 +1154,26 @@ onMounted(() => {
 
 .form-bayar {
   padding: 14px;
-  background: #fbfcfe;
+  background: var(--permukaan-turun);
   border: 1px solid var(--garis);
-  border-radius: 10px;
+  border-radius: var(--radius);
 }
 
 .verifikasi-form {
   margin-top: 4px;
   padding: 14px;
-  background: #fbfcfe;
+  background: var(--permukaan-turun);
   border: 1px solid var(--garis);
-  border-radius: 10px;
+  border-radius: var(--radius);
 }
 
 .form-maaf,
 .form-batal,
 .form-balik {
   padding: 14px;
-  background: #fbfcfe;
+  background: var(--permukaan-turun);
   border: 1px solid var(--garis);
-  border-radius: 10px;
+  border-radius: var(--radius);
 }
 
 /* Baris pembalik ditandai warna bahaya: angkanya negatif dan itu bukan
@@ -1207,9 +1207,9 @@ onMounted(() => {
 .kotak-maaf {
   margin-top: 12px;
   padding: 10px 12px;
-  background: #fbfcfe;
+  background: var(--permukaan-turun);
   border-left: 3px solid var(--garis);
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
 }
 
 .kotak-batal {
@@ -1242,15 +1242,18 @@ onMounted(() => {
 .lencana-verifikasi {
   display: inline-block;
   padding: 1px 7px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   white-space: nowrap;
-  border-radius: 999px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-kecil);
 }
 
 .verifikasi-belum {
   color: var(--teks-lemah);
-  background: #eef0f3;
+  background: var(--permukaan-turun);
 }
 
 .verifikasi-terima {

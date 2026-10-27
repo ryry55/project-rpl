@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-28T00:00:00+07:00",
+  "title": "Design System: Kos-Kosan",
+  "extensions": {
+    "colorMeta": {
+      "ground-manila": {
+        "role": "neutral",
+        "displayName": "Karton Manila Hangat",
+        "canonical": "#efe8d8",
+        "tonalRamp": ["#2e2a21", "#4a4437", "#6a6252", "#8a806c", "#a89d86", "#c4b9a0", "#d9cfb9", "#efe8d8"]
+      },
+      "surface-card": {
+        "role": "neutral",
+        "displayName": "Permukaan Kartu",
+        "canonical": "#faf6ec",
+        "tonalRamp": ["#302b22", "#4c4638", "#6c6453", "#8c836e", "#aaa189", "#c7bda3", "#e2d9c7", "#faf6ec"]
+      },
+      "surface-sunken": {
+        "role": "neutral",
+        "displayName": "Permukaan Turun",
+        "canonical": "#f4eddd",
+        "tonalRamp": ["#2c2820", "#484235", "#68604f", "#887f6a", "#a69d85", "#c3b99f", "#ddd3c0", "#f4eddd"]
+      },
+      "rule-line": {
+        "role": "neutral",
+        "displayName": "Garis Struktur",
+        "canonical": "#c9bfa8",
+        "tonalRamp": ["#2a261e", "#464033", "#665e4d", "#867d68", "#a49b83", "#c9bfa8", "#dcd2bd", "#efe8d8"]
+      },
+      "rule-hairline": {
+        "role": "neutral",
+        "displayName": "Garis Rambut",
+        "canonical": "#ded5c0",
+        "tonalRamp": ["#2c2820", "#484235", "#68604f", "#887f6a", "#a69d85", "#c3b99f", "#ded5c0", "#f4eddd"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Tinta Ketikan",
+        "canonical": "#1a1712",
+        "tonalRamp": ["#1a1712", "#36322a", "#524d43", "#6e695d", "#8a8578", "#a7a193", "#c4bfb1", "#e2ddcf"]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Tinta Redup",
+        "canonical": "#5f594c",
+        "tonalRamp": ["#1d1a15", "#39362d", "#555246", "#716d5f", "#8d8878", "#a9a492", "#c6c1af", "#e3decc"]
+      },
+      "ink-accent": {
+        "role": "primary",
+        "displayName": "Biru Tinta",
+        "canonical": "#1f4b99",
+        "tonalRamp": ["#0d1f3d", "#123168", "#173f8a", "#1f4b99", "#2f62b4", "#5a87cf", "#98b4e4", "#dde5f4"]
+      },
+      "ink-accent-wash": {
+        "role": "primary",
+        "displayName": "Bilas Biru Tinta",
+        "canonical": "#dde5f4",
+        "tonalRamp": ["#101e36", "#1d3155", "#2c487c", "#43629f", "#6483bd", "#8ea8d6", "#bccce9", "#dde5f4"]
+      },
+      "ink-accent-deep": {
+        "role": "primary",
+        "displayName": "Biru Tinta Gelap",
+        "canonical": "#163a75",
+        "tonalRamp": ["#0a162c", "#10264d", "#13306a", "#163a75", "#22508f", "#4a77b4", "#8fadd6", "#d5e0f0"]
+      },
+      "settled-green": {
+        "role": "tertiary",
+        "displayName": "Hijau Lunas",
+        "canonical": "#2f6b46",
+        "tonalRamp": ["#0f2418", "#163727", "#1e4a33", "#2f6b46", "#418b5c", "#6cad84", "#a6cfb3", "#dfeade"]
+      },
+      "settled-green-wash": {
+        "role": "tertiary",
+        "displayName": "Bilas Hijau Lunas",
+        "canonical": "#dfeade",
+        "tonalRamp": ["#12241a", "#1d3a28", "#2c523a", "#41704e", "#609067", "#8ab48c", "#b7d1b4", "#dfeade"]
+      },
+      "overdue-red": {
+        "role": "secondary",
+        "displayName": "Merah Terlambat",
+        "canonical": "#a8322a",
+        "tonalRamp": ["#2b0c0a", "#4f1512", "#741f1a", "#a8322a", "#c94a40", "#dd7b73", "#ecb1ab", "#f6e0da"]
+      },
+      "overdue-red-wash": {
+        "role": "secondary",
+        "displayName": "Bilas Merah Terlambat",
+        "canonical": "#f6e0da",
+        "tonalRamp": ["#2b0c0a", "#4f1512", "#74201b", "#9b332b", "#c05a50", "#d98a80", "#ecbeb7", "#f6e0da"]
+      },
+      "pending-amber": {
+        "role": "secondary",
+        "displayName": "Amber Belum Bayar",
+        "canonical": "#8a5a00",
+        "tonalRamp": ["#241700", "#432b00", "#634100", "#8a5a00", "#b87a0d", "#d9a03a", "#ecc880", "#f5e8cb"]
+      },
+      "pending-amber-wash": {
+        "role": "secondary",
+        "displayName": "Bilas Amber Belum Bayar",
+        "canonical": "#f5e8cb",
+        "tonalRamp": ["#241700", "#432b00", "#634100", "#88600f", "#b78733", "#d5ae64", "#e8cd9c", "#f5e8cb"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Judul Halaman",
+        "purpose": "Satu per layar. Nama halaman; tidak dipakai di dalam panel."
+      },
+      "headline": {
+        "displayName": "Judul Panel",
+        "purpose": "Judul panel dan bagian di dalam halaman."
+      },
+      "label": {
+        "displayName": "Label Kapital",
+        "purpose": "Kepala tabel, label medan, dan keterangan kecil. Huruf besar dengan spasi 0.14em."
+      },
+      "body": {
+        "displayName": "Teks Isi",
+        "purpose": "Seluruh teks isi dan sel tabel. Angka uang memakai tabular-nums dari body."
+      }
+    },
+    "shadows": [
+      {
+        "name": "kartu-terangkat",
+        "value": "0 1px 0 rgba(26, 23, 18, 0.06), 0 2px 6px rgba(26, 23, 18, 0.08)",
+        "purpose": "Hanya pada .kartu — panel, kotak formulir, dan kartu tabel di ponsel. Arahnya selalu ke bawah."
+      }
+    ],
+    "motion": [
+      {
+        "name": "transisi-kendali",
+        "value": "120ms ease",
+        "purpose": "Perubahan warna latar, bingkai, dan bayangan pada tombol serta masukan. Tidak pernah menunda munculnya angka."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sidebar-ke-kepala", "value": "860px" },
+      { "name": "kartu-dan-formulir", "value": "620px" },
+      { "name": "sentuh-kasar", "value": "(pointer: coarse)" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Tombol Utama",
+      "kind": "button",
+      "refersTo": "tombol-utama",
+      "description": "Satu-satunya tindakan utama di layar. Isian tinta penuh.",
+      "html": "<button class=\"ds-btn-primary\">Terbitkan tagihan</button>",
+      "css": ".ds-btn-primary { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 14px; font-weight: 600; padding: 9px 15px; color: #faf6ec; background: #1f4b99; border: 1px solid #1f4b99; border-radius: 2px; cursor: pointer; transition: background-color 120ms ease, border-color 120ms ease; } .ds-btn-primary:hover { background: #163a75; border-color: #163a75; } .ds-btn-primary:focus-visible { outline: 2px solid #1f4b99; outline-offset: 2px; }"
+    },
+    {
+      "name": "Tombol Sekunder",
+      "kind": "button",
+      "refersTo": "tombol-sekunder",
+      "description": "Aksi pendamping: bergaris, tanpa isian. Tidak boleh bersaing dengan aksi utama.",
+      "html": "<button class=\"ds-btn-ghost\">Terbitkan semua</button>",
+      "css": ".ds-btn-ghost { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 14px; font-weight: 600; padding: 9px 15px; color: #1a1712; background: transparent; border: 1px solid #c9bfa8; border-radius: 2px; cursor: pointer; transition: background-color 120ms ease, border-color 120ms ease; } .ds-btn-ghost:hover { background: #f4eddd; border-color: #5f594c; } .ds-btn-ghost:focus-visible { outline: 2px solid #1f4b99; outline-offset: 2px; }"
+    },
+    {
+      "name": "Cap Keadaan",
+      "kind": "custom",
+      "refersTo": "cap-status",
+      "description": "Gerakan khas sistem: keadaan sebagai cap karet, bukan lencana pil.",
+      "html": "<span class=\"ds-cap ds-cap--lunas\">Lunas</span>",
+      "css": ".ds-cap { display: inline-block; padding: 2px 8px; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid currentColor; border-radius: 2px; white-space: nowrap; transform: rotate(-1.5deg); opacity: 0.9; } .ds-cap--lunas { color: #2f6b46; background: #dfeade; } .ds-cap--belum { color: #8a5a00; background: #f5e8cb; } .ds-cap--sebagian { color: #1f4b99; background: #dde5f4; } .ds-cap--netral { color: #5f594c; background: #f4eddd; }"
+    },
+    {
+      "name": "Kartu",
+      "kind": "card",
+      "refersTo": "kartu",
+      "description": "Wadah panel di atas bidang karton. Satu bayangan, arah ke bawah.",
+      "html": "<div class=\"ds-card\"><p style=\"margin:0;font-weight:650\">Piutang — bukan pendapatan</p><p style=\"margin:4px 0 0;color:#5f594c;font-size:14px\">Denda yang tertera di tagihan baru menjadi pendapatan pada hari ia dibayar.</p></div>",
+      "css": ".ds-card { padding: 18px 20px; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #1a1712; background: #faf6ec; border: 1px solid #c9bfa8; border-radius: 3px; box-shadow: 0 1px 0 rgba(26,23,18,0.06), 0 2px 6px rgba(26,23,18,0.08); }"
+    },
+    {
+      "name": "Masukan Teks",
+      "kind": "input",
+      "refersTo": "masukan",
+      "description": "Medan formulir. Fokus memakai cincin biru lembut, galat memakai aria-invalid.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field__label\">Email</span><input class=\"ds-input\" type=\"email\" placeholder=\"nama@kos.test\" /></label>",
+      "css": ".ds-field { display: grid; gap: 6px; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; } .ds-field__label { font-size: 14px; font-weight: 600; color: #1a1712; } .ds-input { width: 100%; box-sizing: border-box; padding: 9px 11px; font: inherit; font-size: 14px; color: #1a1712; background: #faf6ec; border: 1px solid #c9bfa8; border-radius: 2px; outline: none; transition: border-color 120ms ease, box-shadow 120ms ease; } .ds-input::placeholder { color: #8c8474; } .ds-input:focus-visible { border-color: #1f4b99; box-shadow: 0 0 0 3px #dde5f4; } .ds-input[aria-invalid=\"true\"] { border-color: #a8322a; }"
+    },
+    {
+      "name": "Tabel Katalog",
+      "kind": "custom",
+      "description": "Tabel dengan kepala bergaris ganda dan baris bergaris rambut; angka rata kanan.",
+      "html": "<table class=\"ds-table\"><thead><tr><th>Periode</th><th class=\"ds-num\">Total</th><th>Status</th></tr></thead><tbody><tr><td><strong>1 Nov 2026</strong></td><td class=\"ds-num\">Rp 1.500.000</td><td><span class=\"ds-cap ds-cap--sebagian\">Sebagian</span></td></tr></tbody></table>",
+      "css": ".ds-table { width: 100%; border-collapse: collapse; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 14px; font-variant-numeric: tabular-nums; color: #1a1712; } .ds-table th { padding: 9px; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; text-align: left; color: #5f594c; border-top: 1px solid #1a1712; border-bottom: 1px solid #1a1712; white-space: nowrap; } .ds-table td { padding: 10px 9px; border-bottom: 1px solid #ded5c0; } .ds-table tbody tr:last-child td { border-bottom: none; } .ds-table tbody tr:hover { background: #f4eddd; } .ds-num { text-align: right; }"
+    },
+    {
+      "name": "Navigasi Sisi",
+      "kind": "nav",
+      "description": "Sidebar tiga baris tetap: kepala, menu bergulir, kaki menempel. Halaman aktif ditandai garis kiri 2px.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav__item ds-nav__item--active\" href=\"#\"><span class=\"ds-nav__label\">Tagihan</span><span class=\"ds-nav__note\">Terbitkan dan periksa tagihan</span></a><a class=\"ds-nav__item\" href=\"#\"><span class=\"ds-nav__label\">Tunggakan</span><span class=\"ds-nav__note\">Siapa menunggak dan sudah separah apa</span></a></nav>",
+      "css": ".ds-nav { display: grid; gap: 3px; padding: 16px; width: 244px; background: #faf6ec; border-right: 1px solid #c9bfa8; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; } .ds-nav__item { display: grid; gap: 1px; padding: 8px 11px; color: #5f594c; text-decoration: none; border-left: 2px solid transparent; border-radius: 0 2px 2px 0; transition: background-color 120ms ease, color 120ms ease; } .ds-nav__item:hover { background: #f4eddd; color: #1a1712; } .ds-nav__item--active { color: #1f4b99; background: #dde5f4; border-left-color: #1f4b99; } .ds-nav__label { font-size: 14px; font-weight: 600; } .ds-nav__note { font-size: 11.5px; opacity: 0.82; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Kartu indeks di laci katalog",
+    "overview": "Setiap catatan adalah satu kartu di laci: kamar, penghuni, tagihan. Kamu tidak menggulir tabel tanpa identitas — kamu membaca entri yang menyebut dirinya sendiri di kepala, dengan nomor di kiri dan nominal rata kanan pada garis dasar yang sama. Sistem ini dibangun dari karton manila hangat, tinta ketikan hampir hitam, dan garis rambut — benda kerja yang dipakai orang yang menghitung uang setiap hari, bukan papan iklan.\n\nKeputusan ini lahir dari penolakan yang jelas: tabel abu-abu tanpa batas di atas bidang putih tanpa suhu. Versi sebelumnya benar secara fungsi tetapi terasa dirakit, bukan dirancang — skala tipografinya bergerak 11,5–22px dengan selisih 0,5px, sehingga judul tidak pernah terasa sebagai judul. Sekarang skala bergerak 12/14/16/19/24/30, pangkat dibawa oleh berat, huruf besar, dan garis.\n\nBatas keras yang membentuk seluruh dokumen ini: aplikasi ini mode Operate. Pemilik membukanya untuk menyelesaikan pekerjaan, bukan menikmati halaman. Karena itu dunia visual hanya menyumbang empat hal — rupa huruf, palet, densitas, dan satu gerakan khas. Ia tidak menyumbang tata letak, model navigasi, atau bentuk kendali. Tabel tetap tabel; sidebar tetap sidebar; tombol tetap tombol. Lembar bergaris yang menggantikan tabel adalah kostum, bukan desain.",
+    "keyCharacteristics": [
+      "Bidang karton manila hangat, bukan putih; tinta hampir hitam, bukan hitam murni.",
+      "Satu warna aksen untuk tindakan utama saja; aksi sekunder bergaris tanpa isian.",
+      "Kepala tabel bergaris ganda; baris dipisah garis rambut, bukan latar belang.",
+      "Keadaan dirender sebagai cap karet, bukan lencana pil.",
+      "Angka uang selalu tabular-nums, rata kanan, pada garis dasar bersama.",
+      "Sudut hampir siku (2–3px); bayangan satu arah, bukan halo."
+    ],
+    "rules": [
+      {
+        "name": "The One Accent Rule",
+        "body": "Biru aksen dipakai pada satu tindakan utama per layar, dan tidak pernah sebagai hiasan atau latar tombol sekunder. Ketika semua tombol berwarna sama, mata kehilangan jalan untuk tahu mana yang ditekan lebih dulu — itu cacat keterbacaan, bukan soal selera.",
+        "section": "colors"
+      },
+      {
+        "name": "The Colour Earns Its Place Rule",
+        "body": "Warna hanya dipakai untuk arti: hijau = lunas/selesai, amber = perlu ditindak, merah = terlambat/bahaya, biru = tindakan. Warna yang tidak membawa salah satu arti itu tidak dipakai.",
+        "section": "colors"
+      },
+      {
+        "name": "The Measured Steps Rule",
+        "body": "Skala tipografi harus bergerak dalam lompatan yang bisa dirasakan (12/14/16/19/24/30), bukan 0,5px. Skala yang terlalu rapat membuat semua teks terbaca \"normal\", dan seluruh layar kehilangan hierarki.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Money Rule",
+        "body": "Setiap nominal rupiah memakai angka tabular dan rata kanan. Angka yang tidak sejajar kolomnya memaksa mata membaca ulang tiap baris — dan pada tabel tagihan itu pekerjaan yang dilakukan setiap hari.",
+        "section": "typography"
+      },
+      {
+        "name": "The One-Direction Rule",
+        "body": "Bayangan selalu punya offset ke bawah dan blur lembut. Halo berwarna tanpa offset adalah hiasan, bukan kedalaman, dan tidak dipakai di sini.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do beri satu tindakan utama per layar, bergaya isian tinta penuh; semua aksi lain bergaris tipis tanpa isian.",
+      "Do pakai tabular-nums dan rata kanan untuk setiap nominal rupiah.",
+      "Do render keadaan sebagai cap: kapital, berspasi, berbingkai, sedikit miring.",
+      "Do bawa pangkat dengan berat, huruf besar, dan garis — bukan dengan ukuran yang berbeda 0,5px.",
+      "Do jaga kontras teks utama ≥ 4,5:1 dan teks sekunder ≥ 4,5:1; teks sekunder diwarnai dari hue yang sama, bukan abu-abu netral.",
+      "Do pertahankan role=\"alert\" pada pesan galat, aria-invalid pada medan galat, dan cincin fokus yang terlihat.",
+      "Do biarkan kolom aksi menempel di tepi kanan saat tabel lebih lebar daripada bungkusnya.",
+      "Do tuliskan alasan di layar yang menolak tindakan: apa yang kurang dan langkah berikutnya."
+    ],
+    "donts": [
+      "Don't beri isian biru penuh pada lebih dari satu tombol di satu layar — itu menghapus hierarki tindakan.",
+      "Don't pakai lencana pil, latar biru lembut, atau sudut 8–10px: itu bahasa sistem sebelumnya, bukan sistem ini.",
+      "Don't ganti tabel dengan kartu atau lembar bergaris, dan don't ganti sidebar dengan tab rail — dunia visual mode Operate tidak boleh memasok tata letak maupun model navigasi.",
+      "Don't pakai bayangan berhalo tanpa offset, atau gradien sebagai hiasan.",
+      "Don't animasikan nominal: tidak ada animasi yang menunda munculnya angka.",
+      "Don't sembunyikan angka di balik hiasan — hiasan yang menggeser nominal ke bawah lipatan adalah cacat, bukan gaya.",
+      "Don't pakai warna yang tidak membawa arti."
+    ]
+  }
+}

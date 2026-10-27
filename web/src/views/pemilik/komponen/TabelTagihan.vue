@@ -55,7 +55,7 @@ const KOLOM = 11
             <th class="kanan">Sisa</th>
             <th>Jatuh tempo</th>
             <th>Status</th>
-            <th></th>
+            <th class="kolom-aksi"></th>
           </tr>
         </thead>
         <tbody>
@@ -76,7 +76,7 @@ const KOLOM = 11
             </td>
             <td>{{ tanggal(t.jatuh_tempo) }}</td>
             <td><LencanaStatus :status="t.status" /></td>
-            <td class="kanan">
+            <td class="kanan kolom-aksi">
               <button class="halus mungil" @click="emit('buka', t)">Rincian</button>
             </td>
           </tr>
@@ -100,7 +100,7 @@ const KOLOM = 11
    sengaja berbeda dari portal penghuni (yang memakai `--bahaya`): di layar
    pemilik denda adalah hal yang wajar, bukan kesalahan. */
 .sel-denda {
-  color: #8a5a00;
+  color: var(--peredam);
   font-weight: 600;
 }
 

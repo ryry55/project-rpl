@@ -251,7 +251,7 @@ onMounted(muatRekening)
       </div>
       <div class="aksi-bar">
         <LoncengNotifikasi />
-        <RouterLink :to="{ name: 'pengaturan-pdp' }" class="tombol-tautan mungil">
+        <RouterLink :to="{ name: 'pengaturan-pdp' }" class="tombol-tautan halus mungil">
           Data pribadi
         </RouterLink>
         <button class="halus" @click="keluar">Keluar</button>
@@ -582,14 +582,14 @@ onMounted(muatRekening)
 .lencana {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  font-size: 10.5px;
+  width: 34px;
+  height: 34px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--aksen);
-  background: var(--aksen-lemah);
-  border-radius: 9px;
+  letter-spacing: 0.1em;
+  color: var(--permukaan);
+  background: var(--teks);
+  border-radius: var(--radius-kecil);
 }
 
 .ringkas {
@@ -627,7 +627,7 @@ onMounted(muatRekening)
 
 .baris-rincian > td {
   padding: 0;
-  background: #fbfcfd;
+  background: var(--permukaan-turun);
   border-top: 1px solid var(--garis-lemah);
 }
 
@@ -684,7 +684,7 @@ onMounted(muatRekening)
   font-size: 12.5px;
   background: var(--permukaan);
   border: 1px solid var(--garis-lemah);
-  border-radius: 8px;
+  border-radius: var(--radius-kecil);
 }
 
 .daftar-bayar p {
@@ -739,12 +739,16 @@ onMounted(muatRekening)
 }
 
 .lencana-kategori {
-  padding: 1px 8px;
-  font-size: 11px;
-  font-weight: 550;
+  padding: 1px 7px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--teks-lemah);
-  background: #eef0f3;
-  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-kecil);
+  vertical-align: 1px;
 }
 
 .isi-aturan {
@@ -777,9 +781,9 @@ onMounted(muatRekening)
   justify-content: space-between;
   gap: 14px;
   padding: 12px 14px;
-  background: #fbfcfe;
+  background: var(--permukaan-turun);
   border: 1px solid var(--garis);
-  border-radius: 10px;
+  border-radius: var(--radius);
 }
 
 .isi-rekening {
@@ -790,12 +794,15 @@ onMounted(muatRekening)
 
 .lencana-jenis {
   justify-self: start;
-  padding: 1px 8px;
-  font-size: 11px;
-  font-weight: 550;
+  padding: 1px 7px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--teks-lemah);
-  background: #eef0f3;
-  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-kecil);
 }
 
 .nama-rekening {

@@ -160,8 +160,8 @@ async function terbitkan() {
 
 <style scoped>
 .panel-massal {
-  border-color: #cfd9f5;
-  background: #fbfcfe;
+  border-color: var(--garis);
+  background: var(--permukaan-turun);
 }
 
 .hasil-massal {

@@ -21,10 +21,25 @@ Pemilik membuka aplikasi ini untuk membaca angka: sisa tagihan, jumlah
 tunggakan, total masuk. Setiap piksel yang tidak membantu membaca angka adalah
 piksel yang salah tempat.
 
-Konsekuensi nyata: tidak ada ilustrasi, tidak ada gradien dekoratif, tidak ada
-animasi selain transisi 120ms pada `filter` dan `border-color`. Tidak ada
-pustaka komponen (Vuetify, PrimeVue) — semuanya ~560 baris CSS yang bisa dibaca
-dalam satu duduk.
+> **Keputusan ini dilonggarkan pada 27 Oktober 2026.** Versi aslinya berbunyi
+> "tidak ada ilustrasi, tidak ada gradien dekoratif, tidak ada animasi selain
+> transisi 120ms" — dan itu **dibatalkan** oleh pemilik untuk redesign UI/UX.
+> Alasannya: prinsip itu, ditegakkan terlalu ketat, menghasilkan layar yang
+> benar tetapi tidak terasa dirancang, dan pemilik menilai aplikasinya "kurang
+> menarik".
+>
+> Yang berlaku sekarang: **karakter visual boleh masuk** — palet dengan suhu,
+> kedalaman satu arah, transisi halus, dan satu gerakan khas — **selama tidak
+> memperlambat atau mengaburkan pembacaan angka**. Batas kerasnya: tidak ada
+> animasi yang menunda munculnya nominal, tidak ada hiasan di belakang angka,
+> tidak ada warna yang dipakai semata-mata sebagai hiasan (§1.2 tetap utuh).
+>
+> Prinsip lain di dokumen ini tetap mengikat, termasuk §1.2, §1.3, dan §1.4.
+> Percobaan redesign yang ternyata mengganggu pembacaan angka dicatat di
+> `web/src/style.css` sebagai komentar beserta angka pengukurannya.
+
+Konsekuensi nyata: tidak ada pustaka komponen (Vuetify, PrimeVue) — semuanya
+~560 baris CSS yang bisa dibaca dalam satu duduk.
 
 ### 1.2 Warna hanya untuk arti
 

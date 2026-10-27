@@ -187,6 +187,19 @@ keluaran `gh` lewat `|` merusak UTF-8. Skrip `.ps1` di repo ini disimpan UTF-8
 tanpa BOM dan dibaca Windows PowerShell 5.1 sebagai ANSI — jangan menaruh simbol
 non-ASCII di dalamnya.
 
+**Jangan memakai PowerShell untuk mengganti teks di banyak berkas.** Ini sudah
+menghasilkan kerusakan senyap: satu loop atas `@(@('berkas','cari','ganti'), ...)`
+dengan `$pair[0]` di dalam `-replace` tidak mengganti string, melainkan
+**karakter**: `'b'` menjadi `'a'`, `'c'` menjadi `'o'`, dan seterusnya. Tidak ada
+galat, tidak ada pesan - hasilnya 1065 baris berubah di satu berkas dan huruf
+hilang dari tujuh berkas lain. Gejalanya baru terlihat di tangkapan layar.
+Penanda bahwa itu terjadi: jumlah karakter sebuah berkas berubah tanpa
+`git diff` yang masuk akal. Penggantian teks lintas berkas dilakukan dengan
+tool `edit` (satu pola, terverifikasi unik) atau skrip Node yang menghitung
+jumlah kemunculan lebih dulu dan berhenti bila angkanya tidak sesuai. Jerat
+serupa: `node -e "..."` lewat PowerShell juga merusak tanda kutip - tulis
+berkas `.js` dulu.
+
 ## Dokumen
 
 - `SPEC.md` — kontrak implementasi: aturan bisnis, keputusan, model data, API.

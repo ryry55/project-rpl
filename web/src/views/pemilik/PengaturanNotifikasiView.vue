@@ -196,6 +196,13 @@ onMounted(muat)
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
   opacity: 0.8;
+  /* Kode peristiwa seperti `tagihan.terbit` adalah satu kata tanpa spasi, jadi
+     ia tidak bisa dibungkus dan memaksa kolom pertama selebar 407px — terukur:
+     tabel 3 kolom ini meluber 47px pada layar 360px meski hanya punya tiga
+     kolom. `overflow-wrap: anywhere` mengizinkannya patah di titik mana pun,
+     sehingga tabel muat tanpa menggulir mendatar.
+   */
+  overflow-wrap: anywhere;
 }
 
 .tengah {

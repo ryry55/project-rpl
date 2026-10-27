@@ -563,12 +563,12 @@ onMounted(muat)
 /* Piutang ditandai garis kiri, sama seperti gerbang di halaman Tagihan: dua
    tempat yang membicarakan uang yang belum diterima terlihat sebagai satu hal. */
 .panel-piutang {
-  border-left: 3px solid #8a5a00;
-  background: #fdfaf4;
+  border-left: 3px solid var(--peredam);
+  background: var(--permukaan);
 }
 
 .panel-piutang :deep(h2) {
-  color: #8a5a00;
+  color: var(--peredam);
 }
 
 .kisi-piutang {
@@ -608,15 +608,18 @@ onMounted(muat)
 .lencana-verifikasi {
   display: inline-block;
   padding: 1px 7px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   white-space: nowrap;
-  border-radius: 999px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-kecil);
 }
 
 .verifikasi-belum {
   color: var(--teks-lemah);
-  background: #eef0f3;
+  background: var(--permukaan-turun);
 }
 
 .verifikasi-terima {

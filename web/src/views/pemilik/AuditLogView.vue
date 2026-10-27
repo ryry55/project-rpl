@@ -306,15 +306,25 @@ onMounted(muat)
   color: var(--teks-lemah);
 }
 
+/* Aksi audit ditulis sebagai cap, bukan pil biru.
+ *
+ * Bahasa yang sama dengan `.lencana-status`: kapital berspasi, bingkai tipis.
+ * Sebelumnya ia pil biru penuh-lembut, sehingga setiap baris audit membawa
+ * satu bercak biru — dan biru di aplikasi ini berarti "tindakan utama", bukan
+ * "keterangan". Aksi audit adalah keterangan.
+ */
 .lencana-aksi {
   display: inline-block;
-  padding: 2px 8px;
-  font-size: 11.5px;
-  font-weight: 560;
+  padding: 1px 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   white-space: nowrap;
-  color: var(--aksen);
-  background: var(--aksen-lemah);
-  border-radius: 6px;
+  color: var(--teks-lemah);
+  background: transparent;
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-kecil);
 }
 
 .daftar-ubah {

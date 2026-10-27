@@ -2,11 +2,11 @@
 /**
  * Gambar QRIS yang diambil dengan token, lalu ditampilkan sebagai blob.
  *
- * **Kenapa bukan `<img src="/api/rekening/1/gambar">` biasa.** Rute itu dijaga
- * `auth:sanctum`, dan `<img>` tidak bisa mengirim header `Authorization` -
+ * **Kenapa bukan tag gambar biasa dengan `src`.** Rute itu dijaga
+ * `auth:sanctum`, dan tag gambar tidak bisa mengirim header `Authorization` -
  * peramban hanya mengirim cookie, sedangkan API ini memakai Bearer token.
- * Memaksakan `<img src>` akan menghasilkan 401 yang tampil sebagai ikon rusak,
- * tanpa pesan apa pun.
+ * Memaksakan `src` langsung akan menghasilkan 401 yang tampil sebagai ikon
+ * rusak, tanpa pesan apa pun.
  *
  * Tiga jalan keluarnya, dan dua di antaranya ditolak:
  *
@@ -17,8 +17,8 @@
  *      sebuah kos tidak boleh bisa diambil siapa pun yang menebak id-nya.
  *   3. **Ambil lewat `fetch` ber-token, jadikan blob.** Dipakai di sini.
  *
- * Biayanya: gambar tidak ikut cache peramban seperti `<img>` biasa. Untuk satu
- * kode QR yang dibuka sekali saat membayar, itu pertukaran yang benar.
+ * Biayanya: gambar tidak ikut cache peramban seperti tag gambar biasa. Untuk
+ * satu kode QR yang dibuka sekali saat membayar, itu pertukaran yang benar.
  */
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { sesi } from '../sesi.js'
@@ -116,6 +116,6 @@ onBeforeUnmount(cabut)
   margin-top: 10px;
   background: #fff;
   border: 1px solid var(--garis);
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 </style>

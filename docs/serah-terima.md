@@ -6,7 +6,7 @@
 >
 > **Maksimal 120 baris.** Kalau lebih, isinya sudah menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: Fase 0.5 (perintah pemilik, status penyiapan, ekspor CSV) - 26 Oktober 2026
+Terakhir diperbarui: Redesign UI/UX selesai — 28 Oktober 2026
 
 ---
 
@@ -14,27 +14,26 @@ Terakhir diperbarui: Fase 0.5 (perintah pemilik, status penyiapan, ekspor CSV) -
 
 | Hal | Nilai |
 |---|---|
-| Fase terakhir selesai | FASE 0.5: `kos:buat-pemilik`, `GET /penyiapan`, ekspor CSV, layar Bantuan |
-| Berikutnya | **Fase 1: Render + Neon** (butuh akun pemilik), lalu verifikasi Midtrans sandbox |
+| Fase terakhir selesai | **Redesign UI/UX** (arah "kartu indeks katalog", seluruh layar) |
+| Berikutnya | **Fase 1: Render + Neon** (butuh akun pemilik), lalu Midtrans sandbox |
 | Suite PHP | **792 lulus / 3654 asersi**, 43 berkas tes; pint & eslint bersih |
 | Migrasi / endpoint / tabel domain | **41** / **85** / **23** (total 32 di skema `public`) |
-| Skrip uji | **29** `.mjs` (28 terdaftar di gate + `uji-proxy.mjs`), **SEMUA LULUS** |
-| Gate lokal | **SEMUA LULUS (576 detik)**; CI run `40323498790` hijau |
+| Skrip uji | **29** `.mjs`: 28 dijalankan gate + `_cdp.mjs` (pustaka bersama) |
+| Gate lokal | **SEMUA LULUS (577 detik)** — 792 tes PHP + 28 skrip browser + balapan |
 
 ---
 
 ## 2. Tiga aksi berikutnya
 
 1. **Fase 1: Render + Neon.** Butuh akun pemilik. `deploy.yml` masih mode
-   peringatan (`siap=false`) sampai GitHub Environments `staging`/`production`
-   punya `APP_URL` dan `RENDER_DEPLOY_HOOK`.
-2. **Verifikasi Midtrans sandbox.** Butuh `MIDTRANS_SERVER_KEY` sungguhan; kode
-   dan 16 tesnya lulus dengan kredensial palsu, tetapi transaksi sungguhan ke
-   sandbox belum pernah terjadi.
-3. **Baca `docs/akademik/README.md`** sebelum menyentuh apa pun di sana. Semua
-   berkas akademik **dibangkitkan**; suntingan tangan hilang pada build
-   berikutnya. Ubah `usecase-data.js` / `dokumen-data.js` / `dfd-data.js`, lalu
-   `node docs/akademik/build.js && node docs/akademik/build-dokumen.js`.
+   peringatan (`siap=0`), jadi tidak menyentuh produksi sebelum pemilik mengisi
+   `RENDER_DEPLOY_HOOK`, `APP_URL`, dan environment GitHub `staging`/`production`.
+   Rincian: `docs/produk/9_DEPLOY.md`.
+2. **Verifikasi Midtrans sandbox.** Butuh `MIDTRANS_SERVER_KEY` asli; tanpa itu hanya
+   jalur simulasi yang terbukti.
+3. **Jadwal A3 vs container tidur.** Render free tidur setelah 15 menit; penjadwal
+   Laravel tidak bisa dibuktikan di laptop. Pilihannya cron eksternal atau plan
+   berbayar. **Keputusan pemilik, jangan ditebak.**
 
 ---
 
@@ -51,56 +50,53 @@ Jangan menyimpang dari ini tanpa keputusan pemilik.
 | Keputusan terbuka | `docs/keputusan-terbuka.md` |
 | Langkah deploy manual | `docs/produk/9_DEPLOY.md` |
 
-**Narasi tetap 4 halaman, bukan 3** - sudah diputuskan pemilik. Template dosen
-hanya punya 10 aliran dan 5 entitas; sistem ini 16 aliran, 12 entitas data, 7
-aturan. Kedua PDF sudah diekspor: narasi 4 halaman, diagram tepat 2 halaman.
-Jangan "merapikannya" tanpa bertanya. **Harga Charter tetap Rp 50.000.000**,
-jadwal mengikuti pertemuan kuliah mulai 8 September 2026.
+**Bahasa visual (redesign, 27-28 Okt 2026).** Arahnya "kartu indeks katalog":
+tipografi sebagai pembawa watak, palet kertas, kerapatan tinggi, dan **satu**
+gerakan khas - status sebagai **cap** (huruf besar, renggang, bingkai tipis),
+bukan pil. Angka tetap lebih penting daripada hiasan. Garis kiri **2px menandai
+pilihan** (nav aktif, pemisah butir), **3px menandai keadaan** (gerbang, piutang,
+wewenang sensitif, kotak pembatalan). 16 token warna; satu nuansa baru diturunkan
+dari tetangganya (`color-mix`), bukan token ke-17. Nama kelas dan markup **boleh
+berubah**. Rincian: `DESIGN.md`, `PRODUCT.md`, `2_DESIGN_SYSTEM.md` §1.1.
+
+**Narasi tetap 4 halaman, bukan 3.** Template dosen hanya punya 10 aliran dan 5
+entitas; sistem ini 16 aliran, 12 entitas data, 7 aturan. Kedua PDF sudah
+diekspor. **Harga Charter tetap Rp 50.000.000**, jadwal mengikuti pertemuan kuliah
+mulai 8 September 2026.
 
 ---
 
 ## 4. Cacat yang sudah ditutup sesi ini
 
-**QRIS di basis data, bukan di disk.** `public/` read-only, Render free tanpa
-disk persisten. Gambar di kolom `bytea`, keluar lewat
-`GET /api/rekening/{id}/gambar` ber-token. Jebakan yang dibuktikan lebih dulu:
-parameter teks biasa — termasuk `mass assignment` Eloquent — menyimpan **0 byte
-tanpa galat**; hanya `decode(?, 'base64')` yang utuh.
+**Tujuh berkas rusak oleh skrip PowerShell, bukan oleh redesign.** Semua
+dikembalikan ke HEAD, diterapkan ulang dengan `edit`, dan divalidasi UTF-8 sebelum
+commit. **`kolom-aksi` hilang saat revert** sehingga tombol "Rincian" ikut
+tergulir; dipasang ulang, lalu diukur 90 kombinasi, 0 cacat.
 
-**Tombol "Tarik kembali".** Endpoint pembalik bekerja sejak R2, tetapi tidak ada
-tombolnya di layar. Sekarang ada, dan alasan penarikan wajib diisi.
+Sisanya keputusan desain: "Lupa kata sandi?" turun menjadi `.tautan-teks`;
+petunjuk akun demo di balik `VITE_MODE_DEMO`; `impeccable detect` 0 temuan karena
+tiga `broken-image` diperbaiki di sumbernya dan empat `side-tab` didaftarkan
+beserta alasannya di `.impeccable/config.json`.
 
-**Jatuh tempo bulan masuk mendahului tanggal masuk.** Kebijakan *tanggal tetap
-15* diterapkan juga pada bulan masuk: masuk 16 September, tagihan September
-jatuh tempo 15 September — sehari sebelum ia menempati kamarnya, sudah
-menunggak, dan dendanya berjalan dari tanggal ia belum berutang. Ditemukan saat
-memverifikasi angka panduan sidang, bukan lewat tes. Dikunci dua tes.
+---
 
-**Dua bukti tangkapan layar byte-identik.** `T28-audit-anonim` dan
-`T28-jejak-teranonim` sama persis dan isinya halaman Kamar: `e2e-t28` memanggil
-API tanpa berpindah halaman lalu memotret apa adanya. Sekarang keduanya membuka
-halamannya dan menunggu baris "pengguna dihapus".
+## 5. Cara memeriksa keadaan
 
-**Mojibake `â€"` di antarmuka.** 16 tempat di `PengaturanPdpView.vue` dan
-`KebijakanKosTest.php`: em-dash yang terbaca sebagai CP1252. Hanya terlihat lewat
-potret layar — konsol PowerShell menampilkannya seolah benar.
-
----## 5. Cara memeriksa keadaan
+Satu perintah memeriksa seluruh repo; urutannya menentukan (build image dulu,
+`cache:clear` di samping `migrate:fresh`), jadi jangan menjalankan tes satu per
+satu. Tanpa uji browser: `.\periksa.ps1 -Cepat`. Di Linux/CI `./periksa.sh`;
+keduanya wajib memuat daftar `.mjs` yang identik dan `uji.yml` memeriksa itu.
 
 ```powershell
-git status --short                              # harus bersih
-docker compose exec -T api php artisan test      # 748 lulus / 3522 asersi
+powershell -ExecutionPolicy Bypass -File periksa.ps1
+git status --short                                # harus bersih
+docker compose exec -T api php artisan test       # 792 lulus / 3654 asersi
 cd api; php vendor\bin\pint --test                # di HOST, bukan container
 cd web; npx eslint src; npm run build             # bersih
-bash docs/uji/periksa-profil-produksi.sh          # 23/23 LULUS
-powershell -ExecutionPolicy Bypass -File periksa.ps1   # SEMUA LULUS
-node docs/akademik/build.js                       # 81 endpoint terpetakan habis
-node docs/akademik/build-dokumen.js               # 3 dokumen dibangkitkan
 ```
 
-Untuk sidang, baca **`docs/demo-sidang.md`** — urutan demo 5 menit dan jawaban
-atas pertanyaan yang paling sering muncul. Angka di dalamnya sudah dijalankan
-pada sistem, bukan dihitung di atas kertas.
+Baca **`docs/demo-sidang.md`** sebelum sidang: urutan demo 5 menit dan jawaban atas
+pertanyaan yang paling sering muncul, dengan angka yang sudah dijalankan.
 
 ---
 
@@ -108,15 +104,17 @@ pada sistem, bukan dihitung di atas kertas.
 
 Tercatat juga di `AGENTS.md`; diulang di sini karena mahal.
 
-1. **`docker compose exec api` menjalankan kode dari IMAGE, bukan dari disk.**
-   Build image dulu setelah menyunting `api/`. **Pint dijalankan di host.**
-2. **`git add -A` menelan berkas audit.** Keduanya kini di `.gitignore`.
-3. **PowerShell `>` menulis UTF-16** dan `JSON.parse` menolaknya; `-replace` dan
-   heredoc juga rusak tanpa suara. Pakai `WriteAllText(..., UTF8Encoding($false))`
-   dan berkas `.py` untuk suntingan teks.
-4. **Mengetik angka di dokumen selalu tertinggal.** Generator akademik sekarang
-   menghitung migrasi dari direktori dan endpoint/tabel dari snapshot JSON.
-5. **Mojibake tidak terlihat di konsol.** Em-dash yang terbaca sebagai CP1252
-   tampil benar di PowerShell tetapi rusak di peramban. Periksa byte, atau
-   lihat potret layarnya.
-6. **Chrome menolak `--print-to-pdf` dengan path relatif.** Pakai path absolut.
+1. **PowerShell bukan alat pengganti teks** - `-replace` di dalam loop mengenai
+   karakter, bukan string, tanpa galat. Pakai `edit` atau skrip Node yang
+   menghitung kemunculan lebih dulu; `node -e` juga merusak tanda kutip.
+2. **`docker compose exec api` menjalankan kode dari IMAGE.** Build image dulu
+   setelah menyunting `api/` atau `web/`. **Pint dijalankan di host.**
+3. **Pembatas percobaan masuk menyimpan hitungan di CACHE.** Uji login gagal yang
+   disengaja membuat skrip berikutnya menerima 429 pada login yang benar;
+   `periksa` sudah menjalankan `cache:clear`.
+4. **Asersi bertanggal akan gagal sendiri.** Sematkan `X-Simulasi-Tanggal`, atau
+   bandingkan dengan nilai dari API - jangan mengetik angka.
+5. **Mojibake tidak terlihat di konsol.** Periksa byte dengan Node, atau lihat potret layarnya.
+6. **`docs/uji/*.png` ditulis ulang setiap E2E.** Kembalikan yang tidak relevan
+   (`git checkout -- docs/uji/*.png`); kalau berubah karena redesign, sebutkan di
+   pesan commit.

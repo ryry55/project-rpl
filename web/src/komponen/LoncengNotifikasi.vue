@@ -217,22 +217,23 @@ onMounted(muat)
   gap: 7px;
   padding: 7px 12px;
   font-size: 12.5px;
-  font-weight: 550;
+  font-weight: 600;
   color: var(--teks-lemah);
-  background: var(--permukaan);
+  background: transparent;
   border: 1px solid var(--garis);
-  border-radius: 999px;
+  border-radius: var(--radius-kecil, 3px);
 }
 
 .lonceng:hover {
   color: var(--teks);
-  border-color: #d3d8e0;
+  border-color: var(--teks-lemah);
+  background: var(--permukaan-turun, #f4eddd);
 }
 
 .lonceng.berdenyut {
   color: var(--aksen);
   background: var(--aksen-lemah);
-  border-color: #cfe0fb;
+  border-color: var(--aksen);
 }
 
 .ikon {
@@ -249,7 +250,7 @@ onMounted(muat)
   padding: 0 5px;
   font-size: 11px;
   font-weight: 700;
-  color: #fff;
+  color: var(--permukaan);
   background: var(--aksen);
   border-radius: 999px;
 }
@@ -322,7 +323,7 @@ onMounted(muat)
 }
 
 .satu-lonceng:hover {
-  background: #f6f7f9;
+  background: var(--permukaan-turun);
 }
 
 .judul-lonceng {

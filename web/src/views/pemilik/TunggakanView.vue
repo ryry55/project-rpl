@@ -268,13 +268,13 @@ async function unduhTunggakan() {
   cursor: pointer;
   background: var(--permukaan);
   border: 1px solid var(--garis);
-  border-radius: 12px;
+  border-radius: var(--radius);
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .kartu-kelompok:hover {
-  border-color: #cfd4dc;
-  box-shadow: 0 1px 3px rgb(16 24 40 / 6%);
+  border-color: var(--teks-lemah);
+  box-shadow: var(--bayang);
 }
 
 .kelompok-judul {
@@ -305,23 +305,32 @@ async function unduhTunggakan() {
 /* Penekanan bertingkat: makin lama menunggak, makin keras warnanya. Warna
    dipakai sebagai urutan keparahan, bukan hiasan. */
 .kelompok-belum .kelompok-angka {
-  color: #667085;
+  color: var(--teks-lemah);
 }
 
 .kelompok-ringan .kelompok-angka {
-  color: #8a5a00;
+  color: var(--peredam);
 }
 
+/* Empat tingkat keparahan, tiga token.
+ *
+ * "Sedang" adalah satu-satunya tingkat yang tidak punya token sendiri: ia
+ * berada di antara peredam (belum lewat jatuh tempo) dan bahaya (lewat lebih
+ * dari 60 hari). Menambah warna ke-17 ke palet hanya untuk satu tingkat akan
+ * membuat daftar token memuat nuansa yang tidak dipakai di tempat lain, jadi
+ * tingkat ini DITURUNKAN dari dua token tetangganya. Rampanya tetap satu garis
+ * yang bisa dibaca mata: abu -> amber -> amber-merah -> merah.
+ */
 .kelompok-sedang .kelompok-angka {
-  color: #a3411a;
+  color: color-mix(in oklab, var(--peredam) 40%, var(--bahaya));
 }
 
 .kelompok-berat .kelompok-angka {
-  color: #b42318;
+  color: var(--bahaya);
 }
 
 .kelompok-berat {
-  border-color: #f0c7c2;
+  border-color: var(--bahaya-lemah);
 }
 
 .kelompok-dipilih {
@@ -352,7 +361,7 @@ async function unduhTunggakan() {
 }
 
 .sel-denda {
-  color: #8a5a00;
+  color: var(--peredam);
   font-weight: 600;
 }
 

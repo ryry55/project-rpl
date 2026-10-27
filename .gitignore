@@ -78,3 +78,8 @@ docs/uji/_open.json
 # tiap kali dijalankan, jadi tidak boleh masuk riwayat.
 docs/akademik/_ukur/
 docs/akademik/_*.html
+
+# Tangkapan layar kerja saat menilai redesign. Bukan bukti uji: bukti yang
+# di-track ada di `docs/uji/*.png` dan ditulis ulang oleh skrip E2E sendiri.
+# Berkas di sini hanya untuk dibaca mata selama satu sesi.
+.impeccable/review/

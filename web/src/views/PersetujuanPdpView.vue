@@ -146,16 +146,19 @@ onMounted(() => {
   margin-bottom: 18px;
 }
 
+/* Cap versi PDP, bukan pil biru. Bahasa yang sama dengan `.lencana-status`. */
 .lencana-versi {
   display: inline-block;
   margin-bottom: 12px;
-  padding: 3px 9px;
-  font-size: 11px;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  color: var(--aksen);
-  background: var(--aksen-lemah);
-  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--teks-lemah);
+  background: transparent;
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-kecil);
 }
 
 .kepala-pdp h1 {

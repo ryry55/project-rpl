@@ -448,12 +448,18 @@ onMounted(muat)
   margin: 0;
 }
 
+/* Tipe usulan: cap, bukan pil biru. */
 .lencana-tipe {
-  padding: 1px 8px;
-  font-weight: 550;
-  color: var(--aksen);
-  background: var(--aksen-lemah);
-  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--teks-lemah);
+  background: transparent;
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-kecil);
+  vertical-align: 1px;
 }
 
 .ringkasan-usulan {
@@ -500,7 +506,7 @@ button.bahaya:hover:not(:disabled) {
    dan warna bahaya akan membuatnya terasa seperti ada yang rusak. */
 .lencana-status.status-kedaluwarsa {
   color: var(--teks-lemah);
-  background: #eef0f3;
+  background: var(--permukaan-turun);
 }
 
 .lencana-status.status-menunggu {
