@@ -171,7 +171,7 @@ sedang berjalan. Ketiganya tidak butuh E2E, dan selesai dalam hitungan detik.
 |---|---|
 | `cek-angka-dokumen.js` | Angka yang tertulis di `KONTEKS_PROYEK.md`, `serah-terima.md`, dan `SPEC.md` dibandingkan dengan angka nyata: jumlah migrasi, model, berkas tes, dan endpoint di potret rute |
 | `cek-cakupan-kontrak.js` | Setiap rute nyata muncul di **tepat satu** baris tabel `6_TOOLS_CONTRACTS.md`; tidak ada yang belum tercatat, tidak ada yang tercatat dua kali; judul `(N endpoint)` tiap bagian cocok dengan isinya |
-| `cek-erd-lrs.js` | `docs/erd/skema.json` masih cocok dengan basis data; setiap tabel punya bagian di `03-lrs.md`; setiap kunci asing muncul di tabel relasi LRS dengan tujuan yang sama; jumlah tabel/kunci asing yang ditulis cocok dengan yang dihitung; berkas SVG hasil build ada dan tidak kosong |
+| `cek-erd-lrs.js` | `docs/erd/skema.json` masih cocok dengan basis data; setiap tabel punya bagian di `03-lrs.md`; setiap kunci asing muncul di tabel relasi LRS dengan tujuan yang sama; jumlah tabel/kunci asing yang ditulis cocok dengan yang dihitung; `manifest.json` hasil build cocok dengan skema; setiap SVG berjenjang yang dicatat manifest ada, berisi SVG, dan tidak terpotong; tingkat 2 dan 3 masing-masing memuat seluruh tabel domain tanpa ganda |
 
 ```powershell
 node docs/uji/cek-angka-dokumen.js

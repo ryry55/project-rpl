@@ -11,17 +11,25 @@
  * seperti gambar yang benar.
  *
  * Karena itu pemeriksa ini tidak membaca gambar, melainkan membandingkan
- * EMPAT hal yang bisa dibuktikan:
+ * LIMA hal yang bisa dibuktikan:
  *
  *   1. `skema.json` masih cocok dengan basis data yang berjalan — kalau ada
  *      migrasi baru, berkas ini harus diambil ulang;
  *   2. setiap tabel di basis data muncul di LRS, dan tidak ada tabel di LRS
  *      yang sudah tidak ada di basis data;
  *   3. setiap kunci asing muncul di tabel relasi LRS, dengan tujuan yang sama;
- *   4. setiap dokumen hasil build ada dan tidak kosong.
+ *   4. `manifest.json` hasil build cocok dengan skema, dan setiap berkas SVG
+ *      berjenjang yang dicatatnya benar-benar ada dan tidak terpotong;
+ *   5. tingkat 2 dan tingkat 3 masing-masing memuat seluruh tabel domain,
+ *      tidak kurang dan tidak ganda.
+ *
+ * Daftar berkas pada butir 4 TIDAK dipatok di sini, melainkan dibaca dari
+ * manifest. Nama lembar tingkat 2 dan 3 ditentukan oleh pemecahan otomatis,
+ * jadi daftar yang diketik tangan akan basi setiap kali tata letak berubah.
  *
  * Yang TIDAK diperiksa di sini: apakah gambarnya bagus. Itu tugas mata, dan
- * `build.js` sudah menolak tumpang tindih simbol.
+ * `build-tingkat.js` sudah menolak tumpang tindih simbol serta huruf yang
+ * terlalu kecil.
  *
  * Jalankan: node docs/uji/cek-erd-lrs.js
  */
@@ -157,15 +165,86 @@ if (!fs.existsSync(jalurLrs)) {
 
 /* --------------------------------------------------- 3. hasil build ERD */
 
-for (const nama of ['01-erd-inti.svg', '02-erd-lengkap.svg']) {
-  const jalur = path.join(AKAR, 'docs', 'erd', nama);
-  if (!fs.existsSync(jalur)) {
-    lapor(`docs/erd/${nama} tidak ada — jalankan "node docs/erd/build.js"`);
-    continue;
+/**
+ * Daftar berkas TIDAK dipatok di sini.
+ *
+ * Nama lembar tingkat 2 dan 3 ditentukan oleh pemecahan otomatis di
+ * `build-tingkat.js` — jumlahnya berubah bila tata letak berubah. Versi
+ * sebelumnya mematok `01-erd-inti.svg` dan `02-erd-lengkap.svg`; ketika kedua
+ * berkas itu diganti struktur berjenjang, pemeriksa ini tetap "lulus" hanya
+ * karena gagal membaca nama yang salah, bukan karena dokumennya benar.
+ *
+ * Sekarang ia membaca `manifest.json` yang ditulis build. Bila manifest tidak
+ * ada, itu berarti build belum dijalankan — dan itu kegagalan, bukan alasan
+ * untuk diam.
+ */
+const jalurManifest = path.join(AKAR, 'docs', 'erd', 'manifest.json');
+
+if (!fs.existsSync(jalurManifest)) {
+  lapor('docs/erd/manifest.json tidak ada — jalankan "node docs/erd/build-tingkat.js"');
+} else {
+  let manifest;
+  try {
+    manifest = JSON.parse(fs.readFileSync(jalurManifest, 'utf8'));
+  } catch (e) {
+    lapor('docs/erd/manifest.json tidak bisa dibaca sebagai JSON');
   }
-  const isi = fs.readFileSync(jalur, 'utf8');
-  if (!isi.includes('<svg')) lapor(`docs/erd/${nama} tidak berisi SVG`);
-  if (isi.length < 5000) lapor(`docs/erd/${nama} terlalu kecil (${isi.length} byte) — mungkin build gagal separuh`);
+
+  if (manifest) {
+    // Angka di manifest harus sama dengan yang dihitung dari skema. Tanpa
+    // pemeriksaan ini, manifest bisa tertinggal dari skema tanpa ketahuan.
+    const kolomSkemaHitung = skema.tabel.reduce((n, t) => n + t.kolom.length, 0);
+    const fkSkemaHitung = skema.tabel.reduce((n, t) => n + t.asing.length, 0);
+    if (manifest.tabel !== skema.jumlah_tabel) {
+      lapor(`manifest menyebut ${manifest.tabel} tabel, skema punya ${skema.jumlah_tabel}`);
+    }
+    if (manifest.kolom !== kolomSkemaHitung) {
+      lapor(`manifest menyebut ${manifest.kolom} kolom, skema punya ${kolomSkemaHitung}`);
+    }
+    if (manifest.kunci_asing !== fkSkemaHitung) {
+      lapor(`manifest menyebut ${manifest.kunci_asing} kunci asing, skema punya ${fkSkemaHitung}`);
+    }
+
+    // Keempat tingkat harus ada.
+    const tingkat = new Set((manifest.tingkat || []).map((t) => t.tingkat));
+    for (const t of [0, 1, 2, 3]) {
+      if (!tingkat.has(t)) lapor(`manifest tidak menyebut tingkat ${t}`);
+    }
+
+    // Setiap berkas yang dicatat harus benar-benar ada, berisi SVG, dan tidak
+    // terpotong. Berkas SVG yang gagal separuh tetap punya awalan `<svg`, jadi
+    // panjang minimum diperiksa juga.
+    for (const t of manifest.tingkat || []) {
+      for (const berkas of t.berkas || []) {
+        const jalur = path.join(AKAR, 'docs', 'erd', berkas);
+        if (!fs.existsSync(jalur)) {
+          lapor(`docs/erd/${berkas} (tingkat ${t.tingkat}) tidak ada — jalankan "node docs/erd/build-tingkat.js"`);
+          continue;
+        }
+        const isi = fs.readFileSync(jalur, 'utf8');
+        if (!isi.includes('<svg')) lapor(`docs/erd/${berkas} tidak berisi SVG`);
+        if (!isi.trimEnd().endsWith('</svg>')) lapor(`docs/erd/${berkas} terpotong (tidak diakhiri </svg>)`);
+        if (isi.length < 4000) {
+          lapor(`docs/erd/${berkas} terlalu kecil (${isi.length} byte) — mungkin build gagal separuh`);
+        }
+      }
+    }
+
+    // Tingkat 2 dan 3 harus memuat SELURUH tabel domain, masing-masing sekali.
+    for (const t of [2, 3]) {
+      const catatan = (manifest.tingkat || []).find((x) => x.tingkat === t);
+      if (!catatan) continue;
+      const daftar = catatan.tabel || [];
+      const unik = new Set(daftar);
+      for (const nama of tabelSkema) {
+        if (!unik.has(nama)) lapor(`tingkat ${t} tidak memuat tabel ${nama}`);
+      }
+      for (const nama of unik) {
+        if (!tabelSkema.has(nama)) lapor(`tingkat ${t} menyebut tabel ${nama} yang tidak ada di skema`);
+      }
+      if (daftar.length !== unik.size) lapor(`tingkat ${t} memuat tabel ganda`);
+    }
+  }
 }
 
 /* ------------------------------------------------------------ kesimpulan */

@@ -1,0 +1,92 @@
+{
+  "dibuat": "2026-10-27T10:23:40.732Z",
+  "tabel": 23,
+  "kolom": 201,
+  "kunci_asing": 26,
+  "tingkat": [
+    {
+      "tingkat": 0,
+      "nama": "konseptual",
+      "berkas": [
+        "00-L0-konseptual.svg"
+      ],
+      "entitas": 11
+    },
+    {
+      "tingkat": 1,
+      "nama": "logikal",
+      "berkas": [
+        "01-L1-logikal.svg"
+      ],
+      "entitas": 12
+    },
+    {
+      "tingkat": 2,
+      "nama": "fisikal",
+      "berkas": [
+        "02-L2-fisikal-a.svg",
+        "02-L2-fisikal-b.svg",
+        "02-L2-fisikal-c.svg"
+      ],
+      "tabel": [
+        "aturan_kos",
+        "fasilitas",
+        "kamar",
+        "kamar_fasilitas",
+        "kebijakan_kos",
+        "komponen_biaya",
+        "kontrak",
+        "log_audit",
+        "notifications",
+        "pembayaran",
+        "pengaturan_notifikasi",
+        "pengelola_kewenangan",
+        "penghuni",
+        "persetujuan_pdp",
+        "rekening",
+        "tagihan",
+        "tagihan_rincian",
+        "tarif_sewa",
+        "token_akun",
+        "transaksi_gateway",
+        "users",
+        "usulan_perubahan",
+        "verifikasi_pembayaran"
+      ]
+    },
+    {
+      "tingkat": 3,
+      "nama": "lrs",
+      "berkas": [
+        "03-L3-lrs-a.svg",
+        "03-L3-lrs-b.svg",
+        "03-L3-lrs-c.svg"
+      ],
+      "tabel": [
+        "aturan_kos",
+        "fasilitas",
+        "kamar",
+        "kamar_fasilitas",
+        "kebijakan_kos",
+        "komponen_biaya",
+        "kontrak",
+        "log_audit",
+        "notifications",
+        "pembayaran",
+        "pengaturan_notifikasi",
+        "pengelola_kewenangan",
+        "penghuni",
+        "persetujuan_pdp",
+        "rekening",
+        "tagihan",
+        "tagihan_rincian",
+        "tarif_sewa",
+        "token_akun",
+        "transaksi_gateway",
+        "users",
+        "usulan_perubahan",
+        "verifikasi_pembayaran"
+      ]
+    }
+  ]
+}

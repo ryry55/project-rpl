@@ -364,9 +364,9 @@ if (!terjaga.includes('tagihan')) {
 baris.push('## 8. Cara Membuktikan Dokumen Ini Benar');
 baris.push('');
 baris.push('```bash');
-baris.push('node docs/erd/ambil-skema.js    # ambil ulang skema dari basis data');
-baris.push('node docs/erd/build-lrs.js      # bangun ulang dokumen ini');
-baris.push('node docs/erd/build.js          # bangun ulang ERD dari skema yang sama');
+baris.push('node docs/erd/ambil-skema.js      # ambil ulang skema dari basis data');
+baris.push('node docs/erd/build-lrs.js        # bangun ulang dokumen ini');
+baris.push('node docs/erd/build-tingkat.js    # bangun ulang ERD berjenjang dari skema yang sama');
 baris.push('```');
 baris.push('');
 baris.push('Ketiga perintah gagal dengan kode keluar bukan nol bila ada yang tidak');
