@@ -77,13 +77,15 @@ ERD menggambarkan entitas beserta relasinya memakai notasi Chen: persegi panjang
 
 LRS adalah kelanjutan ERD: entitas dan relasinya diubah menjadi struktur tabel dengan kolom, kunci primer, dan kunci asing. Kunci primer digarisbawahi dan kunci asing bertanda bintang.
 
-LRS digambar dalam satu lembar, mengikuti bentuk laporan: yang digambar hanya kolom kunci — kunci primer dan kunci asing — karena itulah yang membentuk struktur relasional. Dengan cara itu seluruh tabel terbaca dalam satu bagan pada huruf efektif 1,35% lebar A4. Atribut lengkap setiap tabel ada di Tabel 4.1 sampai Tabel 4.9.
+LRS digambar dalam satu bagan yang memuat seluruh atribut — seluruh 201 kolom dari 23 tabel, bukan hanya kolom kunci. Kunci primer digarisbawahi, kunci asing bertanda bintang dan dihubungkan panah ke tabel yang dituju.
 
-*Gambar 4.6 Logical Record Structure (LRS)*
+Bagan itu diserahkan sebagai lampiran A3 terpisah. Ini keputusan yang diambil setelah mengukur seluruh kemungkinan, bukan karena gambar A4 tidak dicoba: pada ambang baca 2,52 mm, varian dua sampai enam kolom di A4 tegak maupun miring semuanya gagal, dan yang terbaik hanya 2,03 mm. Yang menentukan bukan jumlah piksel, melainkan nisbah tinggi huruf terhadap ukuran kertas. Pada A3 tegak dengan empat kolom, hurufnya 2,87 mm — satu-satunya bentuk yang memuat semua atribut tanpa mengorbankan keterbacaan. Atribut dan tipe setiap tabel juga ada di Tabel 4.1 sampai Tabel 4.9.
 
-![](../erd/03-L3-lrs.png)
+*Gambar 4.6 Logical Record Structure (LRS) — lampiran A3*
 
-> Dua puluh tiga tabel dalam satu bagan. Kunci primer digarisbawahi, kunci asing bertanda bintang dan dihubungkan panah ke tabel yang dituju. Yang digambar hanya kolom kunci (49 dari 201 kolom) supaya seluruh skema terbaca dalam satu halaman; atribut lengkapnya ada di Tabel 4.1 sampai Tabel 4.9 dan di dokumen ERD.
+> **Lembar terpisah A3 (297 × 420 mm).** Gambar ini diserahkan sebagai lampiran (`../erd/03-L3-lrs.png`), bukan ditempel di halaman ini. Alasannya diukur, bukan dipilih: seluruh 201 kolom hanya mencapai 2,87 mm tinggi huruf pada A3 tegak, sedangkan pada A4 yang terbaik hanya 2,03 mm — di bawah ambang baca 2,52 mm. Bila lembar A3 diperkecil ke lebar A4, hasilnya persis sama dengan menggambarnya di A4 sejak awal.
+
+> Dua puluh tiga tabel, seluruh 201 kolom, dalam satu bagan. Kunci primer digarisbawahi; kunci asing bertanda bintang dan dihubungkan panah ke tabel yang dituju. Arah hubungan dibawa oleh panah, bukan oleh angka 1/N — angka itu milik notasi Chen dan tidak dipakai pada LRS.
 
 Seluruh 23 tabel hasil normalisasi:
 

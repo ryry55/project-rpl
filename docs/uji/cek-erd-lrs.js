@@ -279,6 +279,131 @@ if (!fs.existsSync(jalurManifest)) {
   }
 }
 
+/* --------------------------------- kepala panah dan garis berimpit (LRS) */
+
+/**
+ * Dua cacat yang lolos dari build meski semuanya "LULUS", dan hanya ketahuan
+ * dengan mata pada PNG-nya:
+ *
+ *   1. kepala panah tercetak DI DALAM kotak tabel — menutupi huruf judul;
+ *   2. dua kepala panah pada sisi yang sama saling menimpa — jumlah hubungan
+ *      tidak lagi bisa dihitung dari gambar.
+ *
+ * Keduanya diperiksa langsung pada SVG hasil jadi, bukan pada niat perutean:
+ * yang tercetak itulah yang dinilai dosen.
+ */
+function periksaPanahLrs() {
+  const berkas = path.join(AKAR, 'docs', 'erd', '03-L3-lrs.svg');
+  if (!fs.existsSync(berkas)) return;
+  const isi = fs.readFileSync(berkas, 'utf8');
+
+  const kotak = [];
+  let m;
+  const polaKotak = /<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*fill="#ffffff" stroke="#94a3b8"/g;
+  while ((m = polaKotak.exec(isi)) !== null) {
+    kotak.push({ x: +m[1], y: +m[2], w: +m[3], h: +m[4] });
+  }
+
+  const judul = [];
+  const polaJudul = /<text x="([\d.]+)" y="([\d.]+)" text-anchor="middle"[^>]*font-size="21"[^>]*font-weight="700"[^>]*>([^<]+)<\/text>/g;
+  while ((m = polaJudul.exec(isi)) !== null) judul.push({ x: +m[1], y: +m[2], nama: m[3] });
+
+  const namaKotak = (k) => {
+    const t = judul.find((j) => j.x > k.x && j.x < k.x + k.w && j.y > k.y && j.y < k.y + k.h + 60);
+    return t ? t.nama : '(tidak dikenal)';
+  };
+
+  const panah = [];
+  const polaPanah = /<path d="M ([\d.]+) ([\d.]+) L ([\d.]+) ([\d.]+) L ([\d.]+) ([\d.]+) Z" fill="#334155"\/>/g;
+  while ((m = polaPanah.exec(isi)) !== null) {
+    panah.push([
+      { x: +m[1], y: +m[2] },
+      { x: +m[3], y: +m[4] },
+      { x: +m[5], y: +m[6] },
+    ]);
+  }
+
+  if (!panah.length) lapor('03-L3-lrs.svg tidak memuat satu pun kepala panah — arah hubungan hilang');
+
+  // 1. Kepala panah tidak boleh berada di dalam kotak.
+  for (const t of panah) {
+    for (const k of kotak) {
+      const dalam = t.filter(
+        (p) => p.x > k.x + 1 && p.x < k.x + k.w - 1 && p.y > k.y + 1 && p.y < k.y + k.h - 1
+      );
+      if (dalam.length > 1) {
+        lapor(`kepala panah di (${t[0].x},${t[0].y}) tercetak di dalam kotak "${namaKotak(k)}"`);
+      }
+    }
+  }
+
+  // 2. Dua kepala panah pada sisi kotak yang sama tidak boleh bertumpuk.
+  const sisiDari = (p) => {
+    for (const k of kotak) {
+      if (Math.abs(p.x - k.x) < 1.5 && p.y >= k.y - 1 && p.y <= k.y + k.h + 1) return `${namaKotak(k)}:kiri`;
+      if (Math.abs(p.x - (k.x + k.w)) < 1.5 && p.y >= k.y - 1 && p.y <= k.y + k.h + 1) return `${namaKotak(k)}:kanan`;
+      if (Math.abs(p.y - k.y) < 1.5 && p.x >= k.x - 1 && p.x <= k.x + k.w + 1) return `${namaKotak(k)}:atas`;
+      if (Math.abs(p.y - (k.y + k.h)) < 1.5 && p.x >= k.x - 1 && p.x <= k.x + k.w + 1) return `${namaKotak(k)}:bawah`;
+    }
+    return null;
+  };
+
+  const berlabel = panah.map((t) => ({ t: t[0], sisi: sisiDari(t[0]) }));
+  const AMBANG = 20; // px; di bawah ini dua kepala panah terbaca menyatu
+  for (let i = 0; i < berlabel.length; i++) {
+    for (let j = i + 1; j < berlabel.length; j++) {
+      const a = berlabel[i];
+      const b = berlabel[j];
+      if (!a.sisi || a.sisi !== b.sisi) continue;
+      const dekat = Math.abs(a.t.x - b.t.x) + Math.abs(a.t.y - b.t.y);
+      if (dekat < AMBANG) {
+        lapor(`dua kepala panah bertumpuk di sisi ${a.sisi} (jarak ${Math.round(dekat)} px)`);
+      }
+    }
+  }
+
+  // 3. Garis sejajar yang berimpit membuat dua hubungan terbaca sebagai satu.
+  const segmen = [];
+  const polaJalur = /<path d="(M [^"]+)" fill="none" stroke="#334155"/g;
+  while ((m = polaJalur.exec(isi)) !== null) {
+    const angka = m[1].match(/-?[\d.]+/g).map(Number);
+    const titik = [];
+    for (let i = 0; i + 1 < angka.length; i += 2) titik.push({ x: angka[i], y: angka[i + 1] });
+    for (let i = 1; i < titik.length; i++) {
+      const a = titik[i - 1];
+      const b = titik[i];
+      if (Math.abs(a.x - b.x) > 0.5 || Math.abs(a.y - b.y) > 0.5) segmen.push({ a, b });
+    }
+  }
+
+  for (let i = 0; i < segmen.length; i++) {
+    for (let j = i + 1; j < segmen.length; j++) {
+      const s = segmen[i];
+      const t = segmen[j];
+      const sH = Math.abs(s.a.y - s.b.y) < 0.5;
+      const tH = Math.abs(t.a.y - t.b.y) < 0.5;
+      if (sH !== tH) continue;
+      if (sH) {
+        if (Math.abs(s.a.y - t.a.y) >= 3) continue;
+        const kiri = Math.max(Math.min(s.a.x, s.b.x), Math.min(t.a.x, t.b.x));
+        const kanan = Math.min(Math.max(s.a.x, s.b.x), Math.max(t.a.x, t.b.x));
+        if (kanan - kiri > 20) {
+          lapor(`dua garis berimpit mendatar pada y=${s.a.y.toFixed(0)} sepanjang ${Math.round(kanan - kiri)} px`);
+        }
+      } else {
+        if (Math.abs(s.a.x - t.a.x) >= 3) continue;
+        const atas = Math.max(Math.min(s.a.y, s.b.y), Math.min(t.a.y, t.b.y));
+        const bawah = Math.min(Math.max(s.a.y, s.b.y), Math.max(t.a.y, t.b.y));
+        if (bawah - atas > 20) {
+          lapor(`dua garis berimpit tegak pada x=${s.a.x.toFixed(0)} sepanjang ${Math.round(bawah - atas)} px`);
+        }
+      }
+    }
+  }
+}
+
+periksaPanahLrs();
+
 /* ------------------------------------------------------------ kesimpulan */
 
 if (gagal.length) {

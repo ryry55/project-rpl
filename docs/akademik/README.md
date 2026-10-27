@@ -10,7 +10,7 @@ suntingan akan hilang pada build berikutnya.
 | `Proses_Bisnis_Kos_Kosan.pdf` | Versi cetak narasi, 4 halaman (Times 11pt, A4) |
 | `Kos_Kosan_Diagrams_Pertemuan_4.pdf` | Dua halaman diagram, bentuk sama dengan template dosen |
 | `Bab_4_Implementasi_dan_Pengujian.md` | Bab 4 format laporan Sistem Basis Data: normalisasi NF0–3NF, ERD, LRS, spesifikasi data |
-| `Bab_4_Implementasi_dan_Pengujian.pdf` | Versi cetak Bab 4, 10 halaman |
+| `Bab_4_Implementasi_dan_Pengujian.pdf` | Versi cetak Bab 4, 8 halaman — LRS sebagai lampiran A3 terpisah |
 | `04-{1,2,3,4}nf.svg` | Gambar empat tahap normalisasi |
 | `use-case-diagram.md` | Halaman 1: diagram use case, aktor, matriks, catatan kaki |
 | `dfd-konteks.md` | Halaman 2: DFD Konteks Level 0 dan matriks 16 aliran |
@@ -60,7 +60,7 @@ baru PDF.
 ```powershell
 node docs/akademik/build-normalisasi.js                              # 4 SVG tahap normalisasi
 node docs/akademik/build-bab4.js                                     # markdown (gagal bila SVG belum ada)
-powershell -ExecutionPolicy Bypass -File docs/akademik/export-bab4-pdf.ps1   # PDF 10 halaman
+powershell -ExecutionPolicy Bypass -File docs/akademik/export-bab4-pdf.ps1   # PDF 8 halaman
 ```
 
 `rute-api.json` dibuat ulang dari akar repo saat layanan `api` hidup:
@@ -71,6 +71,31 @@ cmd /c "docker compose exec -T api php artisan route:list --json --path=api > do
 
 Perintah itu memakai `cmd /c` dengan sengaja: pengalihan `>` milik PowerShell
 menulis UTF-16LE ber-BOM, dan `JSON.parse` menolaknya.
+
+## Lampiran A3: mengapa LRS tidak ditempel di Bab 4
+
+`Gambar 4.6` (LRS) **tidak** ditanam ke badan laporan A4, melainkan diserahkan
+sebagai lampiran `docs/erd/03-L3-lrs.png` berukuran **A3 tegak**.
+
+Sebabnya diukur, bukan dipilih. Dengan seluruh 201 kolom, tinggi huruf di kertas
+pada ambang baca 2,52 mm:
+
+| Kolom | A4 tegak | A4 miring | A3 tegak | A3 miring |
+|---|---|---|---|---|
+| 2 | 1,09 mm | 0,77 mm | 1,54 mm | 1,09 mm |
+| 3 | 1,59 mm | 1,12 mm | 2,24 mm | 1,59 mm |
+| **4** | 2,03 mm | 1,43 mm | **2,87 mm** | 2,03 mm |
+| 5 | 1,72 mm | 1,71 mm | 2,43 mm | 2,42 mm |
+| 6 | 1,42 mm | 2,01 mm | 2,01 mm | 2,84 mm |
+
+Seluruh varian A4 gagal. Bila lembar A3 diskalakan ke lebar A4, hasilnya kembali
+2,03 mm — jadi menempelkannya di Bab 4 hanya akan menghasilkan gambar yang tidak
+terbaca, padahal lampirannya terbaca. Karena itu `build-bab4.js` memakai
+`tulisLampiran()`, bukan `tulisGambar()`: yang ditulis adalah keterangan gambar
+beserta ukuran lembarnya, bukan `<img>` yang diperkecil.
+
+Konsekuensinya: Bab 4 turun dari 10 menjadi 8 halaman. Penomoran gambar tidak
+berubah — `Gambar 4.5` ERD dan `Gambar 4.6` LRS tetap berurutan.
 
 ## Yang dijaga build
 

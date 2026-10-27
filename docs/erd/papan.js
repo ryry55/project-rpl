@@ -43,14 +43,48 @@ const C = {
   legend: '#94a3b8',
 };
 
-/** Nisbah huruf terkecil terhadap lebar kanvas. Lihat catatan di `chen.js`. */
-const RASIO_A4 = 1.4142;
-const NISBAH_MIN = 0.012;
+/**
+ * Ukuran kertas dalam milimeter — satu-satunya acuan keterbacaan yang jujur.
+ *
+ * Sebelumnya pemeriksa ini memakai `RASIO_A4` yang dipatok mati, sehingga
+ * SETIAP lembar diukur seolah-olah akan dicetak di A4. Akibatnya lembar yang
+ * dirancang untuk A3 selalu ditolak, dan penolakan itu terbaca seolah-olah
+ * gambarnya tidak mungkin dibuat — padahal yang salah cuma acuannya.
+ */
+const KERTAS = {
+  A4: { w: 210, h: 297 },
+  A3: { w: 297, h: 420 },
+};
 
-/** Huruf efektif bila gambar dipaskan ke satu halaman A4, sebagai rasio lebar. */
-function hurufEfektif(ukuranHuruf, kanvas) {
-  const skala = Math.min(1 / kanvas.w, RASIO_A4 / kanvas.h);
+/**
+ * Ambang baca: tinggi huruf minimum di kertas, dalam milimeter.
+ *
+ * 2,52 mm sama persis dengan 1,2% lebar A4 (210 mm) yang dipakai sebelumnya —
+ * jadi ambangnya tidak dilonggarkan, hanya satuannya diganti menjadi satuan
+ * yang bisa dibayangkan.
+ */
+const AMBANG_MM = 2.52;
+
+/**
+ * Ambang lama dalam nisbah lebar A4 — diturunkan, bukan ditulis ulang.
+ *
+ * Ada pemakai lama (dan dokumen) yang menyebut "1,2% lebar A4". Menyimpannya
+ * sebagai turunan AMBANG_MM membuat keduanya mustahil berbeda: kalau ambang
+ * milimeter diubah, angka persennya ikut berubah.
+ */
+const NISBAH_MIN = AMBANG_MM / KERTAS.A4.w;
+
+/** Tinggi huruf di kertas (mm) bila gambar dipaskan ke satu lembar kertas. */
+function hurufMm(ukuranHuruf, kanvas, namaKertas = 'A4') {
+  const k = KERTAS[namaKertas];
+  if (!k) throw new Error(`ukuran kertas "${namaKertas}" tidak dikenal`);
+  const skala = Math.min(k.w / kanvas.w, k.h / kanvas.h);
   return ukuranHuruf * skala;
+}
+
+/** Nisbah huruf terhadap lebar A4 — dipertahankan untuk pemakai lama. */
+function hurufEfektif(ukuranHuruf, kanvas) {
+  return hurufMm(ukuranHuruf, kanvas, 'A4') / KERTAS.A4.w;
 }
 
 const HURUF_BAKU = {
@@ -70,6 +104,24 @@ const HURUF_BAKU = {
 };
 
 const LEBAR_HURUF = 0.6;
+
+/* ------------------------------------------------- ukuran kepala panah */
+
+/**
+ * Ukuran kepala panah LRS. Didefinisikan SEKALI, lalu dipakai oleh perutean
+ * (untuk menentukan jarak minimum antar titik labuh) dan oleh penggambaran.
+ *
+ * Dipisah ke fungsi, bukan konstanta, karena ukurannya bergantung pada
+ * `H.kolom` — dan `H` berubah bila ukuran huruf disesuaikan. Menyalin angkanya
+ * di dua tempat adalah persis kesalahan yang membuat dua kepala panah saling
+ * menimpa: perutean mengira 16 px sudah cukup, padahal panahnya 21 px.
+ */
+function panjangKepalaPanah() {
+  return H.kolom * 1.15;
+}
+function lebarKepalaPanah() {
+  return H.kolom * 0.55;
+}
 
 const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -240,15 +292,30 @@ function tumpangKotak(a, b, margin = 0) {
   );
 }
 
-function segmenBebas(x1, y1, x2, y2, kotak, abaikan) {
+/**
+ * Apakah titik (px,py) boleh dihuni jalur?
+ *
+ * `lubang` adalah daftar "mulut" pada kotak yang boleh ditembus: titik labuh
+ * tempat garis masuk ke kotaknya sendiri. Tanpa ini, perutean yang menghormati
+ * kotak induk akan menolak SETIAP jalur — karena setiap jalur harus berakhir
+ * tepat di tepi kotak induknya sendiri.
+ */
+function kenaKotak(px, py, b, margin, lubang) {
+  if (!titikDiKotak(px, py, b, margin)) return false;
+  for (const l of lubang) {
+    if (Math.abs(px - l.x) <= l.r && Math.abs(py - l.y) <= l.r) return false;
+  }
+  return true;
+}
+
+function segmenBebas(x1, y1, x2, y2, kotak, lubang = []) {
   const langkah = Math.max(8, Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 5));
   for (let i = 1; i < langkah; i++) {
     const t = i / langkah;
     const px = x1 + (x2 - x1) * t;
     const py = y1 + (y2 - y1) * t;
     for (const b of kotak) {
-      if (abaikan.includes(b.nama)) continue;
-      if (titikDiKotak(px, py, b, 4)) return false;
+      if (kenaKotak(px, py, b, 4, lubang)) return false;
     }
   }
   return true;
@@ -368,7 +435,7 @@ function panjangBerimpitSegmen(x1, y1, x2, y2, sudah) {
 }
 
 /** Dijkstra pada kisi; mengembalikan daftar titik belok, atau null. */
-function cariJalur(kisi, mulai, selesai, kotak, abaikan, sudah = []) {
+function cariJalur(kisi, mulai, selesai, kotak, sudah = [], lubang = []) {
   const { xs, ys } = kisi;
   // Titik sambung hasil penggeseran ke baris kolom bisa TIDAK ada di kisi,
   // karena kisi hanya memuat koordinat tepi kotak. Tanpa pemeriksaan ini,
@@ -386,8 +453,7 @@ function cariJalur(kisi, mulai, selesai, kotak, abaikan, sudah = []) {
   const kunci = (i, j) => i * ys.length + j;
   const bebas = (i, j) => {
     for (const b of kotak) {
-      if (abaikan.includes(b.nama)) continue;
-      if (titikDiKotak(xs[i], ys[j], b, 3)) return false;
+      if (kenaKotak(xs[i], ys[j], b, 3, lubang)) return false;
     }
     return true;
   };
@@ -419,7 +485,7 @@ function cariJalur(kisi, mulai, selesai, kotak, abaikan, sudah = []) {
     ]) {
       if (ni < 0 || nj < 0 || ni >= xs.length || nj >= ys.length) continue;
       if (!bebas(ni, nj)) continue;
-      if (!segmenBebas(xs[i], ys[j], xs[ni], ys[nj], kotak, abaikan)) continue;
+      if (!segmenBebas(xs[i], ys[j], xs[ni], ys[nj], kotak, lubang)) continue;
 
       const biayaDasar = Math.abs(xs[ni] - xs[i]) + Math.abs(ys[nj] - ys[j]);
 
@@ -547,7 +613,19 @@ function hubungkan(
 ) {
   let terbaik = null;
   let panjangTerbaik = Infinity;
-  const abaikan = [anak.nama, induk.nama];
+
+  // Kotak anak dan induk TIDAK diabaikan lagi sebagai penghalang.
+  //
+  // Sebelumnya keduanya dilewati (`abaikan = [anak.nama, induk.nama]`), dan
+  // akibatnya Dijkstra bebas berjalan menembus badan kotak induk lalu keluar
+  // lewat tepi atasnya. Pada lembar LRS yang padat, tiga kunci asing ke `users`
+  // memakai jalan pintas itu: garisnya menembus judul `users` dan kepala
+  // panahnya tercetak di atas huruf judul. Validator lama tidak menangkapnya
+  // karena ia pun melewati kedua kotak itu saat memeriksa.
+  //
+  // Gantinya: sebuah "mulut" kecil di titik labuh, supaya garis tetap bisa
+  // masuk ke kotaknya sendiri dari luar — dan hanya di situ.
+  const lubangUntuk = (...titik) => titik.map((t) => ({ x: t.x, y: t.y, r: H.kolom * 1.1 }));
 
   // Titik sambung di BARIS kolomnya, bukan di tengah sisi.
   //
@@ -575,10 +653,23 @@ function hubungkan(
   const dAnak = selisihBaris(anak, anak, kolomAnak);
   const dInduk = selisihBaris(induk, induk, kolomInduk);
 
+  // --- ukuran kepala panah: SATU sumber untuk perutean dan penggambaran ---
+  //
+  // Sebelumnya ukuran ini hanya ada di tempat penggambaran, sedangkan perutean
+  // memakai angka sendiri: jarak labuh H.kolom * 0,85 = 16,1 px, padahal tinggi
+  // kepala panah 2 * 0,55 * H.kolom = 20,9 px. Jarak minimum titik labuh lebih
+  // KECIL daripada panahnya sendiri, jadi dua panah yang "sudah cukup jauh"
+  // menurut perutean tetap saling menimpa saat digambar — terlihat sebagai satu
+  // kepala panah bertakik pada tepi kanan `users`.
+  const TINGGI_KEPALA = lebarKepalaPanah() * 2;
+
   // Jarak minimum antar titik labuh pada kotak induk yang sama. Dua garis yang
   // berlabuh lebih dekat dari ini terbaca sebagai satu garis, dan panahnya
   // bertumpuk menjadi satu kepala panah yang tebal.
-  const JARAK_LABUH = H.kolom * 0.85;
+  //
+  // Diturunkan dari tinggi kepala panah, bukan diketik terpisah: dengan begitu
+  // mengubah ukuran panah tidak bisa lagi membuat titik labuh saling menimpa.
+  const JARAK_LABUH = Math.ceil(TINGGI_KEPALA * 1.25);
 
   // Koordinat titik labuh harus ada di kisi; kalau tidak, perutean menolaknya
   // dan jatuh ke perilaku lama.
@@ -628,12 +719,16 @@ function hubungkan(
         const masuk = { x: b.x + si.nx * 22, y: b.y + si.ny * 22 };
         pastikanDiKisi(masuk.x, masuk.y);
 
-        if (!segmenBebas(a.x, a.y, keluar.x, keluar.y, kotak, abaikan)) continue;
+        // Mulut hanya di kedua titik labuh jalur ini. Titik lain pada kedua
+        // kotak tetap penghalang, sehingga jalur tidak bisa memotong badannya.
+        const lubang = lubangUntuk(a, b);
 
-        const jalur = cariJalur(kisi, keluar, masuk, kotak, abaikan, sudah);
+        if (!segmenBebas(a.x, a.y, keluar.x, keluar.y, kotak, lubang)) continue;
+
+        const jalur = cariJalur(kisi, keluar, masuk, kotak, sudah, lubang);
         if (!jalur) continue;
 
-        if (!segmenBebas(masuk.x, masuk.y, b.x, b.y, kotak, abaikan)) continue;
+        if (!segmenBebas(masuk.x, masuk.y, b.x, b.y, kotak, lubang)) continue;
 
         const titik = rapatkan([a, ...jalur, b]);
         let panjang = 0;
@@ -738,9 +833,21 @@ function gambarPapan(definisi) {
   // supaya jumlah barisnya sudah diketahui SEBELUM tata letak dihitung.
   const LEBAR_BUNGKUS = 1040;
 
+  // Kardinalitas hanya digambar pada notasi yang memang memakainya.
+  //
+  // LRS adalah notasi relasional: hubungan dinyatakan oleh kunci asing
+  // bertanda bintang yang menunjuk tabel induk, bukan oleh angka `1`/`N`.
+  // Angka itu milik notasi Chen (tingkat 0 dan 1). Pada lembar LRS, `users`
+  // menerima sembilan kunci asing; menambahkan delapan belas label di
+  // sekelilingnya membuat gambar penuh angka yang tidak menambah informasi
+  // apa pun, dan sebagian tidak mendapat tempat sama sekali.
+  //
+  // Didefinisikan sebelum legenda dibangun, karena legenda juga memakainya.
+  const pakaiLabel = definisi.mode === 'fisikal';
+
   const barisLegenda = [];
   barisLegenda.push('PK = kunci primer · FK = kunci asing · UQ = unik · garis = hubungan kunci asing');
-  if (definisi.mode !== 'lrs-kunci') {
+  if (pakaiLabel) {
     barisLegenda.push('1 = tepat satu · N = banyak · angka di sisi anak menunjukkan berapa baris yang boleh menunjuk');
   }
   if (definisi.catatan) barisLegenda.push(definisi.catatan);
@@ -933,15 +1040,7 @@ function gambarPapan(definisi) {
     return daftar;
   };
 
-  // Kardinalitas hanya digambar pada notasi yang memang memakainya.
-  //
-  // LRS adalah notasi relasional: hubungan dinyatakan oleh kunci asing
-  // bertanda bintang yang menunjuk tabel induk, bukan oleh angka `1`/`N`.
-  // Angka itu milik notasi Chen (tingkat 0 dan 1). Pada lembar LRS satu
-  // lembar, `users` menerima enam kunci asing; menambahkan dua belas label
-  // di sekelilingnya membuat gambar penuh angka yang tidak menambah informasi
-  // apa pun, dan sebagian tidak mendapat tempat sama sekali.
-  const pakaiLabel = definisi.mode !== 'lrs-kunci';
+  // `pakaiLabel` sudah didefinisikan di atas (legenda memakainya juga).
 
   const label = [];
   const taruhLabel = (calon, isi, warna, titikJalur) => {
@@ -1020,9 +1119,12 @@ function gambarPapan(definisi) {
   //
   // Kepala panah diletakkan sedikit di luar tepi kotak, mengikuti arah segmen
   // TERAKHIR jalurnya, sehingga tetap benar walau jalurnya berbelok.
-  if (definisi.mode === 'lrs-kunci') {
-    const panjangKepala = H.kolom * 1.15;
-    const lebarKepala = H.kolom * 0.55;
+  //
+  // Digambar untuk SEMUA lembar LRS, bukan hanya mode kolom-kunci: begitu label
+  // `1`/`N` tidak dipakai, panahlah satu-satunya penanda arah hubungan.
+  if (!pakaiLabel) {
+    const panjangKepala = panjangKepalaPanah();
+    const lebarKepala = lebarKepalaPanah();
     for (const j of jalur) {
       const n = j.titik.length;
       if (n < 2) continue;
@@ -1066,18 +1168,133 @@ function gambarPapan(definisi) {
     }
   }
 
+  // Garis diperiksa terhadap SELURUH kotak, termasuk kotak anak dan induknya
+  // sendiri.
+  //
+  // Versi sebelumnya melewati keduanya (`[j.anak, j.induk]`), meniru cara
+  // perutean lama. Akibatnya persis cacat yang paling merusak lolos tanpa
+  // terdeteksi: garis yang menembus badan kotak induk lalu keluar lewat tepi
+  // atas, dengan kepala panah tercetak di atas judul tabel. Pemeriksa tidak
+  // boleh memakai kekecualian yang sama dengan yang dipakai perutean untuk
+  // menyembunyikan cacat.
+  //
+  // Diperiksa HANYA bagian dalam kotak, dengan penyusutan 2 px: titik labuh
+  // memang menempel di tepi, dan itu bukan pelanggaran.
   for (const j of jalur) {
     let menembus = null;
     for (let i = 1; i < j.titik.length && !menembus; i++) {
+      const a1 = j.titik[i - 1];
+      const a2 = j.titik[i];
+      const langkah = Math.max(8, Math.ceil(Math.hypot(a2.x - a1.x, a2.y - a1.y) / 4));
       for (const k of kotak) {
-        if (k.nama === j.anak || k.nama === j.induk) continue;
-        if (!segmenBebas(j.titik[i - 1].x, j.titik[i - 1].y, j.titik[i].x, j.titik[i].y, kotak, [j.anak, j.induk])) {
-          menembus = k.nama;
-          break;
+        for (let s = 0; s <= langkah; s++) {
+          const px = a1.x + ((a2.x - a1.x) * s) / langkah;
+          const py = a1.y + ((a2.y - a1.y) * s) / langkah;
+          const dalam =
+            px > k.x - k.hw + 2 &&
+            px < k.x + k.hw - 2 &&
+            py > k.y - k.hh + 2 &&
+            py < k.y + k.hh - 2;
+          if (dalam) {
+            menembus = k.nama;
+            break;
+          }
         }
+        if (menembus) break;
       }
     }
     if (menembus) masalah.push(`garis ${j.anak}.${j.kolom} menembus kotak "${menembus}"`);
+  }
+
+  // Kepala panah diperiksa terpisah, karena ia digambar SESUDAH kotak: cacat
+  // yang paling terlihat bukan garisnya, melainkan segitiga yang tercetak di
+  // atas huruf judul tabel. Pemeriksaan garis di atas tidak menangkapnya kalau
+  // garisnya sendiri berhenti tepat di tepi.
+  if (!pakaiLabel) {
+    const panjangKepala = panjangKepalaPanah();
+    const lebarKepala = lebarKepalaPanah();
+    for (const j of jalur) {
+      const n = j.titik.length;
+      if (n < 2) continue;
+      const ujung = j.titik[n - 1];
+      const sebelumnya = j.titik[n - 2];
+      const dx = ujung.x - sebelumnya.x;
+      const dy = ujung.y - sebelumnya.y;
+      const panjang = Math.abs(dx) + Math.abs(dy);
+      if (panjang < 1) continue;
+      const ux = dx / panjang;
+      const uy = dy / panjang;
+      const px = ujung.x - ux * panjangKepala;
+      const py = ujung.y - uy * panjangKepala;
+      const sx = -uy * lebarKepala;
+      const sy = ux * lebarKepala;
+      const sudut = [
+        { x: ujung.x, y: ujung.y },
+        { x: px + sx, y: py + sy },
+        { x: px - sx, y: py - sy },
+      ];
+      for (const k of kotak) {
+        // Ujung panah menyentuh tepi kotak induknya sendiri — itu wajar.
+        const dalam = sudut.filter(
+          (t) =>
+            t.x > k.x - k.hw + 1 &&
+            t.x < k.x + k.hw - 1 &&
+            t.y > k.y - k.hh + 1 &&
+            t.y < k.y + k.hh - 1
+        );
+        if (dalam.length > 1) {
+          masalah.push(
+            `kepala panah ${j.anak}.${j.kolom} tercetak di dalam kotak "${k.nama}" ` +
+              `(${dalam.length} titik) — akan menutupi huruf`
+          );
+        }
+      }
+    }
+
+    // Dua kepala panah yang berlabuh terlalu dekat akan saling menimpa dan
+    // terbaca sebagai satu panah bertakik. Diperiksa dengan ukuran kepala panah
+    // yang SAMA dengan yang dipakai perutean, sehingga tidak mungkin perutean
+    // menganggap cukup sementara hasil gambarnya bertumpuk.
+    //
+    // Hanya panah pada SISI KOTAK YANG SAMA yang dibandingkan: dua panah pada
+    // kotak berbeda boleh berdekatan tanpa saling menimpa, karena arah
+    // panahnya berbeda.
+    const jarakMin = lebarKepalaPanah() * 2 * 1.05;
+    const sisiDari = (t) => {
+      for (const k of kotak) {
+        const diKiri = Math.abs(t.x - (k.x - k.hw)) < 1.5;
+        const diKanan = Math.abs(t.x - (k.x + k.hw)) < 1.5;
+        const diAtas = Math.abs(t.y - (k.y - k.hh)) < 1.5;
+        const diBawah = Math.abs(t.y - (k.y + k.hh)) < 1.5;
+        if (diKiri && t.y >= k.y - k.hh - 1 && t.y <= k.y + k.hh + 1) return `${k.nama}:kiri`;
+        if (diKanan && t.y >= k.y - k.hh - 1 && t.y <= k.y + k.hh + 1) return `${k.nama}:kanan`;
+        if (diAtas && t.x >= k.x - k.hw - 1 && t.x <= k.x + k.hw + 1) return `${k.nama}:atas`;
+        if (diBawah && t.x >= k.x - k.hw - 1 && t.x <= k.x + k.hw + 1) return `${k.nama}:bawah`;
+      }
+      return null;
+    };
+
+    const ujungPanah = jalur.map((j) => ({
+      anak: j.anak,
+      kolom: j.kolom,
+      t: j.titik[j.titik.length - 1],
+      sisi: sisiDari(j.titik[j.titik.length - 1]),
+    }));
+
+    for (let i = 0; i < ujungPanah.length; i++) {
+      for (let j2 = i + 1; j2 < ujungPanah.length; j2++) {
+        const a = ujungPanah[i];
+        const b = ujungPanah[j2];
+        if (!a.sisi || a.sisi !== b.sisi) continue;
+        const dekat = Math.abs(a.t.x - b.t.x) + Math.abs(a.t.y - b.t.y);
+        if (dekat < jarakMin) {
+          masalah.push(
+            `kepala panah ${a.anak}.${a.kolom} dan ${b.anak}.${b.kolom} bertumpuk ` +
+              `di sisi ${a.sisi} (jarak ${Math.round(dekat)} px, minimum ${Math.round(jarakMin)})`
+          );
+        }
+      }
+    }
   }
 
   for (const k of kotak) {
@@ -1141,13 +1358,23 @@ function gambarPapan(definisi) {
     }
   }
 
-  const nisbah = hurufEfektif(H.kolom, kanvas);
-  if (nisbah < NISBAH_MIN) {
+  // Keterbacaan diukur pada kertas yang MEMANG akan dipakai lembar ini, bukan
+  // pada A4. Lembar LRS dirancang untuk A3 dan diserahkan terpisah, jadi
+  // mengukurnya sebagai A4 akan menolaknya secara keliru.
+  const namaKertas = definisi.kertas || 'A4';
+  const mm = hurufMm(H.kolom * 1.0, kanvas, namaKertas);
+  if (mm > 0 && mm < AMBANG_MM) {
     masalah.push(
-      `huruf efektif hanya ${(nisbah * 100).toFixed(2)}% lebar halaman A4 ` +
-        `(minimal ${(NISBAH_MIN * 100).toFixed(1)}%) — lembar ini harus dipecah`
+      `huruf hanya ${mm.toFixed(2)} mm di kertas ${namaKertas} ` +
+        `(minimal ${AMBANG_MM.toFixed(2)} mm) — lembar ini harus dipecah ` +
+        `atau dicetak di kertas yang lebih besar`
     );
   }
+
+  // Keterbacaan dalam nisbah lebar A4 tetap dicatat: angka inilah yang dipakai
+  // antarmuka dan dokumen selama ini, dan menghilangkannya akan memutus
+  // pembandingan dengan lembar-lembar sebelumnya.
+  const nisbah = hurufEfektif(H.kolom, kanvas);
 
   const svg = [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${kanvas.w}" height="${kanvas.h}" viewBox="0 0 ${kanvas.w} ${kanvas.h}" font-family="${FONT}">`,
@@ -1158,7 +1385,16 @@ function gambarPapan(definisi) {
     '',
   ].join('\n');
 
-  return { svg, masalah, kanvas, jumlahRelasi: relasi.length, jumlahTabel: kotak.length, nisbah };
+  return {
+    svg,
+    masalah,
+    kanvas,
+    jumlahRelasi: relasi.length,
+    jumlahTabel: kotak.length,
+    nisbah,
+    hurufMm: mm,
+    kertas: namaKertas,
+  };
 }
 
 /* ------------------------------------------------------------ teks SVG */
@@ -1175,4 +1411,12 @@ function teksTengah(x, y, isi, ukuran, tebal, warna) {
   return `<text x="${r1(x)}" y="${r1(y)}" text-anchor="middle" dominant-baseline="central" font-size="${ukuran}" font-weight="${tebal}" fill="${warna}">${esc(isi)}</text>`;
 }
 
-module.exports = { gambarPapan, hurufEfektif, NISBAH_MIN, HURUF_BAKU };
+module.exports = {
+  gambarPapan,
+  hurufEfektif,
+  hurufMm,
+  AMBANG_MM,
+  KERTAS,
+  NISBAH_MIN,
+  HURUF_BAKU,
+};

@@ -23,6 +23,32 @@ $ErrorActionPreference = 'Stop'
 $gagal = @()
 $mulai = Get-Date
 
+# --- penjaga: satu gerbang pada satu waktu ---------------------------------
+#
+# Gerbang ini memakai SATU set container dan SATU basis data. Dua gerbang yang
+# berjalan bersamaan akan saling menghapus basis data di tengah tes: yang satu
+# menjalankan `migrate:fresh --seed` sementara yang lain sedang menguji. Hasilnya
+# bukan gagal yang jelas, melainkan keluaran kosong dan pesan galat yang tidak
+# berhubungan - pernah terjadi, dan menelan waktu untuk menelusurinya.
+#
+# Kunci ini dilepas otomatis oleh `finally` di akhir berkas, termasuk bila
+# gerbang dihentikan.
+$kunci = Join-Path $env:TEMP 'kos-periksa.lock'
+if (Test-Path $kunci) {
+    $pemilik = (Get-Content $kunci -Raw -ErrorAction SilentlyContinue)
+    $masihHidup = $false
+    if ($pemilik -match '^\s*(\d+)\s*$') {
+        $masihHidup = [bool](Get-Process -Id ([int]$Matches[1]) -ErrorAction SilentlyContinue)
+    }
+    if ($masihHidup) {
+        Write-Host "Gerbang lain sedang berjalan (PID $pemilik)." -ForegroundColor Red
+        Write-Host "Tunggu sampai selesai - dua gerbang bersamaan akan saling merusak data uji." -ForegroundColor Red
+        exit 1
+    }
+    Remove-Item $kunci -Force -ErrorAction SilentlyContinue
+}
+Set-Content -Path $kunci -Value $PID -Encoding ASCII
+
 function Judul($teks) {
     Write-Host ''
     Write-Host "=== $teks ===" -ForegroundColor Cyan
@@ -47,6 +73,7 @@ try {
 } catch {
     Catat 'Docker Desktop berjalan' $false 'jalankan Docker Desktop lebih dulu'
     Write-Host "`nBerhenti: tanpa Docker, semua langkah lain akan gagal." -ForegroundColor Red
+    Remove-Item $kunci -Force -ErrorAction SilentlyContinue
     exit 1
 }
 
@@ -99,7 +126,20 @@ if (-not $TanpaBuild) {
 Judul 'Tes PHP'
 $keluaran = docker compose exec -T api php artisan test 2>&1
 $tesOk = $LASTEXITCODE -eq 0
-$ringkas = ($keluaran | Select-String -Pattern 'Tests:\s+(.+)' | Select-Object -Last 1).Matches.Groups[1].Value
+
+# Ringkasan "Tests:  N passed" diambil bila ADA. Versi lama langsung memakai
+# `.Matches.Groups[1]` tanpa memeriksa kecocokan, sehingga keluaran kosong
+# (container belum siap, atau dua gerbang berjalan bersamaan) menghasilkan
+# "Cannot index into a null array" - pesan yang menyembunyikan sebab aslinya.
+$cocokTes = $keluaran | Select-String -Pattern 'Tests:\s+(.+)' | Select-Object -Last 1
+$ringkas = if ($cocokTes) { $cocokTes.Matches.Groups[1].Value } else { 'tidak menghasilkan ringkasan' }
+
+if (-not $cocokTes) {
+    Write-Host '  Tidak ada baris "Tests:" pada keluaran php artisan test.' -ForegroundColor Yellow
+    Write-Host '  Kemungkinan container belum siap, atau ada perintah lain yang berebut container.' -ForegroundColor Yellow
+    $keluaran | Select-Object -Last 12 | ForEach-Object { Write-Host ('    ' + $_) }
+}
+
 Catat 'php artisan test' $tesOk $ringkas
 if (-not $tesOk) {
     # Baris yang menandakan kegagalan. Ditulis dengan pola teks biasa, bukan
@@ -370,6 +410,11 @@ if (-not $Cepat) {
 }
 
 # --- Ringkasan --------------------------------------------------------------
+# Kunci dilepas SEBELUM keluar, apa pun hasilnya. Tanpa ini, satu kegagalan
+# akan membuat gerbang berikutnya menolak berjalan karena mengira masih ada
+# gerbang lain - dan penolakan itu sendiri membingungkan.
+Remove-Item $kunci -Force -ErrorAction SilentlyContinue
+
 $durasi = [int]((Get-Date) - $mulai).TotalSeconds
 Write-Host ''
 if ($gagal.Count -eq 0) {

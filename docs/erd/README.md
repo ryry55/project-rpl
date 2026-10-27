@@ -7,29 +7,55 @@ Delapan gambar, satu dokumen teks, satu sumber: **basis data yang berjalan**.
 | `00-L0-konseptual.svg` / `.png` | 0 — konseptual | 11 entitas inti, relasi, **tanpa atribut** |
 | `01-L1-logikal.svg` / `.png` | 1 — logikal | 12 entitas, relasi + atribut kunci |
 | `02-L2-fisikal-{a,b,c}.svg` / `.png` | 2 — fisikal | 23 tabel, **seluruh kolom dan tipenya** |
-| `03-L3-lrs.svg` / `.png` | 3 — LRS | 23 tabel dalam **satu lembar**, hanya kolom kunci |
+| `03-L3-lrs.svg` / `.png` | 3 — LRS | 23 tabel, **seluruh 201 kolom**, satu lembar **A3** |
 | `03-lrs.md` | 3 — LRS | LRS lengkap sebagai teks: 201 kolom, 26 kunci asing |
 | `skema.json` | — | Potret skema dari basis data; sumber semua berkas di atas |
 
 ## Kenapa berjenjang, bukan satu gambar
 
-ERD yang menggambar 23 tabel dan 201 kolom sekaligus **tidak bisa dibaca**, dan
-itu bukan soal resolusi. Sudah diukur: pada satu lembar berisi seluruh tabel,
-huruf efektif setelah gambar dipaskan ke satu halaman A4 hanya **0,97% lebar
-halaman**, di bawah ambang 1,2%. Menambah skala ekspor tidak menolong sama
-sekali, karena yang menentukan adalah nisbah huruf terhadap ukuran lembar, dan
-nisbah itu tidak berubah oleh jumlah piksel.
+ERD yang menggambar 23 tabel dan 201 kolom sekaligus **tidak bisa dibaca di
+A4**, dan itu bukan soal resolusi. Sudah diukur: pada satu lembar A4 berisi
+seluruh tabel, tinggi hurufnya hanya **2,03 mm** — di bawah ambang 2,52 mm.
+Menambah skala ekspor tidak menolong sama sekali, karena yang menentukan adalah
+nisbah huruf terhadap ukuran lembar, dan nisbah itu tidak berubah oleh jumlah
+piksel.
 
 Yang perlu dicatat: **kegagalan itu bukan karena jumlah tabelnya, melainkan
-karena jumlah kolomnya.** LRS klasik justru tidak menggambar seluruh atribut —
-yang digambar hanya kunci primer dan kunci asing, karena itulah yang membentuk
-struktur relasional. Dengan 49 kolom (dari 201) pada tiga kolom, huruf
-efektifnya **1,35%** dan seluruh 23 tabel muat dalam **satu lembar**. Karena itu
-LRS digambar satu lembar, sedangkan tingkat 2 (fisikal) tetap dipecah tiga
-lembar karena di sanalah seluruh kolom dan tipenya wajib tampil.
+karena jumlah kolomnya.** Karena itu pemecahan lembar pada tingkat 2 ditentukan
+oleh pengukuran, bukan ditebak. Lihat `pecahTerbaca` di `build-tingkat.js`.
 
-Pemecahan lembar pada tingkat 2 ditentukan oleh pengukuran, bukan ditebak. Lihat
-`pecahTerbaca` di `build-tingkat.js`.
+## LRS: satu lembar A3, seluruh 201 kolom
+
+LRS digambar **satu lembar berisi seluruh 201 kolom**, dan itu hanya terbaca
+bila dicetak di **A3 tegak**. Ini hasil pengukuran, bukan pilihan selera. Pada
+ambang baca 2,52 mm (setara 1,2% lebar A4), dengan seluruh kolom:
+
+| Kolom | A4 tegak | A4 miring | A3 tegak | A3 miring |
+|---|---|---|---|---|
+| 2 | 1,09 mm | 0,77 mm | 1,54 mm | 1,09 mm |
+| 3 | 1,59 mm | 1,12 mm | 2,24 mm | 1,59 mm |
+| **4** | 2,03 mm | 1,43 mm | **2,87 mm** | 2,03 mm |
+| 5 | 1,72 mm | 1,71 mm | 2,43 mm | 2,42 mm |
+| 6 | 1,42 mm | 2,01 mm | 2,01 mm | 2,84 mm |
+
+**Seluruh varian A4 gagal**; yang terbaik 2,03 mm. Pada A3 tegak dengan 4 kolom
+hasilnya **2,87 mm** — satu-satunya bentuk yang memuat semua atribut tanpa
+mengorbankan keterbacaan.
+
+Karena itu lembar LRS **diserahkan terpisah sebagai lampiran A3**, tidak ditempel
+ke badan laporan A4. Bila A3 yang sama diskalakan ke lebar A4, hasilnya kembali
+persis 2,03 mm — sama dengan menggambarnya di A4 sejak awal.
+
+Satu konsekuensi: LRS **tidak memakai label kardinalitas `1`/`N`**. Angka itu
+milik notasi Chen (tingkat 0 dan 1); pada LRS hubungan dinyatakan oleh kunci
+asing bertanda bintang, dan arahnya oleh kepala panah. Pada lembar ini `users`
+menerima sembilan kunci asing — delapan belas label di sekelilingnya tidak
+menambah informasi dan sebagian tidak mendapat tempat sama sekali.
+
+Pengukuran keterbacaan memakai **milimeter di kertas**, bukan persen lebar A4.
+Pemeriksanya menerima parameter `kertas` (`KERTAS`, `AMBANG_MM`, `hurufMm` di
+`papan.js`). Sebelumnya `RASIO_A4` dipatok mati, sehingga setiap lembar diukur
+seolah-olah akan dicetak A4 — dan lembar yang dirancang untuk A3 selalu ditolak.
 
 Empat tingkat itu sendiri menjawab empat pertanyaan berbeda:
 
@@ -66,7 +92,7 @@ Yang ditulis tangan hanya tiga hal: **tata letak** dan **kata kerja relasi**
 
 ```bash
 node docs/erd/ambil-skema.js       # ambil skema dari basis data (hanya bila skema berubah)
-node docs/erd/build-tingkat.js     # bangun L0, L1, L2 (3 lembar), L3 (1 lembar)
+node docs/erd/build-tingkat.js     # bangun L0, L1, L2 (3 lembar), L3 (1 lembar A3)
 node docs/erd/build-lrs.js         # bangun 03-lrs.md
 powershell -ExecutionPolicy Bypass -File docs/erd/export-png.ps1   # SVG -> PNG (2x)
 ```
@@ -88,24 +114,37 @@ powershell -ExecutionPolicy Bypass -File docs/erd/export-png.ps1   # SVG -> PNG 
 5. dua relasi yang tergambar sebagai **satu garis** karena jalurnya berimpit;
 6. label kardinalitas yang bertumpuk, menempel garis, atau melayang jauh dari
    garisnya;
-7. **huruf efektif** di bawah ambang keterbacaan;
+7. **tinggi huruf di kertas** di bawah ambang keterbacaan;
 8. baris legenda yang keluar dari kotaknya atau terpotong di tepi kanan;
 9. tabel basis data yang tidak muncul di tingkat mana pun, atau tidak tercatat
    sebagai dikecualikan beserta alasannya;
-10. tabel yang muncul dua kali di lembar yang sama.
+10. tabel yang muncul dua kali di lembar yang sama;
+11. kepala panah yang tercetak di dalam kotak tabel;
+12. dua kepala panah yang bertumpuk di sisi kotak yang sama.
 
 Butir 7 yang paling sering menyelamatkan gambar. Ukurannya bukan "huruf dibagi
 lebar kanvas" — cara itu keliru, karena menganggap gambar selalu dipaskan
 selebar halaman, sehingga lembar tinggi-sempit dinilai jauh lebih baik daripada
-kenyataannya. Yang dihitung:
+kenyataannya. Yang dihitung, dalam **milimeter tinggi huruf di kertas**:
 
 ```
-hurufEfektif = ukuran_huruf × min(1/lebar, 1,4142/tinggi)   ≥ 0,012
+hurufMm = ukuran_huruf × min(lebar_kertas/lebar_kanvas, tinggi_kertas/tinggi_kanvas)
+hurufMm ≥ 2,52 mm
 ```
 
-yaitu ukuran huruf setelah gambar dipaskan ke satu halaman A4 potret — mana yang
-lebih dulu menyentuh tepi, lebar atau tinggi. Ambang 1,2% lebar halaman setara
-±6 pt.
+`KERTAS` (A4 210×297, A3 297×420) dan `AMBANG_MM` ada di `papan.js`, dan
+`gambarPapan` menerima `definisi.kertas`. Ambang 2,52 mm sama persis dengan 1,2%
+lebar A4 yang dipakai sebelumnya — jadi ambangnya tidak dilonggarkan, hanya
+satuannya diganti menjadi satuan yang bisa dibayangkan.
+
+`NISBAH_MIN` kini **diturunkan** dari `AMBANG_MM / 210`, bukan ditulis ulang;
+kalau ambang milimeter berubah, angka persennya ikut berubah.
+
+Butir 11 dan 12 lahir dari cacat yang lolos meski build menyatakan LULUS, dan
+hanya ketahuan dari melihat PNG-nya: tiga kepala panah tercetak di atas judul
+`users`, dan dua kepala panah di tepi kanannya saling menimpa. Penyebabnya satu:
+perutean melewati kotak anak dan induk sebagai penghalang. Pemeriksa lama
+memakai kekecualian yang sama, jadi ia tidak mungkin melihatnya.
 
 Butir 5 dan 6 lahir dari cacat yang benar-benar lolos ke gambar. Dua kunci asing
 antara pasangan tabel yang sama (`usulan_perubahan.diajukan_oleh` dan
@@ -197,7 +236,7 @@ berbeda sepanjang sisinya masih terbaca.
 
 Tingkat 0 sengaja tanpa atribut sama sekali: `kunci: []` membuat `chen.js` tidak
 menggambar elips. Tingkat 1 menggambar kunci primer dan satu atribut pembeda.
-Seluruh 201 kolom ada di tingkat 2 dan di `03-lrs.md`.
+Seluruh 201 kolom ada di tingkat 2, di lembar LRS A3, dan di `03-lrs.md`.
 
 Menggambar 201 kolom sebagai elips mustahil dibaca, dan itu bukan penghematan —
 ERD Chen yang baik memang tidak menampilkan seluruh kolom.
@@ -237,6 +276,24 @@ tidak menumpuk menjadi satu kepala panah. Titik labuhnya dipilih oleh perutean
 sendiri: setiap sisi kotak menawarkan beberapa titik, dan titik yang sudah
 terpakai dihukum — jadi penyebarannya muncul dari pengukuran, bukan dari angka
 yang ditebak.
+
+Jarak minimum antar titik labuh **diturunkan dari ukuran kepala panah**
+(`lebarKepalaPanah() * 2 * 1,25`), bukan diketik terpisah. Sebelumnya kedua
+angka itu ditulis sendiri-sendiri, dan hasilnya jarak minimum 16,1 px untuk
+panah setinggi 20,9 px — dua panah yang "cukup jauh" menurut perutean tetap
+saling menimpa saat digambar.
+
+Dua pagar menjaga lembar LRS, karena keduanya pernah lolos:
+
+1. **Perutean menghormati kotak induk dan anak.** Dulu keduanya dilewati, jadi
+   Dijkstra bisa berjalan menembus badan kotak induk lalu keluar lewat tepi
+   atasnya; garisnya tampak seperti panah yang menusuk judul tabel. Sekarang
+   kedua kotak tetap penghalang, dengan satu "mulut" kecil di titik labuh.
+2. **`docs/uji/cek-erd-lrs.js` memeriksa SVG hasil jadi**: kepala panah tidak
+   boleh berada di dalam kotak mana pun, dua kepala panah pada sisi yang sama
+   tidak boleh bertumpuk, dan tidak boleh ada dua garis sejajar yang berimpit.
+   Pemeriksa lama memakai kekecualian yang sama dengan perutean — sehingga ia
+   buta terhadap cacat yang justru paling merusak.
 
 Untuk LRS, bentuk teks formalnya:
 

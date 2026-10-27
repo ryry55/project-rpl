@@ -17,7 +17,7 @@ BAB IV  IMPLEMENTASI DAN PENGUJIAN
               3. Second Normal Form (2NF)        -> Gambar 4.3
               4. Third Normal Form (3NF)         -> Gambar 4.4
               Entity Relationship Diagram (ERD)  -> Gambar 4.5
-              Logical Record Structure (LRS)     -> Gambar 4.6
+              Logical Record Structure (LRS)     -> Gambar 4.6 (lembar A3, lampiran terpisah)
        4.1.2. Spesifikasi Data
               (satu tabel contoh per entitas)    -> Tabel 4.1 ... 4.9
   4.2. Pendukung
@@ -41,7 +41,7 @@ BAB IV  IMPLEMENTASI DAN PENGUJIAN
 
 | Laporan contoh | Proyek ini | Alasan |
 |---|---|---|
-| LRS satu gambar | **Sama — LRS satu gambar** | Ternyata bisa, dan bukan dengan mengecilkan huruf: LRS memang hanya menggambar kolom kunci (49 dari 201 kolom), sehingga 23 tabel muat satu lembar pada huruf efektif 1,35% — di atas ambang 1,2%. Dengan seluruh 201 kolom, satu lembar hanya 0,97% dan tidak terbaca; itu sebabnya bentuk kolom-kunci yang dipakai |
+| LRS satu gambar | **Sama — LRS satu gambar**, tetapi **A3 dan diserahkan terpisah** | Seluruh 201 kolom muat dalam satu bagan pada **A3 tegak, huruf 2,87 mm** — di atas ambang 2,52 mm. Seluruh varian A4 gagal (terbaik 2,03 mm), jadi lembar A3 tidak ditempel ke badan laporan A4: bila diskalakan ke lebar A4 hasilnya kembali 2,03 mm |
 | Spesifikasi Data tanpa kunci | Menyebut kunci primer dan kunci asing | Kunci asing adalah inti LRS; menghilangkannya membuat LRS dan spesifikasi tidak saling terhubung |
 | ERD semua entitas | ERD 12 entitas inti | Tabel teknis (token, jejak audit, notifikasi) tidak menambah pemahaman konsep; daftarnya tetap ada di dokumen ERD |
 | Data contoh dikarang | Data contoh konsisten dengan skema nyata | Nama kolom dan tipenya diambil dari `docs/erd/skema.json` |

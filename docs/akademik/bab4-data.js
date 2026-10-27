@@ -179,12 +179,21 @@ const TABEL_AKHIR = [
 
 // ERD memakai tingkat logikal: Chen, 12 entitas, dengan atribut kunci.
 //
-// LRS digambar dalam SATU lembar, mengikuti bentuk laporan referensi — bisa
-// begitu karena yang digambar hanya kolom kunci (PK + FK): 49 kolom dari 201.
-// Diukur, huruf efektifnya 1,35% lebar A4, di atas ambang keterbacaan 1,2%.
-// Dengan seluruh 201 kolom, satu lembar hanya mencapai 0,97% dan tidak terbaca
-// — karena itu bentuk kolom-kunci yang dipakai, bukan pemecahan menjadi tiga
-// lembar. Atribut lengkap setiap tabel ada di tingkat fisikal dan di 03-lrs.md.
+// LRS digambar dalam SATU bagan berisi SELURUH 201 kolom, dan diserahkan
+// sebagai lampiran A3 terpisah — bukan ditempel di badan laporan A4.
+//
+// Ini hasil pengukuran seluruh kemungkinan (ambang baca 2,52 mm):
+//
+//   kolom | A4 tegak | A4 miring | A3 tegak | A3 miring
+//     2   |  1,09 mm |  0,77 mm  |  1,54 mm |  1,09 mm
+//     3   |  1,59 mm |  1,12 mm  |  2,24 mm |  1,59 mm
+//     4   |  2,03 mm |  1,43 mm  |  2,87 mm |  2,03 mm   <-- dipakai
+//     5   |  1,72 mm |  1,71 mm  |  2,43 mm |  2,42 mm
+//     6   |  1,42 mm |  2,01 mm  |  2,01 mm |  2,84 mm
+//
+// Seluruh varian A4 gagal; yang terbaik 2,03 mm. Pada A3 tegak dengan empat
+// kolom hasilnya 2,87 mm. Karena itu lembar ini TIDAK ditempel di badan
+// laporan: A3 yang diskalakan ke lebar A4 kembali menjadi 2,03 mm.
 const GAMBAR = [
   {
     berkas: '../erd/01-L1-logikal.png',
@@ -196,12 +205,12 @@ const GAMBAR = [
   },
   {
     berkas: '../erd/03-L3-lrs.png',
-    keterangan: 'Gambar 4.6 Logical Record Structure (LRS)',
+    keterangan: 'Gambar 4.6 Logical Record Structure (LRS) — lampiran A3',
     catatan:
-      'Dua puluh tiga tabel dalam satu bagan. Kunci primer digarisbawahi, kunci asing ' +
-      'bertanda bintang dan dihubungkan panah ke tabel yang dituju. Yang digambar hanya ' +
-      'kolom kunci (49 dari 201 kolom) supaya seluruh skema terbaca dalam satu halaman; ' +
-      'atribut lengkapnya ada di Tabel 4.1 sampai Tabel 4.9 dan di dokumen ERD.',
+      'Dua puluh tiga tabel, seluruh 201 kolom, dalam satu bagan. Kunci primer ' +
+      'digarisbawahi; kunci asing bertanda bintang dan dihubungkan panah ke tabel ' +
+      'yang dituju. Arah hubungan dibawa oleh panah, bukan oleh angka 1/N — angka ' +
+      'itu milik notasi Chen dan tidak dipakai pada LRS.',
   },
 ]
 

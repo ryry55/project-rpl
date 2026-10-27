@@ -147,6 +147,37 @@ const tulisGambar = (berkas, keterangan, catatan) => {
   }
 };
 
+/**
+ * Gambar yang TIDAK ditempel di badan laporan A4, melainkan diserahkan sebagai
+ * lampiran berukuran lain.
+ *
+ * Dipakai untuk LRS. Seluruh 201 kolom hanya terbaca pada A3 tegak (2,87 mm);
+ * bila gambar A3 itu ditempel ke halaman A4, ia diperkecil dan hurufnya jatuh
+ * ke 2,03 mm — di bawah ambang 2,52 mm. Menempelkannya di sini justru
+ * menghasilkan gambar yang tidak terbaca, padahal lampirannya terbaca.
+ *
+ * Karena itu yang ditulis di badan laporan adalah keterangan gambarnya beserta
+ * ukuran lembar lampirannya, supaya pembaca tahu ke mana harus melihat dan
+ * mengapa gambar itu tidak ada di halaman ini.
+ */
+const tulisLampiran = (keterangan, ukuran, berkas, catatan) => {
+  baris.push(`*${keterangan}*`);
+  baris.push('');
+  baris.push(
+    `> **Lembar terpisah ${ukuran}.** Gambar ini diserahkan sebagai lampiran ` +
+      `(\`${berkas}\`), bukan ditempel di halaman ini. ` +
+      `Alasannya diukur, bukan dipilih: seluruh 201 kolom hanya mencapai ` +
+      `2,87 mm tinggi huruf pada A3 tegak, sedangkan pada A4 yang terbaik hanya ` +
+      `2,03 mm — di bawah ambang baca 2,52 mm. Bila lembar A3 diperkecil ke lebar ` +
+      `A4, hasilnya persis sama dengan menggambarnya di A4 sejak awal.`,
+  );
+  baris.push('');
+  if (catatan) {
+    baris.push(`> ${catatan}`);
+    baris.push('');
+  }
+};
+
 const tabel = (kepala, isi) => {
   baris.push('| ' + kepala.join(' | ') + ' |');
   baris.push('|' + kepala.map(() => '---').join('|') + '|');
@@ -209,15 +240,24 @@ baris.push(
 );
 baris.push('');
 baris.push(
-  'LRS digambar dalam satu lembar, mengikuti bentuk laporan: yang digambar hanya ' +
-    'kolom kunci — kunci primer dan kunci asing — karena itulah yang membentuk ' +
-    'struktur relasional. Dengan cara itu seluruh tabel terbaca dalam satu bagan ' +
-    'pada huruf efektif 1,35% lebar A4. Atribut lengkap setiap tabel ada di ' +
-    'Tabel 4.1 sampai Tabel 4.9.',
+  'LRS digambar dalam satu bagan yang memuat seluruh atribut — seluruh 201 kolom ' +
+    'dari 23 tabel, bukan hanya kolom kunci. Kunci primer digarisbawahi, kunci ' +
+    'asing bertanda bintang dan dihubungkan panah ke tabel yang dituju.',
+);
+baris.push('');
+baris.push(
+  'Bagan itu diserahkan sebagai lampiran A3 terpisah. Ini keputusan yang diambil ' +
+    'setelah mengukur seluruh kemungkinan, bukan karena gambar A4 tidak dicoba: ' +
+    'pada ambang baca 2,52 mm, varian dua sampai enam kolom di A4 tegak maupun ' +
+    'miring semuanya gagal, dan yang terbaik hanya 2,03 mm. Yang menentukan bukan ' +
+    'jumlah piksel, melainkan nisbah tinggi huruf terhadap ukuran kertas. Pada A3 ' +
+    'tegak dengan empat kolom, hurufnya 2,87 mm — satu-satunya bentuk yang memuat ' +
+    'semua atribut tanpa mengorbankan keterbacaan. Atribut dan tipe setiap tabel ' +
+    'juga ada di Tabel 4.1 sampai Tabel 4.9.',
 );
 baris.push('');
 
-for (const g of gambarLrs) tulisGambar(g.berkas, g.keterangan, g.catatan);
+for (const g of gambarLrs) tulisLampiran(g.keterangan, 'A3 (297 × 420 mm)', g.berkas, g.catatan);
 
 baris.push(`Seluruh ${SKEMA.jumlah_tabel} tabel hasil normalisasi:`);
 baris.push('');

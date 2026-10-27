@@ -68,7 +68,12 @@ function ukurTerbaca(tabel, mode, pilihanKolom) {
   for (const kolom of pilihanKolom) {
     const uji = gambarPapan({ judul: 'uji', sub: 'uji', mode, jumlahKolom: kolom, tabel, catatan: '' });
     const ef = hurufEfektif(HURUF_UJI, uji.kanvas);
-    const hanyaKeterbacaan = uji.masalah.filter((m) => m.includes('huruf efektif'));
+    // Pesannya kini dalam milimeter pada kertas yang dipakai, bukan persen
+    // lebar A4. Menyaring dengan teks lama membuat fungsi ini TIDAK PERNAH
+    // menemukan masalah keterbacaan, sehingga pemecahan lembar tidak berjalan.
+    const hanyaKeterbacaan = uji.masalah.filter(
+      (m) => m.includes('huruf hanya') || m.includes('huruf efektif')
+    );
     const lulus = hanyaKeterbacaan.length === 0;
     if (lulus && (terbaik === null || ef > terbaik.ef)) {
       terbaik = { kolom, ef, kanvas: uji.kanvas };
@@ -184,14 +189,27 @@ for (const definisi of lembarL2) {
 }
 
 console.log('');
-console.log('Tingkat LRS (notasi relasional, kolom kunci):');
+console.log('Tingkat LRS (notasi relasional, seluruh kolom, kertas A3):');
 
-// LRS SENGAJA SATU LEMBAR berisi seluruh 23 tabel, mengikuti bentuk laporan
-// referensi. Bisa begitu karena yang digambar hanya kolom kunci (PK + FK) —
-// 49 kolom, bukan 201. Diukur: 1,38% lebar A4 pada 3 kolom, di atas ambang
-// 1,2%. Dengan seluruh kolom, satu lembar hanya mencapai 0,97% dan TIDAK
-// terbaca, jadi bentuk itulah yang dipakai. Atribut lengkap tetap ada di
-// tingkat 2 dan di 03-lrs.md.
+// LRS: SATU LEMBAR berisi seluruh 23 tabel dan SELURUH 201 kolom.
+//
+// Ini diukur, bukan diasumsikan. Dengan seluruh kolom, satu lembar hanya
+// terbaca bila dicetak di A3 tegak:
+//
+//   kolom | A4 tegak | A4 miring | A3 tegak | A3 miring
+//     2   |  1,09 mm |  0,77 mm  |  1,54 mm |  1,09 mm
+//     3   |  1,59 mm |  1,12 mm  |  2,24 mm |  1,59 mm
+//     4   |  2,03 mm |  1,43 mm  |  2,87 mm |  2,03 mm   <-- dipakai
+//     5   |  1,72 mm |  1,71 mm  |  2,43 mm |  2,42 mm
+//     6   |  1,42 mm |  2,01 mm  |  2,01 mm |  2,84 mm
+//
+// Ambang baca 2,52 mm (setara 1,2% lebar A4). Pada A4, bentuk mana pun gagal;
+// yang terbaik 2,03 mm. Pada A3 tegak dengan 4 kolom: 2,87 mm.
+//
+// Karena itu lembar ini DISERAHKAN TERPISAH sebagai lampiran A3 — bukan
+// ditempel ke badan laporan A4. Bila ditempel lalu dicetak A4, hasilnya kembali
+// 2,03 mm dan tidak terbaca; itu bukan kekurangan gambar, melainkan akibat
+// mengecilkan kertas.
 const semuaTabelLrs = MODUL.flatMap((m) => m.tabel);
 
 const lembarL3 = [
@@ -199,22 +217,25 @@ const lembarL3 = [
     kode: 'L3',
     berkas: '03-L3-lrs.svg',
     judul: 'LRS — Logical Record Structure',
-    sub: `${semuaTabelLrs.length} tabel · hanya kolom kunci · kunci primer digaris bawahi · kunci asing bertanda bintang`,
-    mode: 'lrs-kunci',
-    jumlahKolom: 3,
+    sub: `${semuaTabelLrs.length} tabel · seluruh kolom · kunci primer digaris bawahi · kunci asing bertanda bintang · cetak A3`,
+    mode: 'lrs',
+    kertas: 'A3',
+    jumlahKolom: 4,
     tabel: semuaTabelLrs,
     catatan:
-      'Bentuk LRS: hanya kolom kunci yang digambar (49 dari 201 kolom). Atribut lengkap ada di tingkat 2 dan di 03-lrs.md.',
+      'Lembar A3 (297x420 mm). Seluruh 201 kolom digambar; panah menunjuk tabel induk. Atribut dan tipenya juga ada di tingkat 2 dan di 03-lrs.md.',
   },
 ];
 
 for (const definisi of lembarL3) {
-  const { svg, masalah: m, kanvas, jumlahRelasi, jumlahTabel, nisbah } = gambarPapan(definisi);
+  const { svg, masalah: m, kanvas, jumlahRelasi, jumlahTabel, nisbah, hurufMm } =
+    gambarPapan(definisi);
   for (const x of m) masalah.push(`${definisi.berkas}: ${x}`);
   tulis(
     definisi.berkas,
     svg,
-    `${jumlahTabel} tabel, ${jumlahRelasi} relasi, ${kanvas.w}x${kanvas.h}, huruf ${(nisbah * 100).toFixed(2)}%`
+    `${jumlahTabel} tabel, ${jumlahRelasi} relasi, ${kanvas.w}x${kanvas.h}, ` +
+      `huruf ${hurufMm.toFixed(2)} mm di ${definisi.kertas} (${(nisbah * 100).toFixed(2)}% lebar A4)`
   );
 }
 
