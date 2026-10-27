@@ -154,7 +154,13 @@ async function main() {
       await new Promise(r => setTimeout(r, 2600))
       return {
         adaPratinjau: Boolean(pratinjau),
-        teksHalaman: document.body.textContent.replace(/\\s+/g, ' ').trim().slice(0, 200),
+        // Tanda tanya opsional di sini bukan kehati-hatian berlebihan: submit
+        // formulir bisa memicu navigasi, dan saat itu document.body sempat
+        // null. Nilai ini hanya dipakai untuk pesan kegagalan, jadi tidak
+        // sepadan membuat seluruh skrip berhenti karena pesan bantuannya
+        // gagal disusun. (Jangan pakai backtick di komentar ini: ia menutup
+        // template literal pemanggil.)
+        teksHalaman: (document.body?.textContent ?? '').replace(/\\s+/g, ' ').trim().slice(0, 200),
       }
     })()
   `)
