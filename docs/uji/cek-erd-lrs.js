@@ -227,6 +227,38 @@ if (!fs.existsSync(jalurManifest)) {
         if (isi.length < 4000) {
           lapor(`docs/erd/${berkas} terlalu kecil (${isi.length} byte) — mungkin build gagal separuh`);
         }
+
+        // PNG pasangannya ikut diperiksa: ukuran pikselnya harus tepat 2x
+        // atribut width/height SVG. Kelas kesalahan yang ditutup di sini nyata
+        // dan tidak terlihat dari SVG mana pun: SVG disunting lalu build ulang,
+        // tetapi PNG lupa diekspor ulang. Hasilnya gambar yang benar di repo
+        // dan gambar lama di laporan - dan PNG lama terlihat persis seperti PNG
+        // yang benar. Tangkapan layar Chrome yang terpotong juga lolos tanpa
+        // pemeriksaan ini, karena berkasnya tetap terbentuk, hanya isinya salah.
+        const png = path.join(AKAR, 'docs', 'erd', berkas.replace(/\.svg$/, '.png'));
+        const ukuran = isi.match(/<svg[^>]*width="(\d+)"[^>]*height="(\d+)"/);
+        if (!ukuran) {
+          lapor(`docs/erd/${berkas} tidak punya atribut width/height — PNG-nya tidak bisa diperiksa`);
+        } else if (!fs.existsSync(png)) {
+          lapor(`docs/erd/${berkas.replace(/\.svg$/, '.png')} tidak ada — jalankan "docs/erd/export-png.ps1"`);
+        } else {
+          const buf = fs.readFileSync(png);
+          const sah = buf.length >= 24 && buf.toString('ascii', 1, 4) === 'PNG';
+          if (!sah) {
+            lapor(`docs/erd/${berkas.replace(/\.svg$/, '.png')} bukan PNG yang sah`);
+          } else {
+            const harusW = Number(ukuran[1]) * 2;
+            const harusH = Number(ukuran[2]) * 2;
+            const w = buf.readUInt32BE(16);
+            const h = buf.readUInt32BE(20);
+            if (w !== harusW || h !== harusH) {
+              lapor(
+                `docs/erd/${berkas.replace(/\.svg$/, '.png')} berukuran ${w}x${h}, ` +
+                  `padahal SVG-nya menuntut ${harusW}x${harusH} — ekspor ulang PNG-nya`,
+              );
+            }
+          }
+        }
       }
     }
 

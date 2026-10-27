@@ -114,8 +114,14 @@ di sepanjang garisnya sendiri. Bila benar-benar tidak ada tempat, build
 `node docs/uji/cek-erd-lrs.js` dijalankan di `periksa.ps1`, `periksa.sh`, dan CI.
 Ia memeriksa hal yang tidak bisa diperiksa oleh build: bahwa `skema.json` masih
 cocok dengan basis data, bahwa setiap tabel dan kunci asing muncul di LRS, bahwa
-angka di dokumen sama dengan hasil hitung, dan bahwa **setiap SVG berjenjang ada
-dan tidak kosong**.
+angka di dokumen sama dengan hasil hitung, bahwa **setiap SVG berjenjang ada
+dan tidak kosong**, dan bahwa **PNG pasangannya berukuran tepat 2x SVG-nya**.
+
+Pemeriksaan PNG itu bukan kehati-hatian berlebihan. SVG dan PNG bisa berbeda
+tanpa ada yang gagal: SVG disunting lalu dibangun ulang, tetapi PNG lupa
+diekspor ulang — gambar yang benar di repo, gambar lama di laporan. PNG lama
+terlihat persis seperti PNG yang benar. Tangkapan layar Chrome yang terpotong
+juga lolos tanpa pemeriksaan ini, karena berkasnya tetap terbentuk.
 
 ## Pembagian lembar tingkat 2 dan 3
 
