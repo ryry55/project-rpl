@@ -16,7 +16,7 @@
  * Sumbernya:
  *     usecase-data.js       14 use case, 3 aktor, matriks, catatan kaki
  *     dokumen-data.js       entitas data utama, aturan bisnis
- *     rute-api.json         potret route:list (80 endpoint)
+ *     rute-api.json         potret route:list (85 endpoint)
  *     tabel-domain.json     potret pg_tables (23 tabel domain)
  *     ../dfd/dfd-data.js    entitas eksternal, aliran batas, aturan R-01..R-07
  *

@@ -159,7 +159,29 @@ if (Test-Path web\node_modules) {
     Write-Host '  dilewati: web\node_modules belum ada (cd web; npm install)' -ForegroundColor Yellow
 }
 
-# --- 6. Profil produksi -----------------------------------------------------
+# --- 6. Kesesuaian dokumen --------------------------------------------------
+# Angka di dokumen dibaca dari sumbernya, bukan diketik. Dua pemeriksa ini
+# menutup celah yang sudah benar-benar terjadi: `KONTEKS_PROYEK.md` sempat
+# menyebut 71 endpoint padahal aplikasinya 85, dan tiga judul bagian di
+# `6_TOOLS_CONTRACTS.md` salah jumlah. Keduanya butuh hitungan detik, bukan
+# menit, dan tidak butuh aplikasi hidup.
+Judul 'Kesesuaian dokumen'
+
+$keluaranAngka = node docs\uji\cek-angka-dokumen.js 2>&1
+$angkaOk = $LASTEXITCODE -eq 0
+Catat 'angka dokumen cocok dengan sumbernya' $angkaOk
+if (-not $angkaOk) {
+    $keluaranAngka | Select-String -Pattern 'BEDA|ADA ANGKA' | ForEach-Object { Write-Host ('    ' + $_.Line.Trim()) }
+}
+
+$keluaranKontrak = node docs\uji\cek-cakupan-kontrak.js 2>&1
+$kontrakOk = $LASTEXITCODE -eq 0
+Catat 'setiap endpoint tercatat di kontrak' $kontrakOk
+if (-not $kontrakOk) {
+    $keluaranKontrak | Select-String -Pattern 'SALAH|belum tercatat|tercatat ganda|BEDA' | ForEach-Object { Write-Host ('    ' + $_.Line.Trim()) }
+}
+
+# --- 7. Profil produksi -----------------------------------------------------
 # Berkas profil yang ada tetapi nilainya salah lebih berbahaya daripada yang
 # tidak ada: ia membuat orang mengira pagarnya sudah terpasang. Diperiksa di
 # sini karena `docker-compose.prod.yml` berada di akar repo - di luar build
@@ -203,7 +225,7 @@ if (-not $Cepat) {
     }
 }
 
-# --- 7. Uji browser ---------------------------------------------------------
+# --- 8. Uji browser ---------------------------------------------------------
 if (-not $Cepat) {
     Judul 'Uji browser (E2E)'
 

@@ -198,7 +198,27 @@ if [ "$HANYA_E2E" -eq 0 ]; then
     fi
 fi
 
-# --- 6. Profil produksi ------------------------------------------------------
+# --- 6. Kesesuaian dokumen --------------------------------------------------
+# Angka di dokumen dibaca dari sumbernya, bukan diketik. Dua pemeriksa ini
+# menutup celah yang sudah benar-benar terjadi: `KONTEKS_PROYEK.md` sempat
+# menyebut 71 endpoint padahal aplikasinya 85, dan tiga judul bagian di
+# `6_TOOLS_CONTRACTS.md` salah jumlah. Keduanya butuh hitungan detik, bukan
+# menit, dan tidak butuh aplikasi hidup.
+if [ "$HANYA_E2E" -eq 0 ]; then
+    judul 'Kesesuaian dokumen'
+
+    keluaran_angka="$(node docs/uji/cek-angka-dokumen.js 2>&1)"
+    kode=$?
+    catat 'angka dokumen cocok dengan sumbernya' "$([ "$kode" -eq 0 ] && echo 0 || echo 1)"
+    if [ "$kode" -ne 0 ]; then printf '%s\n' "$keluaran_angka" | grep -E 'BEDA|ADA ANGKA' | sed 's/^/    /'; fi
+
+    keluaran_kontrak="$(node docs/uji/cek-cakupan-kontrak.js 2>&1)"
+    kode=$?
+    catat 'setiap endpoint tercatat di kontrak' "$([ "$kode" -eq 0 ] && echo 0 || echo 1)"
+    if [ "$kode" -ne 0 ]; then printf '%s\n' "$keluaran_kontrak" | grep -E 'SALAH|belum tercatat|tercatat ganda|BEDA' | sed 's/^/    /'; fi
+fi
+
+# --- 7. Profil produksi ------------------------------------------------------
 # Berkas profil yang ada tetapi nilainya salah lebih berbahaya daripada yang
 # tidak ada: ia membuat orang mengira pagarnya sudah terpasang. Diperiksa di
 # sini karena `docker-compose.prod.yml` berada di akar repo - di luar build
@@ -215,7 +235,7 @@ if [ "$HANYA_E2E" -eq 0 ]; then
     fi
 fi
 
-# --- 7. Uji browser ---------------------------------------------------------
+# --- 8. Uji browser ---------------------------------------------------------
 if [ "$CEPAT" -eq 0 ]; then
     judul 'Uji browser (E2E)'
 

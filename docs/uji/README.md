@@ -162,6 +162,36 @@ gagal bukan pemeriksaan - ia hanya upacara.
 akar repo, sedangkan image api hanya berisi direktori `api/`. Tes yang berjalan
 di dalam container tidak akan pernah bisa membacanya.
 
+### Pemeriksa kesesuaian dokumen
+
+Dua berkas `.js` yang memeriksa **dokumen terhadap kode**, bukan aplikasi yang
+sedang berjalan. Keduanya tidak butuh Docker, tidak butuh aplikasi hidup, dan
+selesai dalam hitungan detik.
+
+| Berkas | Yang diperiksa |
+|---|---|
+| `cek-angka-dokumen.js` | Angka yang tertulis di `KONTEKS_PROYEK.md`, `serah-terima.md`, dan `SPEC.md` dibandingkan dengan angka nyata: jumlah migrasi, model, berkas tes, dan endpoint di potret rute |
+| `cek-cakupan-kontrak.js` | Setiap rute nyata muncul di **tepat satu** baris tabel `6_TOOLS_CONTRACTS.md`; tidak ada yang belum tercatat, tidak ada yang tercatat dua kali; judul `(N endpoint)` tiap bagian cocok dengan isinya |
+
+```powershell
+node docs/uji/cek-angka-dokumen.js
+node docs/uji/cek-cakupan-kontrak.js
+```
+
+**Kenapa ada.** Keduanya lahir dari kesalahan yang benar-benar terjadi pada
+26 Oktober 2026: `KONTEKS_PROYEK.md` menyebut 71 endpoint padahal aplikasinya
+sudah 85, dan tiga judul bagian di `6_TOOLS_CONTRACTS.md` salah jumlah. Angka
+yang diketik tangan akan tertinggal; angka yang dibaca dari sumbernya tidak.
+
+**Keduanya dibuktikan bisa gagal**, bukan hanya bisa lulus. Dengan satu angka
+di `KONTEKS_PROYEK.md` diubah kembali menjadi 71, `cek-angka-dokumen.js`
+melaporkan `ADA ANGKA YANG BEDA`. Dengan judul bagian 5 dikembalikan ke
+`(16 endpoint)`, `cek-cakupan-kontrak.js` melaporkan
+`bagian 5: 20  SALAH (tulis 16, harus 20)`.
+
+Keduanya mencari akar repo dari lokasi berkasnya sendiri, bukan dari direktori
+kerja, sehingga bisa dijalankan dari mana saja.
+
 ### Bukti pagar Fase 0.5
 
 Empat berkas yang **menyuntikkan cacatnya kembali** ke dalam container, menjalankan

@@ -10,7 +10,7 @@
  * Kenapa entitas data ikut di sini dan tidak dibaca langsung dari
  * `docs/produk/5_SCHEMAS.md`. Dua alasan:
  *
- *   1. `5_SCHEMAS.md` mendokumentasikan **22 tabel**, sedangkan bab 6 template
+ *   1. `5_SCHEMAS.md` mendokumentasikan **23 tabel**, sedangkan bab 6 template
  *      dosen meminta **entitas**, bukan tabel. `kamar_fasilitas` adalah tabel
  *      penghubung, bukan entitas yang dikenali pembaca laporan; begitu juga
  *      `tagihan_rincian`, yang tidak punya makna di luar tagihannya.

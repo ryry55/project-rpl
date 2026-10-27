@@ -6,26 +6,28 @@
 >
 > **Maksimal 120 baris.** Kalau lebih, isinya sudah menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: QRIS + materi sidang + perbaikan bukti - 26 Oktober 2026
+Terakhir diperbarui: Fase 0.5 (perintah pemilik, status penyiapan, ekspor CSV) - 26 Oktober 2026
 
----## 1. Keadaan sekarang
+---
+
+## 1. Keadaan sekarang
 
 | Hal | Nilai |
 |---|---|
-| Fase terakhir selesai | QRIS di basis data, tombol Tarik kembali, materi sidang, perbaikan bukti |
-| Berikutnya | **CI/CD + deploy**, lalu verifikasi Midtrans sandbox - keduanya butuh akun/kunci pemilik |
-| Suite PHP | **748 lulus / 3522 asersi**, 39 berkas tes; pint & eslint bersih |
-| Migrasi / endpoint / tabel domain | **41** / **81** / **23** (total 32 di skema `public`) |
-| Skrip uji | **26** (24 browser + 2 balapan), **762 langkah** |
-| `periksa-profil-produksi.sh` | **23/23 LULUS**; working tree bersih |
+| Fase terakhir selesai | FASE 0.5: `kos:buat-pemilik`, `GET /penyiapan`, ekspor CSV, layar Bantuan |
+| Berikutnya | **Fase 1: Render + Neon** (butuh akun pemilik), lalu verifikasi Midtrans sandbox |
+| Suite PHP | **792 lulus / 3654 asersi**, 43 berkas tes; pint & eslint bersih |
+| Migrasi / endpoint / tabel domain | **41** / **85** / **23** (total 32 di skema `public`) |
+| Skrip uji | **29** `.mjs` (28 terdaftar di gate + `uji-proxy.mjs`), **SEMUA LULUS** |
+| Gate lokal | **SEMUA LULUS (576 detik)**; CI run `40323498790` hijau |
 
 ---
 
 ## 2. Tiga aksi berikutnya
 
-1. **CI/CD.** `deploy.yml` masih mode peringatan (`siap=false`) karena target
-   Render/Neon belum ada. CI **hijau**: 26 skrip / 762 langkah, 375 detik di
-   runner - catatan lama soal E2E "menggantung" keliru; paritasnya yang gagal.
+1. **Fase 1: Render + Neon.** Butuh akun pemilik. `deploy.yml` masih mode
+   peringatan (`siap=false`) sampai GitHub Environments `staging`/`production`
+   punya `APP_URL` dan `RENDER_DEPLOY_HOOK`.
 2. **Verifikasi Midtrans sandbox.** Butuh `MIDTRANS_SERVER_KEY` sungguhan; kode
    dan 16 tesnya lulus dengan kredensial palsu, tetapi transaksi sungguhan ke
    sandbox belum pernah terjadi.

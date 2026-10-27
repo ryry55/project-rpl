@@ -6,7 +6,7 @@
 > Sumber kebenaran tetap `api/routes/api.php` dan kelas `Resource`. Dokumen ini
 > diambil dari `php artisan route:list --json` pada aplikasi yang berjalan.
 
-Versi 1.0 · 26 Oktober 2026 · **81 endpoint**
+Versi 1.1 · 26 Oktober 2026 · **85 endpoint**
 
 ---
 
@@ -186,7 +186,7 @@ meminta, hanya waktunya belum tepat.
 
 ---
 
-## 4. Data kos (33 endpoint)
+## 4. Data kos (34 endpoint)
 
 ### 4.1 Kamar
 
@@ -279,7 +279,11 @@ server**.
 | `GET` | `/api/rekening` | `peran:pemilik,pengelola` |
 | `POST` `PUT` `DELETE` | `/api/rekening[/{rekening}]` | `peran:pemilik` |
 | `GET` | `/api/rekening/{rekening}/gambar` | `auth:sanctum` (semua peran) |
-| `GET` | `/api/penghuni/rekening` | `peran:penghuni` |
+
+Baris `GET /api/penghuni/rekening` yang dibaca penghuni didokumentasikan di
+**§8**, bukan di sini — ia satu-satunya jalan penghuni melihat rekening, dan
+menuliskannya di dua tempat membuat satu endpoint terhitung dua kali saat
+jumlah per bagian dijumlahkan.
 
 `POST` / `PUT` — `{ jenis, nama, nomor?, atas_nama?, catatan?, aktif?, urutan?,
 gambar?, hapus_gambar? }`. `jenis` ∈ `transfer` \| `qris`; `nama` wajib; `nomor`
@@ -405,7 +409,7 @@ Satu kamar hanya boleh punya satu kontrak aktif (indeks parsial). Melanggar →
 
 ---
 
-## 5. Tagihan dan pembayaran (16 endpoint)
+## 5. Tagihan dan pembayaran (20 endpoint)
 
 ### 5.1 Tagihan
 
@@ -651,6 +655,138 @@ bahwa ada uang yang pernah tercatat lalu dibatalkan.
 pembayaran tanpa rentang bisa mengembalikan ribuan baris, sedangkan rekap tanpa
 rentang punya jawaban bawaan yang masuk akal.
 
+### 5.4.1 Ekspor CSV (Fase 0.5)
+
+| Metode | Path | Middleware |
+|---|---|---|
+| `GET` | `/api/ekspor/rekap` | `peran:pemilik` |
+| `GET` | `/api/ekspor/tunggakan` | `peran:pemilik,pengelola` |
+| `GET` | `/api/ekspor/pembayaran` | `peran:pemilik,pengelola` |
+
+Ketiganya mengembalikan `text/csv` sebagai `StreamedResponse` dengan
+`Content-Disposition: attachment` dan `Cache-Control: no-store`. Nama berkasnya
+memuat rentang tanggal (`rekap-2026-11-01-sampai-2026-11-10.csv`,
+`tunggakan-2026-10-26.csv`), karena berkas yang tersimpan enam bulan lalu harus
+bisa menjelaskan dirinya sendiri tanpa dibuka.
+
+**Tiga endpoint, bukan satu, karena otorisasinya berbeda** — bukan karena
+bentuknya berbeda. `/ekspor/rekap` mengikuti `/rekap` (pemilik saja), sedangkan
+dua lainnya mengikuti layar yang sudah bisa dibaca pengelola. Satu endpoint
+dengan parameter `jenis` akan memaksa satu gerbang untuk tiga tingkat
+kerahasiaan yang berbeda, dan gerbang yang paling longgar akan menang.
+
+**Pemisah titik koma, bukan koma.** Excel dengan pengaturan wilayah Indonesia
+membaca koma sebagai pemisah desimal, sehingga berkas ber-koma masuk ke satu
+kolom. Titik koma adalah yang benar-benar terbuka rapi di sini.
+
+**BOM UTF-8 di awal berkas** supaya Excel tidak menampilkan `Ã©` untuk `é`.
+
+**Sel yang dimulai `=`, `+`, `-`, `@`, tab, atau CR dinetralkan** dengan kutip
+tunggal di depan. Tanpa itu, nama penghuni yang diawali `=` menjadi rumus yang
+dijalankan Excel saat berkasnya dibuka — CSV injection.
+
+**Angka tetap mentah.** Memberi kutip pada `-500000` mengubahnya menjadi teks,
+dan `SUM` menghasilkan nol. Karena itu penulis CSV membedakan "string yang
+isinya angka" dari "teks berbahaya", bukan mengutip semua yang diawali `-`.
+
+**`rekap` berbentuk laporan; `tunggakan` dan `pembayaran` berbentuk tabel
+bersih.** Rekap memang dokumen dua bagian yang untuk dibaca dan dicetak. Dua
+lainnya dibuat untuk **digabung ke pembukuan yang sudah dipakai pemilik**, dan
+setiap alat CSV menganggap baris pertama sebagai nama kolom — blok ringkasan di
+atasnya membuat seluruh berkas terbaca sebagai satu tabel dengan kolom
+bergeser.
+
+---
+
+### 5.5 Status penyiapan (Fase 0.5)
+
+| Metode | Path | Middleware |
+|---|---|---|
+| `GET` | `/api/penyiapan` | `peran:pemilik,pengelola` |
+
+Menjawab "apa yang belum ada, dan mana yang harus lebih dulu" sebelum pemilik
+menabrak gerbangnya satu per satu.
+
+```json
+{
+  "data": {
+    "selesai": false,
+    "jumlah_selesai": 3,
+    "jumlah_wajib": 4,
+    "langkah": [
+      {
+        "kunci": "kebijakan",
+        "judul": "Tetapkan kebijakan kos",
+        "keterangan": "Satuan sewa, cara jatuh tempo, dan aturan denda. Tanpa ketiganya tagihan tidak bisa terbit - sistem tidak menebak kebijakan kos.",
+        "selesai": true,
+        "wajib": true,
+        "rincian": null,
+        "tautan": "/pemilik/kebijakan",
+        "aksi": "Isi kebijakan"
+      },
+      {
+        "kunci": "kamar",
+        "judul": "Tambahkan kamar",
+        "keterangan": "Satu baris per kamar yang disewakan. Nomor kamar inilah yang muncul di tagihan penghuni.",
+        "selesai": true,
+        "wajib": true,
+        "rincian": "2 kamar terdaftar.",
+        "tautan": "/pemilik/kamar",
+        "aksi": "Tambah kamar"
+      },
+      {
+        "kunci": "tarif",
+        "judul": "Tetapkan tarif tiap kamar",
+        "keterangan": "Tarif per bulan untuk setiap kamar. Tagihan dihitung dari sini, dan mengubahnya menambah baris baru - riwayat lama tetap tersimpan.",
+        "selesai": true,
+        "wajib": true,
+        "rincian": "Semua kamar sudah punya tarif.",
+        "tautan": "/pemilik/kamar",
+        "aksi": "Atur tarif"
+      },
+      {
+        "kunci": "rekening",
+        "judul": "Tambahkan rekening tujuan pembayaran",
+        "keterangan": "Ke mana penghuni mentransfer. Tanpa ini portal penghuni tidak bisa memberi tahu cara membayar, dan setiap penghuni akan bertanya lewat WhatsApp.",
+        "selesai": false,
+        "wajib": true,
+        "rincian": "Belum ada rekening aktif.",
+        "tautan": "/pemilik/rekening",
+        "aksi": "Tambah rekening"
+      },
+      {
+        "kunci": "penghuni",
+        "judul": "Catat penghuni pertama",
+        "keterangan": "Tidak wajib untuk mulai. Kos yang baru dibuka boleh belum punya penghuni; langkah ini baru perlu saat kamar benar-benar ditempati.",
+        "selesai": true,
+        "wajib": false,
+        "rincian": null,
+        "tautan": "/pemilik/penghuni",
+        "aksi": "Tambah penghuni"
+      }
+    ]
+  }
+}
+```
+
+**Lima langkah, empat di antaranya wajib.** `kebijakan`, `kamar`, `tarif`, dan
+`rekening` menahan `jumlah_selesai`; `penghuni` **tidak** — kos yang baru dibuka
+boleh belum punya penghuni, dan menandainya wajib berarti pemilik melihat
+"belum siap" untuk sesuatu yang bukan urusannya. `jumlah_wajib` sengaja dikirim
+terpisah supaya layar bisa menulis "3 dari 4 langkah wajib selesai" tanpa
+menghitung sendiri dan tanpa salah menghitung `penghuni`.
+
+**Dihitung dari data hidup, bukan dari penanda tersimpan.** Penanda bisa
+bernilai benar sementara datanya sudah hilang, dan pemulihan dari cadangan tidak
+akan pernah membersihkannya. Konsekuensinya disengaja: kalau kamar dihapus atau
+rekening dinonaktifkan, penandanya muncul lagi.
+
+**Terbuka untuk pengelola tanpa `wewenang:`.** Pengelola yang baru ditambahkan
+ke kos yang belum lengkap adalah orang yang paling perlu melihat daftar ini, dan
+ia memang tidak punya wewenang untuk memperbaikinya sendiri. Daftar berisi
+tombol yang pasti ditolak tidak ditampilkan untuknya — panelnya hanya dirender
+untuk pemilik.
+
 ---
 
 ## 6. Usulan dan persetujuan (3 endpoint)
@@ -744,6 +880,11 @@ perlu meninggalkan nama orang itu di catatan sejarah selamanya.
 ---
 
 ## 8. Portal penghuni, pembayaran daring, dan notifikasi (10 endpoint)
+
+> Sembilan endpoint berbentuk baris tabel; yang kesepuluh,
+> `POST /api/webhook/midtrans`, ditulis di §8.0.1 karena ia bukan endpoint yang
+> dipanggil pengguna — pemanggilnya gateway, dan gerbangnya tanda tangan
+> SHA512, bukan token.
 
 | Metode | Path | Middleware |
 |---|---|---|

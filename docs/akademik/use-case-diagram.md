@@ -30,7 +30,7 @@ Berkas: `01-use-case.svg` (vektor) dan `01-use-case.png` (2x, siap tempel).
 ## 3. Daftar 14 Use Case dan Endpoint Pendukungnya
 
 Setiap use case menunjuk minimal satu endpoint nyata. Pemetaannya
-**tertutup**: 81 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
+**tertutup**: 85 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
 ada satu pun yang dipakai dua use case. `build.js` memeriksa ketiga hal itu
 dan gagal bila tidak terpenuhi.
 
@@ -45,11 +45,11 @@ dan gagal bila tidak terpenuhi.
 | **UC-07** | Terbitkan & Kelola Tagihan Bulanan | `tagihan.index`<br>`tagihan.store`<br>`tagihan.terbitkan`<br>`tagihan.batal`<br>`tagihan.maaf-denda` |
 | **UC-08** | Catat Pembayaran Sewa | `tagihan.bayar`<br>`pembayaran.index`<br>`pembayaran.penerima`<br>`pembayaran.tunai-saya`<br>`api.webhook.midtrans` |
 | **UC-09** | Verifikasi & Koreksi Pembayaran | `pembayaran.verifikasi`<br>`pembayaran.pembalik` |
-| **UC-10** | Laporan Rekap Pendapatan, Tunggakan & Jejak Audit | `rekap.index`<br>`tunggakan.index`<br>`audit-log.index` |
+| **UC-10** | Laporan Rekap Pendapatan, Tunggakan & Jejak Audit | `rekap.index`<br>`tunggakan.index`<br>`audit-log.index`<br>`ekspor.rekap`<br>`ekspor.tunggakan`<br>`ekspor.pembayaran` |
 | **UC-11** | Kelola Preferensi Akun, Notifikasi & Hak Data Pribadi | `notifikasi.index`<br>`notifikasi.baca-semua`<br>`notifikasi.baca`<br>`pengaturan-notifikasi.show`<br>`pengaturan-notifikasi.update`<br>`api.persetujuan-pdp`<br>`pdp.data-saya`<br>`pdp.hapus-saya` |
 | **UC-12** | Kelola Akun Pengelola & Wewenang | `pengelola.index`<br>`pengelola.store`<br>`pengelola.show`<br>`pengelola.update`<br>`pengelola.destroy`<br>`pengelola.kirim-ulang-aktivasi` |
 | **UC-13** | Portal Penghuni | `penghuni.tagihan`<br>`penghuni.aturan`<br>`penghuni.rekening`<br>`tagihan.show`<br>`tagihan.denda`<br>`tagihan.bayar-daring` |
-| **UC-14** | Kelola Rekening Tujuan Pembayaran & Diagnostik Sistem | `rekening.index`<br>`rekening.store`<br>`rekening.update`<br>`rekening.destroy`<br>`rekening.gambar`<br>`api.health`<br>`api.pemilik-saja` |
+| **UC-14** | Kelola Rekening Tujuan Pembayaran, Status Penyiapan & Diagnostik Sistem | `rekening.index`<br>`rekening.store`<br>`rekening.update`<br>`rekening.destroy`<br>`rekening.gambar`<br>`penyiapan.index`<br>`api.health`<br>`api.pemilik-saja` |
 
 ## 4. Matriks Hak Akses Aktor
 
@@ -99,6 +99,15 @@ dan begitu pula sebaliknya.
   itu tidak menambah aktor mana pun; yang menjaganya tanda tangan SHA512 atas
   `order_id`, `status_code`, dan `gross_amount`.
 
+- **UC-10.** Tiga ekspor CSV berada di sini, bukan di use case tersendiri, karena
+  ketiganya mengeluarkan DATA YANG SAMA dengan tiga layar di atas - hanya
+  dalam bentuk berkas yang bisa dibuka di Excel. Use case tersendiri akan
+  berarti "mengekspor" adalah pekerjaan yang berbeda dari "melihat", padahal
+  pekerjaan penggunanya satu: ia ingin tahu ke mana uangnya pergi. Gerbangnya
+  tetap berbeda dan itu disengaja: `/ekspor/rekap` khusus pemilik seperti
+  `/rekap`, sedangkan `/ekspor/tunggakan` dan `/ekspor/pembayaran` terbuka
+  untuk pengelola karena ia sudah bisa membaca layar yang sama.
+
 - **UC-11.** Kesembilan peristiwa notifikasi dan tiga hak subjek data tidak membentuk
   alur tersendiri, tetapi ketiganya milik semua peran dan menyangkut akun
   sendiri, bukan data kos.
@@ -106,7 +115,10 @@ dan begitu pula sebaliknya.
 - **UC-14.** Menulis rekening khusus pemilik karena nomor rekening adalah alamat uang
   masuk; `/health` adalah diagnostik publik tanpa aktor, dan `/pemilik/saja`
   adalah pemeriksa middleware peran. Ketiganya tidak membentuk alur
-  tersendiri, tetapi tetap harus punya rumah di diagram.
+  tersendiri, tetapi tetap harus punya rumah di diagram. `/penyiapan` ikut di
+  sini karena isinya PEMERIKSAAN atas hal-hal yang dikelola use case lain -
+  kebijakan, kamar, tarif, rekening - bukan pekerjaan pengguna yang berdiri
+  sendiri.
 
 Memecahnya menjadi use case tersendiri akan menghasilkan kotak yang hanya
 berbeda pada nama endpoint, dan diagram yang memetakan endpoint satu per satu

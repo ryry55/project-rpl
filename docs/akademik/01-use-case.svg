@@ -74,7 +74,7 @@
 <text x="630" y="1005" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Portal Penghuni</text>
 <ellipse cx="630" cy="1068" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
 <text x="630" y="1059" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-14</text>
-<text x="630" y="1077" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Rekening &amp; Diagnostik Sistem</text>
+<text x="630" y="1077" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Rekening, Penyiapan &amp; Diagnostik</text>
 <circle cx="150" cy="558" r="13" fill="#eef2ff" stroke="#3730a3" stroke-width="2"/>
 <path d="M150 571 V608" fill="none" stroke="#3730a3" stroke-width="2"/>
 <path d="M128 584 H172" fill="none" stroke="#3730a3" stroke-width="2"/>
@@ -97,5 +97,5 @@
 <text x="390" y="1164" text-anchor="start" dominant-baseline="central" font-size="11.5" font-weight="500" fill="#475569">use case</text>
 <rect x="500" y="1151" width="26" height="26" fill="#fbfcfe" stroke="#94a3b8" stroke-width="1.4"/>
 <text x="534" y="1164" text-anchor="start" dominant-baseline="central" font-size="11.5" font-weight="500" fill="#475569">batas sistem</text>
-<text x="60" y="1190" text-anchor="start" dominant-baseline="central" font-size="11.5" font-weight="400" fill="#475569">3 aktor  ·  14 use case  ·  81 endpoint nyata  ·  setiap use case menunjuk minimal satu rute pada api/routes/api.php</text>
+<text x="60" y="1190" text-anchor="start" dominant-baseline="central" font-size="11.5" font-weight="400" fill="#475569">3 aktor  ·  14 use case  ·  85 endpoint nyata  ·  setiap use case menunjuk minimal satu rute pada api/routes/api.php</text>
 </svg>

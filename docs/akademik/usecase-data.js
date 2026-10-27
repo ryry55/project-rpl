@@ -21,7 +21,7 @@
  *   2. Setiap use case menunjuk minimal satu endpoint yang benar-benar ada.
  *      Use case tanpa endpoint adalah karangan.
  *   3. Satu endpoint hanya boleh menjadi dasar satu use case, supaya
- *      penghitungan 80 endpoint bisa ditutup tanpa sisa dan tanpa dobel.
+ *      penghitungan 85 endpoint bisa ditutup tanpa sisa dan tanpa dobel.
  *   4. Keanggotaan aktor diturunkan dari middleware, bukan diketik bebas:
  *      hanya endpoint bergerbang (`peran:` atau `wewenang:`) yang menentukan
  *      siapa pemilik use case. Endpoint yang hanya memakai `auth:sanctum`
@@ -253,11 +253,40 @@ const USE_CASE = [
     kode: 'UC-10',
     nama: 'Laporan Rekap Pendapatan, Tunggakan & Jejak Audit',
     ringkas: 'Laporan Rekap & Jejak Audit',
-    deskripsi: 'Rekap pendapatan per metode, tunggakan menurut umur piutang, dan jejak audit.',
-    endpoint: ['rekap.index', 'tunggakan.index', 'audit-log.index'],
+    deskripsi: 'Rekap pendapatan per metode, tunggakan menurut umur piutang, jejak audit, dan ekspor ketiganya ke berkas CSV.',
+    // Tiga endpoint ekspor ikut di sini, bukan di use case tersendiri: ia
+    // mengeluarkan DATA YANG SAMA dengan tiga layar di atas, hanya dalam bentuk
+    // berkas yang bisa dibuka di Excel. Use case tersendiri akan berarti
+    // "mengekspor" adalah pekerjaan yang berbeda dari "melihat", padahal
+    // pekerjaannya satu: pemilik ingin tahu ke mana uangnya pergi.
+    //
+    // Gerbangnya berbeda dari layarnya, dan itu memang disengaja:
+    // `/ekspor/rekap` bergerbang `peran:pemilik` (sama seperti `/rekap`),
+    // sedangkan `/ekspor/tunggakan` dan `/ekspor/pembayaran` terbuka untuk
+    // pengelola karena ia sudah bisa membaca layar yang sama. Karena UC-10
+    // sudah punya pemilik DAN pengelola lewat `tunggakan.index`, penambahan
+    // ini tidak mengubah keanggotaan aktornya.
+    endpoint: [
+      'rekap.index',
+      'tunggakan.index',
+      'audit-log.index',
+      'ekspor.rekap',
+      'ekspor.tunggakan',
+      'ekspor.pembayaran',
+    ],
     gerbang:
       'Rekap pendapatan khusus pemilik; pengelola membaca tunggakan dan, bila ' +
       'punya `baca_audit`, jejak audit.',
+    gabungan:
+      'Tiga ekspor CSV berada di sini, bukan di use case tersendiri, karena ' +
+      'ketiganya mengeluarkan DATA YANG SAMA dengan tiga layar di atas - hanya ' +
+      'dalam bentuk berkas yang bisa dibuka di Excel. Use case tersendiri akan ' +
+      'berarti "mengekspor" adalah pekerjaan yang berbeda dari "melihat", ' +
+      'padahal pekerjaan penggunanya satu: ia ingin tahu ke mana uangnya pergi. ' +
+      'Gerbangnya tetap berbeda dan itu disengaja: `/ekspor/rekap` khusus ' +
+      'pemilik seperti `/rekap`, sedangkan `/ekspor/tunggakan` dan ' +
+      '`/ekspor/pembayaran` terbuka untuk pengelola karena ia sudah bisa ' +
+      'membaca layar yang sama.',
   },
   {
     kode: 'UC-11',
@@ -327,9 +356,9 @@ const USE_CASE = [
   },
   {
     kode: 'UC-14',
-    nama: 'Kelola Rekening Tujuan Pembayaran & Diagnostik Sistem',
-    ringkas: 'Rekening & Diagnostik Sistem',
-    deskripsi: 'Mengelola rekening dan QRIS tujuan setoran, serta pemeriksaan kesehatan layanan dan peran.',
+    nama: 'Kelola Rekening Tujuan Pembayaran, Status Penyiapan & Diagnostik Sistem',
+    ringkas: 'Rekening, Penyiapan & Diagnostik',
+    deskripsi: 'Mengelola rekening dan QRIS tujuan setoran, membaca status penyiapan kos, serta pemeriksaan kesehatan layanan dan peran.',
     endpoint: [
       'rekening.index',
       'rekening.store',
@@ -339,6 +368,13 @@ const USE_CASE = [
       // tetapi ia bagian dari pengelolaan rekening: pemilik mengunggahnya di
       // layar yang sama dan penghuni melihatnya di portal.
       'rekening.gambar',
+      // Status penyiapan kos (Fase 3.5): "apa yang belum ada dan mana yang
+      // harus lebih dulu". Ia rumah yang tepat di sini karena isinya adalah
+      // PEMERIKSAAN atas hal-hal yang dikelola use case lain (kebijakan,
+      // kamar, tarif, rekening) - bukan alur kerja tersendiri. Kalau ia diberi
+      // use case sendiri, diagram akan punya kotak yang pekerjaannya "melihat
+      // daftar hal yang belum selesai", dan itu bukan pekerjaan pengguna.
+      'penyiapan.index',
       'api.health',
       'api.pemilik-saja',
     ],
@@ -350,7 +386,10 @@ const USE_CASE = [
       'Menulis rekening khusus pemilik karena nomor rekening adalah alamat ' +
       'uang masuk; `/health` adalah diagnostik publik tanpa aktor, dan ' +
       '`/pemilik/saja` adalah pemeriksa middleware peran. Ketiganya tidak ' +
-      'membentuk alur tersendiri, tetapi tetap harus punya rumah di diagram.',
+      'membentuk alur tersendiri, tetapi tetap harus punya rumah di diagram. ' +
+      '`/penyiapan` ikut di sini karena isinya PEMERIKSAAN atas hal-hal yang ' +
+      'dikelola use case lain - kebijakan, kamar, tarif, rekening - bukan ' +
+      'pekerjaan pengguna yang berdiri sendiri.',
   },
 ];
 
