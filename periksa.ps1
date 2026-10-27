@@ -181,6 +181,17 @@ if (-not $kontrakOk) {
     $keluaranKontrak | Select-String -Pattern 'SALAH|belum tercatat|tercatat ganda|BEDA' | ForEach-Object { Write-Host ('    ' + $_.Line.Trim()) }
 }
 
+# ERD dan LRS adalah dokumen yang paling mudah basi tanpa ketahuan: gambar
+# yang salah terlihat persis seperti gambar yang benar. Pemeriksa ini
+# membandingkan skema.json dengan basis data yang berjalan, lalu memastikan
+# setiap tabel dan setiap kunci asing benar-benar muncul di dokumen.
+$keluaranErd = node docs\uji\cek-erd-lrs.js 2>&1
+$erdOk = $LASTEXITCODE -eq 0
+Catat 'ERD dan LRS cocok dengan basis data' $erdOk
+if (-not $erdOk) {
+    $keluaranErd | Select-String -Pattern 'tidak|belum|sudah' | ForEach-Object { Write-Host ('    ' + $_.Line.Trim()) }
+}
+
 # --- 7. Profil produksi -----------------------------------------------------
 # Berkas profil yang ada tetapi nilainya salah lebih berbahaya daripada yang
 # tidak ada: ia membuat orang mengira pagarnya sudah terpasang. Diperiksa di

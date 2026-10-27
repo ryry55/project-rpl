@@ -216,6 +216,13 @@ if [ "$HANYA_E2E" -eq 0 ]; then
     kode=$?
     catat 'setiap endpoint tercatat di kontrak' "$([ "$kode" -eq 0 ] && echo 0 || echo 1)"
     if [ "$kode" -ne 0 ]; then printf '%s\n' "$keluaran_kontrak" | grep -E 'SALAH|belum tercatat|tercatat ganda|BEDA' | sed 's/^/    /'; fi
+
+    # ERD dan LRS adalah dokumen yang paling mudah basi tanpa ketahuan: gambar
+    # yang salah terlihat persis seperti gambar yang benar.
+    keluaran_erd="$(node docs/uji/cek-erd-lrs.js 2>&1)"
+    kode=$?
+    catat 'ERD dan LRS cocok dengan basis data' "$([ "$kode" -eq 0 ] && echo 0 || echo 1)"
+    if [ "$kode" -ne 0 ]; then printf '%s\n' "$keluaran_erd" | grep -E 'tidak|belum|sudah' | sed 's/^/    /'; fi
 fi
 
 # --- 7. Profil produksi ------------------------------------------------------

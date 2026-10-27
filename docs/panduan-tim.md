@@ -178,30 +178,21 @@ Bagian ini ditulis karena paling sering menimbulkan kebingungan.
 Jumlah halaman 4 dan 2 bukan kebetulan — keduanya **diperiksa setiap kali
 dibangun**, dan build gagal kalau berubah. Template dosen menentukan bentuknya.
 
-### 5.2 Soal "DSD"
+### 5.2 Soal "DSD" — sudah terjawab: DFD Level 1
 
 Istilah **"DSD" tidak ditemukan** di repo ini, dan juga **tidak ada di materi
 kuliah** (P01–P15). Yang sudah saya periksa dengan mengekstrak isi PDF-nya,
 bukan dengan mencarinya di teks mentah — pencarian teks mentah pada PDF selalu
 menjawab "tidak ada", bahkan untuk kata yang jelas tercetak.
 
-Tiga kemungkinan, dan mana yang berlaku menentukan dokumen apa yang harus
-dibuat:
+**Pemilik proyek sudah mengonfirmasi: "DSD 1" berarti DFD Level 1.**
+Dokumennya sudah ada — `docs/dfd/02-dfd-level-1.svg`, lengkap dengan lima
+proses dan enam penyimpanan data. Tidak perlu dibuat apa pun.
 
-1. **Maksudnya DFD Level 1.** Ini yang paling mungkin, karena Anda
-   menyebutnya berurutan dengan "DFD konteks". **Dokumennya sudah ada** —
-   `docs/dfd/02-dfd-level-1.svg`, lengkap dengan lima proses dan enam
-   penyimpanan data. Tidak perlu dibuat apa pun.
-2. **Maksudnya "Data Store Diagram".** Belum ada sebagai gambar tersendiri,
-   tetapi isinya sudah tercakup: enam penyimpanan data di DFD Level 1
-   (Kamar · Penghuni & Kontrak · Tarif, Kebijakan & Komponen · Tagihan ·
-   Pembayaran · Log Audit) plus kamus data di `docs/dfd/README.md`.
-3. **Istilah dari dosen Anda yang tidak ada di materi.** Kalau begitu, saya
-   perlu tahu definisinya sebelum menulis apa pun — menebak akan menghasilkan
-   dokumen yang salah dan tidak bisa dipakai.
-
-**Jangan saya tebak.** Sebutkan mana yang dimaksud, dan kalau yang ketiga,
-kutip kalimat dosennya.
+DFD Level 1 di proyek ini memakai notasi Gane-Sarson; versi Yourdon/DeMarco
+juga tersedia (`02-dfd-level-1-yourdon.svg`) bila dosen meminta notasi itu.
+Keduanya dibangun dari `dfd-data.js` yang sama, sehingga mustahil menampilkan
+aliran yang berbeda.
 
 ### 5.3 Penting: berkas akademik **dibangkitkan**
 

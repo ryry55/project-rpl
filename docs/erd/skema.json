@@ -1,0 +1,2590 @@
+{
+  "diambil_pada": "2026-10-27T08:18:13.618Z",
+  "jumlah_tabel": 23,
+  "tabel": [
+    {
+      "nama": "aturan_kos",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('aturan_kos_id_seq'::regclass)"
+        },
+        {
+          "nama": "judul",
+          "tipe": "character varying",
+          "panjang": 120,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "isi",
+          "tipe": "text",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "kategori",
+          "tipe": "character varying",
+          "panjang": 40,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "'umum'::character varying"
+        },
+        {
+          "nama": "sanksi",
+          "tipe": "character varying",
+          "panjang": 200,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "aktif",
+          "tipe": "boolean",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "true"
+        },
+        {
+          "nama": "urutan",
+          "tipe": "smallint",
+          "panjang": null,
+          "presisi": 16,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "'0'::smallint"
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [],
+      "asing": [],
+      "check": [],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "fasilitas",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('fasilitas_id_seq'::regclass)"
+        },
+        {
+          "nama": "nama",
+          "tipe": "character varying",
+          "panjang": 60,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "ikon",
+          "tipe": "character varying",
+          "panjang": 40,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "urutan",
+          "tipe": "smallint",
+          "panjang": null,
+          "presisi": 16,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "'0'::smallint"
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "fasilitas_nama_unique",
+          "kolom": [
+            "nama"
+          ]
+        }
+      ],
+      "asing": [],
+      "check": [],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "kamar",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('kamar_id_seq'::regclass)"
+        },
+        {
+          "nama": "nomor",
+          "tipe": "character varying",
+          "panjang": 20,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "tipe",
+          "tipe": "character varying",
+          "panjang": 40,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "status_huni",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "'kosong'::character varying"
+        },
+        {
+          "nama": "catatan",
+          "tipe": "text",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "kamar_nomor_unique",
+          "kolom": [
+            "nomor"
+          ]
+        }
+      ],
+      "asing": [],
+      "check": [
+        {
+          "nama": "kamar_status_huni_check",
+          "definisi": "CHECK (((status_huni)::text = ANY ((ARRAY['kosong'::character varying, 'terisi'::character varying, 'dipesan'::character varying])::text[])))"
+        }
+      ],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "kamar_fasilitas",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('kamar_fasilitas_id_seq'::regclass)"
+        },
+        {
+          "nama": "kamar_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "fasilitas_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "kamar_fasilitas_kamar_id_fasilitas_id_unique",
+          "kolom": [
+            "kamar_id",
+            "fasilitas_id"
+          ]
+        }
+      ],
+      "asing": [
+        {
+          "kolom": "fasilitas_id",
+          "ke_tabel": "fasilitas",
+          "ke_kolom": "id",
+          "nama": "kamar_fasilitas_fasilitas_id_foreign"
+        },
+        {
+          "kolom": "kamar_id",
+          "ke_tabel": "kamar",
+          "ke_kolom": "id",
+          "nama": "kamar_fasilitas_kamar_id_foreign"
+        }
+      ],
+      "check": [],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "kebijakan_kos",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('kebijakan_kos_id_seq'::regclass)"
+        },
+        {
+          "nama": "kamar_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "tipe",
+          "tipe": "character varying",
+          "panjang": 30,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "nilai",
+          "tipe": "character varying",
+          "panjang": 30,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "persen",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 5,
+          "skala": 2,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "plafon_persen",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 5,
+          "skala": 2,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "masa_tenggang",
+          "tipe": "smallint",
+          "panjang": null,
+          "presisi": 16,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "nominal",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 14,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "tanggal",
+          "tipe": "smallint",
+          "panjang": null,
+          "presisi": 16,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "berlaku_dari",
+          "tipe": "date",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "dibuat_pada",
+          "tipe": "timestamp with time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "kebijakan_kos_tipe_kamar_tanggal_unique",
+          "kolom": [
+            "tipe",
+            "kamar_id",
+            "berlaku_dari"
+          ]
+        }
+      ],
+      "asing": [
+        {
+          "kolom": "kamar_id",
+          "ke_tabel": "kamar",
+          "ke_kolom": "id",
+          "nama": "kebijakan_kos_kamar_id_foreign"
+        }
+      ],
+      "check": [
+        {
+          "nama": "kebijakan_kos_kolom_sesuai_tipe",
+          "definisi": "CHECK (\nCASE tipe\n    WHEN 'satuan_sewa'::text THEN ((persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL) AND (nominal IS NULL) AND (tanggal IS NULL))\n    WHEN 'jatuh_tempo'::text THEN ((persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL) AND (nominal IS NULL) AND\n    CASE\n        WHEN ((nilai)::text = 'tanggal_tetap'::text) THEN ((tanggal IS NOT NULL) AND ((tanggal >= 1) AND (tanggal <= 31)))\n        ELSE (tanggal IS NULL)\n    END)\n    WHEN 'denda'::text THEN ((tanggal IS NULL) AND\n    CASE\n        WHEN ((nilai)::text = ANY ((ARRAY['persen_harian'::character varying, 'persen_bulanan'::character varying])::text[])) THEN ((persen IS NOT NULL) AND (persen > (0)::numeric) AND (plafon_persen IS NOT NULL) AND (plafon_persen > (0)::numeric) AND (nominal IS NULL) AND (masa_tenggang IS NOT NULL) AND (masa_tenggang >= 0))\n        WHEN ((nilai)::text = 'nominal_tetap'::text) THEN ((nominal IS NOT NULL) AND (nominal >= (0)::numeric) AND (persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL))\n        ELSE ((persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL) AND (nominal IS NULL))\n    END)\n    ELSE NULL::boolean\nEND)"
+        },
+        {
+          "nama": "kebijakan_kos_nilai_valid",
+          "definisi": "CHECK (((((tipe)::text = 'satuan_sewa'::text) AND ((nilai)::text = ANY ((ARRAY['bulanan'::character varying, 'mingguan'::character varying, 'harian'::character varying])::text[]))) OR (((tipe)::text = 'jatuh_tempo'::text) AND ((nilai)::text = ANY ((ARRAY['tanggal_masuk'::character varying, 'tanggal_tetap'::character varying, 'akhir_bulan'::character varying])::text[]))) OR (((tipe)::text = 'denda'::text) AND ((nilai)::text = ANY ((ARRAY['persen_harian'::character varying, 'persen_bulanan'::character varying, 'nominal_tetap'::character varying, 'tanpa_denda'::character varying])::text[])))))"
+        },
+        {
+          "nama": "kebijakan_kos_tipe_valid",
+          "definisi": "CHECK (((tipe)::text = ANY ((ARRAY['satuan_sewa'::character varying, 'jatuh_tempo'::character varying, 'denda'::character varying])::text[])))"
+        }
+      ],
+      "unik_parsial": [],
+      "trigger": [
+        {
+          "nama": "kebijakan_kos_append_only",
+          "definisi": "CREATE TRIGGER kebijakan_kos_append_only BEFORE DELETE OR UPDATE ON public.kebijakan_kos FOR EACH ROW EXECUTE FUNCTION tolak_ubah_kebijakan_kos()"
+        }
+      ]
+    },
+    {
+      "nama": "komponen_biaya",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('komponen_biaya_id_seq'::regclass)"
+        },
+        {
+          "nama": "nama",
+          "tipe": "character varying",
+          "panjang": 80,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "nilai",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 14,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "satuan",
+          "tipe": "character varying",
+          "panjang": 30,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "'rupiah/bulan'::character varying"
+        },
+        {
+          "nama": "berlaku_dari",
+          "tipe": "date",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "kamar_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "komponen_biaya_nama_tanggal_kamar_unique",
+          "kolom": [
+            "nama",
+            "berlaku_dari",
+            "kamar_id"
+          ]
+        }
+      ],
+      "asing": [
+        {
+          "kolom": "kamar_id",
+          "ke_tabel": "kamar",
+          "ke_kolom": "id",
+          "nama": "komponen_biaya_kamar_id_foreign"
+        }
+      ],
+      "check": [],
+      "unik_parsial": [],
+      "trigger": [
+        {
+          "nama": "komponen_biaya_append_only",
+          "definisi": "CREATE TRIGGER komponen_biaya_append_only BEFORE DELETE OR UPDATE ON public.komponen_biaya FOR EACH ROW EXECUTE FUNCTION tolak_ubah_komponen_biaya()"
+        }
+      ]
+    },
+    {
+      "nama": "kontrak",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('kontrak_id_seq'::regclass)"
+        },
+        {
+          "nama": "kamar_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "penghuni_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "tgl_masuk",
+          "tipe": "date",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "tgl_keluar",
+          "tipe": "date",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "tarif_awal",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 14,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "status",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "'aktif'::character varying"
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [],
+      "asing": [
+        {
+          "kolom": "kamar_id",
+          "ke_tabel": "kamar",
+          "ke_kolom": "id",
+          "nama": "kontrak_kamar_id_foreign"
+        },
+        {
+          "kolom": "penghuni_id",
+          "ke_tabel": "penghuni",
+          "ke_kolom": "id",
+          "nama": "kontrak_penghuni_id_foreign"
+        }
+      ],
+      "check": [
+        {
+          "nama": "kontrak_status_check",
+          "definisi": "CHECK (((status)::text = ANY ((ARRAY['aktif'::character varying, 'selesai'::character varying, 'dipesan'::character varying])::text[])))"
+        }
+      ],
+      "unik_parsial": [
+        {
+          "nama": "kontrak_satu_aktif_per_kamar",
+          "definisi": "CREATE UNIQUE INDEX kontrak_satu_aktif_per_kamar ON public.kontrak USING btree (kamar_id) WHERE ((status)::text = ANY ((ARRAY['aktif'::character varying, 'dipesan'::character varying])::text[]))"
+        }
+      ],
+      "trigger": []
+    },
+    {
+      "nama": "log_audit",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('log_audit_id_seq'::regclass)"
+        },
+        {
+          "nama": "aktor_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "aktor_nama",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "aksi",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "entitas",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "entitas_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "nilai_lama",
+          "tipe": "jsonb",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "nilai_baru",
+          "tipe": "jsonb",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "dibuat_pada",
+          "tipe": "timestamp with time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [],
+      "asing": [],
+      "check": [],
+      "unik_parsial": [],
+      "trigger": [
+        {
+          "nama": "log_audit_append_only",
+          "definisi": "CREATE TRIGGER log_audit_append_only BEFORE DELETE OR UPDATE ON public.log_audit FOR EACH ROW EXECUTE FUNCTION tolak_ubah_log_audit()"
+        }
+      ]
+    },
+    {
+      "nama": "notifications",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "uuid",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "type",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "notifiable_type",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "notifiable_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "data",
+          "tipe": "text",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "read_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [],
+      "asing": [],
+      "check": [],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "pembayaran",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('pembayaran_id_seq'::regclass)"
+        },
+        {
+          "nama": "tagihan_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "jumlah",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 14,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "tanggal_pembayaran",
+          "tipe": "date",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "catatan",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "metode",
+          "tipe": "character varying",
+          "panjang": 20,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "sumber",
+          "tipe": "character varying",
+          "panjang": 30,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "'dicatat_pemilik'::character varying"
+        },
+        {
+          "nama": "referensi",
+          "tipe": "character varying",
+          "panjang": 100,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "dicatat_oleh",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "diterima_oleh",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "pembalik_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "pembayaran_pembalik_id_unique",
+          "kolom": [
+            "pembalik_id"
+          ]
+        }
+      ],
+      "asing": [
+        {
+          "kolom": "dicatat_oleh",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "pembayaran_dicatat_oleh_foreign"
+        },
+        {
+          "kolom": "diterima_oleh",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "pembayaran_diterima_oleh_foreign"
+        },
+        {
+          "kolom": "pembalik_id",
+          "ke_tabel": "pembayaran",
+          "ke_kolom": "id",
+          "nama": "pembayaran_pembalik_id_foreign"
+        },
+        {
+          "kolom": "tagihan_id",
+          "ke_tabel": "tagihan",
+          "ke_kolom": "id",
+          "nama": "pembayaran_tagihan_id_foreign"
+        }
+      ],
+      "check": [
+        {
+          "nama": "pembalik_ada_alasan",
+          "definisi": "CHECK (((pembalik_id IS NULL) OR ((catatan IS NOT NULL) AND (length(btrim((catatan)::text)) > 0))))"
+        },
+        {
+          "nama": "pembayaran_metode_dikenal",
+          "definisi": "CHECK (((metode IS NULL) OR ((metode)::text = ANY ((ARRAY['tunai'::character varying, 'transfer'::character varying, 'qris'::character varying, 'gateway'::character varying])::text[]))))"
+        },
+        {
+          "nama": "pembayaran_sumber_dikenal",
+          "definisi": "CHECK (((sumber)::text = ANY ((ARRAY['dicatat_pemilik'::character varying, 'gateway_webhook'::character varying])::text[])))"
+        },
+        {
+          "nama": "pembayaran_tanda_jumlah",
+          "definisi": "CHECK ((((pembalik_id IS NULL) AND (jumlah > (0)::numeric)) OR ((pembalik_id IS NOT NULL) AND (jumlah < (0)::numeric))))"
+        },
+        {
+          "nama": "pembayaran_tunai_ada_pemegang",
+          "definisi": "CHECK ((((metode)::text IS DISTINCT FROM 'tunai'::text) OR (diterima_oleh IS NOT NULL))) NOT VALID"
+        }
+      ],
+      "unik_parsial": [
+        {
+          "nama": "pembayaran_gateway_satu_per_order",
+          "definisi": "CREATE UNIQUE INDEX pembayaran_gateway_satu_per_order ON public.pembayaran USING btree (referensi) WHERE (((sumber)::text = 'gateway_webhook'::text) AND (referensi IS NOT NULL))"
+        }
+      ],
+      "trigger": [
+        {
+          "nama": "pembayaran_append_only",
+          "definisi": "CREATE TRIGGER pembayaran_append_only BEFORE DELETE OR UPDATE ON public.pembayaran FOR EACH ROW EXECUTE FUNCTION tolak_ubah_pembayaran()"
+        },
+        {
+          "nama": "pembayaran_tolak_pembalik_bertingkat",
+          "definisi": "CREATE TRIGGER pembayaran_tolak_pembalik_bertingkat BEFORE INSERT ON public.pembayaran FOR EACH ROW EXECUTE FUNCTION tolak_pembalik_bertingkat()"
+        }
+      ]
+    },
+    {
+      "nama": "pengaturan_notifikasi",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('pengaturan_notifikasi_id_seq'::regclass)"
+        },
+        {
+          "nama": "user_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "peristiwa",
+          "tipe": "character varying",
+          "panjang": 40,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "kanal",
+          "tipe": "character varying",
+          "panjang": 10,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "aktif",
+          "tipe": "boolean",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "pengaturan_notifikasi_user_id_peristiwa_kanal_unique",
+          "kolom": [
+            "user_id",
+            "peristiwa",
+            "kanal"
+          ]
+        }
+      ],
+      "asing": [
+        {
+          "kolom": "user_id",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "pengaturan_notifikasi_user_id_foreign"
+        }
+      ],
+      "check": [
+        {
+          "nama": "pengaturan_notifikasi_kanal_dikenal",
+          "definisi": "CHECK (((kanal)::text = ANY ((ARRAY['in_app'::character varying, 'email'::character varying])::text[])))"
+        },
+        {
+          "nama": "pengaturan_notifikasi_peristiwa_dikenal",
+          "definisi": "CHECK (((peristiwa)::text = ANY ((ARRAY['usulan.diajukan'::character varying, 'usulan.diputuskan'::character varying, 'tarif.diubah'::character varying, 'kebijakan.diubah'::character varying, 'komponen.diubah'::character varying, 'tagihan.massal'::character varying, 'tagihan.terbit'::character varying, 'pembayaran.dicatat'::character varying, 'pembayaran.diverifikasi'::character varying])::text[])))"
+        }
+      ],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "pengelola_kewenangan",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('pengelola_kewenangan_id_seq'::regclass)"
+        },
+        {
+          "nama": "user_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "wewenang",
+          "tipe": "character varying",
+          "panjang": 40,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "pengelola_kewenangan_user_id_wewenang_unique",
+          "kolom": [
+            "user_id",
+            "wewenang"
+          ]
+        }
+      ],
+      "asing": [
+        {
+          "kolom": "user_id",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "pengelola_kewenangan_user_id_foreign"
+        }
+      ],
+      "check": [
+        {
+          "nama": "pengelola_kewenangan_dikenal",
+          "definisi": "CHECK (((wewenang)::text = ANY ((ARRAY['catat_pembayaran'::character varying, 'kelola_kamar'::character varying, 'kelola_penghuni'::character varying, 'terbitkan_tagihan'::character varying, 'ubah_tarif'::character varying, 'ubah_kebijakan'::character varying, 'verifikasi_pembayaran'::character varying, 'baca_audit'::character varying])::text[])))"
+        }
+      ],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "penghuni",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('penghuni_id_seq'::regclass)"
+        },
+        {
+          "nama": "nama",
+          "tipe": "character varying",
+          "panjang": 120,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "no_hp",
+          "tipe": "character varying",
+          "panjang": 30,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "email",
+          "tipe": "character varying",
+          "panjang": 120,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "penghuni_email_unique",
+          "kolom": [
+            "email"
+          ]
+        }
+      ],
+      "asing": [],
+      "check": [],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "persetujuan_pdp",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('persetujuan_pdp_id_seq'::regclass)"
+        },
+        {
+          "nama": "user_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "versi",
+          "tipe": "character varying",
+          "panjang": 20,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "disetujui_pada",
+          "tipe": "timestamp with time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "CURRENT_TIMESTAMP"
+        },
+        {
+          "nama": "ip",
+          "tipe": "character varying",
+          "panjang": 45,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "persetujuan_pdp_user_id_versi_unique",
+          "kolom": [
+            "user_id",
+            "versi"
+          ]
+        }
+      ],
+      "asing": [
+        {
+          "kolom": "user_id",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "persetujuan_pdp_user_id_foreign"
+        }
+      ],
+      "check": [],
+      "unik_parsial": [],
+      "trigger": [
+        {
+          "nama": "persetujuan_pdp_append_only",
+          "definisi": "CREATE TRIGGER persetujuan_pdp_append_only BEFORE DELETE OR UPDATE ON public.persetujuan_pdp FOR EACH ROW EXECUTE FUNCTION tolak_ubah_persetujuan_pdp()"
+        }
+      ]
+    },
+    {
+      "nama": "rekening",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('rekening_id_seq'::regclass)"
+        },
+        {
+          "nama": "jenis",
+          "tipe": "character varying",
+          "panjang": 20,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "'transfer'::character varying"
+        },
+        {
+          "nama": "nama",
+          "tipe": "character varying",
+          "panjang": 60,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "nomor",
+          "tipe": "character varying",
+          "panjang": 60,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "atas_nama",
+          "tipe": "character varying",
+          "panjang": 80,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "catatan",
+          "tipe": "character varying",
+          "panjang": 200,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "aktif",
+          "tipe": "boolean",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "true"
+        },
+        {
+          "nama": "urutan",
+          "tipe": "smallint",
+          "panjang": null,
+          "presisi": 16,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "'0'::smallint"
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "gambar",
+          "tipe": "bytea",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "gambar_mime",
+          "tipe": "character varying",
+          "panjang": 60,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "gambar_ukuran",
+          "tipe": "integer",
+          "panjang": null,
+          "presisi": 32,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [],
+      "asing": [],
+      "check": [],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "tagihan",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('tagihan_id_seq'::regclass)"
+        },
+        {
+          "nama": "kontrak_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "periode",
+          "tipe": "date",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "pokok",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 14,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "jatuh_tempo",
+          "tipe": "date",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "status",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "'belum_bayar'::character varying"
+        },
+        {
+          "nama": "tarif_terpakai",
+          "tipe": "json",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "tarif_denda_persen",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 5,
+          "skala": 2,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "plafon_persen",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 5,
+          "skala": 2,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "masa_tenggang",
+          "tipe": "smallint",
+          "panjang": null,
+          "presisi": 16,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "terbit_pada",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "total_final",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 14,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "kebijakan_terpakai",
+          "tipe": "jsonb",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "alasan_batal",
+          "tipe": "text",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "dibatalkan_oleh",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "dibatalkan_pada",
+          "tipe": "timestamp with time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "denda_dimaafkan",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 14,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "'0'::numeric"
+        },
+        {
+          "nama": "alasan_maaf_denda",
+          "tipe": "text",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "denda_dimaafkan_oleh",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "denda_dimaafkan_pada",
+          "tipe": "timestamp with time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [],
+      "asing": [
+        {
+          "kolom": "denda_dimaafkan_oleh",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "tagihan_denda_dimaafkan_oleh_foreign"
+        },
+        {
+          "kolom": "dibatalkan_oleh",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "tagihan_dibatalkan_oleh_foreign"
+        },
+        {
+          "kolom": "kontrak_id",
+          "ke_tabel": "kontrak",
+          "ke_kolom": "id",
+          "nama": "tagihan_kontrak_id_foreign"
+        }
+      ],
+      "check": [
+        {
+          "nama": "tagihan_batal_ada_alasan",
+          "definisi": "CHECK ((((status)::text <> 'dibatalkan'::text) OR (alasan_batal IS NOT NULL))) NOT VALID"
+        },
+        {
+          "nama": "tagihan_batal_tanpa_pemaafan",
+          "definisi": "CHECK ((((status)::text <> 'dibatalkan'::text) OR (denda_dimaafkan = (0)::numeric))) NOT VALID"
+        },
+        {
+          "nama": "tagihan_denda_dimaafkan_tidak_negatif",
+          "definisi": "CHECK ((denda_dimaafkan >= (0)::numeric))"
+        },
+        {
+          "nama": "tagihan_maaf_denda_ada_alasan",
+          "definisi": "CHECK (((denda_dimaafkan = (0)::numeric) OR (alasan_maaf_denda IS NOT NULL)))"
+        },
+        {
+          "nama": "tagihan_pokok_positif",
+          "definisi": "CHECK ((pokok >= (0)::numeric))"
+        },
+        {
+          "nama": "tagihan_status_check",
+          "definisi": "CHECK (((status)::text = ANY ((ARRAY['belum_bayar'::character varying, 'sebagian'::character varying, 'lunas'::character varying, 'dibatalkan'::character varying])::text[])))"
+        }
+      ],
+      "unik_parsial": [
+        {
+          "nama": "tagihan_kontrak_periode_aktif_unique",
+          "definisi": "CREATE UNIQUE INDEX tagihan_kontrak_periode_aktif_unique ON public.tagihan USING btree (kontrak_id, periode) WHERE ((status)::text <> 'dibatalkan'::text)"
+        }
+      ],
+      "trigger": []
+    },
+    {
+      "nama": "tagihan_rincian",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('tagihan_rincian_id_seq'::regclass)"
+        },
+        {
+          "nama": "tagihan_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "nama",
+          "tipe": "character varying",
+          "panjang": 80,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "nilai",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 14,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "urutan",
+          "tipe": "smallint",
+          "panjang": null,
+          "presisi": 16,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "'0'::smallint"
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [],
+      "asing": [
+        {
+          "kolom": "tagihan_id",
+          "ke_tabel": "tagihan",
+          "ke_kolom": "id",
+          "nama": "tagihan_rincian_tagihan_id_foreign"
+        }
+      ],
+      "check": [
+        {
+          "nama": "tagihan_rincian_nilai_positif",
+          "definisi": "CHECK ((nilai >= (0)::numeric))"
+        }
+      ],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "tarif_sewa",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('tarif_sewa_id_seq'::regclass)"
+        },
+        {
+          "nama": "kamar_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "nilai",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 14,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "berlaku_dari",
+          "tipe": "date",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "tarif_sewa_kamar_id_berlaku_dari_unique",
+          "kolom": [
+            "kamar_id",
+            "berlaku_dari"
+          ]
+        }
+      ],
+      "asing": [
+        {
+          "kolom": "kamar_id",
+          "ke_tabel": "kamar",
+          "ke_kolom": "id",
+          "nama": "tarif_sewa_kamar_id_foreign"
+        }
+      ],
+      "check": [],
+      "unik_parsial": [],
+      "trigger": [
+        {
+          "nama": "tarif_sewa_append_only",
+          "definisi": "CREATE TRIGGER tarif_sewa_append_only BEFORE DELETE OR UPDATE ON public.tarif_sewa FOR EACH ROW EXECUTE FUNCTION tolak_ubah_tarif_sewa()"
+        }
+      ]
+    },
+    {
+      "nama": "token_akun",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('token_akun_id_seq'::regclass)"
+        },
+        {
+          "nama": "user_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "jenis",
+          "tipe": "character varying",
+          "panjang": 10,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "token_hash",
+          "tipe": "character",
+          "panjang": 64,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "kedaluwarsa_pada",
+          "tipe": "timestamp with time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "dipakai_pada",
+          "tipe": "timestamp with time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "dibuat_pada",
+          "tipe": "timestamp with time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "token_akun_token_hash_unique",
+          "kolom": [
+            "token_hash"
+          ]
+        }
+      ],
+      "asing": [
+        {
+          "kolom": "user_id",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "token_akun_user_id_foreign"
+        }
+      ],
+      "check": [
+        {
+          "nama": "token_akun_jenis_dikenal",
+          "definisi": "CHECK (((jenis)::text = ANY ((ARRAY['aktivasi'::character varying, 'reset'::character varying])::text[])))"
+        }
+      ],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "transaksi_gateway",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('transaksi_gateway_id_seq'::regclass)"
+        },
+        {
+          "nama": "tagihan_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "order_id",
+          "tipe": "character varying",
+          "panjang": 64,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "jumlah",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 14,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "status",
+          "tipe": "character varying",
+          "panjang": 20,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "'menunggu'::character varying"
+        },
+        {
+          "nama": "redirect_url",
+          "tipe": "text",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "token",
+          "tipe": "character varying",
+          "panjang": 128,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "transaction_id",
+          "tipe": "character varying",
+          "panjang": 64,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "transaction_status",
+          "tipe": "character varying",
+          "panjang": 32,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "fraud_status",
+          "tipe": "character varying",
+          "panjang": 32,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "kedaluwarsa_pada",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "dibayar_pada",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "transaksi_gateway_order_id_unique",
+          "kolom": [
+            "order_id"
+          ]
+        }
+      ],
+      "asing": [
+        {
+          "kolom": "tagihan_id",
+          "ke_tabel": "tagihan",
+          "ke_kolom": "id",
+          "nama": "transaksi_gateway_tagihan_id_foreign"
+        }
+      ],
+      "check": [
+        {
+          "nama": "transaksi_gateway_status_dikenal",
+          "definisi": "CHECK (((status)::text = ANY ((ARRAY['menunggu'::character varying, 'dibayar'::character varying, 'gagal'::character varying, 'kedaluwarsa'::character varying, 'dibatalkan'::character varying])::text[])))"
+        }
+      ],
+      "unik_parsial": [
+        {
+          "nama": "transaksi_gateway_satu_menunggu_per_tagihan",
+          "definisi": "CREATE UNIQUE INDEX transaksi_gateway_satu_menunggu_per_tagihan ON public.transaksi_gateway USING btree (tagihan_id) WHERE ((status)::text = 'menunggu'::text)"
+        }
+      ],
+      "trigger": []
+    },
+    {
+      "nama": "users",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('users_id_seq'::regclass)"
+        },
+        {
+          "nama": "name",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "email",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "email_verified_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "password",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "remember_token",
+          "tipe": "character varying",
+          "panjang": 100,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "peran",
+          "tipe": "character varying",
+          "panjang": 20,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "'penghuni'::character varying"
+        },
+        {
+          "nama": "penghuni_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "pemilik_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "wajib_ganti_sandi",
+          "tipe": "boolean",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "false"
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [
+        {
+          "nama": "users_email_unique",
+          "kolom": [
+            "email"
+          ]
+        }
+      ],
+      "asing": [
+        {
+          "kolom": "pemilik_id",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "users_pemilik_id_foreign"
+        },
+        {
+          "kolom": "penghuni_id",
+          "ke_tabel": "penghuni",
+          "ke_kolom": "id",
+          "nama": "users_penghuni_id_foreign"
+        }
+      ],
+      "check": [
+        {
+          "nama": "users_pengelola_wajib_pemilik",
+          "definisi": "CHECK ((((peran)::text <> 'pengelola'::text) OR (pemilik_id IS NOT NULL)))"
+        }
+      ],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "usulan_perubahan",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('usulan_perubahan_id_seq'::regclass)"
+        },
+        {
+          "nama": "tipe",
+          "tipe": "character varying",
+          "panjang": 20,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "payload",
+          "tipe": "jsonb",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "ringkasan",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "status",
+          "tipe": "character varying",
+          "panjang": 20,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "'menunggu'::character varying"
+        },
+        {
+          "nama": "diajukan_oleh",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "diputuskan_oleh",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "alasan",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "dibuat_pada",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "diputuskan_pada",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "kedaluwarsa_pada",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [],
+      "asing": [
+        {
+          "kolom": "diajukan_oleh",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "usulan_perubahan_diajukan_oleh_foreign"
+        },
+        {
+          "kolom": "diputuskan_oleh",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "usulan_perubahan_diputuskan_oleh_foreign"
+        }
+      ],
+      "check": [
+        {
+          "nama": "usulan_perubahan_diputuskan_ada_pemutus",
+          "definisi": "CHECK ((((status)::text = 'menunggu'::text) OR (diputuskan_oleh IS NOT NULL)))"
+        },
+        {
+          "nama": "usulan_perubahan_diputuskan_ada_waktu",
+          "definisi": "CHECK ((((status)::text = 'menunggu'::text) OR (diputuskan_pada IS NOT NULL)))"
+        },
+        {
+          "nama": "usulan_perubahan_menunggu_belum_diputuskan",
+          "definisi": "CHECK ((((status)::text <> 'menunggu'::text) OR ((diputuskan_oleh IS NULL) AND (diputuskan_pada IS NULL))))"
+        },
+        {
+          "nama": "usulan_perubahan_status_dikenal",
+          "definisi": "CHECK (((status)::text = ANY ((ARRAY['menunggu'::character varying, 'disetujui'::character varying, 'ditolak'::character varying])::text[])))"
+        },
+        {
+          "nama": "usulan_perubahan_tipe_dikenal",
+          "definisi": "CHECK (((tipe)::text = ANY ((ARRAY['tarif'::character varying, 'kebijakan'::character varying, 'komponen'::character varying])::text[])))"
+        },
+        {
+          "nama": "usulan_perubahan_tolak_beralasan",
+          "definisi": "CHECK ((((status)::text <> 'ditolak'::text) OR (alasan IS NOT NULL)))"
+        }
+      ],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "verifikasi_pembayaran",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('verifikasi_pembayaran_id_seq'::regclass)"
+        },
+        {
+          "nama": "pembayaran_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "diverifikasi_oleh",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "keputusan",
+          "tipe": "character varying",
+          "panjang": 10,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "catatan",
+          "tipe": "character varying",
+          "panjang": 255,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [],
+      "asing": [
+        {
+          "kolom": "diverifikasi_oleh",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "verifikasi_pembayaran_diverifikasi_oleh_foreign"
+        },
+        {
+          "kolom": "pembayaran_id",
+          "ke_tabel": "pembayaran",
+          "ke_kolom": "id",
+          "nama": "verifikasi_pembayaran_pembayaran_id_foreign"
+        }
+      ],
+      "check": [
+        {
+          "nama": "verifikasi_pembayaran_keputusan_dikenal",
+          "definisi": "CHECK (((keputusan)::text = ANY ((ARRAY['terima'::character varying, 'tolak'::character varying])::text[])))"
+        },
+        {
+          "nama": "verifikasi_pembayaran_tolak_beralasan",
+          "definisi": "CHECK ((((keputusan)::text <> 'tolak'::text) OR (catatan IS NOT NULL)))"
+        }
+      ],
+      "unik_parsial": [],
+      "trigger": [
+        {
+          "nama": "verifikasi_pembayaran_append_only",
+          "definisi": "CREATE TRIGGER verifikasi_pembayaran_append_only BEFORE DELETE OR UPDATE ON public.verifikasi_pembayaran FOR EACH ROW EXECUTE FUNCTION tolak_ubah_verifikasi_pembayaran()"
+        }
+      ]
+    }
+  ]
+}
