@@ -104,11 +104,43 @@ export async function evaluasi(ws, ekspresi) {
   return r.result.value
 }
 
+/**
+ * Menunggu sampai ekspresi bernilai benar.
+ *
+ * Galat "dokumen belum siap" TIDAK dilempar keluar, melainkan dianggap belum
+ * siap dan dicoba lagi. Alasannya nyata: predikat di sini sering dijalankan
+ * tepat setelah `Page.navigate`, ketika dokumen lama sudah hilang dan dokumen
+ * baru belum punya `body`. `document.body.textContent` saat itu melempar
+ * `Cannot read properties of null (reading 'textContent')`, dan karena
+ * `evaluasi` meneruskan galat, seluruh skrip uji berhenti — bukan karena
+ * aplikasinya salah, melainkan karena pemeriksanya kalah balapan.
+ *
+ * Gejalanya menipu: lulus di laptop, gagal di CI, karena runner lebih lambat.
+ *
+ * HANYA galat semacam itu yang ditahan. Salah tulis predikat (misalnya memanggil
+ * fungsi yang tidak ada) tetap dilempar keluar seketika, supaya tidak berubah
+ * menjadi penantian 15 detik yang berakhir dengan pesan "tidak muncul" — pesan
+ * yang menunjuk ke aplikasi padahal yang salah adalah pemeriksanya.
+ */
+const GALAT_BELUM_SIAP = /of null|of undefined|Cannot read propert|document is not defined|Execution context was destroyed|Cannot find context/i
+
 export async function tungguSampai(ws, ekspresi, batasMs = 12000) {
   const mulai = Date.now()
+  let galatTerakhir = null
   while (Date.now() - mulai < batasMs) {
-    if (await evaluasi(ws, `Boolean(${ekspresi})`)) return true
+    try {
+      if (await evaluasi(ws, `Boolean(${ekspresi})`)) return true
+    } catch (e) {
+      const pesan = String(e?.message ?? e)
+      if (!GALAT_BELUM_SIAP.test(pesan)) throw e
+      galatTerakhir = e
+    }
     await new Promise((r) => setTimeout(r, 150))
+  }
+  if (galatTerakhir) {
+    console.warn(
+      `  (tungguSampai habis; galat terakhir: ${String(galatTerakhir.message).slice(0, 160)})`,
+    )
   }
   return false
 }

@@ -137,6 +137,23 @@ muncul kalau ia menunggu transaksi pertama commit lalu membaca ulang.
 |---|---|
 | `_cdp.mjs` | Helper CDP: `mulaiUji`, `masukSebagai`, `panggilApi`, `teksMemuat`, `tangkapLayar`, `bersihkanTab`, `aktifkanAkun`, `tautanAkunTerakhir`, `panggilApiPublik`, `lewatiPersetujuanPdp` |
 
+### Kenapa `tungguSampai` menahan sebagian galat
+
+`tungguSampai` menjalankan predikatnya berulang kali, dan predikat itu sering
+menyentuh `document.body` tepat setelah `Page.navigate` — saat dokumen lama
+sudah hilang dan dokumen baru belum punya `body`. Ketika itu ekspresinya
+melempar `Cannot read properties of null (reading 'textContent')`.
+
+Dulu galat itu diteruskan, sehingga seluruh skrip uji berhenti. Gejalanya
+menipu: **lulus di laptop, gagal di CI**, karena runner lebih lambat dan
+kalah balapan dengan navigasi. Yang salah bukan aplikasinya, melainkan
+pemeriksanya — dan pesan galatnya menunjuk ke tempat yang salah.
+
+Sekarang galat "dokumen belum siap" ditahan lalu dicoba lagi. Yang ditahan
+hanya itu: salah tulis predikat (misalnya memanggil fungsi yang tidak ada)
+tetap dilempar keluar seketika, supaya tidak berubah menjadi penantian
+15 detik yang berakhir dengan pesan "tidak muncul".
+
 **Jangan menyalin helper CDP ke berkas baru.** Dua kesalahan berulang lahir
 justru di bagian yang dulu disalin ke delapan berkas: regex `/15\\.000/` yang
 berarti "backslash literal" (T5, T6, T9), dan nama pemilik dari seeder yang

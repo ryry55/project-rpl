@@ -8,8 +8,8 @@
  *
  *   L0  erd/00-L0-konseptual.svg          entitas + relasi, tanpa atribut
  *   L1  erd/01-L1-logikal.svg             + atribut kunci
- *   L2  erd/02-L2-fisikal-{a,b,c,d}.svg   + seluruh kolom dan tipe
- *   L3  erd/03-L3-lrs-{a,b,c,d}.svg       notasi relasional (LRS)
+ *   L2  erd/02-L2-fisikal-{a,b,c}.svg     + seluruh kolom dan tipe
+ *   L3  erd/03-L3-lrs-{a,b,c}.svg         notasi relasional (LRS)
  *
  * Build GAGAL bila:
  *   - ada kunci asing yang tidak digambar dan tidak tercatat beserta alasannya;
