@@ -1,0 +1,147 @@
+# Audit: dokumen vs fitur
+
+> Untuk apa: sebelum sidang, dosen membaca **dokumen**. Kalau dokumen menyangkal
+> fitur yang ada, atau menjanjikan yang tidak ada, pertanyaannya tidak bisa
+> dijawab dengan "sudah dikerjakan" — karena tertulis sebaliknya.
+>
+> Cara menyusun: setiap baris dibuktikan dari **kode dan runtime**, bukan dari
+> dokumen lain. Perintah pemeriksanya ada di §9.
+
+Tanggal: 28 Oktober 2026. Keadaan: commit `dbe32e0`, gate terakhir **SEMUA LULUS**
+(419 s), CI `40583473207` hijau.
+
+## 1. Ringkasan
+
+| Jenis | Jumlah | Boleh dikerjakan sendiri? |
+|---|---|---|
+| Dokumen menyangkal fitur yang sudah ada (A) | 4 | Ya — hanya kalimat yang diperbaiki |
+| Dokumen menjanjikan yang belum dikirim (B) | 1 | Tidak — mengubah kode dan tampilan penghuni |
+| Endpoint tidak tercatat / tercatat salah (C) | 5 | Sebagian — lihat K-02, K-03 |
+| Angka basi atau bertentangan (D, E) | 13 | Ya |
+| Pemeriksa yang tidak benar-benar memeriksa (F) | 4 | Tidak — lihat K-04 |
+| Sudah diperiksa dan **cocok** (§8) | 8 | — |
+
+Empat pertanyaan untuk pemilik ada di `docs/keputusan-terbuka.md` (K-01..K-04).
+
+## 2. A — Fitur sudah ada, dokumen bilang belum ada
+
+Ini yang paling merugikan: dosen bisa menyimpulkan pekerjaan tidak dilakukan
+padahal ada kode, tes, dan layarnya.
+
+| # | Dokumen bilang | Kenyataan | Bukti |
+|---|---|---|---|
+| A-01 | `9_DEPLOY.md:179` — "Midtrans — **Tidak ada kodenya.**" | Kode lengkap, 16 tes, dua endpoint, tombol **Bayar daring** di portal penghuni. `utang-teknis.md:217` menulis "selesai, kecuali verifikasi sandbox" — dua dokumen ini bertentangan | `api/app/Domain/Pembayaran/MidtransGateway.php`, `PembayaranGateway.php`, tabel `transaksi_gateway`, `POST /api/tagihan/{tagihan}/bayar-daring`, `POST /api/webhook/midtrans` |
+| A-02 | `8_OPERATIONS_SOP.md:143` — "Backup tidak terjadwal. Tidak ada cron yang memanggilnya." | Backup berjalan tiap hari 02:00 lewat penjadwal di image produksi | `api/routes/console.php:64`, `docker/prod/supervisord.conf` (`[program:penjadwal]`) |
+| A-03 | `8_OPERATIONS_SOP.md:485`, `1_PRD.md:145`, `3_ARCHITECTURE.md:393`, `KONTEKS_PROYEK.md:166,168` — penerbitan tagihan bulanan tidak terjadwal | Terjadwal tanggal 1 pukul 00:10 WIB; `kontrak:mulai` 00:05 lebih dulu. Batas yang benar: penjadwal **ada**, tetapi di Render gratis container tidur sehingga bisa tidak berbunyi — sudah dicatat di `11_AUDIT-PRODUKSI-2.md` A3 | `api/routes/console.php:42,79` |
+| A-04 | `8_OPERATIONS_SOP.md:235` — "**`Dockerfile.prod` belum dibuat.**" | Ada di akar repo, dipakai `9_DEPLOY.md` §3, menyalin supervisord dan entrypoint | `Dockerfile.prod:139-143` |
+
+Perbaikan A-02/A-03 bukan sekadar "ada": tulis "ada, dengan batas paket gratis" —
+menghapus kalimatnya saja akan membuat dokumen menjanjikan yang tidak dijamin.
+
+## 3. B — Dijanjikan dokumen, belum dikirim
+
+| # | Janji | Kenyataan | Akibat |
+|---|---|---|---|
+| B-01 | `docs/dfd/README.md:96,209` dan `docs/akademik/dfd-konteks.md:54`: aliran O-8 membawa `order_id, gross_amount, nama_penghuni, **deskripsi_tagihan**` | `MidtransGateway` hanya mengirim `transaction_details` + `customer_details`; tidak ada `item_details` maupun keterangan tagihan | Penghuni mendarat di halaman Midtrans tanpa keterangan "sewa kamar A1 — November 2026". Dosen yang membuka O-8 lalu memeriksa payload akan menemukan satu field yang tidak pernah dikirim |
+
+Pilihannya di **K-01**: kirim `item_details`, atau hapus `deskripsi_tagihan` dari DFD.
+Salah satu harus dilakukan — membiarkan keduanya berarti dokumen berdiri sendiri.
+
+## 4. C — Endpoint
+
+| # | Temuan | Bukti |
+|---|---|---|
+| C-01 | Rute hidup **86**, potret `docs/akademik/rute-api.json` **85**. Selisihnya satu: `GET api/penghuni/kontrak` | `php artisan route:list --json` dibandingkan dengan potret; tidak ada selisih lain di kedua arah |
+| C-02 | `SPEC.md:536` menulis "Daftar lengkap **85 endpoint**", dan tabel §7 hanya memuat 79 dari 86. Tujuh yang tidak ada: `GET /ekspor/{pembayaran,rekap,tunggakan}`, `GET /penyiapan`, `GET /rekening/{rekening}/gambar`, `POST /tagihan/{tagihan}/bayar-daring`, `POST /webhook/midtrans` | pencocokan otomatis tabel §7 terhadap `route:list` |
+| C-03 | `6_TOOLS_CONTRACTS.md:1027` — total **80**, padahal jumlah barisnya per bagian 12+34+20+3+6+10 = **85**. Total 80 melewatkan ekspor (3), penyiapan (1), gambar rekening (1). `GET /api/penghuni/kontrak` tidak ada di §4.6, §8, maupun §9 | `node docs/uji/cek-cakupan-kontrak.js` hanya memeriksa §3-§8, jadi baris total tidak pernah diperiksa |
+| C-04 | `SPEC.md:597` menulis `/audit-log` bergerbang `peran:pemilik`; middleware hidup `wewenang:baca_audit`. `6_TOOLS_CONTRACTS.md:627` sudah benar | `route:list` menunjukkan `PastikanWewenang:baca_audit` |
+| C-05 | Pemetaan use case tidak mengenal `penghuni.kontrak`. `docs/akademik/use-case-diagram.md:33` menjanjikan "85 endpoint … terpakai habis" — janji itu hanya benar terhadap potret yang basi | `node docs/akademik/build.js` mencetak `periksa: OK`; bila potret disegarkan, build gagal karena ada endpoint tanpa use case |
+
+C-04 penting bukan karena salah ketik: ia menyatakan akses lebih sempit daripada
+kenyataan. Pengelola yang diberi wewenang `baca_audit` **bisa** membaca jejak
+audit, dan dokumen akademik mengatakan tidak bisa.
+
+## 5. D — Angka basi
+
+| # | Tertulis | Nyata | Di mana |
+|---|---|---|---|
+| D-01 | 792 tes PHP | **799** (3674 asersi) | `AGENTS.md:94`, `PRODUCT.md:83`, `docs/ci-cd.md:39`, `.github/workflows/uji.yml:11` |
+| D-02 | 715 tes | 799 | `.github/workflows/rilis.yml:47` |
+| D-03 | "Dua puluh lima berkas … dua puluh dua lewat browser" | 29 berkas `.mjs`, 28 skrip uji: 25 browser, 2 balapan, 1 proxy | `docs/uji/README.md:3-7` |
+| D-04 | Katalog §4.2 berisi 26 baris; dua skrip yang benar-benar berjalan tidak ada di sana — `e2e-fase35.mjs` dan `uji-proxy.mjs` | 28 skrip di gate | `docs/produk/7_TESTING_EVALS.md` §4.2 |
+| D-05 | "52 kelas, **11 folder**" | **13** folder (`Laporan/`, `Penyiapan/`, `Rekening/` tidak tertulis) | `docs/produk/3_ARCHITECTURE.md:409`; tabel `:76-89` hanya 10 baris |
+| D-06 | "85 endpoint" | 86 | `docs/akademik/README.md:109` |
+| D-07 | `26 skrip`, `24 skrip`, `375 detik` sebagai keadaan sekarang | 28 skrip, 419 s; kalimat itu riwayat | `docs/utang-teknis.md:26,43` |
+| D-08 | Jumlah langkah per skrip: `uji-balapan-t4` 9, `uji-balapan-t5` 11, `e2e-t9` 23, `e2e-fase35` 18, `uji-proxy` 5 | 11, 13, 26, 19, 6 pemanggilan laporan di skripnya | `audit-ketertelusuran.md`, `SPEC.md` §10, `tiket.md` |
+| D-09 | "792 langkah" | tidak ada yang memverifikasi angka ini. Hitungan statis pemanggilan laporan = 610; angka 792 hanya bisa datang dari satu putaran tertentu | `docs/produk/7_TESTING_EVALS.md:7` |
+
+D-09 adalah angka yang paling rapuh: ia tidak bisa dibuktikan dari berkas, dan
+tidak ada pemeriksa yang menjaganya. Aman: ganti dengan "ratusan langkah, total
+dilaporkan gate tiap putaran" atau hapus angkanya.
+
+## 6. E — Dokumen bertentangan dengan dokumen lain
+
+| # | Pertentangan |
+|---|---|
+| E-01 | `1_PRD.md:62` — "**Dua peran.** Bukan tiga, bukan empat" … sementara §2.3 dokumen yang sama, `use-case-diagram.md` §2, dan middleware hidup menyebut **tiga** aktor (`pemilik`, `pengelola`, `penghuni`) |
+| E-02 | `8_OPERATIONS_SOP.md:235` ("Dockerfile.prod belum dibuat") vs `9_DEPLOY.md` §3 (memakai berkas itu) |
+| E-03 | `7_TESTING_EVALS.md:7` ("26 browser + 2 balapan") vs `:74` ("22 browser + 2 balapan") vs §3.3 ("Dua puluh lima tes Feature" — nyatanya 39 berkas Feature, 699 tes; Unit 100) vs §6 U-5 (`uji-pwa` "23/23" — katalognya 22) |
+| E-04 | `3_ARCHITECTURE.md:76-89` (10 baris tabel) vs `:409` ("11 folder") vs nyata 13 |
+
+## 7. F — Pemeriksa yang tidak benar-benar memeriksa
+
+Ini bukan salah angka, melainkan **salah jaminan**: gerbang mencetak "COCOK"
+untuk hal yang tidak dibandingkannya.
+
+| # | Pemeriksa | Cacat |
+|---|---|---|
+| F-01 | `cek-angka-dokumen.js`, `cek-cakupan-kontrak.js`, `build.js` | Ketiganya membaca potret `rute-api.json`, dan **tidak ada satu pun langkah di `periksa.ps1`, `periksa.sh`, atau workflow** yang membuat ulang potret itu (`route:list` tidak dipanggil di mana pun). Endpoint baru otomatis lolos: yang diperiksa dokumen terhadap dirinya sendiri |
+| F-02 | `cek-cakupan-kontrak.js` | Hanya memeriksa bagian §3-§8. Baris total §9 tidak diperiksa — karena itu "80" lolos meski bagian-bagiannya berjumlah 85 |
+| F-03 | `cek-angka-dokumen.js` | Angka yang ditulis sebagai kata ("dua puluh dua") tidak terlihat polanya; jumlah tes dilaporkan `?` karena hanya phpunit yang tahu |
+| F-04 | `build.js` | Mencetak `periksa: OK` pada potret basi. "Terpakai habis" hanya diuji terhadap potret, bukan terhadap rute yang hidup |
+
+Akibat praktis: `dbe32e0` menambah satu endpoint dan menutup enam temuan, gate
+tetap hijau, dan angka 85 bertahan di sepuluh dokumen.
+
+## 8. G — Sudah diperiksa dan cocok (jangan diutak-atik)
+
+| Yang diklaim | Hasil |
+|---|---|
+| 23 tabel domain / 201 kolom / 26 kunci asing / 8 trigger / 32 tabel `public` | `psql` menghitung angka yang sama |
+| 799 tes, 3674 asersi, 45 berkas | keluaran phpunit |
+| Unit 100 tes / 1056 asersi; `KalkulatorTest` 22 tes / 160 asersi | keluaran phpunit |
+| Token warna `achromatic-ledger` (`#f8f8f8`, `#ffffff`, `#0a0a0a`, `#6b6b6b`, `#e6e6e6`, `#f0f0f0`, `#141414`) | `web/src/style.css:32-40` = `2_DESIGN_SYSTEM.md:91-101` |
+| 12+34+20+3+6+10 = 85 di §3-§8 kontrak | `cek-cakupan-kontrak.js` |
+| `smoke-produksi.sh` 9 pemeriksaan dalam 4 kelompok | skripnya (tabel dokumen meringkas 9 menjadi 7 baris — bukan salah angka, hanya lebih kasar) |
+| Bukti O-1, O-5, O-6 (kontrak di portal, kuitansi, panel hunian) | `GET /penghuni/kontrak`, `web/src/kuitansi.js`, `RekapPendapatan::hunian()` |
+| 28 skrip terdaftar di gate, 25 browser + 2 balapan + 1 proxy | `periksa.ps1:335-355` dan `periksa.sh` |
+
+## 9. H — Cara mengulang pemeriksaan ini
+
+```powershell
+# 1. rute hidup vs potret (86 vs 85)
+cmd /c "docker compose exec -T api php artisan route:list --json > $env:TEMP\rute.json 2>nul"
+
+# 2. cakupan kontrak (memperlihatkan 85/84 dan baris total yang tidak diperiksa)
+node docs/uji/cek-cakupan-kontrak.js
+
+# 3. angka dokumen (memperlihatkan 85 untuk endpoint)
+node docs/uji/cek-angka-dokumen.js
+
+# 4. jumlah folder domain (13)
+(Get-ChildItem api\app\Domain -Directory).Count
+```
+
+Bandingkan isi `$env:TEMP\rute.json` dengan `docs/akademik/rute-api.json` memakai
+`name` rute, bukan urutan baris.
+
+## 10. I — Urutan perbaikan yang disarankan
+
+1. **Dokumen-saja** (A, D, E): kalimat dan angka. Tidak mengubah perilaku, tidak
+   perlu keputusan. Kerjakan lebih dulu supaya dokumen berhenti berbohong.
+2. **Keputusan pemilik** (K-01..K-04): B-01 (payload Midtrans), C-02/C-04
+   (menyunting `SPEC.md`), C-05 (peta use case), F (gerbang rute hidup).
+3. **Kode lebih dulu, angka terakhir**: setelah kode berubah, jalankan gate,
+   hitung ulang seluruh angka, baru perbarui dokumen — supaya angka tidak basi
+   dua kali dalam satu putaran.
+4. `docs/serah-terima.md` ditimpa di akhir, menyebut keputusan yang masih menunggu.
