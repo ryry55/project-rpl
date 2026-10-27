@@ -36,27 +36,28 @@ perkakasnya sendiri tidak membusuk:
 
 1. Bangun image dengan cache layer.
 2. `docker compose up -d`, lalu tunggu `/api/health` menjawab **200**.
-3. `php artisan test` di dalam container - 748 tes.
+3. `php artisan test` di dalam container - 792 tes.
 4. Jalankan Chrome headless dengan `--remote-debugging-port=9222`, lalu tunggu
    port debug itu terbuka - sampai **120 detik**, dan berhenti lebih awal bila
    prosesnya sudah mati. Chrome di runner dingin butuh puluhan detik; percobaan
    pertama langkah ini menyerah pada detik ke-30 padahal log Chrome menunjukkan
    `DevTools listening` tiga detik kemudian. Menunggu 30 detik bukan pagar, ia
    hanya durasi yang kebetulan cukup di laptop.
-5. `./periksa.sh --hanya-e2e` - 24 skrip browser dan 2 uji balapan (26 skrip).
+5. `./periksa.sh --hanya-e2e` - 25 skrip browser, 2 uji balapan, dan 1 uji jalur
+   proxy (28 skrip).
 
 ### Kenapa uji browser tidak ditulis ulang dengan Playwright
 
 Rencana awal menyebut Playwright sebagai pengganti CDP. Yang dipilih adalah
 kebalikannya, dan alasannya bukan kemalasan:
 
-Kedua puluh dua skrip browser di `docs/uji/` berbicara CDP mentah lewat WebSocket, dan
+Kedua puluh delapan skrip browser di `docs/uji/` berbicara CDP mentah lewat WebSocket, dan
 endpoint CDP-nya **dapat diatur lewat variabel lingkungan**
 (`CDP_BASE`/`APP_URL`/`API_URL`/`MAILPIT_URL`). Artinya skrip yang sama berjalan
 di Chrome berjendela di laptop dan di Chrome headless di runner tanpa satu baris
 pun diubah.
 
-Menulis ulang kedua puluh dua skrip browser berarti membuang bukti yang sudah ada dan
+Menulis ulang kedua puluh delapan skrip browser berarti membuang bukti yang sudah ada dan
 membuat **dua** rangkaian uji yang akan berbeda pendapat. Yang di CI selalu
 kalah dalam perbedaan itu, karena tidak ada yang membacanya.
 

@@ -8,15 +8,15 @@
 #           kesalahan format dan variabel mati dijawab dalam hitungan detik,
 #           bukan setelah sepuluh menit membangun image.
 #
-#   uji   - membangun image, menjalankan 748 tes PHP di dalam container, lalu
+#   uji   - membangun image, menjalankan 792 tes PHP di dalam container, lalu
 #           seluruh skrip uji browser terhadap Chrome headless.
 #
 # Kenapa uji browser TIDAK ditulis ulang memakai Playwright, padahal rencana
-# awal menyebutkannya sebagai pilihan: kedua puluh dua skrip browser di docs/uji/
+# awal menyebutkannya sebagai pilihan: kedua puluh delapan skrip browser di docs/uji/
 # berbicara CDP mentah lewat WebSocket, dan endpoint CDP-nya dapat diatur lewat
 # variabel lingkungan (CDP_BASE/APP_URL/API_URL/MAILPIT_URL). Artinya skrip yang
 # SAMA berjalan di Chrome berjendela di laptop dan di Chrome headless di runner
-# tanpa satu baris pun diubah. Menulis ulang kedua puluh dua skrip berarti
+# tanpa satu baris pun diubah. Menulis ulang kedua puluh delapan skrip berarti
 # membuang bukti yang sudah ada dan membuat dua rangkaian uji yang akan berbeda
 # pendapat - dan yang di CI selalu kalah, karena tidak ada yang membacanya.
 #
