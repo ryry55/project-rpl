@@ -561,7 +561,11 @@ dari database demo supaya data sidang tidak pernah terhapus oleh tes.
 │   ├── src/format.js         Rupiah, tanggal, dan ringkasan galat validasi
 │   └── docker/nginx/     Konfigurasi nginx untuk SPA
 ├── docker/postgres/      Init database pengujian
-├── docs/uji/             Skrip E2E browser + screenshot bukti
+├── docs/                 Lihat docs/README.md untuk peta berkasnya
+│   ├── akademik/         Laporan akademik (hasil bangkitan)
+│   ├── erd/              ERD berjenjang L0-L3 dan LRS A3
+│   ├── dfd/              DFD Gane-Sarson + Yourdon/DeMarco
+│   └── uji/              Skrip E2E browser + screenshot bukti
 ├── docker-compose.yml
 └── SPEC.md
 ```

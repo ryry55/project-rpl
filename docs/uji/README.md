@@ -298,8 +298,14 @@ bila gerbangnya tidak muncul, jadi aman dipanggil pada akun yang sudah menyetuju
 ## Berkas lain di folder ini
 
 - `audit-ketertelusuran.md` — peta aturan R-01..R-07 → implementasi → tes → status.
-- `T*-*.png` — tangkapan layar bukti, dipakai di laporan dan di komentar issue.
-- `screenshot-t1.cjs` — skrip lama berbasis Playwright dari T1; tidak dipakai lagi.
+- `T*-*.png`, `QR-*.png`, `r3-*.png`, `PB-*.png` — tangkapan layar bukti yang
+  dihasilkan skrip uji, dipakai di laporan dan di komentar issue. Setiap `.png`
+  di sini punya skrip yang membuatnya; kalau tidak, berkas itu dihapus.
+
+Tangkapan layar lama yang skrip pembuatnya sudah tidak ada (**T1-\*.png**,
+**T16-\*.png**, **kartu-\*-360.png**) sudah dibuang supaya tidak ada dua versi
+kebenaran. Tes T1 tetap berjalan lewat `e2e-t1.mjs`, hanya gambarnya tidak lagi
+disimpan.
 
 Skrip yang diawali `_` adalah perkakas sementara (migrasi, diagnosa) dan tidak
 dijalankan sebagai bagian dari pemeriksaan rutin.
