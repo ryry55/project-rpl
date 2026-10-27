@@ -200,6 +200,14 @@ melaporkan kolom-kolom `rekening.*` yang hilang dan keluar dengan kode 1.
 Ketiganya mencari akar repo dari lokasi berkasnya sendiri, bukan dari direktori
 kerja, sehingga bisa dijalankan dari mana saja.
 
+**Ketiganya sempat tidak pernah berjalan di CI.** Ditemukan 27 Oktober 2026:
+`periksa.sh --hanya-e2e` — satu-satunya cara CI memanggil gerbang — melewati
+bagian "Kesesuaian dokumen", dan job `lint` tidak memanggil pemeriksa itu sama
+sekali. Selama berbulan-bulan ketiga pagar ini hanya hidup di laptop; ia tampak
+terpasang karena tercantum di `periksa.ps1`. Sekarang `cek-angka-dokumen.js` dan
+`cek-cakupan-kontrak.js` berjalan di job `lint`, dan `cek-erd-lrs.js` di job
+`uji` sesudah container `db` hidup.
+
 ### Bukti pagar Fase 0.5
 
 Empat berkas yang **menyuntikkan cacatnya kembali** ke dalam container, menjalankan

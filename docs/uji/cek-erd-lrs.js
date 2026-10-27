@@ -52,10 +52,17 @@ const KECUALI = [
 ];
 const daftarKecuali = KECUALI.map((t) => `'${t}'`).join(', ');
 
+// Kredensial dibaca dari environment dengan nilai cadangan yang sama dengan
+// `.env.example`. Kalau dipatok `kos`, siapa pun yang memakai nama pengguna
+// lain akan mendapat galat "tidak bisa membaca basis data" — pesan yang
+// menyalahkan container, padahal container-nya sehat.
+const DB_USER = process.env.DB_USERNAME || 'kos';
+const DB_NAME = process.env.DB_DATABASE || 'kos';
+
 function tanya(sql) {
   const keluaran = execFileSync(
     'docker',
-    ['compose', 'exec', '-T', 'db', 'psql', '-U', 'kos', '-d', 'kos', '-t', '-A', '-f', '-'],
+    ['compose', 'exec', '-T', 'db', 'psql', '-U', DB_USER, '-d', DB_NAME, '-t', '-A', '-f', '-'],
     { input: sql, cwd: AKAR, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }
   );
   return JSON.parse(keluaran.trim());

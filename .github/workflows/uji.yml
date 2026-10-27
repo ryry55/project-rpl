@@ -138,6 +138,17 @@ jobs:
       - name: Profil produksi menutup bahayanya
         run: bash docs/uji/periksa-profil-produksi.sh
 
+      # Pemeriksa dokumen yang TIDAK butuh basis data. Sebelum ini ketiganya
+      # hanya hidup di laptop: `periksa.sh --hanya-e2e` melewati bagian
+      # "Kesesuaian dokumen", dan `periksa.ps1` tidak pernah jalan di CI sama
+      # sekali. Akibatnya pagar yang menjaga angka dokumen dan cakupan kontrak
+      # tidak pernah menahan apa pun selama berbulan-bulan - ia terlihat seperti
+      # pagar, padahal tidak terpasang.
+      - name: Dokumen cocok dengan kode
+        run: |
+          node docs/uji/cek-angka-dokumen.js
+          node docs/uji/cek-cakupan-kontrak.js
+
   # -------------------------------------------------------------------------
   # Uji sebenarnya: tes PHP di dalam container, lalu seluruh skrip browser.
   # -------------------------------------------------------------------------
@@ -267,6 +278,15 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
+
+      # ERD dan LRS diperiksa di sini, bukan di job `lint`, karena
+      # `cek-erd-lrs.js` membandingkan `skema.json` dengan basis data yang
+      # SEDANG BERJALAN — bukan dengan salinan skema. Di job `lint` container
+      # `db` belum ada. Pemeriksa ini sengaja TIDAK dibuat "lulus bila basis
+      # data tidak ada": pagar yang diam-diam tidak berjalan lebih buruk
+      # daripada tidak ada pagar, karena ia terlihat berjalan.
+      - name: ERD dan LRS cocok dengan basis data
+        run: node docs/uji/cek-erd-lrs.js
 
       # Skrip uji berjalan di HOST (bukan di container): ia bicara ke CDP dan
       # ke API lewat localhost, keduanya sudah dipetakan compose.
