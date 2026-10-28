@@ -4,7 +4,8 @@
 > bagaimana menambah tes yang benar-benar menahan.**
 >
 > Angka diambil dari aplikasi yang berjalan: **799 tes PHP (3674 asersi)** dalam
-> 45 berkas, dan **28 skrip uji** (26 browser + 2 balapan HTTP) dengan **792 langkah**.
+> 45 berkas, dan **28 skrip uji** (25 browser + 2 balapan HTTP + 1 jalur proxy)
+> dengan **792 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -70,11 +71,11 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
 
 ```
         ┌──────────────────────────────────────┐
-        │  28 skrip uji                        │  lambat (~300 dtk), tetapi
-        │  (22 browser + 2 balapan)            │  satu-satunya yang melihat
+        │  28 skrip uji                        │  paling lambat, tetapi
+        │  (25 browser + 2 balapan + 1 proxy)  │  satu-satunya yang melihat
         └──────────────────────────────────────┘
       ┌──────────────────────────────────────┐
-      │  613 tes Feature                     │  ~25 dtk, jalur penuh
+      │  699 tes Feature                     │  ~42 dtk, jalur penuh
       │  (validasi, izin, isolasi, balapan)  │  lewat middleware nyata
       └──────────────────────────────────────┘
     ┌──────────────────────────────────────┐
@@ -110,9 +111,10 @@ Rata-rata 23 detik untuk seluruhnya.
 | `DendaBentukTest` | Empat bentuk denda: `persen_harian`, `persen_bulanan`, `nominal_tetap`, `tanpa_denda` | Setiap bentuk punya aturan sendiri; `tanpa_denda` **bukan** galat |
 | `UmurTunggakanTest` | R-04 empat keranjang umur | Batas 30/31 dan 60/61 adalah off-by-one yang mudah salah |
 
-### 3.3 Dua puluh lima tes Feature
+### 3.3 Tes Feature
 
-Dikelompokkan menurut apa yang dijaga:
+699 tes Feature, dikelompokkan menurut apa yang dijaga. Tabel di bawah menyoroti
+berkas yang menjaga aturan, bukan seluruhnya:
 
 **Uang dan tagihan**
 
@@ -176,7 +178,7 @@ Dikelompokkan menurut apa yang dijaga:
 
 ---
 
-## 4. Skrip uji browser dan balapan - 28 skrip, 792 langkah
+## 4. Skrip uji browser, balapan, dan jalur proxy - 28 skrip, 792 langkah
 
 ### 4.1 Menjalankan
 
@@ -184,7 +186,7 @@ Dikelompokkan menurut apa yang dijaga:
 # Seluruh guardrail (direkomendasikan)
 bash periksa.sh
 
-# Hanya uji browser (~299 detik)
+# Hanya uji browser (paling lama dari seluruh gate)
 bash periksa.sh --hanya-e2e
 
 # Satu skrip
@@ -199,7 +201,7 @@ Prasyarat: `docker compose up`, Chrome dengan `--remote-debugging-port=9222`,
 | Skrip | Langkah | Yang dibuktikan |
 |---|---|---|
 | `e2e-t1.mjs` | 9 | Walking skeleton: login dua peran, dashboard, keluar |
-| `e2e-t2.mjs` | 14 | Kamar, penghuni, kontrak |
+| `e2e-t2.mjs` | 18 | Kamar, penghuni, kontrak |
 | `e2e-t3.mjs` | 19 | Terbit tagihan, rincian, snapshot |
 | `e2e-t4.mjs` | 16 | Terbit massal: yang sudah ada dilewati |
 | `e2e-t5.mjs` | 22 | Catat pembayaran, status berubah |
@@ -208,22 +210,24 @@ Prasyarat: `docker compose up`, Chrome dengan `--remote-debugging-port=9222`,
 | `e2e-t9.mjs` | 26 | Isolasi penghuni, log audit |
 | `e2e-t18.mjs` | 26 | Fasilitas vs komponen biaya |
 | `e2e-t19.mjs` | 23 | Aturan kos, portal penghuni |
-| `e2e-t20.mjs` | 35 | Metode pembayaran, verifikasi, pembalik, rekap |
+| `e2e-t20.mjs` | 36 | Metode pembayaran, verifikasi, pembalik, rekap |
 | `e2e-t24.mjs` | 43 | Pengelola, wewenang, menu tersembunyi, rekap vs tunai-saya |
 | `e2e-t25.mjs` | 30 | Notifikasi in-app + email |
-| `e2e-t26.mjs` | 38 | Usulan, persetujuan, kedaluwarsa |
+| `e2e-t26.mjs` | 39 | Usulan, persetujuan, kedaluwarsa |
 | `e2e-t27.mjs` | 28 | Aktivasi, lupa sandi, wajib ganti sandi |
-| `e2e-t28.mjs` | 39 | PDP: persetujuan, akses, anonimisasi |
+| `e2e-t28.mjs` | 42 | PDP: persetujuan, akses, anonimisasi |
 | `e2e-r3.mjs` | 50 | Pembatalan tagihan, pemaafan denda, bagikan WhatsApp, rekening |
 | `uji-pembalik.mjs` | 13 | Tombol **Tarik kembali**: alasan wajib, baris negatif di riwayat, tombol hilang sesudah ditarik, pembatalan jadi mungkin |
 | `uji-qris.mjs` | 16 | Unggah gambar QRIS, pratinjau, gambar termuat sebagai blob di portal penghuni, penolakan pada rekening transfer, rekening nonaktif 404 |
-| `asap-semua-halaman.mjs` | 23 | Semua halaman terbuka tanpa galat konsol/5xx |
+| `asap-semua-halaman.mjs` | 24 | Semua halaman terbuka tanpa galat konsol/5xx |
 | `uji-tata-letak.mjs` | 94 | Tidak meluber di 360/390/768px |
 | `uji-kartu-tabel.mjs` | 65 | Tabel 4+ kolom jadi kartu; label sesuai `<th>`; desktop kembali normal |
 | `uji-pwa.mjs` | 22 | Manifest, service worker, **pagar R-07** |
 | `uji-galat-muat.mjs` | 30 | Pemuatan gagal tidak menyamar sebagai "Belum ada" (REV-UI-04) |
 | `uji-balapan-t4.mjs` | 10 | 10 permintaan terbit paralel → satu 201, sisanya 409 |
 | `uji-balapan-t5.mjs` | 12 | Pembayaran paralel tidak melebihi sisa |
+| `e2e-fase35.mjs` | 18 | Penanda penyiapan dirender; ekspor benar-benar terunduh (peristiwa unduhan CDP, bukan kode status); pengelola tidak melihat tombol ekspor rekap; halaman bantuan terbuka untuk kedua peran |
+| `uji-proxy.mjs` | 5 | Lewat port proxy (`:3000`), IP klien yang tercatat adalah IP pemanggil, bukan IP proxy — dibuktikan dari pembatas laju dan `log_audit` |
 
 ### 4.3 Dua uji tata letak, dua cacat berbeda
 
@@ -296,7 +300,7 @@ Dari `1_PRD.md` §6, dan bagaimana masing-masing dibuktikan.
 | U-2 | Kesalahan hitung prorata | 0 | `KalkulatorTest` | Lulus |
 | U-3 | Tagihan ganda per periode | 0 | `uji-balapan-t4.mjs` | Lulus 10/10 |
 | U-4 | Kebocoran data antar-penghuni | 0 | `IsolasiDanAuditTest`, `e2e-t9.mjs` | Lulus |
-| U-5 | Respons `/api` di cache PWA | 0 | `uji-pwa.mjs` — **dibuktikan bisa gagal** | Lulus 23/23 |
+| U-5 | Respons `/api` di cache PWA | 0 | `uji-pwa.mjs` — **dibuktikan bisa gagal** | Lulus 22/22 |
 | U-6 | Halaman meluber di 360px | 0 | `uji-tata-letak.mjs` | Lulus 94/94 |
 | U-7 | Tabel tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` | Lulus 65/65 |
 | U-8 | Kepala pemilik sebelum konten | < 220px | Terukur | 203px |

@@ -97,5 +97,5 @@
 <text x="390" y="1164" text-anchor="start" dominant-baseline="central" font-size="11.5" font-weight="500" fill="#475569">use case</text>
 <rect x="500" y="1151" width="26" height="26" fill="#fbfcfe" stroke="#94a3b8" stroke-width="1.4"/>
 <text x="534" y="1164" text-anchor="start" dominant-baseline="central" font-size="11.5" font-weight="500" fill="#475569">batas sistem</text>
-<text x="60" y="1190" text-anchor="start" dominant-baseline="central" font-size="11.5" font-weight="400" fill="#475569">3 aktor  ·  14 use case  ·  85 endpoint nyata  ·  setiap use case menunjuk minimal satu rute pada api/routes/api.php</text>
+<text x="60" y="1190" text-anchor="start" dominant-baseline="central" font-size="11.5" font-weight="400" fill="#475569">3 aktor  ·  14 use case  ·  86 endpoint nyata  ·  setiap use case menunjuk minimal satu rute pada api/routes/api.php</text>
 </svg>

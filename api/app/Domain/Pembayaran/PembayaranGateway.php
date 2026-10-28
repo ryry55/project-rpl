@@ -121,6 +121,15 @@ class PembayaranGateway
             namaPenyewa: $penghuni?->nama ?? 'Penghuni',
             emailPenyewa: $penghuni?->email,
             kedaluwarsaMenit: (int) config('services.midtrans.kedaluwarsa_menit', 60),
+            // O-8: penghuni harus melihat apa yang ia bayar, bukan halaman
+            // gateway tanpa keterangan. `locale('id')` eksplisit karena
+            // `APP_LOCALE` berbeda antara laptop (`id`) dan bawaan Laravel
+            // (`en`) - tanpa itu nama bulan berubah mengikuti lingkungan.
+            keterangan: sprintf(
+                'Sewa kamar %s - %s',
+                $tagihan->kontrak?->kamar?->nomor ?? 'kos',
+                $tagihan->periode->locale('id')->translatedFormat('F Y'),
+            ),
         );
 
         $transaksi->update([

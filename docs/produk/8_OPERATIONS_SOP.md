@@ -140,9 +140,13 @@ setiap perubahan skema, dan minimal sebulan sekali.
 
 ### 3.3 Yang **belum** dilakukan
 
-**Backup tidak terjadwal.** Tidak ada cron yang memanggilnya. Di Render gratis
-tidak ada proses latar yang persisten. Ini dicatat sebagai utang teknis, dan
-sampai ditutup, backup adalah tindakan manual yang harus diingat orang.
+**Backup berjalan terjadwal, tetapi tidak bisa diandalkan.** `api/routes/console.php`
+menjadwalkan `kos:backup` setiap 02:00 WIB, dan `docker/prod/supervisord.conf`
+menjalankan `php artisan schedule:work` sebagai program `penjadwal`. Dua batas
+yang tetap ada: (1) disk container Render gratis **tidak persisten**, jadi berkas
+backup hilang saat redeploy, dan (2) container tidur setelah 15 menit tanpa lalu
+lintas, sehingga jadwal 02:00 bisa terlewat tanpa galat. Karena itu backup manual
+di §3.1 tetap wajib, dan pemulihan (§4) harus pernah dicoba.
 
 ---
 
@@ -232,9 +236,11 @@ Neon sedang tidur.
 
 ### 5.4 Yang **belum** ada
 
-**`Dockerfile.prod` belum dibuat.** Layanan Render tunggal yang menyajikan SPA
-dari `public/` Laravel adalah rencana LANGKAH 11 (T32b). Sampai itu ada,
-`deploy.yml` tetap dalam mode peringatan.
+**Belum ada lingkungan yang benar-benar dipasang.** `Dockerfile.prod` sudah ada
+(tiga tahap: SPA, dependensi PHP, lalu `php:8.3-fpm-alpine` + nginx + supervisord),
+dan `deploy.yml` sudah memanggilnya untuk staging lalu produksi. Yang belum:
+akun Render/Neon, `APP_URL`, `RENDER_DEPLOY_HOOK`, dan environment GitHub
+`staging`/`production` — semuanya langkah manual di `9_DEPLOY.md`.
 
 ---
 
@@ -478,11 +484,10 @@ akan tahu ada yang menunggu.
 
 | Belum ada | Risiko yang diterima |
 |---|---|
-| Backup terjadwal | Backup hanya terjadi kalau ada yang mengingat |
-| Backup di luar layanan | Disk Render tidak persisten; backup hilang saat redeploy |
-| `Dockerfile.prod` | Deploy belum bisa dijalankan sungguhan |
+| Backup di luar layanan | Disk Render tidak persisten; backup hilang saat redeploy. Jadwalnya ada (02:00 WIB), tetapi bisa terlewat saat container tidur |
+| Lingkungan produksi terpasang | `Dockerfile.prod` dan `deploy.yml` ada, tetapi belum pernah dijalankan ke Render/Neon sungguhan |
 | Antrean email | Penerbitan massal 30 penghuni = 30 pengiriman berurutan |
-| Penerbitan tagihan terjadwal | Pemilik harus menekan tombol setiap bulan |
+| Pemicu eksternal penjadwal | Penjadwal hidup di container; container yang tidur tidak berbunyi (tagihan & backup) |
 | Pemantauan uptime | Layanan tidur tanpa ada yang tahu |
 | Rotasi log | `CatatPermintaanGagal` menulis satu baris JSON per respons ≥400 |
 

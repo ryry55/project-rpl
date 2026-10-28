@@ -126,8 +126,16 @@ class PembayaranGatewayTest extends TestCase
         // Nominal yang dikirim ke gateway harus sama dengan sisa tagihan, dan
         // dikirim sebagai int - bukan float.
         Http::assertSent(function ($permintaan) {
+            $item = $permintaan['item_details'][0] ?? null;
+
             return $permintaan['transaction_details']['gross_amount'] === 1500000
-                && str_starts_with($permintaan['transaction_details']['order_id'], 'KOS-');
+                && str_starts_with($permintaan['transaction_details']['order_id'], 'KOS-')
+                // O-8: keterangan tagihan ikut terkirim, dan harga item kali
+                // jumlahnya harus persis sama dengan gross_amount - Midtrans
+                // menolak transaksi bila keduanya berbeda.
+                && $item !== null
+                && $permintaan['transaction_details']['gross_amount'] === $item['price'] * $item['quantity']
+                && str_contains($item['name'], 'A1');
         });
     }
 

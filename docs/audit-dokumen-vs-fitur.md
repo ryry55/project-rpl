@@ -145,3 +145,24 @@ Bandingkan isi `$env:TEMP\rute.json` dengan `docs/akademik/rute-api.json` memaka
    hitung ulang seluruh angka, baru perbarui dokumen — supaya angka tidak basi
    dua kali dalam satu putaran.
 4. `docs/serah-terima.md` ditimpa di akhir, menyebut keputusan yang masih menunggu.
+
+## 11. Status penutupan — 28 Oktober 2026
+
+Semua temuan ditutup. Yang berubah **kode**: B-01 dan F-01..F-04. Sisanya
+dokumen. Tidak ada aturan R-01..R-07 yang disentuh.
+
+| Temuan | Ditutup dengan |
+|---|---|
+| A-01..A-04 | Kalimat diganti fakta + batasnya: `9_DEPLOY.md` §5, `8_OPERATIONS_SOP.md` §3.3/§5.4/§10, `1_PRD.md` §2/§3.2, `3_ARCHITECTURE.md` §9, `KONTEKS_PROYEK.md` |
+| B-01 | `MidtransGateway::buatTransaksi(?string $keterangan)` mengirim `item_details`; `PembayaranGateway::mulai()` mengisi "Sewa kamar <nomor> - <bulan>"; dijaga `PembayaranGatewayTest` (`price × quantity = gross_amount`) |
+| C-02, C-04 | `SPEC.md` §7: 86 endpoint, delapan baris ditambahkan, `/audit-log` → `wewenang:baca_audit`; `6_TOOLS_CONTRACTS.md` §8 (11) dan §9 (86) |
+| C-05 | UC-13 memuat `penghuni.kontrak`; potret rute disegarkan; `build-dokumen.js` mencetak 86 |
+| D-01..D-09 | Angka disegarkan di sepuluh dokumen dari keluaran gate. **D-08/D-09 diperbaiki dengan data, bukan taksiran**: jumlah langkah per skrip = `langkah lulus` dari gate (`uji-balapan-t4` 10, `t5` 12, `e2e-t9` 26, `fase35` 18, `uji-proxy` 5), totalnya **792** — angka lama kebetulan benar |
+| E-01..E-04 | "Tiga peran"; `Dockerfile.prod` diakui ada; piramida 699 Feature / 100 Unit; 13 folder domain |
+| F-01..F-04 | `periksa.ps1`/`periksa.sh`/job `uji` menyegarkan `rute-api.json` lewat `route:list`; `cek-angka-dokumen.js` dan `cek-cakupan-kontrak.js` menyetel `process.exitCode` (dulu selalu 0); `cek-cakupan-kontrak.js` memeriksa baris Total §9 dan §8.0.1 |
+
+Perintah di §9 di atas masih berguna sebagai bukti **apa yang dulu terlihat**;
+dijalankan sekarang, keduanya mencetak `COCOK` / `SEMUA ANGKA COCOK`. Gate
+penuh 28 Oktober: **28/28 skrip lulus, 792 langkah, 482 detik**; satu-satunya
+langkah merah adalah pemeriksa angka, karena `serah-terima.md` masih menulis 85
+saat ia membacanya — berkas itu sudah ditimpa sesudahnya.

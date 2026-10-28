@@ -40,7 +40,7 @@ lain.** Diagram tangan tidak bisa diperbaiki saat angkanya berubah.
 | `build-bab4.js` | Menulis `Bab_4_Implementasi_dan_Pengujian.md`; gagal bila menyimpang dari skema |
 | `build.js` | Menulis kedua SVG; gagal bila data tidak konsisten |
 | `build-dokumen.js` | Menulis ketiga `.md`; tidak menulis apa pun bila ada masalah |
-| `rute-api.json` | Potret `route:list --json` — 85 endpoint |
+| `rute-api.json` | Potret `route:list --json` — 86 endpoint |
 | `tabel-domain.json` | Potret 23 tabel domain dari `pg_attribute` |
 
 ## Membangun ulang
@@ -106,7 +106,7 @@ garis asosiasi menembus elips lain, entitas menunjuk tabel hantu, ada tabel yang
 tidak dijelaskan entitas mana pun, atau aturan bisnis tidak sama dengan
 `docs/dfd/dfd-data.js`.
 
-Angka pada dokumen dibaca dari sumbernya, bukan diketik: 85 endpoint, 23 tabel,
+Angka pada dokumen dibaca dari sumbernya, bukan diketik: 86 endpoint, 23 tabel,
 41 migrasi, 16 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
 angka yang boleh dikarang — lihat `docs/serah-terima.md` §5 untuk cara
 memeriksanya.

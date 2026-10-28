@@ -1,7 +1,7 @@
 # Proses Bisnis & Spesifikasi Pemodelan Sistem Informasi Operasional Kos-Kosan
 
 > **Dibangkitkan, jangan disunting tangan** — `node docs/akademik/build-dokumen.js`.
-> Angka dibaca dari `rute-api.json` (85 endpoint), `tabel-domain.json` (23 tabel),
+> Angka dibaca dari `rute-api.json` (86 endpoint), `tabel-domain.json` (23 tabel),
 > `usecase-data.js` (14 use case), `api/composer.lock` (Laravel 12.70.1),
 > dan `docs/dfd/dfd-data.js` (16 aliran batas).
 
@@ -17,7 +17,7 @@ Pembedanya dari pencatatan manual bukan kelengkapan fitur, melainkan **siapa
 yang berhak melakukan apa**: **pemilik** memutuskan, **pengelola** berwenang
 terbatas mengusulkan, **penghuni** hanya membaca. Pengelola ber-wewenang
 `ubah_tarif` pun tidak menetapkan tarif. Uang dicatat sebagai peristiwa yang
-tidak bisa diubah. Cakupan: **85 endpoint** `/api`, **14 use case**, **3
+tidak bisa diubah. Cakupan: **86 endpoint** `/api`, **14 use case**, **3
 aktor**, **23 tabel domain** dari **41 migrasi**.
 
 ## 2. Aktor dan Entitas Eksternal Sistem
@@ -64,7 +64,7 @@ Satu siklus bulanan; setiap langkah menunjuk endpoint nyata pada `api/routes/api
 ## 4. Pemodelan Berorientasi Objek (UML Use Case Diagram)
 
 Batas sistem mencakup seluruh fungsionalitas aplikasi operasional kos: **3
-aktor**, **14 use case** — jumlah final, diturunkan dari 85 endpoint nyata
+aktor**, **14 use case** — jumlah final, diturunkan dari 86 endpoint nyata
 yang terpetakan habis tanpa sisa dan tanpa satu pun dipakai dua use case.
 
 ### 4.1 Deskripsi 14 Use Cases Fungsional
@@ -97,9 +97,9 @@ yang terpetakan habis tanpa sisa dan tanpa satu pun dipakai dua use case.
    atas data pribadi sendiri.
 12. **UC-12 Kelola Akun Pengelola & Wewenang:** Membuat akun pengelola,
    menetapkan wewenangnya, mengirim ulang aktivasi, dan menonaktifkan akun.
-13. **UC-13 Portal Penghuni:** Menyajikan tagihan, denda, aturan, dan
-   rekening tujuan transfer milik penghuni sendiri, serta membuka tautan bayar
-   daring.
+13. **UC-13 Portal Penghuni:** Menyajikan kontrak sewa, tagihan, denda,
+   aturan, dan rekening tujuan transfer milik penghuni sendiri, serta membuka
+   tautan bayar daring.
 14. **UC-14 Kelola Rekening Tujuan Pembayaran, Status Penyiapan &
    Diagnostik Sistem:** Mengelola rekening dan QRIS tujuan setoran, membaca
    status penyiapan kos, serta pemeriksaan kesehatan layanan dan peran.

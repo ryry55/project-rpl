@@ -8,7 +8,7 @@
 #           kesalahan format dan variabel mati dijawab dalam hitungan detik,
 #           bukan setelah sepuluh menit membangun image.
 #
-#   uji   - membangun image, menjalankan 792 tes PHP di dalam container, lalu
+#   uji   - membangun image, menjalankan 799 tes PHP di dalam container, lalu
 #           seluruh skrip uji browser terhadap Chrome headless.
 #
 # Kenapa uji browser TIDAK ditulis ulang memakai Playwright, padahal rencana
@@ -137,17 +137,10 @@ jobs:
       # berada di akar repo, di luar build context image api.
       - name: Profil produksi menutup bahayanya
         run: bash docs/uji/periksa-profil-produksi.sh
-
-      # Pemeriksa dokumen yang TIDAK butuh basis data. Sebelum ini ketiganya
-      # hanya hidup di laptop: `periksa.sh --hanya-e2e` melewati bagian
-      # "Kesesuaian dokumen", dan `periksa.ps1` tidak pernah jalan di CI sama
-      # sekali. Akibatnya pagar yang menjaga angka dokumen dan cakupan kontrak
-      # tidak pernah menahan apa pun selama berbulan-bulan - ia terlihat seperti
-      # pagar, padahal tidak terpasang.
-      - name: Dokumen cocok dengan kode
-        run: |
-          node docs/uji/cek-angka-dokumen.js
-          node docs/uji/cek-cakupan-kontrak.js
+      # Pemeriksaan angka dokumen dan cakupan kontrak TIDAK di sini: keduanya
+      # membaca potret rute, dan potret hanya bisa dipercaya bila baru dibuat
+      # dari aplikasi yang hidup. Job ini tidak punya Docker, jadi keduanya
+      # dijalankan di job `uji` sesudah container siap.
 
   # -------------------------------------------------------------------------
   # Uji sebenarnya: tes PHP di dalam container, lalu seluruh skrip browser.
@@ -218,6 +211,18 @@ jobs:
 
       - name: Tes PHP
         run: docker compose exec -T api php artisan test
+
+      # Potret rute disegarkan DARI APLIKASI sebelum angka dokumen diperiksa.
+      # Sebelumnya ketiga pemeriksa membaca potret yang di-commit tanpa ada
+      # yang pernah membuatnya ulang: endpoint baru tidak pernah tertangkap,
+      # dan dokumen diperiksa terhadap dirinya sendiri.
+      - name: Potret rute disegarkan dari aplikasi
+        run: docker compose exec -T api php artisan route:list --json --path=api > docs/akademik/rute-api.json
+
+      - name: Dokumen cocok dengan kode
+        run: |
+          node docs/uji/cek-angka-dokumen.js
+          node docs/uji/cek-cakupan-kontrak.js
 
       # --- Uji browser ---------------------------------------------------
       # `google-chrome` sudah terpasang di runner ubuntu-latest. Yang perlu

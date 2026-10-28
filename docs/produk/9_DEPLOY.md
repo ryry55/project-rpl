@@ -176,7 +176,7 @@ itu sudah bisa membaca seluruh basis data secara langsung.
 | Deploy sungguhan ke Render | **Belum pernah dijalankan.** Tidak ada akun Render di lingkungan pengembangan ini. Yang sudah dibuktikan: image berhasil dibangun dan berjalan terhadap database lokal, menyajikan SPA dan API dari satu origin, serta menolak tiga konfigurasi berbahaya |
 | Koneksi ke Neon | **Belum diuji.** Entrypoint mendukung `DB_SSLMODE`, tetapi koneksi sungguhan ke Neon belum pernah terjadi |
 | Pengiriman email lewat Brevo | **Belum diuji.** Kode memakai SMTP standar; Mailpit lokal yang dipakai selama pengembangan |
-| Midtrans | **Tidak ada kodenya.** Lihat `docs/utang-teknis.md` §4 |
+| Midtrans | **Kodenya ada, transaksi sungguhan belum.** `MidtransGateway` (tanda tangan SHA512, pemetaan status), `PembayaranGateway`, tabel `transaksi_gateway`, dua endpoint, dan tombol **Bayar daring** sudah berjalan; 16 tes memakai kredensial palsu. Yang belum: transaksi ke sandbox Midtrans — butuh `MIDTRANS_SERVER_KEY`. Lihat `docs/utang-teknis.md` §4 |
 
 Menuliskan ini sebagai selesai akan membuat audit berikutnya mencari bukti yang
 tidak ada.

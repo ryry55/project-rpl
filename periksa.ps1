@@ -217,10 +217,30 @@ if (Test-Path web\node_modules) {
 # --- 6. Kesesuaian dokumen --------------------------------------------------
 # Angka di dokumen dibaca dari sumbernya, bukan diketik. Dua pemeriksa ini
 # menutup celah yang sudah benar-benar terjadi: `KONTEKS_PROYEK.md` sempat
-# menyebut 71 endpoint padahal aplikasinya 85, dan tiga judul bagian di
+# menyebut 71 endpoint padahal aplikasinya 86, dan tiga judul bagian di
 # `6_TOOLS_CONTRACTS.md` salah jumlah. Keduanya butuh hitungan detik, bukan
 # menit, dan tidak butuh aplikasi hidup.
 Judul 'Kesesuaian dokumen'
+
+# Potret rute adalah SUMBER angka endpoint untuk pemeriksa di bawah. Tanpa
+# langkah ini, gerbang memeriksa dokumen terhadap potret yang bisa basi -
+# endpoint baru lolos tanpa ada yang tahu. Itu pernah terjadi: `GET
+# /api/penghuni/kontrak` hidup di aplikasi tetapi tidak pernah masuk potret,
+# dan ketiga pemeriksa tetap mencetak "COCOK".
+$rute = @(Jalankan 'docker' 'compose', 'exec', '-T', 'api', 'php', 'artisan', 'route:list', '--json', '--path=api')
+$ruteTeks = ($rute -join "`n").Trim()
+$ruteOk = $LASTEXITCODE -eq 0 -and $ruteTeks.StartsWith('[')
+if ($ruteOk) {
+    # Ditulis lewat .NET, bukan `>` atau Out-File: PowerShell 5.1 menulis UTF-16
+    # atau UTF-8 ber-BOM, dan `> docs\...` menghasilkan berkas yang tidak bisa
+    # dibaca `JSON.parse` - kegagalan yang terlihat seperti potret rusak.
+    [System.IO.File]::WriteAllText(
+        (Join-Path (Resolve-Path 'docs\akademik').Path 'rute-api.json'),
+        $ruteTeks + "`n",
+        (New-Object System.Text.UTF8Encoding($false))
+    )
+}
+Catat 'potret rute disegarkan dari aplikasi' $ruteOk
 
 $keluaranAngka = Jalankan 'node' 'docs\uji\cek-angka-dokumen.js'
 $angkaOk = $LASTEXITCODE -eq 0

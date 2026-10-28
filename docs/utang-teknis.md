@@ -23,7 +23,7 @@ sebelum E2E sama sekali:
 Daftar skrip uji berbeda antara periksa.ps1 dan periksa.sh.
 ```
 
-`periksa.ps1` memuat 26 skrip, `periksa.sh` hanya 24. Dua yang hilang:
+`periksa.ps1` saat itu memuat 26 skrip, `periksa.sh` hanya 24. Dua yang hilang:
 `uji-pembalik.mjs` (13 langkah) dan `uji-qris.mjs` (15 langkah) - keduanya
 ditambahkan pada fase terakhir dan hanya dimasukkan ke berkas PowerShell.
 

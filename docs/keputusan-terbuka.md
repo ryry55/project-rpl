@@ -33,9 +33,11 @@ keputusan ikut menjadi bukti, sama seperti `log_audit`.
 
 ---
 
-## K-01 — Midtrans: kirim deskripsi tagihan atau hapus janji DFD — menunggu
+## K-01 — Midtrans: kirim deskripsi tagihan atau hapus janji DFD — dijawab
 
 **Fase:** audit dokumen **Tanggal:** 28 Oktober 2026
+
+**Jawaban (28 Oktober 2026). Pilihan A.** `item_details` dikirim: `MidtransGateway::buatTransaksi()` menerima `keterangan` dan mengirimnya sebagai satu item (`price` = nominal yang diminta, `quantity` = 1, nama dipotong 50 karakter). `PembayaranGateway::mulai()` mengisinya "Sewa kamar <nomor> - <bulan tahun>". Dijaga `PembayaranGatewayTest::test_penghuni_mendapat_tautan_bayar`, yang memastikan `price x quantity` sama dengan `gross_amount`.
 
 **Pertanyaan.** DFD aliran O-8 menjanjikan `deskripsi_tagihan` dikirim ke gerbang
 pembayaran (`docs/dfd/README.md:96,209`, `docs/akademik/dfd-konteks.md:54`), tetapi
@@ -62,9 +64,11 @@ perubahan kode.
 
 ---
 
-## K-02 — Izin menyunting `SPEC.md` — menunggu
+## K-02 — Izin menyunting `SPEC.md` — dijawab
 
 **Fase:** audit dokumen **Tanggal:** 28 Oktober 2026
+
+**Jawaban (28 Oktober 2026). Pilihan A.** `SPEC.md` disunting faktual: 85→86 endpoint, tujuh endpoint yang hilang ditambahkan ke §7, dan gerbang `/audit-log` diperbaiki menjadi `wewenang:baca_audit`. Tidak ada keputusan/aturan yang diubah.
 
 **Pertanyaan.** `SPEC.md` memuat dua pernyataan yang sudah tidak benar: `:536`
 "85 endpoint" (nyata 86, dan tabel §7 hanya memuat 79) dan `:597` `/audit-log`
@@ -87,9 +91,11 @@ sementara.
 
 ---
 
-## K-03 — `GET /api/penghuni/kontrak` masuk use case mana — menunggu
+## K-03 — `GET /api/penghuni/kontrak` masuk use case mana — dijawab
 
 **Fase:** audit dokumen **Tanggal:** 28 Oktober 2026
+
+**Jawaban (28 Oktober 2026). Pilihan A.** Masuk UC-13 (Portal Penghuni): `usecase-data.js` mencantumkan `penghuni.kontrak`, teks UC-13 dan catatan kaki (d) menyebut lima endpoint `/penghuni/*`, dan potret rute disegarkan sehingga klaim "86 endpoint terpakai habis" kembali benar.
 
 **Pertanyaan.** Endpoint ini ada di kode (bukti O-1), tetapi tidak dipetakan ke
 satu pun dari 14 use case. `docs/akademik/build.js` sekarang lolos hanya karena
@@ -112,9 +118,11 @@ bukan sekadar angka.
 
 ---
 
-## K-04 — Gerbang memeriksa rute hidup atau tetap potret — menunggu
+## K-04 — Gerbang memeriksa rute hidup atau tetap potret — dijawab
 
 **Fase:** audit dokumen **Tanggal:** 28 Oktober 2026
+
+**Jawaban (28 Oktober 2026). Pilihan A.** `periksa.ps1` dan `periksa.sh` menyegarkan `docs/akademik/rute-api.json` dari `route:list` tepat sebelum "Kesesuaian dokumen"; CI memindahkan pemeriksaan itu dari job `lint` ke job `uji`, sesudah container siap, dengan langkah penyegaran yang sama. Ketiga pemeriksa tetap membaca satu berkas - sekarang berkas itu selalu baru.
 
 **Pertanyaan.** Tiga pemeriksa (`cek-angka-dokumen.js`, `cek-cakupan-kontrak.js`,
 `build.js`) membaca `docs/akademik/rute-api.json`, dan tidak ada langkah di

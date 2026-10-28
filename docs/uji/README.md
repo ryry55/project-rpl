@@ -1,10 +1,11 @@
 # Skrip uji
 
-Dua puluh lima berkas di folder ini menguji aplikasi dari luar: dua puluh dua
+Dua puluh delapan skrip di folder ini menguji aplikasi dari luar: dua puluh lima
 lewat browser sungguhan (termasuk satu yang menyapu seluruh halaman, satu yang
 mengukur tata letak di lebar ponsel, dan satu yang mensimulasikan pemuatan
-gagal), dua menguji balapan HTTP, dan satu berkas bersama yang dipakai
-semuanya.
+gagal), dua menguji balapan HTTP, dan satu menguji jalur proxy. Ditambah satu
+berkas bersama (`_cdp.mjs`) yang dipakai semuanya, jadi ada dua puluh sembilan
+berkas `.mjs`.
 
 Semuanya memakai **database demo** (`kos`), bukan `kos_test`. Kecuali dinyatakan
 lain, tiap skrip **mengubah** isinya.
@@ -119,6 +120,7 @@ halaman baru dimuat, jadi harus dipasang ulang setelah `Page.navigate`.
 | `e2e-r3.mjs` | R3: tagihan yang salah terbit bisa **dibatalkan tanpa dihapus** dan periodenya diterbitkan ulang, pemaafan denda membekukan denda tanpa menghapus jejaknya, tombol WhatsApp menyusun tautan `wa.me` dengan teks dari server, dan rekening tujuan pembayaran hanya bisa ditulis pemilik | Chrome, seed |
 | `uji-pembalik.mjs` | Tombol **Tarik kembali** menulis baris **negatif** yang menunjuk baris aslinya; alasan kosong ditolak 422 dan formulirnya tetap terbuka; baris pembalik tampil sebagai angka negatif bertanda "ditarik kembali", bukan disembunyikan; sesudah ditarik tagihan kembali menunggak dan **tagihan yang tadinya buntu karena uangnya menempel kini bisa dibatalkan** | Chrome, seed |
 | `uji-qris.mjs` | Medan unggah gambar hanya muncul untuk jenis QRIS; pratinjau tampil **sebelum** disimpan; sesudah tersimpan daftar menyebut gambarnya ada; penghuni melihat gambarnya **benar-benar termuat** (`naturalWidth` > 0, disajikan sebagai blob, bukan URL bertoken); gambar pada rekening transfer ditolak 422 dengan pesan yang bisa dibaca; penghuni tidak bisa membuka gambar rekening nonaktif (404) | Chrome, seed |
+| `e2e-fase35.mjs` | Penanda penyiapan benar-benar dirender untuk pemilik; ekspor benar-benar terunduh sebagai berkas (diperiksa dari peristiwa unduhan CDP, bukan kode status); pengelola tidak melihat tombol ekspor rekap yang pasti ditolak server; halaman bantuan terbuka untuk kedua peran | Chrome, seed |
 
 ### Balapan
 
@@ -130,6 +132,12 @@ halaman baru dimuat, jadi harus dipasang ulang setelah `Page.navigate`.
 Balapan tidak bisa diuji di dalam satu proses PHP: yang membuktikan `FOR UPDATE`
 bekerja adalah pesan dari permintaan yang **kalah**, yang angkanya hanya bisa
 muncul kalau ia menunggu transaksi pertama commit lalu membaca ulang.
+
+### Jalur proxy
+
+| Berkas | Yang dibuktikan | Butuh |
+|---|---|---|
+| `uji-proxy.mjs` | Permintaan lewat port proxy (bawaan `:3000`) membawa IP klien yang benar, bukan IP proxy: pembatas laju tidak menghitung semua pengguna sebagai satu IP, dan `log_audit` mencatat IP pelaku. Dijalankan lewat proxy karena pada jalur langsung tidak ada yang menambahkan header `X-Forwarded-For` - cacat A1 lolos 748 tes PHP tanpa ketahuan | aplikasi hidup |
 
 ### Berkas bersama
 
@@ -186,8 +194,8 @@ sedang berjalan. Ketiganya tidak butuh E2E, dan selesai dalam hitungan detik.
 
 | Berkas | Yang diperiksa |
 |---|---|
-| `cek-angka-dokumen.js` | Angka yang tertulis di `KONTEKS_PROYEK.md`, `serah-terima.md`, dan `SPEC.md` dibandingkan dengan angka nyata: jumlah migrasi, model, berkas tes, dan endpoint di potret rute |
-| `cek-cakupan-kontrak.js` | Setiap rute nyata muncul di **tepat satu** baris tabel `6_TOOLS_CONTRACTS.md`; tidak ada yang belum tercatat, tidak ada yang tercatat dua kali; judul `(N endpoint)` tiap bagian cocok dengan isinya |
+| `cek-angka-dokumen.js` | Angka yang tertulis di `KONTEKS_PROYEK.md`, `serah-terima.md`, dan `SPEC.md` dibandingkan dengan angka nyata: jumlah migrasi, model, berkas tes, dan endpoint. Potret rute disegarkan dari aplikasi tepat sebelum pemeriksaan ini, jadi yang dibandingkan adalah rute hidup - bukan potret yang bisa basi |
+| `cek-cakupan-kontrak.js` | Setiap rute nyata muncul di **tepat satu** baris tabel `6_TOOLS_CONTRACTS.md`; tidak ada yang belum tercatat, tidak ada yang tercatat dua kali; judul `(N endpoint)` tiap bagian dan baris **Total** §9 cocok dengan isinya |
 | `cek-erd-lrs.js` | `docs/erd/skema.json` masih cocok dengan basis data; setiap tabel punya bagian di `03-lrs.md`; setiap kunci asing muncul di tabel relasi LRS dengan tujuan yang sama; jumlah tabel/kunci asing yang ditulis cocok dengan yang dihitung; `manifest.json` hasil build cocok dengan skema; setiap SVG berjenjang yang dicatat manifest ada, berisi SVG, dan tidak terpotong; **PNG pasangan setiap SVG ada dan berukuran tepat 2x atribut width/height SVG-nya**; tingkat 2 dan 3 masing-masing memuat seluruh tabel domain tanpa ganda |
 
 ```powershell
@@ -217,13 +225,9 @@ melaporkan kolom-kolom `rekening.*` yang hilang dan keluar dengan kode 1.
 Ketiganya mencari akar repo dari lokasi berkasnya sendiri, bukan dari direktori
 kerja, sehingga bisa dijalankan dari mana saja.
 
-**Ketiganya sempat tidak pernah berjalan di CI.** Ditemukan 27 Oktober 2026:
-`periksa.sh --hanya-e2e` — satu-satunya cara CI memanggil gerbang — melewati
-bagian "Kesesuaian dokumen", dan job `lint` tidak memanggil pemeriksa itu sama
-sekali. Selama berbulan-bulan ketiga pagar ini hanya hidup di laptop; ia tampak
-terpasang karena tercantum di `periksa.ps1`. Sekarang `cek-angka-dokumen.js` dan
-`cek-cakupan-kontrak.js` berjalan di job `lint`, dan `cek-erd-lrs.js` di job
-`uji` sesudah container `db` hidup.
+**Ketiganya sempat tidak pernah berjalan di CI, dan ketika berjalan pun tidak menahan.** Ditemukan 27 Oktober 2026: `periksa.sh --hanya-e2e` — satu-satunya cara CI memanggil gerbang — melewati bagian "Kesesuaian dokumen", dan job `lint` tidak memanggil pemeriksa itu sama sekali. Selama berbulan-bulan ketiga pagar ini hanya hidup di laptop; ia tampak terpasang karena tercantum di `periksa.ps1`.
+
+Audit 28 Oktober 2026 menemukan cacat kedua yang lebih dalam: `cek-angka-dokumen.js` dan `cek-cakupan-kontrak.js` **selalu keluar dengan kode 0**, berapa pun temuannya, jadi `periksa.ps1` melaporkan `LULUS` untuk pemeriksaan yang mencetak `ADA ANGKA YANG BEDA`. Keduanya juga membaca potret rute yang tidak pernah dibuat ulang. Sekarang keduanya memakai `process.exitCode`, dan `periksa.ps1`, `periksa.sh`, serta job `uji` menyegarkan `docs/akademik/rute-api.json` dari `route:list` tepat sebelum memeriksanya. `cek-erd-lrs.js` tetap di job `uji` karena butuh container `db`.
 
 ### Bukti pagar Fase 0.5
 

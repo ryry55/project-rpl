@@ -59,7 +59,9 @@ penambahan fitur yang tidak menyelesaikan apa pun.
 
 ## 2. Pengguna
 
-Dua peran. Bukan tiga, bukan empat — dan ini keputusan yang pernah berubah.
+Tiga peran, dan yang ketiga adalah keputusan yang pernah berubah. Pengelola
+bukan "pemilik kedua": ia akun yang dibuat pemilik dan hanya memegang wewenang
+yang diberikan, dengan batas yang ditegakkan di server.
 
 ### 2.1 Pemilik Kos
 
@@ -142,7 +144,7 @@ pemilik yang memutuskan. Usulan kedaluwarsa dalam **7 hari**.
 
 | Tidak ada | Alasan | Rencana |
 |---|---|---|
-| Penerbitan tagihan otomatis (terjadwal) | Butuh cron yang tidak tersedia di Render gratis | Dicatat sebagai utang teknis |
+| ~~Penerbitan tagihan otomatis (terjadwal)~~ | ~~Butuh cron yang tidak tersedia di Render gratis~~ | **Sudah ada:** `Schedule::call` tanggal 1 pukul 00:10 WIB lewat `schedule:work` di container produksi. Batasnya: container Render gratis tidur setelah 15 menit tanpa lalu lintas, jadi jadwal itu bisa terlewat — lihat `11_AUDIT-PRODUKSI-2.md` A3 |
 | Deposit | Dulu ada kolomnya, tetapi tidak pernah dicatat sebagai uang masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan. Pemilik memilih menghapusnya daripada mempertahankan angka yang tidak berakibat | **Dihapus seluruhnya di fase terakhir** |
 | ~~Pembayaran pembalik~~ | ~~Belum ada kebutuhan nyata~~ | **Sudah ada:** baris negatif sejak R2, tombol **Tarik kembali** di panel rincian tagihan sejak fase terakhir |
 | Antrean email | Render gratis tanpa worker persisten | Utang teknis |

@@ -6,7 +6,7 @@
 >
 > **Maksimal 120 baris.** Kalau lebih, isinya sudah menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: Audit janji-dokumen vs aplikasi, enam temuan ditutup — 28 Oktober 2026
+Terakhir diperbarui: Audit janji-dokumen vs aplikasi, K-01..K-04 dikerjakan — 28 Oktober 2026
 
 ---
 
@@ -14,25 +14,29 @@ Terakhir diperbarui: Audit janji-dokumen vs aplikasi, enam temuan ditutup — 28
 
 | Hal | Nilai |
 |---|---|
-| Fase terakhir selesai | **Audit janji dokumen**: enam temuan diperbaiki (lihat §4) |
-| Berikutnya | **Fase 1: Render + Neon** (butuh akun pemilik), lalu Midtrans sandbox |
-| Suite PHP | **799 lulus / 3674 asersi**, 45 berkas tes; pint & eslint bersih |
-| Migrasi / endpoint / tabel domain | **41** / **85** / **23** (total 32 di skema `public`) |
-| Skrip uji | **29** `.mjs`: **28** (26 browser + 2 balapan) dijalankan gate + `_cdp.mjs` |
-| Langkah E2E | **792 langkah** dalam **416 detik** |
-| Gate lokal | **SEMUA LULUS** — 799 tes PHP + 28 skrip + jalur proxy |
+| Fase terakhir selesai | **Audit dokumen**: 27 temuan; dokumen diperbaiki, K-01..K-04 dikerjakan |
+| Suite PHP | **799 lulus / 3674 asersi** (Feature 699 / Unit 100), 45 berkas; pint & eslint bersih |
+| Migrasi / endpoint / tabel domain | **41** / **86** / **23** (total 32 di skema `public`) |
+| Skrip uji | **29** `.mjs`: **28** (25 browser + 2 balapan + 1 jalur proxy) dijalankan gate + `_cdp.mjs` |
+| Langkah E2E | **792 langkah** (jumlah `langkah lulus` dari gate), gate penuh **482 detik** |
+| Gate lokal | **SEMUA LULUS** kecuali satu: lihat catatan di bawah |
+
+Catatan jujur: putaran 28 Oktober berhenti dengan **1 langkah merah** — pemeriksa
+angka, karena berkas ini masih menulis 85 endpoint saat ia membacanya. Angka di
+atas sudah diperbaiki; putaran berikutnya harus hijau. Kalau tidak, jangan
+percaya tabel ini — jalankan `node docs/uji/cek-angka-dokumen.js` dan lihat barisnya.
 
 ## 2. Tiga aksi berikutnya
 
-1. **Fase 1: Render + Neon.** Butuh akun pemilik: `RENDER_DEPLOY_HOOK`, `APP_URL`,
-   dan environment GitHub `staging`/`production`. `deploy.yml` masih mode
-   peringatan (`siap=0`); rincian di `docs/produk/9_DEPLOY.md`.
-2. **Verifikasi Midtrans sandbox.** Butuh `MIDTRANS_SERVER_KEY` asli; tanpa itu
-   hanya jalur simulasi yang terbukti. `POST /tagihan/{id}/bayar-daring` juga
-   masih mengirim tanpa `item_details` (O-8 `deskripsi_tagihan` belum dipakai).
-3. **Jadwal A3 vs container tidur.** Render free tidur setelah 15 menit, jadi
-   penjadwal Laravel tidak bisa dibuktikan di laptop: cron eksternal atau plan
-   berbayar. **Keputusan pemilik, jangan ditebak.**
+1. **Jalankan gate sekali lagi** (`periksa.ps1`) dan pastikan `SEMUA LULUS`.
+   Yang perlu dibuktikan cuma satu: pemeriksa angka berhenti merah setelah §1.
+2. **Fase 1: Render + Neon.** Butuh akun pemilik: `RENDER_DEPLOY_HOOK`,
+   `APP_URL`, environment GitHub `staging`/`production`. Rincian: `9_DEPLOY.md`.
+3. **Verifikasi Midtrans sandbox.** Butuh `MIDTRANS_SERVER_KEY` asli. Yang sudah
+   terbukti: `item_details` terkirim (harga × jumlah = `gross_amount`).
+
+Terbuka dan **jangan ditebak**: jadwal A3 vs container tidur (cron eksternal
+atau plan berbayar). Ini keputusan pemilik, dicatat di `11_AUDIT-PRODUKSI-2.md`.
 
 ## 3. Yang tidak boleh diubah
 
@@ -44,84 +48,73 @@ Jangan menyimpang dari ini tanpa keputusan pemilik.
 | Wewenang pengelola (8) dan Model A | `SPEC.md` bagian 5 |
 | Konvensi T24-T29 | `AGENTS.md` |
 | Sumber tunggal DFD / use case | `docs/dfd/dfd-data.js`, `docs/akademik/usecase-data.js` |
-| Keputusan terbuka | `docs/keputusan-terbuka.md` |
+| Keputusan pemilik | `docs/keputusan-terbuka.md` (K-01..K-04 sudah `dijawab`) |
 | Langkah deploy manual | `docs/produk/9_DEPLOY.md` |
 
-**Dua keputusan baru (28 Okt 2026), berlaku sejak sekarang.**
+**Empat keputusan 28 Oktober 2026 (pilihan A semua).**
+
+- **K-01**: `MidtransGateway` mengirim `item_details`; keterangannya "Sewa kamar
+  <nomor> - <bulan tahun>". Harga item = nominal yang sama, tidak dihitung ulang.
+- **K-02**: `SPEC.md` disunting **faktual** saja: 86 endpoint, tujuh endpoint
+  hilang ditambahkan ke §7, `/audit-log` jadi `wewenang:baca_audit`.
+- **K-03**: `GET /api/penghuni/kontrak` masuk UC-13, sehingga klaim "86 endpoint
+  terpakai habis" kembali benar.
+- **K-04**: gate menyegarkan `rute-api.json` dari `route:list` sebelum memeriksa
+  dokumen; CI memindahkan pemeriksaan itu ke job `uji`.
+
+**Dua keputusan lama yang tetap berlaku.**
 
 - **`occupancy_rate` = hari-kamar**: `hari_terisi / hari_tersedia`, kedua ujung
   tanggal inklusif, kontrak yang belum ditutup dihitung sampai `sampai`.
-  Bukan "jumlah kamar terisi hari ini" dan bukan "rata-rata akhir bulan".
 - **Kuitansi tanpa nomor urut.** Penandanya id pembayaran + periode tagihan.
-  Boleh dicetak **pemilik, pengelola, dan penghuni**. Baris pembalik tidak
-  punya kuitansi. Tidak ada kolom baru di skema.
+  Boleh dicetak **pemilik, pengelola, dan penghuni**; baris pembalik tidak punya.
 
-**Bahasa visual (redesign, 28 Okt 2026).** Arah **"buku besar tanpa warna"**.
-Arah pertama ("kartu indeks katalog": manila, biru tinta, cap karet) **ditolak
-pemilik** dan tidak boleh dihidupkan lagi. Satu tombol hampir hitam per layar,
-warna hanya untuk arti, tanpa bayangan saat diam. `nav a`, `.tabel`,
-`.lencana-status`, `.aksi-kepala`, `.merek p`, `.kartu-kelompok`, `.kendali`
-dipakai skrip uji dan harus tetap ada. Rincian: `DESIGN.md`,
-`docs/produk/2_DESIGN_SYSTEM.md`.
+**Bahasa visual: "buku besar tanpa warna".** Arah pertama ("kartu indeks katalog")
+**ditolak pemilik** dan tidak boleh dihidupkan lagi. Satu tombol hampir hitam per
+layar, tanpa bayangan saat diam; `nav a`, `.tabel`, `.lencana-status`,
+`.aksi-kepala`, `.merek p`, `.kartu-kelompok`, `.kendali` harus tetap ada.
 
-**Narasi tetap 4 halaman, bukan 3.** Template dosen hanya punya 10 aliran dan 5
-entitas; sistem ini 16 aliran, 12 entitas data, 7 aturan. **Harga Charter tetap
-Rp 50.000.000**, jadwal mengikuti pertemuan kuliah mulai 8 September 2026.
+**Narasi tetap 4 halaman**; **harga Charter tetap Rp 50.000.000**.
 
 ## 4. Yang ditutup sesi ini
 
-- **UC-04 "komponen biaya" akhirnya punya layar.** Panel "Tarif & komponen kamar N"
-  di `KamarView.vue`: tabel komponen yang menagih bulan ini + formulir tambah,
-  dengan pilihan "berlaku untuk semua kamar". Dua teks bantuan yang dulu menunjuk
-  halaman Tagihan kini menunjuk panel ini.
-- **Cacat 500 laten**: `satuan` null ditolak basis data (`NOT NULL`), bukan 422.
-  Diperbaiki sekali di `PenerapPerubahan::komponen()`; ada tes regresinya.
-- **O-6 hunian**: `RekapPendapatan::hunian()` + panel Hunian di halaman Rekap.
-- **O-1 kontrak**: `GET /penghuni/kontrak` + satu baris di portal penghuni.
-- **O-5 kuitansi**: `web/src/kuitansi.js`, tombol di panel rincian tagihan dan
-  portal penghuni; dicetak peramban (tanpa PDF di server).
-- **Angka dokumen** disegarkan dan `docs/uji/cek-angka-dokumen.js` diperluas dari
-  3 berkas menjadi 10, memeriksa **setiap** kemunculan, bukan yang pertama.
+- **Dokumen yang menyangkal fitur**: Midtrans ("tidak ada kodenya"), backup dan
+  tagihan terjadwal, `Dockerfile.prod`, "dua peran", 11 folder domain.
+- **Angka**: 85→86 endpoint di sepuluh dokumen; 792→799 tes; langkah per skrip
+  diambil dari keluaran gate, bukan dari kira-kira.
+- **Pemeriksa yang tidak menahan**: `cek-angka-dokumen.js` dan
+  `cek-cakupan-kontrak.js` dulu **selalu keluar 0**; sekarang `process.exitCode`.
+  Yang kedua kini juga memeriksa baris **Total** §9 dan menganggap
+  `/webhook/midtrans` tercatat lewat §8.0.1. Kontrak §8 = 11 endpoint, §9 = 86.
 
 ## 5. Cara memeriksa keadaan
-
-Satu perintah memeriksa seluruh repo; urutannya menentukan (build image dulu,
-`cache:clear` di samping `migrate:fresh`), jadi jangan menjalankan tes satu per
-satu. Tanpa uji browser: `.\periksa.ps1 -Cepat`. Di Linux/CI `./periksa.sh`;
-keduanya wajib memuat daftar `.mjs` yang identik dan `uji.yml` memeriksa itu.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File periksa.ps1    # SEMUA LULUS
 node docs/uji/cek-angka-dokumen.js                     # SEMUA ANGKA COCOK
-git status --short                                     # harus bersih
+git status --short                                     # bersih (kecuali .png)
 ```
 
-`cek-angka-dokumen.js` **tidak** memeriksa jumlah tes, asersi, dan langkah E2E:
-ketiganya hanya diketahui dari keluaran `phpunit`/skrip, bukan dari bentuk berkas.
-Ketiganya disegarkan manual sesudah gate selesai — itulah sebabnya angka di §1
-dan di dokumen lain harus diubah **sesudah** tes terakhir ditulis.
+Tanpa uji browser: `-Cepat`. Di Linux/CI: `./periksa.sh`; `uji.yml` memeriksa
+daftar skrip di keduanya identik. Bila mengubah `web/src`: `npm run build`,
+`docker compose build web`, lalu `up -d web` — kode dibakar ke image.
 
-Baca **`docs/demo-sidang.md`** sebelum sidang: urutan demo 5 menit dan jawaban
-atas pertanyaan yang paling sering muncul, dengan angka yang sudah dijalankan.
+`cek-angka-dokumen.js` tidak tahu jumlah tes, asersi, dan langkah E2E; ketiganya
+hanya dari keluaran `phpunit`/skrip, jadi angka §1 diubah **sesudah** gate.
 
 ## 6. Jebakan yang menggigit di sesi ini
 
-Tercatat juga di `AGENTS.md`; diulang di sini karena mahal.
-
-1. **Build image tanpa `up -d` = menguji kode lama.** "8 tes lulus" padahal
-   seharusnya 9, tanpa galat apa pun.
-2. **Kolom `nullable` di validasi bisa `NOT NULL` di basis data.** Null eksplisit
-   mengalahkan `default`, hasilnya 500 bukan 422. Buang kuncinya sebelum `create()`.
-3. **`print()` tidak bisa diasersikan dari CDP** (dialog cetak memblokir). Yang
-   diuji adalah tombolnya ada; isi dokumen diperiksa di `web/src/kuitansi.js`
-   lewat `htmlKuitansi()` yang diekspor.
-4. **PowerShell bukan alat pengganti teks** — `-replace` di dalam loop mengenai
-   karakter, bukan string, tanpa galat. Pakai `edit`, atau skrip Node yang
-   menghitung kemunculan lebih dulu.
-5. **Asersi bertanggal akan gagal sendiri.** Sematkan `X-Simulasi-Tanggal`, atau
-   bandingkan dengan nilai dari API — jangan mengetik angka.
-6. **Satu komponen yang dirender dua kali punya dua state.** Pilih lewat `v-if`,
-   jangan sembunyikan dengan CSS.
-7. **`docs/uji/*.png` ditulis ulang setiap E2E.** Kembalikan yang tidak relevan
-   (`git checkout -- docs/uji/*.png`), dan sebutkan di pesan commit bila
-   perubahannya memang disengaja.
+1. **Pemeriksa dokumen bisa hijau karena kode keluarnya salah.** `periksa.ps1`
+   menilai `$LASTEXITCODE`; skrip Node tanpa `process.exitCode` selalu lulus —
+   rusak satu angka dulu untuk membuktikan pemeriksa baru benar-benar merah.
+2. **Potret rute bukan sumber kebenaran.** `rute-api.json` hanya sah dibaca
+   setelah disegarkan dari `route:list`; gate dan CI melakukannya sendiri.
+3. **Menulis potret lewat `>` di PowerShell menghasilkan UTF-16.** Pakai
+   `[IO.File]::WriteAllText(..., UTF8Encoding($false))`.
+4. **Hitungan statis `lapor(` ≠ langkah sebenarnya** (610 vs 792): sebagian
+   bersyarat. Hanya keluaran `langkah lulus` yang sah.
+5. **Angka per tiket di `docs/tiket.md` dan tabel riwayat `audit-ketertelusuran.md`
+   adalah potret saat tiket selesai**, bukan keadaan sekarang. Yang harus cocok
+   dengan gate: baris R-01..R-07 dan §4.2 katalog.
+6. **`docs/uji/*.png` ditulis ulang setiap E2E** — kembalikan yang tidak relevan
+   (`git checkout -- docs/uji/*.png`); `print()` tidak bisa diasersikan dari CDP.

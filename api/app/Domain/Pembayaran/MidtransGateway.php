@@ -83,6 +83,11 @@ class MidtransGateway
      * order_id yang sudah pernah dipakai, dan itu justru pengaman yang
      * diinginkan - satu tagihan tidak bisa dibayar dua kali lewat gateway.
      *
+     * `keterangan` menjadi `item_details`, supaya penghuni melihat apa yang ia
+     * bayar di halaman gateway (aliran O-8). Midtrans menolak transaksi bila
+     * `price x quantity` tidak sama dengan `gross_amount`, jadi harga item
+     * WAJIB diturunkan dari nominal yang sama - bukan dihitung ulang.
+     *
      * @return array{token: string, redirect_url: string}
      *
      * @throws GatewayTidakSiap
@@ -94,6 +99,7 @@ class MidtransGateway
         string $namaPenyewa,
         ?string $emailPenyewa = null,
         ?int $kedaluwarsaMenit = null,
+        ?string $keterangan = null,
     ): array {
         if (! $this->siap()) {
             throw GatewayTidakSiap::kunciKosong();
@@ -112,6 +118,17 @@ class MidtransGateway
                 'email' => $emailPenyewa,
             ], fn ($v) => $v !== null && $v !== ''),
         ];
+
+        if ($keterangan !== null && trim($keterangan) !== '') {
+            $badan['item_details'] = [[
+                'id' => $orderId,
+                'price' => $jumlah,
+                'quantity' => 1,
+                // Batas `name` di Midtrans 50 karakter; dipotong di sini,
+                // bukan di pemanggil, karena ini batas gateway.
+                'name' => mb_substr(trim($keterangan), 0, 50),
+            ]];
+        }
 
         if ($kedaluwarsaMenit !== null && $kedaluwarsaMenit > 0) {
             $badan['expiry'] = ['unit' => 'minutes', 'duration' => $kedaluwarsaMenit];

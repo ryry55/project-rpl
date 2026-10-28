@@ -91,7 +91,7 @@ urutan langkahnya menentukan, dan salah urutan menghasilkan hijau yang menyesatk
 
 ### CI/CD
 
-Tiga workflow di `.github/workflows/`: `uji.yml` (kebenaran kode - lint lalu 792
+Tiga workflow di `.github/workflows/`: `uji.yml` (kebenaran kode - lint lalu 799
 tes PHP lalu 28 skrip uji di Chrome headless), `rilis.yml` (bangun image,
 dorong ke GHCR, staging lalu produksi), dan `deploy.yml` (satu lingkungan,
 dipanggil dua kali). Rinciannya di `docs/ci-cd.md`.

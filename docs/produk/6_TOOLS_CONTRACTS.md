@@ -6,7 +6,7 @@
 > Sumber kebenaran tetap `api/routes/api.php` dan kelas `Resource`. Dokumen ini
 > diambil dari `php artisan route:list --json` pada aplikasi yang berjalan.
 
-Versi 1.1 · 26 Oktober 2026 · **85 endpoint**
+Versi 1.1 · 26 Oktober 2026 · **86 endpoint**
 
 ---
 
@@ -879,9 +879,9 @@ perlu meninggalkan nama orang itu di catatan sejarah selamanya.
 
 ---
 
-## 8. Portal penghuni, pembayaran daring, dan notifikasi (10 endpoint)
+## 8. Portal penghuni, pembayaran daring, dan notifikasi (11 endpoint)
 
-> Sembilan endpoint berbentuk baris tabel; yang kesepuluh,
+> Sepuluh endpoint berbentuk baris tabel; yang kesebelas,
 > `POST /api/webhook/midtrans`, ditulis di §8.0.1 karena ia bukan endpoint yang
 > dipanggil pengguna — pemanggilnya gateway, dan gerbangnya tanda tangan
 > SHA512, bukan token.
@@ -891,9 +891,10 @@ perlu meninggalkan nama orang itu di catatan sejarah selamanya.
 | `GET` | `/api/penghuni/tagihan` | `peran:penghuni` |
 | `GET` | `/api/penghuni/aturan` | `peran:penghuni` |
 | `GET` | `/api/penghuni/rekening` | `peran:penghuni` |
+| `GET` | `/api/penghuni/kontrak` | `peran:penghuni` |
 | `POST` | `/api/tagihan/{tagihan}/bayar-daring` | `peran:penghuni` |
 
-**Ketiganya harus didaftarkan sebelum `apiResource('penghuni')`.** Kalau tidak,
+**Keempatnya harus didaftarkan sebelum `apiResource('penghuni')`.** Kalau tidak,
 `GET /penghuni/tagihan` ditangkap `GET /penghuni/{penghuni}` dan "tagihan"
 diperlakukan sebagai id — route model binding mencari `penghuni.id = 'tagihan'`
 dan PostgreSQL menolaknya dengan `22P02`. Kelas kesalahan yang sama dengan
@@ -1013,18 +1014,19 @@ tidak pernah dijalankan.
 | Kamar & fasilitas | 10 | `/kamar*`, `/fasilitas*` |
 | Tarif, komponen, kebijakan | 6 | `/tarif`, `/komponen-biaya`, `/kebijakan` |
 | Aturan | 4 | `/aturan*` |
-| Rekening | 4 | `/rekening*` |
+| Rekening | 5 | `/rekening*`, `/rekening/{id}/gambar` |
 | Penghuni & kontrak | 9 | `/penghuni*`, `/kontrak*` |
 | Tagihan | 8 | `/tagihan*` |
 | Pembayaran | 5 | `/pembayaran*` |
 | Laporan | 3 | `/tunggakan`, `/rekap`, `/audit-log` |
+| Ekspor | 3 | `/ekspor/*` |
 | Usulan | 3 | `/usulan*` |
 | Pengelola | 6 | `/pengelola*` |
-| Portal penghuni | 4 | `/penghuni/tagihan`, `/penghuni/aturan`, `/penghuni/rekening`, `/tagihan/{id}/bayar-daring` |
+| Portal penghuni | 5 | `/penghuni/tagihan`, `/penghuni/aturan`, `/penghuni/rekening`, `/penghuni/kontrak`, `/tagihan/{id}/bayar-daring` |
 | Notifikasi | 5 | `/notifikasi*`, `/pengaturan-notifikasi` |
-| Infrastruktur | 2 | `/health` (§3.1), `/pemilik/saja` |
+| Infrastruktur | 3 | `/health` (§3.1), `/pemilik/saja`, `/penyiapan` (§5.5) |
 | Webhook gateway | 1 | `/webhook/midtrans` (§8.0.1) |
-| **Total** | **80** | |
+| **Total** | **86** | |
 
 ---
 

@@ -15,7 +15,7 @@ Versi 1.0 · 26 Oktober 2026 · Status: diserahkan
 Aplikasi web untuk pemilik kos kecil (5-30 kamar) mengelola kamar, penghuni,
 tagihan, dan pembayaran. Dibangun sebagai tugas besar mata kuliah Rekayasa
 Perangkat Lunak: Laravel 12.70.1 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah
-Docker Compose untuk menjalankan, 792 tes PHP dan 29 skrip uji untuk
+Docker Compose untuk menjalankan, 799 tes PHP dan 28 skrip uji untuk
 menjaganya. Yang membedakannya dari aplikasi sejenis: **setiap kos boleh punya
 cara kerja sendiri** — satuan sewa, jatuh tempo, dan bentuk dendanya dipilih dari
 menu, bukan dipaksa mengikuti satu pola.
@@ -88,7 +88,7 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 
 | Hal | Angka |
 |---|---|
-| Endpoint API | **85** |
+| Endpoint API | **86** |
 | Tabel (di luar infrastruktur Laravel) | **23** (32 di skema `public`) |
 | Migrasi | **41** |
 | Model Eloquent | **21** |
@@ -107,7 +107,7 @@ Seluruh rangkaian browser: **SEMUA LULUS (576 detik)** di laptop.
 > **Angka-angka ini punya cara diperiksa, dan cara itu ada di repo.** Sebelum
 > fase terakhir, tabel ini tertinggal jauh (71 endpoint, 22 tabel, 36 migrasi,
 > 748 tes) karena diketik tangan. Yang benar sekarang dibaca dari sumbernya:
-> `node docs/akademik/build-dokumen.js` mencetak `85 endpoint · 23 tabel`, dan
+> `node docs/akademik/build-dokumen.js` mencetak `86 endpoint · 23 tabel`, dan
 > `php artisan test` mencetak jumlah tesnya. Jangan mengetik ulang angkanya -
 > angka yang diketik akan tertinggal lagi.
 
@@ -163,9 +163,9 @@ Diurutkan menurut **risiko**, bukan kemudahan.
 |---|---|---|
 | **Produksi belum ada** (LANGKAH 11) | Tertinggi — seluruh klaim "siap produksi" belum terbukti | Butuh akun Render/Neon/domain |
 | **Midtrans belum diuji sungguhan** | Tinggi — alur pembayaran gateway hanya diuji dengan payload tiruan | Belum ada akun sandbox |
-| **Backup tidak terjadwal** | Tinggi — backup hanya terjadi kalau ada yang mengingat | Render gratis tanpa proses latar |
+| **Backup terjadwal, tetapi tidak tahan redeploy** | Tinggi — penjadwal ada (`kos:backup` 02:00 WIB), tetapi container Render gratis tidur dan disk-nya hilang saat redeploy | Butuh storage luar dan pemicu eksternal |
 | **Backup di disk tidak persisten** | Tinggi — backup hilang saat redeploy | Butuh storage luar |
-| **Penerbitan tagihan tidak terjadwal** | Sedang — pemilik harus menekan tombol tiap bulan | Tanpa cron |
+| **Penerbitan tagihan terjadwal, tetapi bisa tidak berbunyi** | Sedang — `schedule:work` berjalan di container, tetapi container tidur setelah 15 menit tanpa lalu lintas | Pemicu eksternal; lihat `11_AUDIT-PRODUKSI-2.md` A3 |
 | **Antrean email** | Sedang — 30 penghuni = 30 pengiriman berurutan | Tanpa worker persisten |
 | ~~**Deposit tidak dipakai**~~ | ~~Sedang — dibaca saat kontrak, lalu tidak pernah dipakai~~ | **Sudah ditutup.** Deposit dihapus seluruhnya di fase terakhir: kolom `kontrak.deposit`, tipe kebijakan `deposit`, dan seluruh alurnya. Kolom yang menyimpan angka tanpa akibat membuat orang mengira uangnya terjaga |
 | ~~**E2E menggantung di CI**~~ | ~~Sedang - CI tidak membuktikan frontend~~ | **Sudah ditutup.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip (34-41 dtk), sehingga E2E tidak pernah berjalan. Kini seluruh 28 skrip terdaftar di gate lulus di runner; `continue-on-error` dicabut |
@@ -247,8 +247,8 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 ├── 3_ARCHITECTURE.md     Lapisan, 9 keputusan besar + alternatif yang ditolak
 ├── 4_AGENTS.md           Cara mengubah kode tanpa merusak apa pun
 ├── 5_SCHEMAS.md          23 tabel, CHECK, indeks, trigger (dari DB nyata)
-├── 6_TOOLS_CONTRACTS.md  85 endpoint, middleware, bentuk request/response
-├── 7_TESTING_EVALS.md    792 tes, 29 skrip, prinsip "buktikan bisa gagal"
+├── 6_TOOLS_CONTRACTS.md  86 endpoint, middleware, bentuk request/response
+├── 7_TESTING_EVALS.md    799 tes, 28 skrip, prinsip "buktikan bisa gagal"
 └── 8_OPERATIONS_SOP.md   Deploy, backup, pemulihan, insiden, batas gratis
 ```
 
@@ -259,7 +259,7 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 | `AGENTS.md` | Pintu masuk singkat untuk agen; menunjuk ke `4_AGENTS.md` |
 | `SPEC.md` | Spesifikasi 42 KB; sumber kebenaran aturan bisnis |
 | `docs/utang-teknis.md` | Register utang teknis — **baca ini sebelum mengeluh** |
-| `docs/uji/README.md` | Katalog 29 skrip uji dan jebakannya |
+| `docs/uji/README.md` | Katalog 28 skrip uji dan jebakannya |
 | `docs/ci-cd.md` | Tiga workflow, rinci |
 | `docs/dfd/` | Diagram alir data dan kamus data |
 | `docs/charter/` | Project Charter (docx + pdf) |

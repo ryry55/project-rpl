@@ -142,3 +142,8 @@ for (const b of baris) {
 }
 console.log('')
 console.log(adaBeda ? 'ADA ANGKA YANG BEDA' : 'SEMUA ANGKA COCOK')
+
+// Exit code, bukan hanya cetakan. Gerbang menilai langkah ini dari kode keluar;
+// sebelum ini skrip selalu keluar 0, sehingga `periksa.ps1`/`periksa.sh` dan CI
+// melaporkan "angka dokumen cocok" berapa pun temuannya.
+if (adaBeda) process.exitCode = 1

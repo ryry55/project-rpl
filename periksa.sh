@@ -201,11 +201,28 @@ fi
 # --- 6. Kesesuaian dokumen --------------------------------------------------
 # Angka di dokumen dibaca dari sumbernya, bukan diketik. Dua pemeriksa ini
 # menutup celah yang sudah benar-benar terjadi: `KONTEKS_PROYEK.md` sempat
-# menyebut 71 endpoint padahal aplikasinya 85, dan tiga judul bagian di
+# menyebut 71 endpoint padahal aplikasinya 86, dan tiga judul bagian di
 # `6_TOOLS_CONTRACTS.md` salah jumlah. Keduanya butuh hitungan detik, bukan
 # menit, dan tidak butuh aplikasi hidup.
 if [ "$HANYA_E2E" -eq 0 ]; then
     judul 'Kesesuaian dokumen'
+
+    # Potret rute adalah SUMBER angka endpoint untuk pemeriksa di bawah. Tanpa
+    # langkah ini, gerbang memeriksa dokumen terhadap potret yang bisa basi -
+    # endpoint baru lolos tanpa ada yang tahu. Itu pernah terjadi: `GET
+    # /api/penghuni/kontrak` hidup di aplikasi tetapi tidak pernah masuk potret.
+    #
+    # Ditulis ke berkas sementara lalu dipindahkan: bila docker gagal, potret
+    # lama tidak terpotong menjadi berkas kosong.
+    rute_sementara="$(mktemp)"
+    docker compose exec -T api php artisan route:list --json --path=api > "$rute_sementara" 2>/dev/null
+    kode=$?
+    if [ "$kode" -eq 0 ] && [ -s "$rute_sementara" ]; then
+        mv "$rute_sementara" docs/akademik/rute-api.json
+    else
+        rm -f "$rute_sementara"
+    fi
+    catat 'potret rute disegarkan dari aplikasi' "$([ "$kode" -eq 0 ] && echo 0 || echo 1)"
 
     keluaran_angka="$(node docs/uji/cek-angka-dokumen.js 2>&1)"
     kode=$?

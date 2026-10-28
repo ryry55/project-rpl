@@ -30,7 +30,7 @@ Berkas: `01-use-case.svg` (vektor) dan `01-use-case.png` (2x, siap tempel).
 ## 3. Daftar 14 Use Case dan Endpoint Pendukungnya
 
 Setiap use case menunjuk minimal satu endpoint nyata. Pemetaannya
-**tertutup**: 85 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
+**tertutup**: 86 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
 ada satu pun yang dipakai dua use case. `build.js` memeriksa ketiga hal itu
 dan gagal bila tidak terpenuhi.
 
@@ -48,7 +48,7 @@ dan gagal bila tidak terpenuhi.
 | **UC-10** | Laporan Rekap Pendapatan, Tunggakan & Jejak Audit | `rekap.index`<br>`tunggakan.index`<br>`audit-log.index`<br>`ekspor.rekap`<br>`ekspor.tunggakan`<br>`ekspor.pembayaran` |
 | **UC-11** | Kelola Preferensi Akun, Notifikasi & Hak Data Pribadi | `notifikasi.index`<br>`notifikasi.baca-semua`<br>`notifikasi.baca`<br>`pengaturan-notifikasi.show`<br>`pengaturan-notifikasi.update`<br>`api.persetujuan-pdp`<br>`pdp.data-saya`<br>`pdp.hapus-saya` |
 | **UC-12** | Kelola Akun Pengelola & Wewenang | `pengelola.index`<br>`pengelola.store`<br>`pengelola.show`<br>`pengelola.update`<br>`pengelola.destroy`<br>`pengelola.kirim-ulang-aktivasi` |
-| **UC-13** | Portal Penghuni | `penghuni.tagihan`<br>`penghuni.aturan`<br>`penghuni.rekening`<br>`tagihan.show`<br>`tagihan.denda`<br>`tagihan.bayar-daring` |
+| **UC-13** | Portal Penghuni | `penghuni.tagihan`<br>`penghuni.aturan`<br>`penghuni.rekening`<br>`penghuni.kontrak`<br>`tagihan.show`<br>`tagihan.denda`<br>`tagihan.bayar-daring` |
 | **UC-14** | Kelola Rekening Tujuan Pembayaran, Status Penyiapan & Diagnostik Sistem | `rekening.index`<br>`rekening.store`<br>`rekening.update`<br>`rekening.destroy`<br>`rekening.gambar`<br>`penyiapan.index`<br>`api.health`<br>`api.pemilik-saja` |
 
 ## 4. Matriks Hak Akses Aktor
@@ -77,7 +77,7 @@ dan begitu pula sebaliknya.
 - **(c) UC-14** — pengelola hanya membaca daftar rekening; menulis rekening
   khusus pemilik karena nomor rekening adalah alamat uang masuk.
 
-- **(d) UC-13** — empat endpoint `/penghuni/*` dan `POST
+- **(d) UC-13** — lima endpoint `/penghuni/*` dan `POST
   /api/tagihan/{tagihan}/bayar-daring` bergerbang `peran:penghuni`, sehingga
   UC-13 utuh hanya milik penghuni. Dua endpoint baca di dalamnya — `GET
   /api/tagihan/{tagihan}` dan `GET /api/tagihan/{tagihan}/denda` — hanya

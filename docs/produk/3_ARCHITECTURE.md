@@ -80,13 +80,16 @@ return (new TagihanResource($hasil->tagihan))->response()->setStatusCode(201);
 | `Billing/` | Hitung dan terbitkan tagihan, denda, tunggakan, pembatalan, pemaafan | `Kalkulator`, `PenghitungDenda`, `PenerbitTagihan`, `DaftarTunggakan`, `PembatalTagihan`, `PemaafDenda` |
 | `Kebijakan/` | Kebijakan kos: satuan sewa, jatuh tempo, denda | `PenyelesaiKebijakan`, `PilihanKebijakan` |
 | `Persetujuan/` | Usulan perubahan dan pemutusnya | `PengajuUsulan`, `PemutusUsulan`, `PenerapPerubahan` |
-| `Pembayaran/` | Catat, balik, dan verifikasi pembayaran; rekap | `PencatatPembayaran`, `PembalikPembayaran`, `PencatatVerifikasi`, `RekapPendapatan` |
+| `Pembayaran/` | Catat, balik, dan verifikasi pembayaran; rekap; gerbang bayar daring | `PencatatPembayaran`, `PembalikPembayaran`, `PencatatVerifikasi`, `RekapPendapatan`, `MidtransGateway` |
 | `Akun/` | Aktivasi, tautan, pembatas masuk | `PembuatAkun`, `TautanAkun`, `PembatasMasuk` |
 | `Notifikasi/` | Peristiwa, surat, penerima | `Pemberitahu`, `Penerima`, `PengaturanKanal` |
 | `Audit/` | Jejak audit | `PencatatAudit`, `NilaiLama` |
 | `Akses/` | Daftar wewenang | `Wewenang` |
 | `Pdp/` | Hak subjek data | `LayananPdp` |
 | `Tarif/` | Pencarian tarif berlaku | `PencariTarif` |
+| `Laporan/` | Ekspor CSV dari data yang sama dengan layar laporan | `EksporCsv` |
+| `Penyiapan/` | Status kesiapan kos dipakai (gerbang "lengkapi dulu") | `StatusPenyiapan` |
+| `Rekening/` | Penyimpanan gambar QRIS di kolom basis data | `PenyimpanGambarQris`, `GambarQrisDitolak` |
 
 **Kenapa kelas domain, bukan service besar atau model gemuk.**
 
@@ -390,7 +393,7 @@ dibatasi adalah tebakan, bukan pemakaian.
 
 | Tidak ada | Alasan | Rencana |
 |---|---|---|
-| Penerbitan tagihan terjadwal | Render gratis tanpa cron yang andal | Utang teknis |
+| ~~Penerbitan tagihan terjadwal~~ | ~~Render gratis tanpa cron yang andal~~ | **Sudah ada** (`schedule:work` di supervisord, tanggal 1 pukul 00:10 WIB). Batasnya: container gratis tidur, jadi ia bisa tidak berbunyi — dicatat di `11_AUDIT-PRODUKSI-2.md` A3 |
 | Antrean email | Tanpa worker persisten | Utang teknis |
 | ~~Tombol pembalik di layar~~ | ~~Endpoint `POST /pembayaran/{id}/pembalik` sudah ada sejak R2, tetapi belum ada tombolnya~~ | **Sudah ditutup (fase terakhir).** Panel rincian tagihan kini punya tombol **Tarik kembali** beserta formulir alasan wajib; `TagihanResource` mengirim `adalah_pembalik`/`sudah_dibalik` supaya layar tahu baris mana yang sudah ditarik. Dijaga `uji-pembalik.mjs` (13 langkah) |
 | Uji aksesibilitas otomatis | Waktu | Utang teknis |
@@ -406,7 +409,7 @@ penutupan. Daftar yang tidak dicatat akan terlupakan.
 
 ```
 api/
-  app/Domain/            52 kelas, 11 folder - semua aturan
+  app/Domain/            52 kelas, 13 folder - semua aturan
   app/Http/Controllers/  26 pengendali — hanya menerjemahkan
   app/Http/Middleware/   6 middleware
   app/Http/Requests/     validasi

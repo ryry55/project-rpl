@@ -21,7 +21,7 @@
  *   2. Setiap use case menunjuk minimal satu endpoint yang benar-benar ada.
  *      Use case tanpa endpoint adalah karangan.
  *   3. Satu endpoint hanya boleh menjadi dasar satu use case, supaya
- *      penghitungan 85 endpoint bisa ditutup tanpa sisa dan tanpa dobel.
+ *      penghitungan 86 endpoint bisa ditutup tanpa sisa dan tanpa dobel.
  *   4. Keanggotaan aktor diturunkan dari middleware, bukan diketik bebas:
  *      hanya endpoint bergerbang (`peran:` atau `wewenang:`) yang menentukan
  *      siapa pemilik use case. Endpoint yang hanya memakai `auth:sanctum`
@@ -338,17 +338,18 @@ const USE_CASE = [
     kode: 'UC-13',
     nama: 'Portal Penghuni',
     ringkas: 'Portal Penghuni',
-    deskripsi: 'Menyajikan tagihan, denda, aturan, dan rekening tujuan transfer milik penghuni sendiri, serta membuka tautan bayar daring.',
+    deskripsi: 'Menyajikan kontrak sewa, tagihan, denda, aturan, dan rekening tujuan transfer milik penghuni sendiri, serta membuka tautan bayar daring.',
     endpoint: [
       'penghuni.tagihan',
       'penghuni.aturan',
       'penghuni.rekening',
+      'penghuni.kontrak',
       'tagihan.show',
       'tagihan.denda',
       'tagihan.bayar-daring',
     ],
     gerbang:
-      'Empat endpoint `/penghuni/*` dan `bayar-daring` bergerbang ' +
+      'Lima endpoint `/penghuni/*` dan `bayar-daring` bergerbang ' +
       '`peran:penghuni`, dan itulah yang menentukan keanggotaan aktor: hanya ' +
       'penghuni. Dua endpoint baca di dalamnya hanya memakai `auth:sanctum` ' +
       'dan dipakai bersama ketiga peran lewat scope `Tagihan::terlihatOleh` ' +
@@ -460,7 +461,7 @@ const CATATAN_MATRIKS = [
     kode: 'd',
     uc: 'UC-13',
     teks:
-      'empat endpoint `/penghuni/*` dan `POST /api/tagihan/{tagihan}/bayar-daring` ' +
+      'lima endpoint `/penghuni/*` dan `POST /api/tagihan/{tagihan}/bayar-daring` ' +
       'bergerbang `peran:penghuni`, sehingga UC-13 ' +
       'utuh hanya milik penghuni. Dua endpoint baca di dalamnya — `GET ' +
       '/api/tagihan/{tagihan}` dan `GET /api/tagihan/{tagihan}/denda` — hanya ' +

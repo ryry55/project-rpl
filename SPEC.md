@@ -533,7 +533,7 @@ di §6 sebagai `tanggal, jumlah, metode, bukti, dicatat_oleh`:
 ## 7. Permukaan API
 
 Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
-Daftar lengkap **85 endpoint**; rincian bentuk request/response ada di
+Daftar lengkap **86 endpoint**; rincian bentuk request/response ada di
 `docs/produk/6_TOOLS_CONTRACTS.md`.
 
 ### 7.1 Autentikasi, akun, dan PDP
@@ -568,6 +568,7 @@ Daftar lengkap **85 endpoint**; rincian bentuk request/response ada di
 | POST/PUT/DELETE | `/aturan[/{aturan}]` | `wewenang:kelola_kamar` |
 | GET | `/rekening` | `peran:pemilik,pengelola` |
 | POST/PUT/DELETE | `/rekening[/{rekening}]` | `peran:pemilik` |
+| GET | `/rekening/{rekening}/gambar` | `auth` (penghuni hanya rekening aktif) |
 | GET/POST | `/penghuni` | `peran:pemilik,pengelola` / `wewenang:kelola_penghuni` |
 | GET/PUT | `/penghuni/{penghuni}` | `peran:pemilik,pengelola` / `wewenang:kelola_penghuni` |
 | POST | `/penghuni/{penghuni}/kirim-ulang-aktivasi` | `wewenang:kelola_penghuni` |
@@ -594,7 +595,10 @@ Daftar lengkap **85 endpoint**; rincian bentuk request/response ada di
 | POST | `/pembayaran/{pembayaran}/verifikasi` | `wewenang:verifikasi_pembayaran` |
 | GET | `/tunggakan` | `peran:pemilik,pengelola` |
 | GET | `/rekap` | `peran:pemilik` |
-| GET | `/audit-log` | `peran:pemilik` |
+| GET | `/ekspor/pembayaran` | `peran:pemilik,pengelola` |
+| GET | `/ekspor/tunggakan` | `peran:pemilik,pengelola` |
+| GET | `/ekspor/rekap` | `peran:pemilik` |
+| GET | `/audit-log` | `wewenang:baca_audit` |
 
 ### 7.4 Usulan, pengelola, notifikasi, portal
 
@@ -613,6 +617,10 @@ Daftar lengkap **85 endpoint**; rincian bentuk request/response ada di
 | GET | `/penghuni/tagihan` | `peran:penghuni` |
 | GET | `/penghuni/aturan` | `peran:penghuni` |
 | GET | `/penghuni/rekening` | `peran:penghuni` |
+| GET | `/penghuni/kontrak` | `peran:penghuni` |
+| POST | `/tagihan/{tagihan}/bayar-daring` | `peran:penghuni` |
+| GET | `/penyiapan` | `peran:pemilik,pengelola` |
+| POST | `/webhook/midtrans` | publik (tanda tangan SHA512) |
 | GET | `/health` | publik |
 | GET | `/pemilik/saja` | `peran:pemilik` |
 
@@ -621,7 +629,8 @@ disaring scope `Tagihan::terlihatOleh`: pemilik dan pengelola melihat semuanya, 
 miliknya, dan id milik orang lain dijawab **404 yang tidak bisa dibedakan** dari id yang tidak ada.
 
 **Urutan pendaftaran rute ikut menentukan perilaku.** Laravel mencocokkan rute sesuai urutan
-deklarasi, jadi `/penghuni/tagihan`, `/penghuni/aturan`, dan `/penghuni/rekening` harus didaftarkan
+deklarasi, jadi `/penghuni/tagihan`, `/penghuni/aturan`, `/penghuni/rekening`, dan
+`/penghuni/kontrak` harus didaftarkan
 **sebelum** `apiResource('penghuni')` — kalau tidak, "tagihan" ditangkap sebagai `{penghuni}` dan
 PostgreSQL menolaknya dengan `22P02`. Kelas kesalahan yang sama sudah dua kali terjadi
 (`/tagihan/terbitkan` di T4).
@@ -695,7 +704,7 @@ menekan satu per satu.
 
 **Selesai di T4.** `PenerbitanMassal` + `POST /tagihan/terbitkan` + `tagihan:terbitkan`;
 `PenerbitanMassalTest` (17 tes) dan `PenerbitanBalapanTest` (3 tes invarian); balapan sungguhan
-diuji lewat dua permintaan HTTP paralel di `docs/uji/uji-balapan-t4.mjs` (9/9). Respons juga
+diuji lewat dua permintaan HTTP paralel di `docs/uji/uji-balapan-t4.mjs` (10/10). Respons juga
 memisahkan `dilewati_duplikat` dari `dilewati`, dan tiap tagihan yang terbit menulis `log_audit`.
 
 ### US-5 — Mencatat pembayaran (T5)
@@ -710,7 +719,7 @@ Sebagai pemilik, saya ingin mencatat uang yang saya terima, supaya status tagiha
 
 **Selesai di T5.** `PencatatPembayaran` + `POST /tagihan/{id}/pembayaran` + tabel `pembayaran`
 append-only; `PembayaranTest` (26 tes, 113 asersi). Dua pembayaran serentak diuji lewat permintaan
-HTTP paralel di `docs/uji/uji-balapan-t5.mjs` (11/11): yang kalah menerima 422 dengan pesan
+HTTP paralel di `docs/uji/uji-balapan-t5.mjs` (12/12): yang kalah menerima 422 dengan pesan
 *"sisa tagihan Rp 500.000"* — angka itu hanya bisa muncul kalau ia menunggu transaksi pertama
 commit lalu membaca ulang, yang membuktikan `FOR UPDATE` benar-benar bekerja. Kolom `total_final`
 ditambahkan supaya angka `total`, `dibayar`, dan `sisa` tidak saling bertentangan pada tagihan
@@ -758,7 +767,7 @@ Sebagai penghuni, saya ingin melihat tagihan saya sendiri, supaya saya tahu haru
 - [ ] Operasi UPDATE/DELETE langsung ke `log_audit` **ditolak** basis data
 
 **Selesai di T9.** `Tagihan::scopeTerlihatOleh` + `PortalPenghuniController` + `AuditLogController`;
-`IsolasiDanAuditTest` (18 tes, 65 asersi) dan `docs/uji/e2e-t9.mjs` (23/23). Isolasi ditulis sebagai
+`IsolasiDanAuditTest` (18 tes, 65 asersi) dan `docs/uji/e2e-t9.mjs` (26/26). Isolasi ditulis sebagai
 scope di model, bukan `if` di tiap controller: aturan yang disalin ke setiap endpoint akan lupa
 disalin pada endpoint yang ditambahkan belakangan, dan tidak ada yang menyadarinya sampai ada yang
 membuka URL milik orang lain. `show` dan `denda` mengambil ulang barisnya lewat scope itu meskipun
@@ -825,7 +834,7 @@ Lokasi: `docs/uji/audit-ketertelusuran.md`.
 | R-05 kebijakan wajib lengkap | `KebijakanBelumLengkap` menolak `POST /tagihan` dengan 422 | `test_terbit_sebelum_kebijakan_lengkap_ditolak`, `test_terbit_sesudah_kebijakan_lengkap_berhasil` | ✅ |
 | Batas sistem: deposit | tidak ada di sistem (dihapus di fase terakhir) — **bukan** aturan R-* | `MigrasiHapusDepositTest` (5 tes), `KebijakanKosTest::test_tipe_deposit_ditolak_validasi_maupun_constraint` | ✅ |
 | R-06 tarif tidak surut | `tarif_sewa` append-only + snapshot `tarif_terpakai` | `test_tagihan_lama_tidak_berubah` | ✅ |
-| R-07 isolasi + audit | scope `Tagihan::terlihatOleh` + `log_audit` append-only (trigger basis data) | `IsolasiDanAuditTest` (18 tes): `test_penghuni_hanya_melihat_tagihannya_sendiri`, `test_penghuni_mengakses_tagihan_orang_lain_mendapat_404_bukan_403`, `test_penghuni_mengakses_denda_tagihan_orang_lain_mendapat_404`, `test_penghuni_memanggil_endpoint_pemilik_ditolak_403`, `test_update_langsung_ke_log_audit_ditolak_basis_data`, `test_delete_langsung_ke_log_audit_ditolak_basis_data`; `docs/uji/e2e-t9.mjs` (23/23) | ✅ |
+| R-07 isolasi + audit | scope `Tagihan::terlihatOleh` + `log_audit` append-only (trigger basis data) | `IsolasiDanAuditTest` (18 tes): `test_penghuni_hanya_melihat_tagihannya_sendiri`, `test_penghuni_mengakses_tagihan_orang_lain_mendapat_404_bukan_403`, `test_penghuni_mengakses_denda_tagihan_orang_lain_mendapat_404`, `test_penghuni_memanggil_endpoint_pemilik_ditolak_403`, `test_update_langsung_ke_log_audit_ditolak_basis_data`, `test_delete_langsung_ke_log_audit_ditolak_basis_data`; `docs/uji/e2e-t9.mjs` (26/26) | ✅ |
 
 Status: ⏳ belum, ✅ selesai, ⚠ sebagian, ⏸ ditunda.
 
