@@ -10,6 +10,11 @@ ini selesai.
 
 ---
 
+> **Tidak dipakai sejak 29 Oktober 2026.** Pemilik membatalkan deploy: penilaian
+> dan demo cukup dari laptop lewat `docker compose`. Dokumen ini disimpan sebagai
+> rujukan dan sebagai bukti bahwa langkahnya pernah disiapkan — jangan dijalankan
+> tanpa membuka K-06 di `docs/keputusan-terbuka.md` lebih dulu.
+
 ## 1. Yang dibuat
 
 | Layanan | Peran | Paket |

@@ -325,6 +325,12 @@ seberapa besar kepercayaan pada hijau.
 | E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 28 skrip / 806 langkah lulus |
 | Tes komponen Vue | Tidak ada | Regresi di dalam komponen hanya tertangkap E2E |
 
+> **Sejak 29 Oktober 2026 deploy produksi dibatalkan pemilik.** Baris yang
+> menyebut Midtrans sungguhan, email Brevo, beban di Render/Neon, dan cold start
+> tidak lagi menjadi pekerjaan tertunda — tidak ada layanan yang dijalankan.
+> Batasnya tetap dicatat apa adanya, karena batas yang dihapus dari dokumen akan
+> ditemukan lagi sebagai kejutan.
+
 **E2E di CI sudah dipercaya lagi.** `continue-on-error` sudah **dicabut**;
 `timeout-minutes: 20` tetap sebagai jaring pengaman. Penyebab lamanya bukan
 E2E: `periksa.sh` ketinggalan dua skrip yang hanya ada di `periksa.ps1`,

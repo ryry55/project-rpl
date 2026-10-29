@@ -99,7 +99,11 @@ uji (memanggil uji.yml)  ->  bangun (dorong ke GHCR)  ->  staging  ->  produksi
   *gagal* (menghentikan produksi) dari staging yang *ter-skip* karena targetnya
   belum dikonfigurasi (tidak memblokir apa pun).
 
-### Mengaktifkan deploy (LANGKAH 11)
+### Mengaktifkan deploy (LANGKAH 11) — **tidak dipakai**
+
+> **Dibatalkan 29 Oktober 2026.** Pemilik memutuskan aplikasi tidak di-deploy;
+> penilaian dan demo dari laptop. Bagian ini disimpan sebagai rujukan bila
+> keputusan itu berubah, bukan sebagai pekerjaan yang menunggu.
 
 Sampai endpoint produksi dibuat, job deploy **melaporkan bahwa ia belum
 dikonfigurasi** alih-alih gagal. Workflow yang selalu merah karena rahasia yang

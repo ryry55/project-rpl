@@ -345,8 +345,8 @@ Jujur soal ini lebih berguna daripada daftar fitur.
 
 | Belum | Mengapa belum | Butuh apa |
 |---|---|---|
-| **Deploy ke hosting sungguhan** | Butuh akun pemilik | Akun Render + Neon, atau VPS |
-| **Midtrans sandbox sungguhan** | Butuh kunci asli | `MIDTRANS_SERVER_KEY` dari dashboard Midtrans |
+| **Deploy ke hosting sungguhan** | **Dibatalkan pemilik 29 Okt 2026** | Tidak ada; demo dari laptop |
+| **Midtrans sandbox sungguhan** | Ikut batal: webhook butuh HTTPS publik | Tidak ada |
 | ~~**Tagihan terjadwal otomatis**~~ | ~~Tanpa cron/worker persisten~~ | **Sudah ada** (`schedule:work` di supervisord). Batasnya container gratis yang tidur - A3 |
 | ~~**Antrean email**~~ | ~~30 penghuni = 30 pengiriman berurutan~~ | **Sudah ada (Fase 5.5):** program `antrean` di supervisord |
 | **Format laporan akhir** | Menunggu dosen | Konfirmasi format dari dosen |

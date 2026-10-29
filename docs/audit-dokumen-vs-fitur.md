@@ -213,5 +213,7 @@ dijalankan sama sekali — `supervisorctl` menjawab "does not include supervisor
 section".
 
 Yang **tidak** dikerjakan, dan alasannya: K-06 (penjadwal di dalam container
-yang bisa tidur) ditunda pemilik sampai Fase 1 berjalan; A3 tetap terbuka.
+yang bisa tidur) **ditutup 29 Oktober 2026** karena deploy dibatalkan pemilik —
+tidak ada Render, jadi tidak ada container yang tidur. A3 ikut ditutup, bukan
+diperbaiki.
 

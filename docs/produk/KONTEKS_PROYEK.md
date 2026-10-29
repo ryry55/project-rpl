@@ -138,7 +138,7 @@ Seluruh rangkaian browser: **SEMUA LULUS (576 detik)** di laptop.
 | 8 | Akun: aktivasi, lupa sandi, PDP | `3657985` |
 | 9 | CI/CD, health, backup, operasi | `b107ba7` `db0ff5a` `e6eeb4e` `f2c73f0` `173134d` |
 | 10 | Mobile + PWA | `eef7ff9` |
-| 11 | **Belum** — produksi, Neon, Render, domain | — |
+| 11 | **Dibatalkan** — deploy produksi (Neon, Render, domain) tidak dikerjakan | — |
 
 ### 6.3 Yang benar-benar berfungsi hari ini
 
@@ -161,11 +161,10 @@ Diurutkan menurut **risiko**, bukan kemudahan.
 
 | Belum | Risiko | Kenapa ditunda |
 |---|---|---|
-| **Produksi belum ada** (LANGKAH 11) | Tertinggi — seluruh klaim "siap produksi" belum terbukti | Butuh akun Render/Neon/domain |
-| **Midtrans belum diuji sungguhan** | Tinggi — alur pembayaran gateway hanya diuji dengan payload tiruan | Belum ada akun sandbox |
-| **Backup terjadwal, tetapi tidak tahan redeploy** | Tinggi — penjadwal ada (`kos:backup` 02:00 WIB), tetapi container Render gratis tidur dan disk-nya hilang saat redeploy | Butuh storage luar dan pemicu eksternal |
-| **Backup di disk tidak persisten** | Tinggi — backup hilang saat redeploy | Butuh storage luar |
-| **Penerbitan tagihan terjadwal, tetapi bisa tidak berbunyi** | Sedang — `schedule:work` berjalan di container, tetapi container tidur setelah 15 menit tanpa lalu lintas | Pemicu eksternal; lihat `11_AUDIT-PRODUKSI-2.md` A3 |
+| **Deploy produksi tidak dikerjakan** | — | **Dibatalkan pemilik 29 Oktober 2026.** Aplikasi dinilai dan didemokan dari laptop lewat `docker compose`. Kode deploy (`Dockerfile.prod`, `deploy.yml`, `supervisord.conf`) tetap di repo sebagai bukti, tidak dipakai |
+| **Midtrans hanya diuji dengan payload tiruan** | Sedang — alur gateway tidak pernah bertemu akun sungguhan | Ikut batal bersama deploy: webhook menuntut alamat HTTPS publik |
+| **Backup tidak diuji pulih** | Rendah — `kos:backup` tetap berjalan selama container hidup, tetapi belum pernah dipulihkan | Latihan restore hanya masuk akal bila ada database produksi |
+| **Penerbitan tagihan terjadwal hanya hidup selama container hidup** | Rendah | Cukup untuk demo: `docker compose up` menyalakan penjadwal. Tidak ada container yang tidur di laptop |
 | ~~**Antrean email**~~ | ~~Sedang - 30 penghuni = 30 pengiriman berurutan~~ | **Sudah ditutup (Fase 5.5):** satu `KirimPemberitahuan` per penerima, dikirim program `antrean` di supervisord |
 | ~~**Deposit tidak dipakai**~~ | ~~Sedang — dibaca saat kontrak, lalu tidak pernah dipakai~~ | **Sudah ditutup.** Deposit dihapus seluruhnya di fase terakhir: kolom `kontrak.deposit`, tipe kebijakan `deposit`, dan seluruh alurnya. Kolom yang menyimpan angka tanpa akibat membuat orang mengira uangnya terjaga |
 | ~~**E2E menggantung di CI**~~ | ~~Sedang - CI tidak membuktikan frontend~~ | **Sudah ditutup.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip (34-41 dtk), sehingga E2E tidak pernah berjalan. Kini seluruh 28 skrip terdaftar di gate lulus di runner; `continue-on-error` dicabut |

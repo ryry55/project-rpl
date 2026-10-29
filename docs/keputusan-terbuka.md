@@ -184,17 +184,17 @@ tertulis di dokumen uji.
 
 ---
 
-## K-06 — A3: tagihan terjadwal di container yang bisa tidur — ditunda
+## K-06 — A3: tagihan terjadwal di container yang bisa tidur — ditutup
 
 **Fase:** audit ulang · **Tanggal:** 29 Oktober 2026
 
-**Jawaban (29 Oktober 2026). Ditunda, belum dipilih.** Pemilik memilih
-menunggu sampai Fase 1 (Render + Neon) berjalan, karena pilihan A, B, dan C
-semuanya bergantung pada bentuk layanan yang benar-benar dipakai. Tidak ada
-kode yang berubah; A3 tetap terbuka di `11_AUDIT-PRODUKSI-2.md`, dan
-`9_DEPLOY.md` tetap memakai penjadwal di dalam container. Yang harus diputuskan
-sebelum kos dipakai sungguhan: apakah tagihan boleh bergantung pada kontainer
-yang tidak tidur (B), pada layanan luar (A), atau pada ingatan pemilik (C).
+**Jawaban (29 Oktober 2026). Ditutup, bukan dijawab.** Pemilik memutuskan
+aplikasi **tidak di-deploy**: penilaian dan demo cukup dari laptop lewat
+`docker compose`. Karena tidak ada Render dan tidak ada container yang tidur,
+pertanyaan "pinger, plan berbayar, atau terbit manual" tidak punya objek lagi.
+A3 ditutup di `11_AUDIT-PRODUKSI-2.md`, dan Fase 1–2, 3.1/3.2/3.4, serta 4.3
+ditandai batal di `10_RENCANA-PERBAIKAN.md`. Bila pemilik berubah pikiran,
+entri ini dibuka kembali **sebelum** deploy, bukan sesudah.
 
 **Pertanyaan.** Penjadwal di dalam container hanya hidup selama container
 hidup; di Render gratis ia tidur setelah tanpa lalu lintas, jadi tagihan bulanan
@@ -216,4 +216,8 @@ jalan) dan perilaku yang dilihat pengguna (penanda dasbor).
 
 **Kalau tidak dijawab.** Tidak ada perubahan; A3 tetap terbuka dan deploy
 memakai B sementara bila plan berbayar dipilih saat mendaftar Render.
+
+> **Ditutup 29 Oktober 2026.** Deploy dibatalkan pemilik, jadi tidak ada
+> container yang bisa tidur. Jawaban lengkap ada di atas; pilihan A/B/C di
+> bawah disimpan sebagai riwayat bila keputusan itu berubah.
 

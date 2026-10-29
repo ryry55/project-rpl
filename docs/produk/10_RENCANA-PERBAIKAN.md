@@ -112,7 +112,15 @@ adalah "apakah orangnya tahu harus mulai dari mana".
 
 ---
 
-## FASE 1 — Deploy sungguhan ke Render + Neon (1 hari, butuh akun)
+> **FASE 1, FASE 2, 3.1, 3.2, 3.4, dan 4.3 DIBATALKAN 29 Oktober 2026.**
+> Pemilik memutuskan aplikasi **tidak di-deploy**: penilaian dan demo cukup dari
+> laptop lewat `docker compose`. Kode deploy tetap ada di repo sebagai bukti
+> kerja, tetapi tidak ada akun Render/Neon/domain, tidak ada transaksi Midtrans
+> sungguhan, dan tidak ada container yang bisa tidur — jadi K-06 (A3) tidak lagi
+> punya pertanyaan. Bagian di bawah disimpan apa adanya sebagai rujukan kalau
+> keputusan itu berubah.
+
+## FASE 1 — Deploy sungguhan ke Render + Neon (1 hari, butuh akun) — **DIBATALKAN**
 
 Ini bukan pekerjaan kode. Ini **pengujian yang belum pernah dijalankan**, dan
 justru di sinilah dua bug terbesar bersembunyi.
@@ -136,7 +144,7 @@ sungguhan (bukan perkiraan 50 detik) setelah diukur.
 
 ---
 
-## FASE 2 — Uang sungguhan: Midtrans (1–2 hari, butuh kredensial)
+## FASE 2 — Uang sungguhan: Midtrans (1–2 hari, butuh kredensial) — **DIBATALKAN**
 
 | # | Pekerjaan | Bukti |
 |---|---|---|
@@ -172,8 +180,9 @@ rusak?" tanpa mengandalkan ingatan.
 **Status 29 Oktober 2026.** 3.3 **selesai** (`log_audit` aksi `email.gagal`,
 dijaga satu tes yang terbukti bisa gagal). 3.5 **sudah bersih** — diperiksa
 langsung di basis data demo: `users` hanya berisi tiga akun demo, tidak ada
-`bayar-*@kos.test`. 3.1 menunggu layanan pemantau, 3.2 menunggu keputusan A3
-(K-06), 3.4 menunggu Neon.
+`bayar-*@kos.test`. 3.1, 3.2, dan 3.4 **dibatalkan** bersama deploy: pemantau
+uptime, penanda periode, dan latihan restore hanya bermakna bila ada layanan
+yang berjalan terus.
 
 ---
 
@@ -192,18 +201,18 @@ langsung di basis data demo: `users` hanya berisi tiga akun demo, tidak ada
 **Status 29 Oktober 2026.** 4.1, 4.2, 4.4, 4.5, 4.7 **selesai**, semuanya
 diperiksa pada image produksi sungguhan, bukan pada konfigurasi laptop. 4.6
 sudah tertutup sejak Fase 0 (`uji-proxy.mjs`: 25 IP berbeda → 25×200, satu IP →
-429 di percobaan ke-21). 4.3 **belum**: menegakkan CSP menuntut satu minggu
-laporan lebih dulu, dan domain Midtrans harus masuk `script-src`/`frame-src`
-bila kelak dipakai lewat Snap di dalam halaman.
+429 di percobaan ke-21). 4.3 **dibatalkan** bersama deploy: menegakkan CSP
+menuntut seminggu laporan dari layanan sungguhan, dan tidak ada layanan yang
+dijalankan. `Report-Only` + kolektornya tetap terpasang sebagai bukti kerja.
 
 4.7 dikerjakan karena 4.3 tidak bisa dijalankan tanpanya: `Report-Only` tanpa
 `report-uri` hanya menulis ke konsol pengguna, sehingga "seminggu laporan
 bersih" tidak akan pernah bisa diperiksa dari sini. Kolektornya
 `POST /csp-laporan` (`CspLaporanController`, `throttle:30,1`), menulis satu baris
 log berawalan `csp.lapor`, dan sengaja **di luar `/api/`** supaya kontrak 86
-endpoint tidak berubah. Yang harus dilakukan pemilik setelah aplikasi hidup:
-cari `csp.lapor` di log Render selama seminggu; kalau kosong atau hanya berisi
-`blocked-uri: inline`, naikkan ke menegakkan.
+endpoint tidak berubah. Catatan lama di sini berbunyi "yang harus dilakukan
+pemilik setelah aplikasi hidup: cari `csp.lapor` selama seminggu" — itu batal
+bersama deploy. Kolektornya tetap ada dan tetap diuji.
 
 ---
 
@@ -253,10 +262,10 @@ memasang header keamanan pada layanan yang belum ada.
 
 | Keputusan | Mengapa harus Anda |
 |---|---|
-| Pinger vs cron vs manual (A3) | Menyangkut kuota dan kebiasaan operasional Anda |
-| Domain `.my.id` mana yang dipakai | Menentukan `APP_URL`, SPF/DKIM, dan tautan email |
-| Naik paket Brevo atau tidak (B3) | Menyangkut biaya |
-| Apakah Midtrans langsung produksi atau sandbox dulu | Menyangkut risiko uang sungguhan |
+| ~~Pinger vs cron vs manual (A3)~~ | **Tidak berlaku** — deploy dibatalkan 29 Okt 2026 |
+| ~~Domain `.my.id` mana yang dipakai~~ | **Tidak berlaku** — tidak ada domain |
+| ~~Naik paket Brevo atau tidak (B3)~~ | **Tidak berlaku** — email hanya lewat Mailpit |
+| ~~Midtrans langsung produksi atau sandbox dulu~~ | **Tidak berlaku** — gateway hanya diuji dengan payload tiruan |
 
 Sisanya pekerjaan teknis yang bisa saya kerjakan.
 

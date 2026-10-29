@@ -6,8 +6,8 @@
 >
 > **Maksimal 120 baris.** Kalau lebih, isinya sudah menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: Fase 5 (5.1 navigasi bawah, 5.4 pesan Indonesia, 5.5 antrean
-email) + K-05 opsi C — 29 Oktober 2026
+Terakhir diperbarui: deploy dibatalkan pemilik (29 Oktober 2026), sesudah Fase 5
+(5.1 navigasi bawah, 5.4 pesan Indonesia, 5.5 antrean email) + K-05 opsi C
 
 ---
 
@@ -27,18 +27,23 @@ Catatan: `POST /csp-laporan` **tidak** masuk hitungan 86 endpoint - ia di luar
 
 ## 2. Tiga aksi berikutnya
 
-1. **Fase 1: Render + Neon.** Butuh akun pemilik: `RENDER_DEPLOY_HOOK`,
-   `APP_URL`, environment GitHub `staging`/`production`. Rincian: `9_DEPLOY.md`.
-   Setelah itu barulah K-06 (A3) bisa diputuskan.
-2. **Verifikasi Midtrans sandbox.** Butuh `MIDTRANS_SERVER_KEY` asli. Yang sudah
-   terbukti: `item_details` terkirim (harga × jumlah = `gross_amount`).
-3. **Jawab K-06** di `docs/keputusan-terbuka.md`: penjadwal hidup di dalam
-   container, dan container Render gratis tidur. Pilihan A (cron luar), B (plan
-   berbayar), C (terbit manual + penanda dasbor). **Jangan menebak** - ketiganya
-   menyentuh uang dan perilaku yang dilihat pengguna.
+**Tidak ada pekerjaan deploy.** Pemilik membatalkan deploy 29 Oktober 2026:
+penilaian dan demo cukup dari laptop lewat `docker compose`. `9_DEPLOY.md`,
+`Dockerfile.prod`, dan `deploy.yml` tetap di repo sebagai bukti kerja, tidak
+dipakai.
 
-Sesudah aplikasi hidup: cari `csp.lapor` di log Render selama seminggu. Kalau
-kosong atau hanya `blocked-uri: inline`, naikkan CSP ke menegakkan (FASE 4.3).
+1. **Gladi demo** menurut `docs/demo-sidang.md`, dengan database segar
+   (`migrate:fresh --seed`). Siapkan jawaban jujur untuk pertanyaan "sudah
+   dipakai penghuni sungguhan?" — belum, demo lokal.
+2. **Jaga gate tetap hijau.** Setiap perubahan kode lewat `periksa.ps1`; angka di
+   dokumen hanya diubah sesudah gate, karena jumlah tes dan langkah E2E hanya
+   diketahui dari keluarannya.
+3. **Bila pemilik berubah pikiran soal deploy**, buka K-06 dulu (ia ditutup,
+   bukan dijawab), lalu mulai dari Fase 1 di `10_RENCANA-PERBAIKAN.md`.
+
+Yang **tidak** dikerjakan dan tidak akan ditawarkan lagi: Render/Neon, Midtrans
+sungguhan, pinger uptime, latihan restore, verifikasi domain Brevo, domain
+`.my.id`, dan menegakkan CSP.
 
 ## 3. Yang tidak boleh diubah
 
@@ -48,7 +53,7 @@ kosong atau hanya `blocked-uri: inline`, naikkan CSP ke menegakkan (FASE 4.3).
 | Wewenang pengelola (8) dan Model A | `SPEC.md` bagian 5 |
 | Konvensi T24-T29 | `AGENTS.md` |
 | Sumber tunggal DFD / use case | `docs/dfd/dfd-data.js`, `docs/akademik/usecase-data.js` |
-| Keputusan pemilik | `docs/keputusan-terbuka.md` (K-01..K-05 `dijawab`, K-06 `ditunda`) |
+| Keputusan pemilik | `docs/keputusan-terbuka.md` (K-01..K-05 `dijawab`, K-06 `ditutup`) |
 | Langkah deploy manual | `docs/produk/9_DEPLOY.md` |
 
 **K-05 dijawab 29 Okt dengan pilihan C** (pemilik: "harus bisa diekspor"):

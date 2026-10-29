@@ -274,9 +274,10 @@ headless.
 | `deploy.yml` | `workflow_call` (dipanggil dua kali oleh `rilis.yml`) |
 
 `deploy.yml` mengeluarkan `::warning::` dan `siap=false` bila lingkungannya belum
-dikonfigurasi — bukan gagal. Alasannya: target Render/Neon belum ada sampai
-LANGKAH 11, dan pipeline yang merah karena hal yang belum ada akan diabaikan
-orang.
+dikonfigurasi — bukan gagal. Alasannya: target Render/Neon tidak ada. **Sejak
+29 Oktober 2026 deploy dibatalkan pemilik**, jadi keadaan itu permanen, bukan
+sementara: pipeline tidak akan pernah merah karena hal yang memang tidak akan
+dibuat.
 
 ### 5.2 Sebelum deploy
 
@@ -541,6 +542,11 @@ akan tahu ada yang menunggu.
 ---
 
 ## 10. Yang belum ada, dan risikonya
+
+> **Deploy dibatalkan pemilik 29 Oktober 2026.** Baris yang menyebut Render,
+> container tidur, pemicu eksternal, dan pemantauan uptime tidak lagi menjadi
+> risiko yang diterima — tidak ada layanan yang dijalankan. Tabel ini disimpan
+> apa adanya sebagai rujukan bila keputusan itu berubah.
 
 | Belum ada | Risiko yang diterima |
 |---|---|

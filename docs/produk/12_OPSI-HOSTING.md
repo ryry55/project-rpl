@@ -1,5 +1,9 @@
 # 12 - Opsi hosting: Hostinger shared vs VPS vs Render
 
+> **Tidak dipakai.** Deploy dibatalkan pemilik 29 Oktober 2026: aplikasi dinilai
+> dan didemokan dari laptop. Dokumen ini disimpan karena analisisnya berlaku
+> bila keputusan itu berubah — bukan sebagai pekerjaan yang menunggu.
+
 Dokumen ini menjawab satu pertanyaan konkret: **apakah domain dan hosting
 Hostinger yang sudah dimiliki bisa dipakai, atau harus VPS?**
 

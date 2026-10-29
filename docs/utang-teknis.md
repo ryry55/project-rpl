@@ -180,7 +180,11 @@ kondisi lama, dan tepat satu asersi menjadi merah.
 
 ---
 
-## 4. Kesiapan produksi (LANGKAH 11) — SELESAI untuk laptop, BELUM untuk Render
+## 4. Kesiapan produksi (LANGKAH 11) — diuji di laptop, deploy dibatalkan
+
+> **Keputusan 29 Oktober 2026: deploy tidak dikerjakan.** Bagian ini tetap
+> disimpan karena isinya bukti kerja, bukan janji: seluruh butir di bawah benar
+> berjalan di laptop. Yang tidak akan pernah ada adalah pembuktiannya di Render.
 
 > **Koreksi (audit putaran 2, 26 Okt 2026).** Judul bagian ini semula
 > "SELESAI, dengan tiga batas yang jujur". Kata "selesai" itu terlalu luas, dan
@@ -208,25 +212,26 @@ immutable,
 | Akun demo terbawa ke produksi | **Selesai, berlapis tiga.** Seeder menolak di `APP_ENV=production`; entrypoint memaksa `RUN_SEEDER=false`; `smoke-produksi.sh` memastikan login `pemilik@kos.test` gagal |
 | `APP_DEBUG`/`APP_DEMO_MODE`/`APP_KEY` salah | **Selesai.** Entrypoint berhenti keras. Ketiganya dibuktikan bisa gagal: masing-masing dijalankan dan keluar dengan kode 1 disertai alasannya |
 | Backup tidak terjadwal | **Selesai, dengan batas.** `kos:backup` berjalan harian 02:00 WIB lewat penjadwal. Di Render free tidak ada disk persisten, jadi hasilnya hilang saat restart — ia untuk pemulihan cepat, bukan arsip |
-| Target deploy belum ada | **Belum, dan tidak bisa dikerjakan dari sini.** Butuh akun Render + Neon. `deploy.yml` tetap melaporkan `siap=false` alih-alih gagal, dan langkah manualnya ada di `docs/produk/9_DEPLOY.md` |
-| T22 Midtrans | **Selesai, kecuali verifikasi sandbox.** Kode lengkap: `MidtransGateway` (tanda tangan SHA512, `hash_equals`, pemetaan status), `PembayaranGateway` (buat transaksi + tangani webhook), tabel `transaksi_gateway`, endpoint `POST /api/webhook/midtrans` (tanpa auth, tanda tangan sebagai satu-satunya bukti) dan `POST /api/tagihan/{id}/bayar-daring`, plus tombol "Bayar daring" di portal penghuni. 16 tes berjalan dengan kredensial palsu; tiga pengaman (tanda tangan, idempotensi, pencocokan nominal) dibuktikan bisa gagal. **Yang belum:** transaksi sungguhan ke sandbox Midtrans - butuh `MIDTRANS_SERVER_KEY` |
+| Target deploy | **Dibatalkan pemilik 29 Okt 2026.** Tidak ada Render/Neon; demo dari laptop. `deploy.yml` tetap melaporkan `siap=false` alih-alih gagal, dan `9_DEPLOY.md` disimpan sebagai rujukan |
+| T22 Midtrans | **Selesai, kecuali verifikasi sandbox — dan itu tidak akan dikerjakan.** Kode lengkap: `MidtransGateway` (tanda tangan SHA512, `hash_equals`, pemetaan status), `PembayaranGateway` (buat transaksi + tangani webhook), tabel `transaksi_gateway`, endpoint `POST /api/webhook/midtrans` (tanpa auth, tanda tangan sebagai satu-satunya bukti) dan `POST /api/tagihan/{id}/bayar-daring`, plus tombol "Bayar daring" di portal penghuni. 16 tes berjalan dengan kredensial palsu; tiga pengaman (tanda tangan, idempotensi, pencocokan nominal) dibuktikan bisa gagal. **Yang tidak akan ada:** transaksi sungguhan ke sandbox Midtrans, karena webhook butuh alamat HTTPS publik |
 
-Tiga hal di atas yang masih "belum" bukan kelalaian yang disembunyikan:
-masing-masing menunggu sesuatu yang tidak ada di repo ini (akun, kredensial,
-disk). Menulisnya sebagai selesai akan membuat audit berikutnya mencari kode
-yang tidak pernah ada.
+Dua hal di atas yang masih "belum" bukan kelalaian yang disembunyikan:
+keduanya hanya bisa ditutup dengan akun pihak ketiga, dan pemilik memutuskan
+tidak membukanya. Menulisnya sebagai selesai akan membuat audit berikutnya
+mencari kode yang tidak pernah ada; menghapusnya akan membuat keputusan itu
+hilang jejaknya.
 
 ### 4b. FASE 0 — SELESAI dan dibuktikan bisa gagal (26 Okt 2026)
 
-Empat dari lima penghalang produksi sudah ditutup. Yang **belum** hanya A3
-(penjadwal mati bersama container), dan itu memang menuntut platform yang
-benar-benar tidur.
+Empat dari lima penghalang produksi sudah ditutup. A3 (penjadwal mati bersama
+container) **ditutup 29 Okt 2026 tanpa diperbaiki**: deploy dibatalkan pemilik,
+jadi tidak ada container yang tidur.
 
 | Butir | Status | Bukti |
 |---|---|---|
 | **A1** `trustProxies` | **Selesai, DUA bagian** | `bootstrap/app.php` + `fastcgi_param` di kedua berkas nginx. `uji-proxy.mjs`: 5/5 lulus; dengan cacat disuntikkan kembali **0/5 gagal** |
 | **A2** `DB_SSLMODE` | **Selesai** | `env('DB_SSLMODE', 'prefer')`; `DB_SSLMODE=require` terbaca `require`, tanpa env tetap `prefer` |
-| **A3** penjadwal vs tidur | **Belum** | Butuh Render sungguhan. Fase 1.5 |
+| **A3** penjadwal vs tidur | **Ditutup 29 Okt 2026** | Deploy dibatalkan; tidak ada container yang tidur. Fase 1 batal |
 | **A4** `MAIL_FROM_ADDRESS` | **Selesai** | Pagar menyala (kode keluar 1) pada image produksi sungguhan; pesannya terbaca |
 | **A5** OPcache | **Selesai** | Berkas terpisah `opcache-prod.ini`; di image produksi `validate_timestamps => Off` |
 
@@ -334,13 +339,14 @@ gagal, bukan hanya "sudah ditulis".
 | **B3** email gagal hanya masuk log | `log_audit` aksi `email.gagal`, entitas `email`, memuat penerima + sebab | Asersi di `NotifikasiTest` merah bila pencatatannya dikomentari |
 | **B5** tanpa HSTS/CSP | HSTS + `Content-Security-Policy-Report-Only` di nginx produksi, **dan kolektor laporannya** | Diperiksa pada image produksi: `GET /` membawa keduanya. Kolektornya `POST /csp-laporan` (`CspLaporanController`, `throttle:30,1`), sengaja **di luar `/api/`** supaya kontrak 86 endpoint dan peta 14 use case tetap benar; `CspLaporanTest` (4 tes) merah bila daftar putih medan, pemotongan, atau pembatasnya dicabut. **Temuan samping: `add_header` nginx tidak diwarisi** oleh lokasi yang punya `add_header` sendiri, sehingga halaman utama selama ini juga kehilangan `nosniff`/`X-Frame-Options`/`Referrer-Policy`; ketiganya kini diulang di `location = /index.html` |
 
-**Yang masih terbuka dari daftar itu:** CSP belum menegakkan (kolektornya baru
-ada 29 Oktober; butuh seminggu laporan bersih sebelum `Report-Only` dicabut),
-pemantau uptime dan latihan restore Neon (butuh akun), `APP_LOCALE=id`
-(mengubah pesan galat yang dilihat pengguna, jadi menunggu keputusan), dan
-`docs/uji` beban/tiga-peran yang tetap di luar gate. Kerentanan dependensi
-ditutup 29 Oktober: `composer audit --locked` bersih setelah `symfony/mime`
-7.4.19 → 7.4.22, `npm audit --omit=dev` 0.
+**Yang masih terbuka dari daftar itu:** CSP belum menegakkan — dan sejak deploy
+dibatalkan 29 Oktober 2026, tidak akan: `Report-Only` + kolektornya tetap
+terpasang sebagai bukti kerja. Pemantau uptime dan latihan restore Neon ikut
+batal bersama deploy. `APP_LOCALE=id` **sudah selesai** 29 Oktober (Fase 5.4,
+`api/lang/id/validation.php`). Yang tetap di luar gate: uji beban dan uji
+tiga-peran di `docs/uji`. Kerentanan dependensi ditutup 29 Oktober:
+`composer audit --locked` bersih setelah `symfony/mime` 7.4.19 → 7.4.22,
+`npm audit --omit=dev` 0.
 
 **Jebakan yang menggigit saat mengerjakannya:** label saringan itu semula
 "Email **gagal** terkirim", dan `uji-galat-muat.mjs` memakai pola

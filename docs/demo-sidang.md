@@ -268,9 +268,9 @@ QRIS yang hilang lebih buruk daripada tidak ada — pemilik mengira sudah mengun
 persisten dan sudah dicadangkan.
 
 **"Apa yang belum selesai?"**
-Dua hal, dan keduanya tercatat di `docs/utang-teknis.md`: **verifikasi Midtrans sandbox**
-menunggu kunci server, dan **deploy Render/Neon** menunggu akun pemilik — termasuk
-keputusan A3 soal penjadwal di container yang bisa tidur. Antrean email sudah ditutup
+Satu hal, dan itu perintah Anda sendiri: **deploy dibatalkan 29 Oktober 2026**, jadi
+Render/Neon, Midtrans sandbox, pinger uptime, dan verifikasi Brevo tidak akan dikerjakan.
+Aplikasi dinilai dan didemokan dari laptop. Antrean email sudah ditutup
 (Fase 5.5: program `antrean` + `KirimPemberitahuan`). Uji E2E di CI **sudah hijau** —
 28 skrip / 806 langkah. Tidak ada yang disembunyikan.
 

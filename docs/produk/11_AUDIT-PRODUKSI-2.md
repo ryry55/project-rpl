@@ -24,6 +24,12 @@ diklaim selesai.
 > dengan uji yang bisa gagal.** Hanya **A3** (penjadwal vs container tidur)
 > yang masih terbuka, dan itu memang menuntut Render sungguhan.
 >
+> **Per 29 Oktober 2026 deploy dibatalkan pemilik.** Aplikasi tidak dijalankan
+> di Render/Neon, jadi **A3, B1, B2, B3, dan B5 bagian CSP menegakkan tidak
+> lagi menjadi pekerjaan tertunda** — semuanya hanya muncul pada layanan yang
+> hidup terus. Temuannya tidak dihapus: ia tetap berlaku bila keputusan itu
+> berubah, dan itulah sebabnya bagian ini disimpan utuh.
+>
 > Bukti yang dipegang, bukan sekadar klaim:
 > `docs/uji/uji-proxy.mjs` (5/5 lulus dengan perbaikan, **0/5 gagal** saat
 > cacatnya disuntikkan kembali), `docs/uji/uji-pagar-fase0.sh` (17 pemeriksaan),
@@ -243,7 +249,12 @@ temukan sendiri: **variabel yang dihormati dokumen tetapi tidak dihormati kode.*
 
 ---
 
-### A3. Penjadwal mati bersama container — tagihan tanggal 1 tidak terbit
+### A3. Penjadwal mati bersama container - tagihan tanggal 1 tidak terbit
+
+> **Ditutup 29 Oktober 2026 — bukan diperbaiki.** Deploy dibatalkan, jadi tidak
+> ada container yang tidur. `docker compose up` menyalakan penjadwal selama
+> demo, dan itu cukup untuk pemakaian yang dinilai. K-06 di
+> `keputusan-terbuka.md` ikut ditutup.
 
 **Bukti.** `docker/prod/supervisord.conf` menjalankan empat program: `php-fpm`,
 `nginx`, `penjadwal` (`php artisan schedule:work`), dan `antrean`
