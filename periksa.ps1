@@ -403,6 +403,52 @@ if (-not $Cepat) {
             'e2e-fase35.mjs'
         )
 
+        # Batas waktu per skrip. `periksa.sh` sudah memakai `timeout 240`; di
+        # sini tidak ada padanannya, sehingga satu skrip yang menggantung
+        # menahan seluruh rangkaian tanpa mencetak namanya - dan hasilnya
+        # terbaca seperti gerbang yang crash, bukan seperti "skrip X
+        # menggantung". Operator `&` di PowerShell 5.1 tidak punya batas
+        # waktu, jadi prosesnya dijalankan lewat Start-Process dan keluarannya
+        # ditangkap lewat berkas sementara supaya tetap terbaca setelah
+        # prosesnya dimatikan. 240 detik = ~3x skrip terlama (88 langkah).
+        #
+        # `KOS_BATAS_SKRIP` ada untuk membuktikan batas ini benar-benar
+        # bekerja tanpa menunggu empat menit: setel 2, jalankan satu skrip
+        # yang menggantung, dan ia harus dilaporkan GAGAL.
+        $batasSkrip = if ($env:KOS_BATAS_SKRIP) { [int]$env:KOS_BATAS_SKRIP } else { 240 }
+
+        function JalankanBerbatas([string]$berkas) {
+            # `Start-Process -PassThru` di PowerShell 5.1 mengembalikan objek
+            # yang `ExitCode`-nya KOSONG walau prosesnya sudah selesai (diuji:
+            # node keluar 3, terbaca kosong), dan kosong terbaca sebagai
+            # gagal - seluruh skrip akan dilaporkan GAGAL. ProcessStartInfo
+            # dipakai karena mengisi ExitCode dengan benar.
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName = 'node'
+            $psi.Arguments = '"' + $berkas + '"'
+            $psi.UseShellExecute = $false
+            $psi.RedirectStandardOutput = $true
+            $psi.RedirectStandardError = $true
+            $p = [System.Diagnostics.Process]::Start($psi)
+            $keluar = $p.StandardOutput.ReadToEndAsync()
+            $galat = $p.StandardError.ReadToEndAsync()
+            $lewat = -not $p.WaitForExit($batasSkrip * 1000)
+            if ($lewat) {
+                # /T ikut mematikan proses anak; tanpa itu sisa proses bisa
+                # menahan pipe dan skrip berikutnya menunggu selamanya.
+                Jalankan 'taskkill' @('/PID', "$($p.Id)", '/T', '/F') | Out-Null
+                $p.WaitForExit(5000) | Out-Null
+            }
+            # Aliran keluaran ditutup setelah prosesnya berhenti; menunggu di
+            # sini mencegah hasil kosong karena dibaca terlalu cepat.
+            $teks = @((($keluar.Result + "`n" + $galat.Result) -split "`r?`n") | Where-Object { $_ -ne '' })
+            return [pscustomobject]@{
+                Keluaran   = $teks
+                Kode       = $(if ($lewat) { 1 } else { $p.ExitCode })
+                LewatWaktu = $lewat
+            }
+        }
+
         foreach ($s in $e2e) {
             # Tab yatim dari percobaan sebelumnya membuat langkah login gagal
             # karena alasan yang tidak ada hubungannya dengan aplikasi.
@@ -415,20 +461,22 @@ if (-not $Cepat) {
 
             SegarkanDatabase
 
-            $hasil = Jalankan 'node' "docs/uji/$s"
-            $akhir = ($hasil | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
-            Catat $s ($LASTEXITCODE -eq 0) $(if ($akhir) { $akhir } else { '' })
-            if ($LASTEXITCODE -ne 0) {
-                $hasil | Select-String -Pattern '^GAGAL|E2E gagal' | ForEach-Object { Write-Host ('    ' + $_.Line) }
+            $hasil = JalankanBerbatas "docs/uji/$s"
+            $akhir = ($hasil.Keluaran | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
+            $detail = if ($hasil.LewatWaktu) { "batas waktu $batasSkrip detik terlampaui" } else { $akhir }
+            Catat $s ($hasil.Kode -eq 0) $(if ($detail) { $detail } else { '' })
+            if ($hasil.Kode -ne 0) {
+                $hasil.Keluaran | Select-String -Pattern '^GAGAL|E2E gagal' | ForEach-Object { Write-Host ('    ' + $_.Line) }
             }
         }
 
         Judul 'Uji balapan'
         foreach ($s in @('uji-balapan-t4.mjs', 'uji-balapan-t5.mjs')) {
             SegarkanDatabase
-            $hasil = Jalankan 'node' "docs/uji/$s"
-            $akhir = ($hasil | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
-            Catat $s ($LASTEXITCODE -eq 0) $(if ($akhir) { $akhir } else { '' })
+            $hasil = JalankanBerbatas "docs/uji/$s"
+            $akhir = ($hasil.Keluaran | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
+            $detail = if ($hasil.LewatWaktu) { "batas waktu $batasSkrip detik terlampaui" } else { $akhir }
+            Catat $s ($hasil.Kode -eq 0) $(if ($detail) { $detail } else { '' })
         }
 
         # Jalur proxy (FASE 0.1b). Inilah uji yang selama ini TIDAK ADA, dan
@@ -446,11 +494,12 @@ if (-not $Cepat) {
         # ujinya gagal karena sebab yang tidak ada hubungannya.
         Judul 'Jalur proxy'
         docker compose exec -T api php artisan cache:clear 2>&1 | Out-Null
-        $hasilProxy = Jalankan 'node' 'docs/uji/uji-proxy.mjs'
-        $akhirProxy = ($hasilProxy | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
-        Catat 'uji-proxy.mjs' ($LASTEXITCODE -eq 0) $(if ($akhirProxy) { $akhirProxy } else { '' })
-        if ($LASTEXITCODE -ne 0) {
-            $hasilProxy | Select-String -Pattern '^GAGAL' | ForEach-Object { Write-Host ('    ' + $_.Line) }
+        $hasilProxy = JalankanBerbatas 'docs/uji/uji-proxy.mjs'
+        $akhirProxy = ($hasilProxy.Keluaran | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
+        $detailProxy = if ($hasilProxy.LewatWaktu) { "batas waktu $batasSkrip detik terlampaui" } else { $akhirProxy }
+        Catat 'uji-proxy.mjs' ($hasilProxy.Kode -eq 0) $(if ($detailProxy) { $detailProxy } else { '' })
+        if ($hasilProxy.Kode -ne 0) {
+            $hasilProxy.Keluaran | Select-String -Pattern '^GAGAL' | ForEach-Object { Write-Host ('    ' + $_.Line) }
         }
     }
 } else {

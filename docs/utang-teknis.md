@@ -343,8 +343,13 @@ gagal, bukan hanya "sudah ditulis".
 dibatalkan 29 Oktober 2026, tidak akan: `Report-Only` + kolektornya tetap
 terpasang sebagai bukti kerja. Pemantau uptime dan latihan restore Neon ikut
 batal bersama deploy. `APP_LOCALE=id` **sudah selesai** 29 Oktober (Fase 5.4,
-`api/lang/id/validation.php`). Yang tetap di luar gate: uji beban dan uji
-tiga-peran di `docs/uji`. Kerentanan dependensi ditutup 29 Oktober:
+`api/lang/id/validation.php`). **Uji beban dan uji tiga-peran tidak punya skrip
+sendiri di `docs/uji`** — kalimat lama di sini menyebutnya "di luar gate",
+padahal berkasnya tidak pernah ada. Yang benar: pengukuran beban dilakukan
+manual (390 tagihan = 550 KB / 297 ms, `11_AUDIT-PRODUKSI-2.md` C9), dan ketiga
+peran dipakai bergantian oleh skrip E2E (pengelola di `e2e-r3.mjs` dan
+`e2e-fase35.mjs`, penghuni di `e2e-t1/t19/t24`, sisanya pemilik) — tidak ada
+satu skrip yang memakai ketiganya bersamaan. Kerentanan dependensi ditutup 29 Oktober:
 `composer audit --locked` bersih setelah `symfony/mime` 7.4.19 → 7.4.22,
 `npm audit --omit=dev` 0.
 

@@ -53,6 +53,7 @@ disunting tangan.
 | `ci-cd.md` | Cara pipeline bekerja |
 | `keputusan-terbuka.md` | Pertanyaan yang menunggu jawaban pemilik |
 | `audit-dokumen-vs-fitur.md` | Anda, sebelum sidang: klaim dokumen vs yang nyata di kode |
+| `status-revisi.md` | Anda, sebelum sidang: status 36 temuan audit (mana yang sudah, mana yang belum) |
 | `build-plan.md`, `tiket.md`, `rencana-konfigurabilitas.md` | **Arsip perencanaan.** Sengaja tidak ditulis ulang agar jejak keputusan jujur. Status terakhirnya ada di `README.md` akar repo |
 
 ## Berkas sementara — boleh dihapus kapan saja
