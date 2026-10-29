@@ -51,6 +51,12 @@ dan seluruh kelas masalah itu hilang, bukan diselesaikan.
 variabel ini entrypoint akan menunggu 120 detik lalu gagal dengan pesan yang
 tidak menyebut TLS sama sekali.
 
+**`DB_CONNECTION=pgsql` juga wajib, dan kelupaannya menyesatkan.** Tanpa variabel
+itu Laravel memakai SQLite; migrasi lalu gagal di trigger pertama dengan
+`SQLSTATE[HY000]: General error: 1 near "OR": syntax error` — pesan yang terlihat
+seperti skema rusak, padahal hanya salah driver. Dibuktikan 29 Oktober 2026 saat
+menjalankan image produksi di laptop.
+
 > **Koreksi (FASE 0.3, 26 Okt 2026).** Sampai FASE 0, baris di atas **tidak
 > benar**: `api/config/database.php:97` menulis `'sslmode' => 'prefer'` secara
 > mati, sehingga menyetel `DB_SSLMODE` tidak berpengaruh apa pun. Seseorang bisa

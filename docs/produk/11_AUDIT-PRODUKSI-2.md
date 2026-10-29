@@ -352,8 +352,19 @@ benar. Tetapi:
   persisten** → hilang saat restart (sudah diakui di `utang-teknis.md`).
 - Cadangan berbasis PHP dipakai bila `pg_dump` tidak ada — dan dump itu
   **tidak memuat DDL**, jadi tidak bisa memulihkan skema.
-- **Tidak ada satu pun perintah restore** di repo ini.
-- **Tidak pernah ada latihan restore.**
+- ~~**Tidak ada satu pun perintah restore** di repo ini.~~ **Keliru sejak
+  T27-T29:** `api/docker/backup.sh --uji-pulih` memulihkan ke `kos_pulih`,
+  menghitung tujuh tabel, lalu menghapusnya. Lihat koreksi di bawah.
+- ~~**Tidak pernah ada latihan restore.**~~ Dijalankan **29 Oktober 2026**:
+  kode keluar 0, ketujuh tabel terhitung.
+
+**Koreksi 29 Oktober 2026.** Dua butir di atas sudah tidak benar. Perintah
+restore **ada** (`api/docker/backup.sh --uji-pulih`, dipakai `8_OPERATIONS_SOP.md`
+§3.2), dan latihan restore sudah dijalankan sekali di laptop dengan kode keluar
+0. Yang tetap benar: **belum pernah ada pemulihan dari Neon**, karena dump Neon
+baru ada setelah deploy; dan tujuan `storage/backups` tetap hilang saat container
+restart di Render gratis. Jadi "backup resmi" tetap pemulihan titik-waktu Neon,
+bukan berkas lokal.
 
 **Akibat.** Backup yang belum pernah dipulihkan bukan backup; ia hanya berkas
 yang membuat orang merasa aman.

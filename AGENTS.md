@@ -117,6 +117,13 @@ akan lolos dari guardrail selamanya tanpa ada yang memberi tahu.
 - **Tes harus lewat container.** PHP lokal (8.3.30) tidak punya `pdo_pgsql`:
   `docker compose exec api php artisan test`. Pengecualiannya pint, yang justru
   harus di HOST — di dalam container ia memeriksa kode lama.
+- **`api-web` menyimpan IP lama `api`.** nginx menyelesaikan nama `api` sekali
+  saat start; begitu container `api` dibangun ulang dan IP-nya berubah, setiap
+  permintaan jadi 502 "Connection refused" sampai `api-web` di-restart manual.
+  Gejalanya menyesatkan: 799 tes hijau, lalu gate merah di satu baris
+  `API menjawab`. Sejak 29 Oktober 2026 `default.conf` memakai
+  `resolver 127.0.0.11` + `set $api_upstream api:9000`, jadi nama itu
+  diselesaikan ulang. Jangan kembalikan `fastcgi_pass api:9000` langsung.
 - **Kolom yang `nullable` di validasi belum tentu `NOT NULL` di basis data.** `komponen_biaya.satuan`
   punya `default('rupiah/bulan')`, tetapi formulir yang membiarkan kolomnya kosong mengirim `null`
   eksplisit (karena `ConvertEmptyStringsToNull`), dan `null` eksplisit **mengalahkan bawaan kolom**:

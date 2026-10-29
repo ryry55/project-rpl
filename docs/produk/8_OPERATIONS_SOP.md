@@ -138,6 +138,11 @@ melaporkan "berhasil" untuk pemulihan yang kehilangan separuh tabel.
 **Backup yang belum pernah dibuka bukan backup.** Jalankan `--uji-pulih` setelah
 setiap perubahan skema, dan minimal sebulan sekali.
 
+Terakhir dijalankan **29 Oktober 2026** di laptop: pemulihan berhasil, kode keluar
+0, dan ketujuh tabel terhitung (`users` 5, `penghuni` 3, `kamar` 2, `kontrak` 2,
+`tagihan` 2, `pembayaran` 4, `log_audit` 17). Yang **belum** dibuktikan: memulihkan
+dump dari Neon, karena dump itu baru ada setelah deploy.
+
 ### 3.3 Yang **belum** dilakukan
 
 **Backup berjalan terjadwal, tetapi tidak bisa diandalkan.** `api/routes/console.php`

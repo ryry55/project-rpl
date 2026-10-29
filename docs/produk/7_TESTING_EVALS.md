@@ -317,8 +317,8 @@ seberapa besar kepercayaan pada hijau.
 | Tidak diuji | Kenapa | Risiko yang diterima |
 |---|---|---|
 | Midtrans sungguhan | Belum ada akun sandbox | Alur webhook hanya diuji dengan payload tiruan |
-| Uji beban | Kos 5-30 kamar; beban tidak relevan | Tidak diketahui perilaku pada 1000 kamar |
-| Uji aksesibilitas otomatis (axe) | Waktu | Pelanggaran kontras/ARIA tidak tertangkap mesin |
+| Uji beban | Sudah diukur di laptop 29 Okt 2026: 30 kamar × 13 periode = 390 tagihan; terbit massal 640 ms rata-rata (terlama 788 ms); daftar tagihan 550 KB / 297 ms; tunggakan dan rekap ~580 ms; basis data 12 MB | Angka di Render/Neon belum ada, dan `GET /api/tagihan` belum berhalaman — 30 kamar × 12 bulan sudah 550 KB |
+| Uji aksesibilitas otomatis (axe) | Waktu | Pelanggaran kontras/ARIA tidak tertangkap mesin. Pemeriksaan manual 29 Okt 2026: 419 elemen di `/masuk` dan `/pemilik/tagihan`, fokus selalu terlihat (outline 2px), tidak ada tombol tanpa nama; pembaca layar sungguhan tetap belum |
 | Orientasi lanskap ponsel | Waktu | 640×360 belum pernah diukur |
 | Uji luring sungguhan | `Network.emulateNetworkConditions` belum dipakai | Kerangka ter-cache, tetapi belum dibuktikan bisa dibuka tanpa jaringan |
 | Email sungguhan (Brevo) | Hanya Mailpit | Batas kirim Brevo dan reputasi domain belum diuji |
