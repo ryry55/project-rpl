@@ -287,6 +287,23 @@ if (-not $erdOk) {
     $keluaranErd | Select-String -Pattern 'tidak|belum|sudah' | ForEach-Object { Write-Host ('    ' + $_.Line.Trim()) }
 }
 
+# DFD punya `build.js` yang menolak menulis bila ada black hole, miracle, grey
+# hole, aliran tanpa rute, atau aliran batas yang tidak seimbang antar tingkat.
+# Tetapi build.js TIDAK PERNAH dipanggil gerbang: sampai Oktober 2026 satu-
+# satunya cara mengetahui DFD masih sehat adalah menjalankannya dengan tangan.
+# Akibatnya delapan temuan audit DFD berstatus "selesai" hanya bersandar pada
+# pembacaan manusia, dan regresi berikutnya tidak akan berbunyi.
+#
+# Pemeriksa ini menutup dua hal yang bisa dibuktikan tanpa mata: semantiknya
+# bersih, dan keempat SVG yang di-commit SAMA PERSIS dengan hasil penggambaran
+# data sekarang (menangkap "data diubah, gambar lupa dibangun").
+$keluaranDfd = Jalankan 'node' 'docs\uji\cek-dfd.js'
+$dfdOk = $LASTEXITCODE -eq 0
+Catat 'DFD konsisten dan gambarnya tidak basi' $dfdOk
+if (-not $dfdOk) {
+    $keluaranDfd | Select-String -Pattern '^-|BEDA|tidak' | ForEach-Object { Write-Host ('    ' + $_.Line.Trim()) }
+}
+
 # --- 7. Profil produksi -----------------------------------------------------
 # Berkas profil yang ada tetapi nilainya salah lebih berbahaya daripada yang
 # tidak ada: ia membuat orang mengira pagarnya sudah terpasang. Diperiksa di

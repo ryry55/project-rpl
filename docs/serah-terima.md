@@ -16,11 +16,11 @@ Terakhir diperbarui: deploy dibatalkan pemilik (29 Oktober 2026), sesudah Fase 5
 | Hal | Nilai |
 |---|---|
 | Fase terakhir selesai | **Fase 5.1 / 5.4 / 5.5** + **K-05 opsi C**, semuanya disetujui pemilik 29 Okt |
-| Suite PHP | **809 lulus / 3790 asersi** (709 Feature / 100 Unit), 47 berkas; pint & eslint bersih |
+| Suite PHP | **812 lulus / 3807 asersi** (712 Feature / 100 Unit), 47 berkas; pint & eslint bersih |
 | Migrasi / endpoint / tabel domain | **41** / **86** / **23** (total 32 di skema `public`) |
 | Skrip uji | **29** `.mjs`: **28** (25 browser + 2 balapan + 1 jalur proxy) dijalankan gate + `_cdp.mjs` |
-| Langkah E2E | **806 langkah**, gate penuh **467 detik** |
-| Gate lokal | **SEMUA LULUS** (29 Okt: 809 tes, pint, eslint, angka dokumen, ERD/LRS, 28 skrip) |
+| Langkah E2E | **806 langkah**, gate penuh **431 detik** |
+| Gate lokal | **SEMUA LULUS** (29 Okt: 812 tes, pint, eslint, angka dokumen, ERD/LRS, 28 skrip) |
 
 Catatan: `POST /csp-laporan` **tidak** masuk hitungan 86 endpoint - ia di luar
 `/api/` dan sengaja tidak masuk kontrak. `route:list --path=api` tetap 86.
@@ -84,7 +84,9 @@ harus tetap ada. **Narasi tetap 4 halaman**; **harga Charter Rp 50.000.000**.
 | Rotasi log | `.env.example` `LOG_STACK=daily` (14 hari). Produksi tetap `stderr` - platform yang memutar |
 | `supervisorctl` | `[unix_http_server]` + `[rpcinterface:supervisor]` ditambahkan; sebelumnya perintah pemulihan di `8_OPERATIONS_SOP.md` §2.4 **tidak bisa dijalankan** |
 | Batas waktu per skrip di `periksa.ps1` | `JalankanBerbatas` memakai `ProcessStartInfo` (bukan `Start-Process -PassThru`, yang `ExitCode`-nya terbaca kosong di PS 5.1). 240 detik, sama dengan `periksa.sh`; `KOS_BATAS_SKRIP` untuk mengujinya. Dibuktikan: skrip menggantung dipotong di 2 dtk → GAGAL, skrip normal kode 0, skrip gagal kode 4 |
-| Status 36 temuan audit | `docs/status-revisi.md`: 30 selesai, 2 selesai tanpa tes, 3 tidak berlaku, **1 masih terbuka (REV-UI-01)** |
+| Status 36 temuan audit | `docs/status-revisi.md`: 32 selesai, 3 tidak berlaku, **1 masih terbuka (REV-UI-01)** |
+| Penjaga DFD masuk gate | `docs/uji/cek-dfd.js` dijalankan `periksa.ps1`, `periksa.sh`, `uji.yml`: semantik bersih + 4 SVG identik dengan hasil penggambaran data. Dulu `periksaSemantik()` tidak pernah dipanggil gerbang |
+| Dua tes pengganti "selesai tanpa tes" | `PengelolaTest` (REV-SEC-02, pasangan tolak-pengelola / izinkan-pemilik) dan `DendaHttpTest` (REV-DFD-05: denda & umur terhitung pada tagihan tanpa pembayaran) |
 
 **Kontra-uji ketiga penjaga:** `per_page` dicabut → 1 gagal/8 asersi;
 `lang/id` disembunyikan → 1 gagal/2 asersi; `Pemberitahu` kembali ke

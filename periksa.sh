@@ -261,6 +261,17 @@ if [ "$HANYA_E2E" -eq 0 ]; then
     kode=$?
     catat 'ERD dan LRS cocok dengan basis data' "$([ "$kode" -eq 0 ] && echo 0 || echo 1)"
     if [ "$kode" -ne 0 ]; then printf '%s\n' "$keluaran_erd" | grep -E 'tidak|belum|sudah' | sed 's/^/    /'; fi
+
+    # DFD punya build.js yang menolak menulis bila ada black hole, miracle,
+    # grey hole, aliran tanpa rute, atau aliran batas tak seimbang antar
+    # tingkat - tetapi build.js TIDAK PERNAH dipanggil gerbang, sehingga
+    # delapan temuan audit DFD berstatus "selesai" hanya bersandar pada
+    # pembacaan manusia. Pemeriksa ini juga membandingkan keempat SVG yang
+    # di-commit dengan hasil penggambaran data sekarang.
+    keluaran_dfd="$(node docs/uji/cek-dfd.js 2>&1)"
+    kode=$?
+    catat 'DFD konsisten dan gambarnya tidak basi' "$([ "$kode" -eq 0 ] && echo 0 || echo 1)"
+    if [ "$kode" -ne 0 ]; then printf '%s\n' "$keluaran_dfd" | grep -E '^-|BEDA|tidak' | sed 's/^/    /'; fi
 fi
 
 # --- 7. Profil produksi ------------------------------------------------------

@@ -7,7 +7,7 @@
 > sudah?"*
 >
 > **Cara dibaca:** status di bawah hasil **pembacaan statis** kode dan tes pada
-> 29 Oktober 2026, ditambah gate yang hijau hari itu (809 tes / 3790 asersi,
+> 29 Oktober 2026, ditambah gate yang hijau hari itu (812 tes / 3807 asersi,
 > 28 skrip / 806 langkah). Ia membuktikan perbaikan **ada di kode**; ia bukan
 > bukti runtime baru. Kolom Bukti menyebut tempat memeriksanya sendiri.
 
@@ -15,8 +15,8 @@
 
 | Status | Jumlah | Arti |
 |---|---|---|
-| **Selesai** | 30 | Perbaikan ada di kode dan ada tes/skrip yang menjaganya |
-| **Selesai tanpa tes** | 2 | Perbaikan ada, tidak ada penjaga otomatis |
+| **Selesai** | 32 | Perbaikan ada di kode dan ada tes/skrip yang menjaganya |
+| **Selesai tanpa tes** | 0 | Perbaikan ada, tidak ada penjaga otomatis |
 | **Tidak berlaku** | 3 | Temuan menyebut hal yang memang tidak ada di desain |
 | **Masih terbuka** | 1 | Perbaikan belum ada di kode |
 
@@ -28,13 +28,13 @@
 | REV-DFD-02 | Kritis | P1 hanya menulis D1/D2, tak membaca | Selesai | `docs/dfd/dfd-data.js:409,415` |
 | REV-DFD-03 | Kritis | D6 hanya ditulis, tak pernah dibaca | Selesai | `docs/dfd/dfd-data.js:370,382,497` |
 | REV-DFD-04 | Kritis | Level 0 dua keluaran, Level 1 satu | Selesai | `docs/dfd/dfd-data.js:328,334` |
-| REV-DFD-05 | Sedang | Denda/umur digantung bukti pembayaran | **Selesai tanpa tes** | `docs/dfd/03-dfd-level-2.md:198-245` |
+| REV-DFD-05 | Sedang | Denda/umur digantung bukti pembayaran | Selesai | `docs/dfd/03-dfd-level-2.md:196-201,266-430`; `DendaHttpTest::test_denda_dan_umur_dihitung_tanpa_satu_pun_pembayaran` |
 | REV-DFD-06 | Sedang | Label #7 sebut denda padahal Rp 0 | Selesai | `docs/dfd/dfd-data.js:309` |
 | REV-DFD-07 | Sedang | Pengelola tak ada di diagram konteks | Selesai | `docs/dfd/dfd-data.js:48-55` |
 | REV-DFD-08 | Sedang | Penghuni digambar memasok data | Selesai | `docs/dfd/dfd-data.js:57-67,236` |
 | REV-DFD-09 | Minor | Kamus usang; umur negatif masuk 0–30 | Selesai | `docs/dfd/dfd-data.js:179,598,601` |
 | REV-SEC-01 | Kritis | Email akun aktif bisa diganti | Selesai | `PenghuniController.php:112`; `AktivasiAkunTest::test_mengganti_email_penghuni_aktif_ditolak` |
-| REV-SEC-02 | Kritis | Pengelola menetapkan tarif lewat kontrak | **Selesai tanpa tes** | `KontrakController.php:78` (`tarif_perlu_pemilik`) |
+| REV-SEC-02 | Kritis | Pengelola menetapkan tarif lewat kontrak | Selesai | `KontrakController.php:78` (`tarif_perlu_pemilik`); `PengelolaTest::test_pengelola_tidak_bisa_menetapkan_tarif_pertama_lewat_formulir_kontrak`, dikunci kontrol negatif `test_pemilik_boleh_...` |
 | REV-SEC-03 | Kritis | Tautan email ke port 8081 (404) | Selesai | `PemberitahuanKos.php:54`; `AktivasiAkunTest::test_tautan_email_memakai_alamat_spa_bukan_alamat_api` |
 | REV-SEC-04 | Kritis | Akun menunggak bisa dihapus lewat PDP | Selesai | `LayananPdp.php:218-228`; `PdpTest::test_penghuni_dengan_tagihan_belum_lunas_tidak_bisa_menghapus` |
 | REV-SEC-05 | Sedang | `periksa-token` bocorkan PII | Selesai | `AuthController.php:216-249`; `test_periksa_token_dibatasi_per_ip`, `..._tanpa_membocorkan_email_lengkap` |
@@ -77,9 +77,23 @@
 3. **REV-SEC-06 selesai untuk `/rekap`, bukan `/tunggakan`.** `/tunggakan`
    sengaja tetap terbuka bagi pengelola, alasannya tertulis di
    `api/routes/api.php` sekitar baris 337-349.
-4. **Dua temuan selesai tanpa tes:** REV-DFD-05 dan REV-SEC-02. Keduanya
-   diyakini benar dari pembacaan kode, tetapi tidak ada yang akan menangkap
-   kalau perbaikannya dicabut.
-5. **Delapan status DFD bersandar pada pembacaan dokumen.** `periksaSemantik`
-   di `docs/dfd/build.js:49` memang menghentikan pembangunan bila aliran tidak
-   konsisten, tetapi ia **tidak** dipanggil `periksa.ps1` maupun `uji.yml`.
+4. **Tidak ada lagi temuan yang "selesai tanpa tes".** Dua yang sebelumnya
+   begitu sudah ditutup 29 Oktober. REV-SEC-02 sekarang dijaga dua tes
+   berpasangan di `PengelolaTest`: satu menuntut pengelola ditolak 422 dengan
+   `kode: tarif_perlu_pemilik`, satu menuntut pemilik tetap 201. Pasangan itu
+   penting - tanpa yang kedua, "pengelola ditolak" bisa lulus karena semua
+   orang ditolak, atau karena sebab lain. Diverifikasi dengan mematikan
+   penjaganya (`if (false && ...)`): tes pengelola merah, tes pemilik tetap
+   hijau. REV-DFD-05 dijaga
+   `DendaHttpTest::test_denda_dan_umur_dihitung_tanpa_satu_pun_pembayaran`,
+   yang membuktikan denda dan umur tunggakan terhitung pada tagihan yang
+   **nol baris pembayaran**. Diverifikasi dengan menyuntikkan kembali cacat
+   DFD lamanya (`->whereHas('pembayaran')` di `DaftarTunggakan`): tes merah.
+5. **Status DFD kini dijaga gate, bukan hanya mata.** `periksaSemantik()`
+   sudah lama ada dan `build.js` sudah menolak menulis gambar cacat, tetapi
+   tidak ada pemanggil di gerbang. Sejak 29 Oktober `docs/uji/cek-dfd.js`
+   dijalankan `periksa.ps1`, `periksa.sh`, dan `uji.yml`; ia memeriksa
+   semantik **dan** membandingkan keempat SVG yang di-commit dengan hasil
+   penggambaran data sekarang. Diverifikasi bisa gagal: rute dihapus →
+   `tidak punya rute di DFD level 1`; pembacaan D1 dibuang → `black hole`;
+   satu byte ditambahkan ke SVG → `BEDA dari hasil penggambaran data sekarang`.

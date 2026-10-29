@@ -36,7 +36,7 @@ perkakasnya sendiri tidak membusuk:
 
 1. Bangun image dengan cache layer.
 2. `docker compose up -d`, lalu tunggu `/api/health` menjawab **200**.
-3. `php artisan test` di dalam container - 809 tes.
+3. `php artisan test` di dalam container - 812 tes.
 4. Potret rute (`route:list --json`) disegarkan dari aplikasi, lalu
    `cek-angka-dokumen.js` dan `cek-cakupan-kontrak.js` dijalankan terhadap potret
    yang baru itu. Keduanya tidak bisa jalan di job `lint` karena butuh container:

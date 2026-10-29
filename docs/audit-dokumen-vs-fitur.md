@@ -192,7 +192,7 @@ Dua hal yang perlu dibaca dosen, dan keduanya **bukan** kenaikan angka semata:
 
 ## 13. Putaran 29 Oktober 2026 (sore) — tiga janji yang tadinya hanya tulisan
 
-Gate penuh: **809 tes PHP / 3790 asersi / 47 berkas**, **28/28 skrip lulus, 806
+Gate penuh: **812 tes PHP / 3807 asersi / 47 berkas**, **28/28 skrip lulus, 806
 langkah, 434 detik**. Tiga tambahan, dan masing-masing menutup satu kalimat di
 dokumen yang sebelumnya tidak punya bukti:
 

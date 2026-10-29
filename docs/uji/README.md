@@ -197,45 +197,66 @@ di dalam container tidak akan pernah bisa membacanya.
 
 ### Pemeriksa kesesuaian dokumen
 
-Tiga berkas `.js` yang memeriksa **dokumen terhadap kode**, bukan aplikasi yang
-sedang berjalan. Ketiganya tidak butuh E2E, dan selesai dalam hitungan detik.
+Empat berkas `.js` yang memeriksa **dokumen terhadap kode**, bukan aplikasi yang
+sedang berjalan. Semuanya tidak butuh E2E, dan selesai dalam hitungan detik.
 
 | Berkas | Yang diperiksa |
 |---|---|
 | `cek-angka-dokumen.js` | Angka yang tertulis di `KONTEKS_PROYEK.md`, `serah-terima.md`, dan `SPEC.md` dibandingkan dengan angka nyata: jumlah migrasi, model, berkas tes, dan endpoint. Potret rute disegarkan dari aplikasi tepat sebelum pemeriksaan ini, jadi yang dibandingkan adalah rute hidup - bukan potret yang bisa basi |
 | `cek-cakupan-kontrak.js` | Setiap rute nyata muncul di **tepat satu** baris tabel `6_TOOLS_CONTRACTS.md`; tidak ada yang belum tercatat, tidak ada yang tercatat dua kali; judul `(N endpoint)` tiap bagian dan baris **Total** §9 cocok dengan isinya |
 | `cek-erd-lrs.js` | `docs/erd/skema.json` masih cocok dengan basis data; setiap tabel punya bagian di `03-lrs.md`; setiap kunci asing muncul di tabel relasi LRS dengan tujuan yang sama; jumlah tabel/kunci asing yang ditulis cocok dengan yang dihitung; `manifest.json` hasil build cocok dengan skema; setiap SVG berjenjang yang dicatat manifest ada, berisi SVG, dan tidak terpotong; **PNG pasangan setiap SVG ada dan berukuran tepat 2x atribut width/height SVG-nya**; tingkat 2 dan 3 masing-masing memuat seluruh tabel domain tanpa ganda |
+| `cek-dfd.js` | `periksaSemantik()` bersih: setiap aliran punya rute di tingkat tempat ia digambar, tidak ada rute yatim, setiap penyimpanan ditulis **dan** dibaca, setiap proses punya masukan dan keluaran, setiap entitas terhubung, dan aliran batas sistem seimbang antara level 0 dan level 1. Ditambah: keempat SVG DFD (Gane-Sarson dan Yourdon) **sama persis** dengan hasil penggambaran `dfd-data.js` sekarang, dan PNG pasangannya ada serta benar-benar PNG |
 
 ```powershell
 node docs/uji/cek-angka-dokumen.js
 node docs/uji/cek-cakupan-kontrak.js
 node docs/uji/cek-erd-lrs.js
+node docs/uji/cek-dfd.js
 ```
 
-`cek-erd-lrs.js` adalah satu-satunya dari ketiganya yang **butuh container `db`
+`cek-erd-lrs.js` adalah satu-satunya dari keempatnya yang **butuh container `db`
 hidup**, karena ia membandingkan dokumen dengan basis data yang berjalan, bukan
 dengan berkas. Itu disengaja: dokumen ERD/LRS yang dibandingkan dengan salinan
 skema hanya membuktikan salinan itu konsisten dengan dirinya sendiri.
+
+**Kenapa `cek-dfd.js` ada, padahal `build.js` sudah memeriksa.**
+`docs/dfd/build.js` memang menolak menulis bila ada black hole, miracle, grey
+hole, aliran tanpa rute, atau aliran batas yang tidak seimbang antar tingkat -
+tetapi ia **tidak pernah dipanggil gerbang**. Sampai 29 Oktober 2026, satu-
+satunya cara mengetahui DFD masih sehat adalah menjalankannya dengan tangan.
+Akibatnya delapan temuan audit DFD berstatus "selesai" hanya bersandar pada
+pembacaan manusia, dan regresi berikutnya tidak akan berbunyi. `cek-dfd.js`
+juga membandingkan SVG yang di-commit dengan hasil penggambaran data sekarang,
+sehingga menangkap kelas kesalahan yang dulu menghasilkan PDF dan PNG basi:
+data diubah, gambar lupa dibangun.
 
 **Kenapa ada.** Keduanya lahir dari kesalahan yang benar-benar terjadi pada
 26 Oktober 2026: `KONTEKS_PROYEK.md` menyebut 71 endpoint padahal aplikasinya
 sudah 85, dan tiga judul bagian di `6_TOOLS_CONTRACTS.md` salah jumlah. Angka
 yang diketik tangan akan tertinggal; angka yang dibaca dari sumbernya tidak.
 
-**Ketiganya dibuktikan bisa gagal**, bukan hanya bisa lulus.
+**Keempatnya dibuktikan bisa gagal**, bukan hanya bisa lulus.
 Dengan satu angka di `KONTEKS_PROYEK.md` diubah kembali menjadi 71,
 `cek-angka-dokumen.js` melaporkan `ADA ANGKA YANG BEDA`. Dengan judul bagian 5
 dikembalikan ke `(16 endpoint)`, `cek-cakupan-kontrak.js` melaporkan
 `bagian 5: 20  SALAH (tulis 16, harus 20)`. Dengan menghapus tabel `rekening`
 dan kunci asing `pembayaran.pembalik_id` dari `skema.json`, `cek-erd-lrs.js`
 melaporkan kolom-kolom `rekening.*` yang hilang dan keluar dengan kode 1.
+Dengan menghapus satu rute dari `RUTE_LEVEL1` di `dfd-data.js`, `cek-dfd.js`
+melaporkan `aliran batas I-1 ... tidak punya rute di DFD level 1`; dengan
+membuang seluruh aliran yang membaca `D1`, ia melaporkan
+`penyimpanan D1 tidak pernah dibaca (black hole)`; dan dengan satu byte
+ditambahkan ke `01-dfd-konteks.svg`, ia melaporkan bahwa berkasnya
+`BEDA dari hasil penggambaran data sekarang`. Keempatnya keluar dengan kode 1.
 
-Ketiganya mencari akar repo dari lokasi berkasnya sendiri, bukan dari direktori
+Keempatnya mencari akar repo dari lokasi berkasnya sendiri, bukan dari direktori
 kerja, sehingga bisa dijalankan dari mana saja.
 
-**Ketiganya sempat tidak pernah berjalan di CI, dan ketika berjalan pun tidak menahan.** Ditemukan 27 Oktober 2026: `periksa.sh --hanya-e2e` — satu-satunya cara CI memanggil gerbang — melewati bagian "Kesesuaian dokumen", dan job `lint` tidak memanggil pemeriksa itu sama sekali. Selama berbulan-bulan ketiga pagar ini hanya hidup di laptop; ia tampak terpasang karena tercantum di `periksa.ps1`.
+**Ketiganya sempat tidak pernah berjalan di CI, dan ketika berjalan pun tidak menahan.** Ditemukan 27 Oktober 2026: `periksa.sh --hanya-e2e` - satu-satunya cara CI memanggil gerbang - melewati bagian "Kesesuaian dokumen", dan job `lint` tidak memanggil pemeriksa itu sama sekali. Selama berbulan-bulan ketiga pagar ini hanya hidup di laptop; ia tampak terpasang karena tercantum di `periksa.ps1`.
 
 Audit 28 Oktober 2026 menemukan cacat kedua yang lebih dalam: `cek-angka-dokumen.js` dan `cek-cakupan-kontrak.js` **selalu keluar dengan kode 0**, berapa pun temuannya, jadi `periksa.ps1` melaporkan `LULUS` untuk pemeriksaan yang mencetak `ADA ANGKA YANG BEDA`. Keduanya juga membaca potret rute yang tidak pernah dibuat ulang. Sekarang keduanya memakai `process.exitCode`, dan `periksa.ps1`, `periksa.sh`, serta job `uji` menyegarkan `docs/akademik/rute-api.json` dari `route:list` tepat sebelum memeriksanya. `cek-erd-lrs.js` tetap di job `uji` karena butuh container `db`.
+
+**`cek-dfd.js` adalah kasus yang sama, ketiga kalinya.** Ditemukan 29 Oktober 2026: `periksaSemantik()` sudah lama ada dan sudah menolak menulis gambar yang cacat, tetapi tidak ada satu pun pemanggil di `periksa.ps1`, `periksa.sh`, maupun `uji.yml`. Karena itu delapan temuan audit DFD berstatus "selesai" hanya bersandar pada pembacaan manusia - pagar yang tidak pernah dipanggil terlihat persis seperti pagar yang terpasang. Sekarang ia langkah tersendiri di ketiga tempat, dengan kontrol negatif yang tercatat di atas.
 
 ### Bukti pagar Fase 0.5
 
@@ -261,7 +282,7 @@ docker compose exec -T api sh /tmp/u.sh
 **Kenapa dijalankan manual, bukan di gate.** Skrip ini mengubah berkas kode di
 dalam container. Menjalankannya otomatis berarti gate sesekali menguji kode yang
 sedang disuntik - dan bila salah satu skrip mati di tengah jalan, cacatnya
-tertinggal. Yang otomatis adalah **tesnya** (809 tes PHP, 28 skrip browser);
+tertinggal. Yang otomatis adalah **tesnya** (812 tes PHP, 28 skrip browser);
 yang manual adalah **bukti bahwa tesnya bisa gagal**, dijalankan setiap kali
 sebuah pagar baru ditambahkan.
 

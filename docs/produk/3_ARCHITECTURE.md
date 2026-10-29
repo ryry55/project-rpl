@@ -416,7 +416,7 @@ api/
   app/Http/Resources/    14 resource — bentuk JSON
   app/Models/            21 model — hanya bentuk data
   database/migrations/   41 migrasi
-  tests/                 47 berkas tes, 809 tes
+  tests/                 47 berkas tes, 812 tes
 
 web/
   src/views/             27 view (7 publik + 20 pemilik dan panelnya)

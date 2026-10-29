@@ -293,6 +293,17 @@ jobs:
       - name: ERD dan LRS cocok dengan basis data
         run: node docs/uji/cek-erd-lrs.js
 
+      # DFD: `build.js` sudah menolak menulis bila ada black hole, miracle,
+      # grey hole, aliran tanpa rute, atau aliran batas tak seimbang antar
+      # tingkat - tetapi ia tidak pernah dipanggil gerbang, sehingga delapan
+      # temuan audit DFD berstatus "selesai" hanya bersandar pada pembacaan
+      # manusia. Pemeriksa ini juga membandingkan keempat SVG yang di-commit
+      # dengan hasil penggambaran data sekarang, menangkap "data diubah,
+      # gambar lupa dibangun". Tidak butuh basis data, tetapi diletakkan di
+      # sini supaya satu tempat dengan pemeriksa dokumen lain.
+      - name: DFD konsisten dan gambarnya tidak basi
+        run: node docs/uji/cek-dfd.js
+
       # Skrip uji berjalan di HOST (bukan di container): ia bicara ke CDP dan
       # ke API lewat localhost, keduanya sudah dipetakan compose.
       #

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Domain\Akses\Wewenang;
 use App\Models\Kamar;
 use App\Models\KebijakanKos;
+use App\Models\Kontrak;
 use App\Models\LogAudit;
 use App\Models\PengelolaKewenangan;
 use App\Models\Penghuni;
@@ -361,6 +362,62 @@ class PengelolaTest extends TestCase
         // berarti apa pun.
         $this->assertSame(0, TarifSewa::count());
         $this->assertSame(1, UsulanPerubahan::count());
+    }
+
+    /**
+     * REV-SEC-02: formulir kontrak bukan jalan belakang menetapkan tarif.
+     *
+     * Sebelum batas ini, pengelola dengan wewenang `kelola_penghuni` bisa
+     * menetapkan tarif pertama sebuah kamar lewat formulir kontrak, melewati
+     * seluruh alur usulan T26. Akibatnya `ubah_tarif` yang seharusnya berarti
+     * "hanya mengusulkan" tidak berarti apa-apa, karena jalur yang tidak
+     * dijaga selalu menjadi jalur yang dipakai.
+     *
+     * Yang diuji adalah PENOLAKAN plus ketiadaan akibat: bukan sekadar kode
+     * 422, melainkan nol baris `tarif_sewa` dan nol baris `kontrak`.
+     */
+    public function test_pengelola_tidak_bisa_menetapkan_tarif_pertama_lewat_formulir_kontrak(): void
+    {
+        $kamar = $this->kamar();
+
+        $this->sebagaiPengelola(Wewenang::KELOLA_PENGHUNI)
+            ->postJson('/api/kontrak', [
+                'kamar_id' => $kamar->id,
+                'penghuni_id' => $this->penghuni->id,
+                'tgl_masuk' => '2026-02-01',
+                'tarif' => 1500000,
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('kode', 'tarif_perlu_pemilik');
+
+        $this->assertSame(0, TarifSewa::count(), 'tarif lahir dari formulir kontrak');
+        $this->assertSame(0, Kontrak::count(), 'kontrak tetap dibuat meski tarif ditolak');
+    }
+
+    /**
+     * Kontrol negatif pasangan tes di atas: pemilik HARUS tetap bisa.
+     *
+     * Tanpa tes ini, aturan "pengelola tidak boleh" bisa lulus dengan cara
+     * yang salah - misalnya bila semua orang ditolak, atau bila penolakan
+     * terjadi karena sebab lain. Asersi 201 + satu baris tarif membuktikan
+     * jalurnya memang hidup, dan yang membedakan hanyalah peran.
+     */
+    public function test_pemilik_boleh_menetapkan_tarif_pertama_lewat_formulir_kontrak(): void
+    {
+        $kamar = $this->kamar();
+
+        $this->sebagaiPemilik()
+            ->postJson('/api/kontrak', [
+                'kamar_id' => $kamar->id,
+                'penghuni_id' => $this->penghuni->id,
+                'tgl_masuk' => '2026-02-01',
+                'tarif' => 1500000,
+            ])
+            ->assertStatus(201)
+            ->assertJsonPath('data.tarif_awal', 1500000);
+
+        $this->assertSame(1, TarifSewa::count());
+        $this->assertSame(1, Kontrak::count());
     }
 
     public function test_pengelola_tanpa_ubah_kebijakan_ditolak_menetapkan_kebijakan(): void

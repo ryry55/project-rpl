@@ -339,19 +339,30 @@ gagal, bukan hanya "sudah ditulis".
 | **B3** email gagal hanya masuk log | `log_audit` aksi `email.gagal`, entitas `email`, memuat penerima + sebab | Asersi di `NotifikasiTest` merah bila pencatatannya dikomentari |
 | **B5** tanpa HSTS/CSP | HSTS + `Content-Security-Policy-Report-Only` di nginx produksi, **dan kolektor laporannya** | Diperiksa pada image produksi: `GET /` membawa keduanya. Kolektornya `POST /csp-laporan` (`CspLaporanController`, `throttle:30,1`), sengaja **di luar `/api/`** supaya kontrak 86 endpoint dan peta 14 use case tetap benar; `CspLaporanTest` (4 tes) merah bila daftar putih medan, pemotongan, atau pembatasnya dicabut. **Temuan samping: `add_header` nginx tidak diwarisi** oleh lokasi yang punya `add_header` sendiri, sehingga halaman utama selama ini juga kehilangan `nosniff`/`X-Frame-Options`/`Referrer-Policy`; ketiganya kini diulang di `location = /index.html` |
 
-**Yang masih terbuka dari daftar itu:** CSP belum menegakkan — dan sejak deploy
+**Yang masih terbuka dari daftar itu:** CSP belum menegakkan - dan sejak deploy
 dibatalkan 29 Oktober 2026, tidak akan: `Report-Only` + kolektornya tetap
 terpasang sebagai bukti kerja. Pemantau uptime dan latihan restore Neon ikut
 batal bersama deploy. `APP_LOCALE=id` **sudah selesai** 29 Oktober (Fase 5.4,
 `api/lang/id/validation.php`). **Uji beban dan uji tiga-peran tidak punya skrip
-sendiri di `docs/uji`** — kalimat lama di sini menyebutnya "di luar gate",
+sendiri di `docs/uji`** - kalimat lama di sini menyebutnya "di luar gate",
 padahal berkasnya tidak pernah ada. Yang benar: pengukuran beban dilakukan
 manual (390 tagihan = 550 KB / 297 ms, `11_AUDIT-PRODUKSI-2.md` C9), dan ketiga
 peran dipakai bergantian oleh skrip E2E (pengelola di `e2e-r3.mjs` dan
-`e2e-fase35.mjs`, penghuni di `e2e-t1/t19/t24`, sisanya pemilik) — tidak ada
+`e2e-fase35.mjs`, penghuni di `e2e-t1/t19/t24`, sisanya pemilik) - tidak ada
 satu skrip yang memakai ketiganya bersamaan. Kerentanan dependensi ditutup 29 Oktober:
 `composer audit --locked` bersih setelah `symfony/mime` 7.4.19 → 7.4.22,
 `npm audit --omit=dev` 0.
+
+**DFD yang dulu di luar gate kini di dalamnya.** `periksaSemantik()` sudah ada
+sejak awal dan `docs/dfd/build.js` sudah menolak menulis gambar cacat, tetapi
+tidak ada pemanggil di `periksa.ps1`, `periksa.sh`, maupun `uji.yml` - sehingga
+delapan temuan audit DFD yang berstatus "selesai" hanya bersandar pada
+pembacaan manusia. Sejak 29 Oktober `docs/uji/cek-dfd.js` menjadi langkah
+tersendiri di ketiga tempat; ia memeriksa semantik **dan** membandingkan
+keempat SVG yang di-commit dengan hasil penggambaran `dfd-data.js` sekarang.
+Dua tes yang dulu "selesai tanpa tes" juga sudah ditutup: REV-SEC-02 dijaga
+pasangan tes pengelola/pemilik di `PengelolaTest`, REV-DFD-05 dijaga
+`DendaHttpTest::test_denda_dan_umur_dihitung_tanpa_satu_pun_pembayaran`.
 
 **Jebakan yang menggigit saat mengerjakannya:** label saringan itu semula
 "Email **gagal** terkirim", dan `uji-galat-muat.mjs` memakai pola

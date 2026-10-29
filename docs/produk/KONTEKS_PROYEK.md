@@ -15,7 +15,7 @@ Versi 1.0 · 26 Oktober 2026 · Status: diserahkan
 Aplikasi web untuk pemilik kos kecil (5-30 kamar) mengelola kamar, penghuni,
 tagihan, dan pembayaran. Dibangun sebagai tugas besar mata kuliah Rekayasa
 Perangkat Lunak: Laravel 12.70.1 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah
-Docker Compose untuk menjalankan, 809 tes PHP dan 28 skrip uji untuk
+Docker Compose untuk menjalankan, 812 tes PHP dan 28 skrip uji untuk
 menjaganya. Yang membedakannya dari aplikasi sejenis: **setiap kos boleh punya
 cara kerja sendiri** — satuan sewa, jatuh tempo, dan bentuk dendanya dipilih dari
 menu, bukan dipaksa mengikuti satu pola.
@@ -96,7 +96,7 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 | Pengendali | **27** |
 | Middleware | **6** |
 | Trigger basis data | **8** (7 append-only + 1 penjaga pembalik) |
-| Tes PHP | **809** (3790 asersi) di **47** berkas |
+| Tes PHP | **812** (3807 asersi) di **47** berkas |
 | Skrip browser | **29** `.mjs` (28 terdaftar di gate; `uji-proxy.mjs` terpisah) |
 | Halaman SPA | **27** komponen view · **31** rute bernama |
 | Wewenang pengelola | **8** |
@@ -247,7 +247,7 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 ├── 4_AGENTS.md           Cara mengubah kode tanpa merusak apa pun
 ├── 5_SCHEMAS.md          23 tabel, CHECK, indeks, trigger (dari DB nyata)
 ├── 6_TOOLS_CONTRACTS.md  86 endpoint, middleware, bentuk request/response
-├── 7_TESTING_EVALS.md    809 tes, 28 skrip, prinsip "buktikan bisa gagal"
+├── 7_TESTING_EVALS.md    812 tes, 28 skrip, prinsip "buktikan bisa gagal"
 └── 8_OPERATIONS_SOP.md   Deploy, backup, pemulihan, insiden, batas gratis
 ```
 

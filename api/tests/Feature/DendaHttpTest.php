@@ -7,6 +7,7 @@ use App\Domain\Kebijakan\PilihanKebijakan;
 use App\Models\Kamar;
 use App\Models\KebijakanKos;
 use App\Models\Kontrak;
+use App\Models\Pembayaran;
 use App\Models\Penghuni;
 use App\Models\Tagihan;
 use App\Models\User;
@@ -192,6 +193,55 @@ class DendaHttpTest extends TestCase
             ->assertJsonPath('data.pokok', 1_500_000)
             ->assertJsonPath('data.denda', 450_000)
             ->assertJsonPath('data.berhenti', false);
+    }
+
+    // --- REV-DFD-05: jalur kalender tidak menunggu pembayaran --------------
+
+    /**
+     * Denda dan umur tunggakan dihitung TANPA satu pun baris pembayaran.
+     *
+     * Ini penjaga untuk REV-DFD-05. DFD Level 2 versi lama memodelkan
+     * dekomposisi linear: `bukti pembayaran -> 4.1 -> 4.2 -> 4.3 -> 4.4`,
+     * sehingga penghuni yang menunggak tiga bulan dan tidak pernah membayar
+     * sepeser pun tidak akan pernah dihitung dendanya. Gambarnya sudah
+     * diperbaiki menjadi dua jalur (peristiwa dan kalender), tetapi sebelum
+     * tes ini tidak ada yang membuktikan bahwa jalur kalender memang hidup -
+     * kalau 4.2 dan 4.4 diam-diam kembali digantung pada pembayaran, seluruh
+     * tes denda yang ada tetap hijau karena semuanya memakai tagihan yang
+     * kebetulan punya status "sebagian".
+     *
+     * Asersinya sengaja menyebut ketiadaan pembayaran lebih dulu: tanpa itu,
+     * tes ini bisa lulus pada sistem yang menghitung denda dari baris
+     * pembayaran yang dibuat oleh seeder.
+     */
+    public function test_denda_dan_umur_dihitung_tanpa_satu_pun_pembayaran(): void
+    {
+        $tagihan = $this->buatTagihan();
+
+        // Keadaan awal dibuktikan, bukan diandaikan.
+        $this->assertSame(0, Pembayaran::count(), 'tes ini butuh tagihan tanpa pembayaran');
+
+        $denda = $this->sebagaiPemilik()
+            ->getJson("/api/tagihan/{$tagihan->id}/denda", ['X-Simulasi-Tanggal' => '2026-11-21'])
+            ->assertOk()
+            ->assertJsonPath('data.hari_terlambat', 37)
+            ->assertJsonPath('data.denda', 450_000)
+            ->json('data.denda');
+
+        // Umur tunggakan di jalur kedua: tagihan yang sama muncul di kelompok
+        // 31_60, dan ia muncul walau tidak ada pembayaran yang memicunya.
+        $tunggakan = $this->sebagaiPemilik()
+            ->getJson('/api/tunggakan', ['X-Simulasi-Tanggal' => '2026-11-21'])
+            ->assertOk()
+            ->json();
+
+        $baris = collect($tunggakan['data']['kelompok'])->firstWhere('kunci', '31_60')['tagihan'] ?? [];
+        $this->assertCount(1, $baris, 'tagihan tanpa pembayaran tidak masuk daftar tunggakan');
+        $this->assertSame($tagihan->id, $baris[0]['id']);
+        $this->assertSame($denda, $baris[0]['denda']);
+
+        // Dan tetap nol: kedua endpoint hanya membaca, tidak mencatat uang.
+        $this->assertSame(0, Pembayaran::count(), 'pembacaan denda mencatat pembayaran');
     }
 
     public function test_tagihan_lunas_tidak_lagi_berdenda(): void
