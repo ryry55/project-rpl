@@ -579,4 +579,46 @@ class TagihanTest extends TestCase
             "jumlah kueri daftar tagihan naik dari {$dua} ke {$enam} saat baris bertambah dari 2 ke 6 - ada relasi yang dimuat per baris (N+1)",
         );
     }
+
+    /**
+     * K-05: berhalaman hanya bila `per_page` diminta.
+     *
+     * Bentuk bawaan sengaja TIDAK berubah: layar Tagihan memakai daftar utuh,
+     * dan ekspor membutuhkannya. Yang diuji karena itu dua arah - permintaan
+     * tanpa `per_page` tidak boleh mendapat kunci halaman, dan permintaan
+     * dengan `per_page` harus benar-benar terpotong.
+     */
+    public function test_daftar_tagihan_berhalaman_hanya_bila_per_page_diminta(): void
+    {
+        $kontrak = $this->siapkanKontrak('2026-01-01');
+
+        foreach (['2026-01-01', '2026-02-01', '2026-03-01'] as $periode) {
+            $this->sebagaiPemilik()
+                ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => $periode])
+                ->assertCreated();
+        }
+
+        $this->sebagaiPemilik()->getJson('/api/tagihan')
+            ->assertOk()
+            ->assertJsonCount(3, 'data')
+            ->assertJsonMissingPath('meta.total');
+
+        $this->sebagaiPemilik()->getJson('/api/tagihan?per_page=2')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('meta.per_page', 2)
+            ->assertJsonPath('meta.halaman', 1)
+            ->assertJsonPath('meta.halaman_terakhir', 2)
+            ->assertJsonPath('meta.total', 3);
+
+        $this->sebagaiPemilik()->getJson('/api/tagihan?per_page=2&page=2')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('meta.halaman', 2);
+
+        // Di luar batas ditolak, bukan dipotong diam-diam: ekspor yang meminta
+        // 10.000 baris harus tahu bahwa ia tidak mendapatkannya.
+        $this->sebagaiPemilik()->getJson('/api/tagihan?per_page=201')->assertStatus(422);
+        $this->sebagaiPemilik()->getJson('/api/tagihan?per_page=0')->assertStatus(422);
+    }
 }

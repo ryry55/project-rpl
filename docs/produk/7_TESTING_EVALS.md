@@ -3,9 +3,9 @@
 > Dokumen ini menjawab: **apa yang dibuktikan tes, bagaimana menjalankannya, dan
 > bagaimana menambah tes yang benar-benar menahan.**
 >
-> Angka diambil dari aplikasi yang berjalan: **806 tes PHP (3767 asersi)** dalam
+> Angka diambil dari aplikasi yang berjalan: **809 tes PHP (3790 asersi)** dalam
 > 47 berkas, dan **28 skrip uji** (25 browser + 2 balapan HTTP + 1 jalur proxy)
-> dengan **802 langkah**.
+> dengan **806 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -75,7 +75,7 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
         │  (25 browser + 2 balapan + 1 proxy)  │  satu-satunya yang melihat
         └──────────────────────────────────────┘
       ┌──────────────────────────────────────┐
-      │  699 tes Feature                     │  ~42 dtk, jalur penuh
+      │  709 tes Feature                     │  ~42 dtk, jalur penuh
       │  (validasi, izin, isolasi, balapan)  │  lewat middleware nyata
       └──────────────────────────────────────┘
     ┌──────────────────────────────────────┐
@@ -90,7 +90,7 @@ menguji implementasi, bukan perilaku.
 
 ---
 
-## 3. Tes PHP — 806 tes, 3767 asersi
+## 3. Tes PHP - 809 tes, 3790 asersi
 
 ### 3.1 Menjalankan
 
@@ -113,7 +113,7 @@ Rata-rata 23 detik untuk seluruhnya.
 
 ### 3.3 Tes Feature
 
-699 tes Feature, dikelompokkan menurut apa yang dijaga. Tabel di bawah menyoroti
+709 tes Feature, dikelompokkan menurut apa yang dijaga. Tabel di bawah menyoroti
 berkas yang menjaga aturan, bukan seluruhnya:
 
 **Uang dan tagihan**
@@ -178,7 +178,7 @@ berkas yang menjaga aturan, bukan seluruhnya:
 
 ---
 
-## 4. Skrip uji browser, balapan, dan jalur proxy - 28 skrip, 802 langkah
+## 4. Skrip uji browser, balapan, dan jalur proxy - 28 skrip, 806 langkah
 
 ### 4.1 Menjalankan
 
@@ -220,7 +220,7 @@ Prasyarat: `docker compose up`, Chrome dengan `--remote-debugging-port=9222`,
 | `uji-pembalik.mjs` | 13 | Tombol **Tarik kembali**: alasan wajib, baris negatif di riwayat, tombol hilang sesudah ditarik, pembatalan jadi mungkin |
 | `uji-qris.mjs` | 16 | Unggah gambar QRIS, pratinjau, gambar termuat sebagai blob di portal penghuni, penolakan pada rekening transfer, rekening nonaktif 404 |
 | `asap-semua-halaman.mjs` | 24 | Semua halaman terbuka tanpa galat konsol/5xx |
-| `uji-tata-letak.mjs` | 94 | Tidak meluber di 360/390/768px |
+| `uji-tata-letak.mjs` | 104 | Tidak meluber di 360/390/768px; navigasi bawah muncul di layar sempit dan hilang di 1280px |
 | `uji-kartu-tabel.mjs` | 65 | Tabel 4+ kolom jadi kartu; label sesuai `<th>`; desktop kembali normal |
 | `uji-pwa.mjs` | 22 | Manifest, service worker, **pagar R-07** |
 | `uji-galat-muat.mjs` | 30 | Pemuatan gagal tidak menyamar sebagai "Belum ada" (REV-UI-04) |
@@ -301,10 +301,10 @@ Dari `1_PRD.md` §6, dan bagaimana masing-masing dibuktikan.
 | U-3 | Tagihan ganda per periode | 0 | `uji-balapan-t4.mjs` | Lulus 10/10 |
 | U-4 | Kebocoran data antar-penghuni | 0 | `IsolasiDanAuditTest`, `e2e-t9.mjs` | Lulus |
 | U-5 | Respons `/api` di cache PWA | 0 | `uji-pwa.mjs` — **dibuktikan bisa gagal** | Lulus 22/22 |
-| U-6 | Halaman meluber di 360px | 0 | `uji-tata-letak.mjs` | Lulus 94/94 |
+| U-6 | Halaman meluber di 360px | 0 | `uji-tata-letak.mjs` | Lulus 104/104 |
 | U-7 | Tabel tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` | Lulus 65/65 |
 | U-8 | Kepala pemilik sebelum konten | < 220px | Terukur | 203px |
-| U-9 | Cakupan tes PHP | 806 tes | CI | Lulus 3767 asersi |
+| U-9 | Cakupan tes PHP | 809 tes | CI | Lulus 3790 asersi |
 | U-10 | Pemuatan gagal menyamar sebagai data kosong | 0 layar | `uji-galat-muat.mjs` — **dibuktikan bisa gagal** | Lulus 30/30 |
 
 ---
@@ -317,12 +317,12 @@ seberapa besar kepercayaan pada hijau.
 | Tidak diuji | Kenapa | Risiko yang diterima |
 |---|---|---|
 | Midtrans sungguhan | Belum ada akun sandbox | Alur webhook hanya diuji dengan payload tiruan |
-| Uji beban | Sudah diukur di laptop 29 Okt 2026: 30 kamar × 13 periode = 390 tagihan; terbit massal 640 ms rata-rata (terlama 788 ms); daftar tagihan 550 KB / 297 ms; tunggakan dan rekap ~580 ms; basis data 12 MB | Angka di Render/Neon belum ada, dan `GET /api/tagihan` belum berhalaman — 30 kamar × 12 bulan sudah 550 KB |
+| Uji beban | Sudah diukur di laptop 29 Okt 2026: 30 kamar × 13 periode = 390 tagihan; terbit massal 640 ms rata-rata (terlama 788 ms); daftar tagihan 550 KB / 297 ms; tunggakan dan rekap ~580 ms; basis data 12 MB | Angka di Render/Neon belum ada. Daftar tagihan bisa berhalaman lewat `?per_page=` (K-05, pilihan C), tetapi layar Tagihan sengaja masih memakai daftar utuh — 30 kamar × 12 bulan = 550 KB |
 | Uji aksesibilitas otomatis (axe) | Waktu | Pelanggaran kontras/ARIA tidak tertangkap mesin. Pemeriksaan manual 29 Okt 2026: 419 elemen di `/masuk` dan `/pemilik/tagihan`, fokus selalu terlihat (outline 2px), tidak ada tombol tanpa nama; pembaca layar sungguhan tetap belum |
-| Orientasi lanskap ponsel | Waktu | 640×360 belum pernah diukur |
-| Uji luring sungguhan | `Network.emulateNetworkConditions` belum dipakai | Kerangka ter-cache, tetapi belum dibuktikan bisa dibuka tanpa jaringan |
+| ~~Orientasi lanskap ponsel~~ | **Sudah diukur 29 Okt 2026** | `uji-tata-letak.mjs` menguji 640×360 pada Tagihan, Rekening, dan Pengelola; kontra-uji dengan div 2000px membuat tiga asersi merah |
+| ~~Uji luring sungguhan~~ | **Sudah dibuktikan 29 Okt 2026** | `uji-pwa.mjs` mematikan jaringan pada target service worker (bukan hanya halaman) dan menghapus Cache Storage sebagai kontrol negatif. Batasnya: hanya di Chrome desktop, bukan ponsel sungguhan |
 | Email sungguhan (Brevo) | Hanya Mailpit | Batas kirim Brevo dan reputasi domain belum diuji |
-| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 28 skrip / 802 langkah lulus |
+| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 28 skrip / 806 langkah lulus |
 | Tes komponen Vue | Tidak ada | Regresi di dalam komponen hanya tertangkap E2E |
 
 **E2E di CI sudah dipercaya lagi.** `continue-on-error` sudah **dicabut**;

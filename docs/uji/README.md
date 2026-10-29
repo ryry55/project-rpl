@@ -63,7 +63,7 @@ per tiket tidak pernah membuka halaman itu.
 
 | Berkas | Yang dibuktikan | Butuh |
 |---|---|---|
-| `uji-tata-letak.mjs` | Sepuluh halaman pemilik dan portal penghuni tidak meluber mendatar pada 360px, 390px, dan 768px, ditambah tiga halaman terlebar pada lanskap 640x360; emulasi lebarnya diperiksa lebih dulu supaya asersinya tidak lulus tanpa mengukur | Chrome, seed |
+| `uji-tata-letak.mjs` | Sepuluh halaman pemilik dan portal penghuni tidak meluber mendatar pada 360px, 390px, dan 768px, ditambah tiga halaman terlebar pada lanskap 640x360; navigasi bawah harus muncul di 360/390/768px dan hilang di 1280px; emulasi lebarnya diperiksa lebih dulu supaya asersinya tidak lulus tanpa mengukur | Chrome, seed |
 | `uji-kartu-tabel.mjs` | Tabel 4+ kolom berubah menjadi kartu di 360px dan 390px: setiap sel berlabel sesuai `<th>`-nya, `thead` tidak terlihat, dan kartunya tidak meluber. Di layar lebar tabelnya kembali normal | Chrome, seed |
 | `uji-pwa.mjs` | Manifest terbaca dan semua ikonnya tersaji; service worker terdaftar, aktif, dan mengendalikan halaman; **tidak ada respons `/api/` yang masuk cache** (R-07); aplikasi **benar-benar terbuka tanpa jaringan** dengan jaringan dimatikan di halaman *dan* service worker | Chrome, build produksi, seed |
 | `uji-galat-muat.mjs` | Sepuluh layar yang memuat daftar: saat endpointnya dijawab 500, pesan galat tampil dan baris "Belum ada ..." **tidak** tampil. Kontrol negatif mencabut blokade dan memastikan galatnya hilang, supaya asersi tidak lulus karena halaman tidak pernah dimuat (REV-UI-04) | Chrome, seed |
@@ -261,7 +261,7 @@ docker compose exec -T api sh /tmp/u.sh
 **Kenapa dijalankan manual, bukan di gate.** Skrip ini mengubah berkas kode di
 dalam container. Menjalankannya otomatis berarti gate sesekali menguji kode yang
 sedang disuntik - dan bila salah satu skrip mati di tengah jalan, cacatnya
-tertinggal. Yang otomatis adalah **tesnya** (806 tes PHP, 28 skrip browser);
+tertinggal. Yang otomatis adalah **tesnya** (809 tes PHP, 28 skrip browser);
 yang manual adalah **bukti bahwa tesnya bisa gagal**, dijalankan setiap kali
 sebuah pagar baru ditambahkan.
 

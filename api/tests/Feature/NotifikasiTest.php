@@ -6,6 +6,7 @@ use App\Domain\Akses\Wewenang;
 use App\Domain\Audit\PencatatAudit;
 use App\Domain\Kebijakan\PilihanKebijakan;
 use App\Domain\Notifikasi\Peristiwa;
+use App\Jobs\KirimPemberitahuan;
 use App\Mail\PemberitahuanKos;
 use App\Models\Kamar;
 use App\Models\KebijakanKos;
@@ -22,6 +23,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 /**
@@ -240,6 +242,36 @@ class NotifikasiTest extends TestCase
             return $mail->hasTo('pengelola@kos.test')
                 && $mail->peristiwa === Peristiwa::TARIF_DIUBAH;
         });
+    }
+
+    /**
+     * Fase 5.5: email masuk antrean, bukan dikirim di tengah permintaan.
+     *
+     * Diuji dengan `Queue::fake()` supaya pekerjaannya TIDAK dijalankan: yang
+     * diperiksa adalah bahwa pekerjaan itu benar-benar lahir dan membawa
+     * penerima yang benar. Dengan `Mail::fake()` saja, `sync` dan `database`
+     * terlihat sama - dan justru perbedaan itulah yang menentukan apakah
+     * permintaan menunggu SMTP.
+     */
+    public function test_email_notifikasi_masuk_antrean(): void
+    {
+        Mail::fake();
+        Queue::fake();
+
+        $this->sebagaiPemilik()
+            ->postJson('/api/tarif', [
+                'kamar_id' => $this->kamar->id,
+                'nilai' => 2000000,
+                'berlaku_dari' => '2026-11-01',
+            ])
+            ->assertCreated();
+
+        Queue::assertPushed(KirimPemberitahuan::class, function (KirimPemberitahuan $job) {
+            return $job->peristiwa === Peristiwa::TARIF_DIUBAH
+                && $job->penerimaId === $this->pengelola->id;
+        });
+
+        Mail::assertNothingSent();
     }
 
     public function test_email_gagal_tidak_membatalkan_perubahan(): void

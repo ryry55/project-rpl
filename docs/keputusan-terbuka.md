@@ -146,9 +146,19 @@ itu endpoint baru lolos tanpa ada yang memberi tahu. Mana yang dipakai?
 
 ---
 
-## K-05 — `GET /api/tagihan` belum berhalaman: tambah paginasi atau catat batasnya — menunggu
+## K-05 — `GET /api/tagihan` belum berhalaman: tambah paginasi atau catat batasnya — dijawab
 
 **Fase:** audit ulang · **Tanggal:** 29 Oktober 2026
+
+**Jawaban (29 Oktober 2026). Pilihan C, dengan alasan pemilik: "harus bisa
+diekspor".** `per_page` dihormati bila dikirim (`1..200`), dan `page` mengikuti
+paginator bawaan. Tanpa `per_page`, responsnya **persis** seperti sebelumnya -
+seluruh baris, `meta` yang sama, tanpa kunci halaman - sehingga layar Tagihan
+dan ekspor tidak berubah. Di luar batas dijawab 422, bukan dipotong diam-diam.
+Dijaga `TagihanTest::test_daftar_tagihan_berhalaman_hanya_bila_per_page_diminta`
+(dua arah: tanpa parameter tidak ada kunci halaman, dengan parameter benar-benar
+terpotong). Pilihan A tetap terbuka: menambah kontrol halaman di layar hanya
+perlu memakai parameter yang sudah ada.
 
 **Pertanyaan.** Uji beban 29 Oktober (30 kamar × 13 periode) menunjukkan
 `GET /api/tagihan` menjawab **550 KB / 297 ms** untuk 390 tagihan, dan
@@ -174,9 +184,17 @@ tertulis di dokumen uji.
 
 ---
 
-## K-06 — A3: tagihan terjadwal di container yang bisa tidur — menunggu
+## K-06 — A3: tagihan terjadwal di container yang bisa tidur — ditunda
 
 **Fase:** audit ulang · **Tanggal:** 29 Oktober 2026
+
+**Jawaban (29 Oktober 2026). Ditunda, belum dipilih.** Pemilik memilih
+menunggu sampai Fase 1 (Render + Neon) berjalan, karena pilihan A, B, dan C
+semuanya bergantung pada bentuk layanan yang benar-benar dipakai. Tidak ada
+kode yang berubah; A3 tetap terbuka di `11_AUDIT-PRODUKSI-2.md`, dan
+`9_DEPLOY.md` tetap memakai penjadwal di dalam container. Yang harus diputuskan
+sebelum kos dipakai sungguhan: apakah tagihan boleh bergantung pada kontainer
+yang tidak tidur (B), pada layanan luar (A), atau pada ingatan pemilik (C).
 
 **Pertanyaan.** Penjadwal di dalam container hanya hidup selama container
 hidup; di Render gratis ia tidur setelah tanpa lalu lintas, jadi tagihan bulanan

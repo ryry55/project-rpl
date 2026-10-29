@@ -209,8 +209,35 @@ jalankan(async () => {
           !ukur?.luber,
           ukur?.luber ? `dokumen ${ukur.dokumen} > ${ukur.lebar} (${ukur.pelaku.join(', ')})` : '',
         )
+
+        // Fase 5.1: navigasi bawah hanya untuk layar sempit, dan isinya harus
+        // tiga tujuan bulanan plus tombol Menu. Diperiksa di satu halaman saja
+        // karena ia milik tata letak, bukan halaman.
+        if (judul === 'Tagihan') {
+          const bawah = await evaluasi(
+            ws,
+            `(() => {
+              const b = document.querySelector('nav.bawah')
+              return { ada: Boolean(b), isi: b ? b.querySelectorAll('a, button').length : 0 }
+            })()`,
+          )
+          lapor(
+            `${lebar}px navigasi bawah muncul dengan empat tautan`,
+            bawah?.ada === true && bawah?.isi === 4,
+            `${bawah?.ada ? 'ada' : 'tidak ada'}, ${bawah?.isi} tautan`,
+          )
+        }
       }
     }
+
+    // ...dan harus HILANG di layar lebar. Tanpa asersi ini, navigasi yang lupa
+    // disembunyikan lolos: ia hanya menambah empat tautan duplikat di desktop.
+    await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/tagihan` })
+    await tungguSampai(ws, `document.querySelector('h1')?.textContent.includes('Tagihan')`)
+    await pasangLebar(ws, 1280)
+    await new Promise((r) => setTimeout(r, 500))
+    const bawahLebar = await evaluasi(ws, `Boolean(document.querySelector('nav.bawah'))`)
+    lapor('1280px navigasi bawah tersembunyi', bawahLebar === false, String(bawahLebar))
 
     // Lanskap. Dipasang SESUDAH loop pokok dan SEBELUM portal penghuni, karena
     // sesi pemilik masih aktif di sini dan data uji tata letak masih ada.

@@ -86,9 +86,11 @@ menjalankan image produksi di laptop.
    | `APP_DEMO_MODE` | `false` | Entrypoint **berhenti** bila `true` |
    | `APP_URL` | `https://kos-kosan.my.id` | Basis URL |
    | `APP_URL_SPA` | `https://kos-kosan.my.id` | Satu origin, jadi sama |
+   | `APP_LOCALE` | `id` | Tanpa ini bawaan `config/app.php` adalah `en` dan pesan validasi kembali berbahasa Inggris |
+   | `APP_FALLBACK_LOCALE` | `id` | Sama |
    | `SESSION_DRIVER` | `database` | Sesi bertahan saat container restart |
    | `CACHE_STORE` | `database` | Pembatas login bertahan saat restart |
-   | `QUEUE_CONNECTION` | `sync` | Lihat DAT-03 di `docs/utang-teknis.md` |
+   | `QUEUE_CONNECTION` | `database` | Email dikirim pekerja `antrean` di supervisord; `sync` membuat pengguna menunggu SMTP |
    | `SANCTUM_EXPIRATION` | `10080` (7 hari) | Umur token; tanpa ini bawaannya 14 hari |
    | `RUN_SEEDER` | `false` | Seeder menulis sandi `password` |
    | `LOG_CHANNEL` | `stderr` | Log terbaca dashboard Render |
@@ -133,7 +135,14 @@ curl -s -o /dev/null -w '%{http_code}\n' \
 
 # 3. Smoke test lengkap (4 bahaya produksi)
 bash docs/uji/smoke-produksi.sh https://kos-kosan.my.id
+
+# 4. Keempat proses hidup - php-fpm, nginx, penjadwal, antrean
+supervisorctl -c /etc/supervisord.conf status
 ```
+
+Langkah 4 penting untuk email: dengan `QUEUE_CONNECTION=database`, email masuk
+tabel `jobs` dan hanya terkirim kalau program `antrean` RUNNING. Pekerja yang
+mati tidak menghasilkan galat di layar - hanya email yang tidak pernah datang.
 
 Lalu **buat akun pemilik sungguhan**. Produksi tidak punya akun apa pun setelah
 seeder dimatikan, dan tanpa akun tidak ada yang bisa masuk:

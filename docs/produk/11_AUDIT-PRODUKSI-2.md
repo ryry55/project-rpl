@@ -18,7 +18,7 @@ diklaim selesai.
 | **A. Penghalang produksi** | 5 | Aplikasi akan berperilaku salah atau gagal senyap di produksi |
 | **B. Risiko tinggi** | 6 | Tidak menjatuhkan aplikasi, tetapi menimbulkan kerugian nyata |
 | **C. Pengerasan** | 7 | Layak dikerjakan, tidak mendesak |
-| **D. Sengaja tidak dikerjakan** | 4 | Bukan cacat; mencatatnya mencegah pengulangan |
+| **D. Sengaja tidak dikerjakan** | 3 | Bukan cacat; mencatatnya mencegah pengulangan |
 
 > **Status per 26 Okt 2026: A1, A2, A4, A5 sudah DIPERBAIKI dan dibuktikan
 > dengan uji yang bisa gagal.** Hanya **A3** (penjadwal vs container tidur)
@@ -245,8 +245,9 @@ temukan sendiri: **variabel yang dihormati dokumen tetapi tidak dihormati kode.*
 
 ### A3. Penjadwal mati bersama container — tagihan tanggal 1 tidak terbit
 
-**Bukti.** `docker/prod/supervisord.conf` menjalankan tiga program: `php-fpm`,
-`nginx`, `penjadwal` (`php artisan schedule:work`). Render gratis mematikan
+**Bukti.** `docker/prod/supervisord.conf` menjalankan empat program: `php-fpm`,
+`nginx`, `penjadwal` (`php artisan schedule:work`), dan `antrean`
+(`queue:work`, sejak Fase 5.5). Render gratis mematikan
 layanan setelah ~15 menit tanpa lalu lintas (dicatat sendiri di
 `8_OPERATIONS_SOP.md:248`).
 
@@ -394,9 +395,12 @@ tinggal dipakai.
 massal 30 penghuni = 30 email"*.
 
 **Akibat.** Terbit massal (30) + notifikasi tagihan + aktivasi + reset bisa
-mendekati batas. Karena email dikirim **sinkron** (DAT-03) dan kegagalan kirim
-**sengaja tidak membatalkan transaksi**, tagihan tetap terbit sementara emailnya
-hilang — dan tidak ada yang tahu email mana yang gagal.
+mendekati batas. Karena email dikirim **sinkron** (DAT-03 pada saat itu) dan
+kegagalan kirim **sengaja tidak membatalkan transaksi**, tagihan tetap terbit
+sementara emailnya hilang — dan tidak ada yang tahu email mana yang gagal.
+**Sejak Fase 5.5 pengirimannya diantrikan, jadi bagian "sinkron" tidak lagi
+berlaku;** yang tetap berlaku adalah bahwa kegagalan kirim dicatat, bukan
+dilempar.
 
 **Perbaikan.** Hitung ulang kebutuhan harian; kalau mepet, kirim ringkasan
 (1 email per pemilik, bukan per tagihan) atau naikkan paket. Yang lebih penting:
@@ -506,8 +510,8 @@ data contoh, buat kos baru lewat layar.
 | C1 | ~~`client_max_body_size 2m` vs validasi `max:2048` tepat 2 MB~~ **SELESAI 29 Okt 2026** | Berkas 2 MB + overhead multipart → **413 dari nginx** sebelum Laravel memberi pesan ramah. Kini `4m` di ketiga nginx (prod, `api-web`, `web`). Diukur: 1,47 MB → **201** (sebelumnya **413**), 2,4 MB → **422** dengan pesan "Gambar maksimal 2 MB", 5 MB → **413**. Catatan yang ditemukan saat mengukur: di laptop batasnya bahkan bukan 2 MB melainkan **1 MB**, karena `api-web` dan `web` tidak menyetel batas sama sekali dan memakai bawaan nginx |
 | C2 | ~~`SANCTUM_EXPIRATION` tidak ada di `.env.example`~~ **SELESAI 29 Okt 2026** | Bawaannya 14 hari; harus jadi keputusan sadar, bukan bawaan. Kini ada di `api/.env.example` beserta alasannya |
 | C3 | `GET /penghuni` & `GET /rekening` tanpa paginasi | Benar untuk 5–30 kamar. **Jangan** tambahkan paginasi; ini catatan, bukan tugas |
-| C4 | Argumen DAT-03 perlu dikoreksi | Alasan yang tercatat ("satu layanan tidak bisa worker persisten") **tidak berlaku**: supervisord sudah menjalankan proses ketiga. Kode tidak perlu diubah, tetapi alasannya jangan dikutip sebagai kebenaran |
-| C5 | `APP_LOCALE=en` padahal seluruh UI berbahasa Indonesia | Pesan validasi bawaan berbahasa Inggris. Kecil, tetapi terlihat |
+| C4 | ~~Argumen DAT-03 perlu dikoreksi~~ **SELESAI 29 Okt 2026** | Alasan yang tercatat ("satu layanan tidak bisa worker persisten") memang tidak berlaku. Ditutup bersama C5 di Fase 5.5: `[program:antrean]` ditambahkan, jadi yang dulu dikoreksi sebagai argumen kini dikerjakan sebagai kode |
+| C5 | ~~`APP_LOCALE=en` padahal seluruh UI berbahasa Indonesia~~ **SELESAI 29 Okt 2026 (Fase 5.4)** | `api/lang/id/validation.php` (kunci lengkap + peta nama kolom), `APP_LOCALE=id` di `.env.example`, dan baris env-nya ditambahkan ke `9_DEPLOY.md`. Dijaga `DataIndukTest::test_pesan_validasi_bawaan_berbahasa_indonesia` pada aturan yang tidak punya pesan sendiri (`tipe.max:40`) |
 | C6 | `pm.max_requests = 500` | Sudah benar (mencegah kebocoran memori). Dicatat sebagai hal yang **jangan** dinaikkan tanpa mengukur |
 | C7 | ~~`Cache-Control` untuk `/api/*`~~ **SELESAI 29 Okt 2026** | Temuan ini menulis "tidak ada", padahal bawaan Laravel sudah mengirim `no-cache, private` — yang belum tertutup adalah cache peramban. `TanpaCache` kini menyetel `no-store, private` untuk jawaban JSON; ekspor CSV dan gambar QRIS (`max-age=300`) tidak ditimpa, dan keduanya dijaga dua tes |
 | C8 | ~~Kerentanan dependensi~~ **SELESAI 29 Okt 2026** | `composer audit --locked` semula melaporkan satu advisori pada `symfony/mime` 7.4.19; kini **7.4.22** (+ `polyfill-mbstring` 1.43.3) dan audit bersih. `npm audit --omit=dev`: 0. Efek samping yang wajar: `composer update` di repo ini juga membuang tiga paket yang hanya ada di lockfile (`laravel/sail`, `laravel/pail`, `symfony/yaml`) — tidak satu pun disebut di kode, `docs`, atau skrip |
@@ -521,9 +525,9 @@ Dicatat supaya tidak ada yang mengusulkannya lagi tanpa membaca alasannya.
 
 | Hal | Kenapa tidak |
 |---|---|
-| Paginasi daftar kecil | 30 kamar; paginasi menambah kerumitan tanpa manfaat |
+| Paginasi daftar kecil | 30 kamar; paginasi menambah kerumitan tanpa manfaat. **Sejak K-05** `GET /api/tagihan` menerima `?per_page=` untuk ekspor, tetapi layarnya tetap memakai daftar utuh dan daftar kamar/penghuni/rekening tetap tanpa paginasi |
 | Role `admin` | Sudah dijawab: tidak ada di kode, pagar menolak entitas tanpa aliran, dan ia menyiratkan Model C yang ditolak di §3.6 |
-| Queue worker terpisah | Alasan lama gugur (C4), tetapi manfaatnya belum sepadan: 30 email < 10 detik |
+| ~~Queue worker terpisah~~ | **Dikerjakan 29 Okt 2026 (Fase 5.5)** setelah pemilik menyetujuinya: `[program:antrean]` + `QUEUE_CONNECTION=database`. Baris ini tetap disimpan sebagai catatan bahwa penundaan lamanya bukan karena mustahil |
 | Multi-kos / banyak pemilik | Model C ditolak dengan alasan tertulis |
 
 ---

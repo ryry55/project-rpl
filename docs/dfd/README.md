@@ -346,8 +346,9 @@ Lima hal yang layak dijelaskan bila ditanya "kenapa begitu":
    dikembalikan saat penghuni keluar. Artinya diagram ini akan menggambar uang yang tidak
    pernah dipertanggungjawabkan sistem. Pemilik memutuskan menghapusnya seluruhnya di
    fase terakhir: kolom `kontrak.deposit`, tipe kebijakan `deposit`, dan kelas
-   `PenentuDeposit` sudah tidak ada. Alasan lengkapnya di `docs/utang-teknis.md`; yang
-   tersisa sebagai utang adalah **antrean email** saja. Gambar QRIS sudah tersimpan
+   `PenentuDeposit` sudah tidak ada. Alasan lengkapnya di `docs/utang-teknis.md`. Antrean
+   email kini punya pekerjanya sendiri (Fase 5.5), jadi utang itu juga sudah tertutup.
+   Gambar QRIS sudah tersimpan
    (`rekening.gambar`, kolom `bytea`) sejak fase terakhir.
 
 ---

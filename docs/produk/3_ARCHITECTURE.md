@@ -394,7 +394,7 @@ dibatasi adalah tebakan, bukan pemakaian.
 | Tidak ada | Alasan | Rencana |
 |---|---|---|
 | ~~Penerbitan tagihan terjadwal~~ | ~~Render gratis tanpa cron yang andal~~ | **Sudah ada** (`schedule:work` di supervisord, tanggal 1 pukul 00:10 WIB). Batasnya: container gratis tidur, jadi ia bisa tidak berbunyi — dicatat di `11_AUDIT-PRODUKSI-2.md` A3 |
-| Antrean email | Tanpa worker persisten | Utang teknis |
+| ~~Antrean email~~ | ~~Tanpa worker persisten~~ | **Sudah ada (Fase 5.5):** `KirimPemberitahuan` + program `antrean` di supervisord; produksi memakai `QUEUE_CONNECTION=database` |
 | ~~Tombol pembalik di layar~~ | ~~Endpoint `POST /pembayaran/{id}/pembalik` sudah ada sejak R2, tetapi belum ada tombolnya~~ | **Sudah ditutup (fase terakhir).** Panel rincian tagihan kini punya tombol **Tarik kembali** beserta formulir alasan wajib; `TagihanResource` mengirim `adalah_pembalik`/`sudah_dibalik` supaya layar tahu baris mana yang sudah ditarik. Dijaga `uji-pembalik.mjs` (13 langkah) |
 | Uji aksesibilitas otomatis | Waktu | Utang teknis |
 | Multi-kos | Ditolak (§3.6) | — |
@@ -416,7 +416,7 @@ api/
   app/Http/Resources/    14 resource — bentuk JSON
   app/Models/            21 model — hanya bentuk data
   database/migrations/   41 migrasi
-  tests/                 47 berkas tes, 806 tes
+  tests/                 47 berkas tes, 809 tes
 
 web/
   src/views/             27 view (7 publik + 20 pemilik dan panelnya)

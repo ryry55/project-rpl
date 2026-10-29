@@ -3,6 +3,7 @@
 namespace App\Domain\Notifikasi;
 
 use App\Domain\Audit\PencatatAudit;
+use App\Jobs\KirimPemberitahuan;
 use App\Mail\PemberitahuanKos;
 use App\Models\User;
 use App\Notifications\NotifikasiKos;
@@ -97,23 +98,46 @@ class Pemberitahu
                 continue;
             }
 
-            try {
-                Mail::to($user->email)->send(new PemberitahuanKos(
-                    peristiwa: $surat->peristiwa,
-                    judul: $surat->judul,
-                    pesan: $surat->pesan,
-                    tautan: $surat->tautan,
-                ));
-            } catch (Throwable $e) {
-                // Tidak dilempar ulang. Lihat catatan kelas.
-                Log::warning('Email notifikasi gagal dikirim.', [
-                    'peristiwa' => $surat->peristiwa,
-                    'penerima' => $user->email,
-                    'sebab' => $e->getMessage(),
-                ]);
+            // Satu pekerjaan per penerima (Fase 5.5). Permintaan HTTP tidak
+            // lagi menunggu SMTP: 30 penghuni berarti 30 pekerjaan yang
+            // dikerjakan antrean, bukan 30 sambungan berurutan sebelum
+            // respons dikirim. Pada `QUEUE_CONNECTION=sync` - tes dan
+            // docker-compose - pekerjaan berjalan seketika, jadi perilakunya
+            // sama seperti sebelumnya.
+            KirimPemberitahuan::dispatch(
+                $surat->peristiwa,
+                $surat->judul,
+                $surat->pesan,
+                $surat->tautan,
+                $user->id,
+            );
+        }
+    }
 
-                $this->catatGagalKirim($surat, $user->email, $e);
-            }
+    /**
+     * Kirim satu email sekarang juga. Dipanggil pekerja antrean.
+     *
+     * Kegagalannya ditangkap di sini, bukan dilempar ke antrean - lihat
+     * catatan di {@see KirimPemberitahuan}.
+     */
+    public function kirimEmail(Surat $surat, User $user): void
+    {
+        try {
+            Mail::to($user->email)->send(new PemberitahuanKos(
+                peristiwa: $surat->peristiwa,
+                judul: $surat->judul,
+                pesan: $surat->pesan,
+                tautan: $surat->tautan,
+            ));
+        } catch (Throwable $e) {
+            // Tidak dilempar ulang. Lihat catatan kelas.
+            Log::warning('Email notifikasi gagal dikirim.', [
+                'peristiwa' => $surat->peristiwa,
+                'penerima' => $user->email,
+                'sebab' => $e->getMessage(),
+            ]);
+
+            $this->catatGagalKirim($surat, $user->email, $e);
         }
     }
 

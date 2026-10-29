@@ -80,7 +80,7 @@ pendapatan, tiga ekspor CSV, jejak audit append-only, wewenang pengelola,
 persetujuan pemilik, persetujuan PDP, dan portal penghuni.
 
 Laravel 12 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah Docker Compose.
-86 endpoint, 23 tabel, 806 tes PHP, 28 skrip uji.
+86 endpoint, 23 tabel, 809 tes PHP, 28 skrip uji.
 
 Yang **sengaja tidak** dikerjakan: multi-kos untuk satu pemilik, pembukuan
 akuntansi, inventaris aset, chat di dalam aplikasi, prediksi/analitik.

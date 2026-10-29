@@ -127,6 +127,34 @@ laporan, dan tanpa batas satu tab memenuhi log. Jawabannya selalu `204`,
 termasuk untuk badan yang tidak berbentuk laporan — peramban tidak membaca
 jawaban, jadi `4xx` hanya memicu pengiriman ulang yang sama.
 
+### 2.4 Antrean email
+
+Email notifikasi tidak dikirim di dalam permintaan HTTP. Tiap penerima menjadi
+satu baris di tabel `jobs`, dan program `antrean` di supervisord
+(`php artisan queue:work --sleep=3 --max-time=3600`) mengerjakannya.
+
+```bash
+# Di produksi (satu container): periksa keempat program dan hidupkan kembali
+# pekerja yang mati. Perintah ini baru bisa dipakai sejak [unix_http_server] dan
+# [rpcinterface:supervisor] ditambahkan ke docker/prod/supervisord.conf.
+supervisorctl -c /etc/supervisord.conf status
+supervisorctl -c /etc/supervisord.conf restart antrean
+
+# Di laptop: antrean tidak dipakai (lihat catatan di bawah).
+docker compose exec api php artisan queue:monitor database:default --max=50
+docker compose exec api php artisan queue:failed          # yang menyerah
+docker compose exec api php artisan queue:retry all       # coba ulang
+```
+
+| Yang terlihat | Artinya |
+|---|---|
+| `jobs` bertambah terus, `antrean` tidak ada di `supervisorctl status` | Pekerjanya mati. Email tidak hilang, tetapi tidak terkirim sampai ia hidup lagi — ini kegagalan yang paling mudah terlewat karena tidak ada galat di layar |
+| Baris di `failed_jobs` | Pengiriman menyerah. Sebabnya ada di `log_audit` aksi `email.gagal` (`Pemberitahu::kirimEmail`), lengkap dengan penerima dan pesan SMTP. Sejak pengiriman pindah ke pekerja, baris itu **tanpa aktor** (`aktor_id` null) — yang menjalankannya proses, bukan orang; yang dicatat adalah peristiwa, penerima, dan sebabnya |
+| `jobs` kosong dan `failed_jobs` kosong | Normal: semua email sudah terkirim |
+
+Di laptop `QUEUE_CONNECTION=sync`, jadi tidak ada antrean dan tidak ada program
+`antrean` — email terkirim di dalam permintaan, dan tabel `jobs` tetap kosong.
+
 ---
 
 ## 3. Backup
@@ -236,7 +264,7 @@ tag v*  →  rilis.yml  →  bangun image → dorong ke GHCR
                       →  deploy.yml (produksi)
 ```
 
-`uji.yml` berjalan pada setiap push: lint → 806 tes PHP → skrip browser di Chrome
+`uji.yml` berjalan pada setiap push: lint → 809 tes PHP → skrip browser di Chrome
 headless.
 
 | Workflow | Pemicu |
@@ -518,7 +546,7 @@ akan tahu ada yang menunggu.
 |---|---|
 | Backup di luar layanan | Disk Render tidak persisten; backup hilang saat redeploy. Jadwalnya ada (02:00 WIB), tetapi bisa terlewat saat container tidur |
 | Lingkungan produksi terpasang | `Dockerfile.prod` dan `deploy.yml` ada, tetapi belum pernah dijalankan ke Render/Neon sungguhan |
-| Antrean email | Penerbitan massal 30 penghuni = 30 pengiriman berurutan |
+| ~~Antrean email~~ | ~~Penerbitan massal 30 penghuni = 30 pengiriman berurutan~~ **Sudah ada (Fase 5.5):** program `antrean`; risikonya berpindah, bukan hilang - bila pekerjanya mati, email menumpuk di tabel `jobs` |
 | Pemicu eksternal penjadwal | Penjadwal hidup di container; container yang tidur tidak berbunyi (tagihan & backup) |
 | Pemantauan uptime | Layanan tidur tanpa ada yang tahu |
 | Rotasi log | `CatatPermintaanGagal` menulis satu baris JSON per respons ≥400 |

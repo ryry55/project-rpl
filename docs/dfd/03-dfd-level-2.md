@@ -415,10 +415,13 @@ punya aturan hitung sendiri. Uraiannya ada di dalam §3.5 di atas.
 | 2.0 Kelola Tarif, Kebijakan & Komponen | Sama, ditambah alur usulan pengelola yang sudah dijelaskan aliran I-3/I-6/O-2 di level 1 |
 | 5.0 Laporan & Rekap | Hanya membaca; tidak ada aturan hitung baru di dalamnya selain yang sudah ada di 3.0 dan 4.0 |
 
-Yang **belum** punya proses sendiri: **antrean email**. Pengiriman berjalan
-sinkron di dalam permintaan HTTP, jadi 30 penghuni berarti 30 pengiriman
-berurutan sebelum halaman selesai dimuat. Ia tidak digambar sebagai proses
-karena memang tidak ada prosesnya — hanya panggilan langsung.
+Yang **dulu** tidak punya proses sendiri: **antrean email**. Sejak Fase 5.5
+pengantarannya dijalankan program tersendiri (`queue:work`) di dalam container,
+jadi 30 penghuni tidak lagi berarti 30 pengiriman berurutan sebelum halaman
+selesai dimuat. DFD tetap menggambarnya sebagai bagian dari proses 3.0 — yang
+berubah adalah tempat pekerjaannya berjalan, bukan langkah bisnisnya, dan
+memecahnya menjadi proses 7.0 akan menjanjikan kotak yang isinya hanya
+"kirim surat yang sudah ditulis proses lain".
 
 Pembalik pembayaran **tidak lagi** masuk daftar ini: tombolnya sudah dipasang
 di panel rincian tagihan sejak fase terakhir, jadi alurnya kini bisa dijalankan

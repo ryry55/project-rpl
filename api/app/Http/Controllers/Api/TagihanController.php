@@ -60,19 +60,41 @@ class TagihanController extends Controller
             $query->whereDate('periode', Carbon::parse($request->string('periode')->value())->startOfMonth());
         }
 
+        // Diumumkan di badan respons, bukan hanya lewat header: header
+        // lintas-origin tidak terbaca JavaScript tanpa exposed_headers,
+        // dan bergantung pada itu membuat UI tidak bisa menjelaskan
+        // apakah tanggal simulasi benar-benar berlaku.
+        $meta = [
+            'tanggal_acuan' => $this->waktu->hariIni()->toDateString(),
+            'simulasi' => $this->waktu->sedangSimulasi(),
+            'demo_mode' => (bool) config('app.demo_mode'),
+        ];
+
+        // K-05: berhalaman HANYA bila diminta. Tanpa `per_page`, daftar tetap
+        // utuh seperti sebelumnya - layar Tagihan tidak berubah dan ekspor
+        // tidak perlu memanggil endpoint lain. Dengan `per_page`, pemanggil
+        // berpindah halaman lewat `page` biasa.
+        if ($request->filled('per_page')) {
+            $request->validate(['per_page' => ['integer', 'min:1', 'max:200']]);
+
+            $halaman = $query->orderByDesc('periode')->orderByDesc('id')->paginate($request->integer('per_page'));
+
+            return response()->json([
+                'data' => TagihanResource::collection($halaman->items()),
+                'meta' => $meta + [
+                    'per_page' => $halaman->perPage(),
+                    'halaman' => $halaman->currentPage(),
+                    'halaman_terakhir' => $halaman->lastPage(),
+                    'total' => $halaman->total(),
+                ],
+            ]);
+        }
+
         $daftar = $query->orderByDesc('periode')->orderByDesc('id')->get();
 
         return response()->json([
             'data' => TagihanResource::collection($daftar),
-            // Diumumkan di badan respons, bukan hanya lewat header: header
-            // lintas-origin tidak terbaca JavaScript tanpa exposed_headers,
-            // dan bergantung pada itu membuat UI tidak bisa menjelaskan
-            // apakah tanggal simulasi benar-benar berlaku.
-            'meta' => [
-                'tanggal_acuan' => $this->waktu->hariIni()->toDateString(),
-                'simulasi' => $this->waktu->sedangSimulasi(),
-                'demo_mode' => (bool) config('app.demo_mode'),
-            ],
+            'meta' => $meta,
         ]);
     }
 

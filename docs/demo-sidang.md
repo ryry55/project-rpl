@@ -268,10 +268,11 @@ QRIS yang hilang lebih buruk daripada tidak ada — pemilik mengira sudah mengun
 persisten dan sudah dicadangkan.
 
 **"Apa yang belum selesai?"**
-Tiga hal, dan semuanya tercatat di `docs/utang-teknis.md`: **antrean email** masih sinkron (tanpa
-worker), **verifikasi Midtrans sandbox** menunggu kunci server, dan **deploy Render/Neon** menunggu
-akun pemilik. Uji E2E di CI **sudah hijau** - 28 skrip / 802 langkah. Tidak ada yang
-disembunyikan.
+Dua hal, dan keduanya tercatat di `docs/utang-teknis.md`: **verifikasi Midtrans sandbox**
+menunggu kunci server, dan **deploy Render/Neon** menunggu akun pemilik — termasuk
+keputusan A3 soal penjadwal di container yang bisa tidur. Antrean email sudah ditutup
+(Fase 5.5: program `antrean` + `KirimPemberitahuan`). Uji E2E di CI **sudah hijau** —
+28 skrip / 806 langkah. Tidak ada yang disembunyikan.
 
 **"Bagaimana kalau angkanya dipertanyakan?"**
 Setiap perubahan angka punya jejak: `log_audit` mencatat aktor, waktu, nilai lama, dan nilai baru,

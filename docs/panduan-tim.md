@@ -294,7 +294,7 @@ powershell -ExecutionPolicy Bypass -File periksa.ps1   # Windows
 bash periksa.sh                                        # Linux/macOS/CI
 ```
 
-Itu menjalankan **seluruh** pagar: pint, eslint, 806 tes PHP, dua pemeriksa
+Itu menjalankan **seluruh** pagar: pint, eslint, 809 tes PHP, dua pemeriksa
 kesesuaian dokumen, dan **28 skrip uji browser** (29 berkas `.mjs` di
 `docs/uji/`; satu di antaranya, `_cdp.mjs`, adalah pembantu yang tidak
 dijalankan sendiri). Butuh sekitar **7 menit** — 403 detik pada mesin
@@ -347,8 +347,8 @@ Jujur soal ini lebih berguna daripada daftar fitur.
 |---|---|---|
 | **Deploy ke hosting sungguhan** | Butuh akun pemilik | Akun Render + Neon, atau VPS |
 | **Midtrans sandbox sungguhan** | Butuh kunci asli | `MIDTRANS_SERVER_KEY` dari dashboard Midtrans |
-| **Tagihan terjadwal otomatis** | Tanpa cron/worker persisten | Penjadwal di server produksi |
-| **Antrean email** | 30 penghuni = 30 pengiriman berurutan | Worker persisten |
+| ~~**Tagihan terjadwal otomatis**~~ | ~~Tanpa cron/worker persisten~~ | **Sudah ada** (`schedule:work` di supervisord). Batasnya container gratis yang tidur - A3 |
+| ~~**Antrean email**~~ | ~~30 penghuni = 30 pengiriman berurutan~~ | **Sudah ada (Fase 5.5):** program `antrean` di supervisord |
 | **Format laporan akhir** | Menunggu dosen | Konfirmasi format dari dosen |
 
 **Soal hosting, khususnya.** Hostinger **shared hosting** tidak bisa menjalankan

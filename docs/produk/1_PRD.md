@@ -147,7 +147,7 @@ pemilik yang memutuskan. Usulan kedaluwarsa dalam **7 hari**.
 | ~~Penerbitan tagihan otomatis (terjadwal)~~ | ~~Butuh cron yang tidak tersedia di Render gratis~~ | **Sudah ada:** `Schedule::call` tanggal 1 pukul 00:10 WIB lewat `schedule:work` di container produksi. Batasnya: container Render gratis tidur setelah 15 menit tanpa lalu lintas, jadi jadwal itu bisa terlewat — lihat `11_AUDIT-PRODUKSI-2.md` A3 |
 | Deposit | Dulu ada kolomnya, tetapi tidak pernah dicatat sebagai uang masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan. Pemilik memilih menghapusnya daripada mempertahankan angka yang tidak berakibat | **Dihapus seluruhnya di fase terakhir** |
 | ~~Pembayaran pembalik~~ | ~~Belum ada kebutuhan nyata~~ | **Sudah ada:** baris negatif sejak R2, tombol **Tarik kembali** di panel rincian tagihan sejak fase terakhir |
-| Antrean email | Render gratis tanpa worker persisten | Utang teknis |
+| ~~Antrean email~~ | ~~Render gratis tanpa worker persisten~~ | **Sudah ada (Fase 5.5):** email masuk `App\Jobs\KirimPemberitahuan`, dikirim program `antrean` (`queue:work`) di supervisord |
 | Multi-kos | Lihat §1.3 | Ditolak, alasannya di SPEC |
 | Aplikasi native | PWA sudah bisa dipasang | Dicatat sebagai opsi masa depan (Capacitor) |
 
@@ -237,10 +237,10 @@ atau dari tes.
 | U-3 | Tagihan ganda per periode | 0 (ditolak 409) | `uji-balapan-t4.mjs`, 10 langkah |
 | U-4 | Kebocoran data antar-penghuni | 0 | `IsolasiDanAuditTest`, `e2e-t9.mjs` |
 | U-5 | Respons `/api` yang masuk cache PWA | 0 | `uji-pwa.mjs` — dibuktikan bisa gagal |
-| U-6 | Halaman yang meluber di 360px | 0 | `uji-tata-letak.mjs` 94 langkah |
+| U-6 | Halaman yang meluber di 360px | 0 | `uji-tata-letak.mjs` 104 langkah |
 | U-7 | Tabel yang tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` 65 langkah |
 | U-8 | Bagian kepala pemilik sebelum konten | < 220px | Terukur 203px |
-| U-9 | Cakupan tes PHP | 806 tes, 3767 asersi | CI |
+| U-9 | Cakupan tes PHP | 809 tes, 3790 asersi | CI |
 
 ---
 

@@ -212,13 +212,16 @@ cari `csp.lapor` di log Render selama seminggu; kalau kosong atau hanya berisi
 Bukan syarat produksi. Kerjakan hanya kalau ada waktu, dan **jangan** sebelum
 Fase 0–3 selesai.
 
+**Status 29 Oktober 2026: 5.1, 5.2, 5.3, 5.4, 5.5 kelima-limanya SELESAI,**
+setelah pemilik menyetujui tiga yang menyentuh perilaku yang dilihat pengguna.
+
 | # | Pekerjaan | Alasan |
 |---|---|---|
-| 5.1 | Navigasi bawah khusus ponsel | Pemilik kos memakai ponsel, bukan laptop |
-| 5.2 | Uji lanskap 640×360 | `manifest` mengunci portrait; sebagian pengguna memutar layar |
-| 5.3 | Uji luring sungguhan (`Network.emulateNetworkConditions`) | Kerangka ter-cache tetapi belum pernah dibuktikan |
-| 5.4 | `APP_LOCALE=id` + pesan validasi Indonesia (C5) | Seluruh UI Indonesia, pesan galat Inggris |
-| 5.5 | Pertimbangkan queue worker keempat di supervisord | Alasan lama gugur (C4); nilainya baru terasa bila email > 100/hari |
+| 5.1 | Navigasi bawah khusus ponsel — **SELESAI 29 Okt** | Pemilik kos memakai ponsel, bukan laptop. `TataLetakPemilik.vue` merender tiga tujuan (Tagihan, Tunggakan, Rekap/Tunai saya) + tombol Menu dari larik `menu` yang sama, jadi label per peran tetap satu sumber. Dijaga `uji-tata-letak.mjs` pada 360/390/768px, ditambah asersi bahwa ia hilang di 1280px |
+| 5.2 | Uji lanskap 640×360 — **SELESAI** | `manifest` mengunci portrait; sebagian pengguna memutar layar |
+| 5.3 | Uji luring sungguhan (`Network.emulateNetworkConditions`) — **SELESAI** | Kerangka ter-cache tetapi belum pernah dibuktikan |
+| 5.4 | `APP_LOCALE=id` + pesan validasi Indonesia (C5) — **SELESAI 29 Okt** | Seluruh UI Indonesia, pesan galat Inggris. `api/lang/id/validation.php` (kunci lengkap + peta nama kolom), `APP_LOCALE=id` di `.env.example` dan daftar env `9_DEPLOY.md`. Dijaga `DataIndukTest::test_pesan_validasi_bawaan_berbahasa_indonesia` |
+| 5.5 | Queue worker keempat di supervisord — **SELESAI 29 Okt** | `[program:antrean]` + `QUEUE_CONNECTION=database` di produksi. `Pemberitahu::setelahTransaksi` menaruh satu `KirimPemberitahuan` per penerima, jadi 30 penghuni bukan lagi 30 SMTP berurutan. Kegagalan kirim tetap masuk `log_audit` (B3) karena ditangkap di `Pemberitahu::kirimEmail`. Dijaga `NotifikasiTest::test_email_notifikasi_masuk_antrean` |
 
 ---
 

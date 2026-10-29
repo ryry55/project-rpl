@@ -511,7 +511,7 @@ Tes memakai PostgreSQL, bukan SQLite — beberapa aturan bergantung pada unique 
 SQLSTATE `23505`, dan trigger append-only, yang perilakunya berbeda di SQLite.
 
 ```bash
-docker compose exec api php artisan test          # 806 tes, 3767 asersi
+docker compose exec api php artisan test          # 809 tes, 3790 asersi
 ```
 
 Seluruh pemeriksaan sekaligus — tes, format, lint, dan 28 skrip uji browser:

@@ -357,6 +357,22 @@ Sebelum dipadatkan, kepala lama memakan 203px — hampir seperempat layar.
 
 Semuanya tetap ada dan tetap bisa ditekan. Yang hilang hanya tinggi.
 
+### 5.5 Navigasi bawah di ponsel
+
+Di bawah **900px** muncul bilah navigasi tetap di kaki layar: tiga tujuan
+bulanan (Tagihan, Tunggakan, Rekap — untuk pengelola berlabel "Tunai saya")
+dan tombol **Menu** yang membuka laci. Empat kolom sama lebar, tinggi
+`44px` + `env(safe-area-inset-bottom)`.
+
+Yang dipilih hanya pekerjaan yang dibuka tiap bulan; lima belas item di bilah
+bawah adalah daftar menu yang lebih buruk daripada laci. Isinya diambil dari
+larik `menu` yang sama, jadi label per peran tidak ditulis dua kali.
+
+`padding-bottom` isi halaman ditambah tinggi bilah itu, kalau tidak baris
+terakhir tabel tertutup dan tidak bisa ditekan. Di layar ≥ 900px bilah ini
+tidak dirender sama sekali (`v-if`, bukan `display: none`), sehingga tidak ada
+tautan duplikat bagi pembaca layar di desktop. Dijaga `uji-tata-letak.mjs`.
+
 ---
 
 ## 6. Aksesibilitas

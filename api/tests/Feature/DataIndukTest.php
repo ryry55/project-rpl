@@ -57,6 +57,25 @@ class DataIndukTest extends TestCase
             ->assertJsonStructure(['message', 'errors' => ['nomor']]);
     }
 
+    /**
+     * C5: pesan validasi bawaan berbahasa Indonesia.
+     *
+     * `tipe` sengaja dipakai karena aturannya (`max:40`) tidak punya pesan
+     * sendiri di `SimpanKamarRequest`. Yang diuji karena itu berkas
+     * `lang/id/validation.php`, bukan pesan yang ditulis formulir - dan tanpa
+     * berkas itu Laravel menjawab dengan nama kuncinya (`validation.max.string`)
+     * atau kalimat Inggris, bukan kalimat di bawah.
+     */
+    public function test_pesan_validasi_bawaan_berbahasa_indonesia(): void
+    {
+        $this->sebagaiPemilik()
+            ->postJson('/api/kamar', ['nomor' => 'A1', 'tipe' => str_repeat('x', 41)])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.tipe.0', 'tipe tidak boleh lebih dari 40 karakter.');
+
+        $this->assertSame('id', app()->getLocale());
+    }
+
     public function test_nomor_kamar_boleh_dipertahankan_saat_update(): void
     {
         $kamar = Kamar::create(['nomor' => 'A1']);

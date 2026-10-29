@@ -59,6 +59,27 @@ judul() {
     echo "=== $1 ==="
 }
 
+# Menyegarkan database demo sebelum tiap skrip uji browser.
+#
+# Kegagalannya dulu ditelan (`>/dev/null 2>&1`), dan akibatnya menyesatkan: bila
+# `migrate:fresh` gagal (mis. ada container lain yang menahan koneksi), data
+# skrip SEBELUMNYA masih ada, lalu skrip berikutnya gagal pada asersi yang tidak
+# ada hubungannya - "opsi kontrak tidak ada" - dan yang dikejar adalah bug yang
+# tidak ada. Sekarang kegagalan itu menghentikan gate di tempat kejadian.
+segarkan() {
+    if ! docker compose exec -T api php artisan migrate:fresh --seed >/dev/null 2>&1; then
+        echo '  GAGAL  database demo gagal disegarkan - sisa data skrip sebelumnya'
+        echo '         akan membuat uji berikutnya gagal karena alasan yang salah'
+        docker compose exec -T api php artisan migrate:fresh --seed 2>&1 | tail -10
+        exit 1
+    fi
+    # Cache ikut dibersihkan, bukan hanya database. Pembatas percobaan masuk
+    # menyimpan hitungannya di cache, dan `migrate:fresh` tidak menyentuhnya -
+    # sehingga kegagalan login yang disengaja oleh satu skrip membuat skrip
+    # berikutnya menerima 429 pada login yang BENAR.
+    docker compose exec -T api php artisan cache:clear >/dev/null 2>&1
+}
+
 # $1 nama, $2 lulus (0/1), $3 detail
 catat() {
     local nama="$1" lulus="$2" detail="${3:-}"
@@ -334,14 +355,7 @@ if [ "$CEPAT" -eq 0 ]; then
 
         for s in "${E2E[@]}"; do
             tutup_tab
-            docker compose exec -T api php artisan migrate:fresh --seed >/dev/null 2>&1
-            # Cache ikut dibersihkan, bukan hanya database. Pembatas percobaan
-            # masuk menyimpan hitungannya di cache, dan `migrate:fresh` tidak
-            # menyentuhnya - sehingga kegagalan login yang disengaja oleh satu
-            # skrip membuat skrip berikutnya menerima 429 pada login yang BENAR.
-            # Tanpa baris ini urutan skrip menentukan hasil, dan kegagalannya
-            # berpindah-pindah seperti gangguan jaringan.
-            docker compose exec -T api php artisan cache:clear >/dev/null 2>&1
+            segarkan
             # Batas waktu per skrip. Tanpa ini, satu skrip yang menggantung
             # menahan seluruh rangkaian tanpa mencetak namanya - dan di CI itu
             # terlihat sebagai "job kehabisan waktu", bukan sebagai "skrip X
@@ -365,8 +379,7 @@ if [ "$CEPAT" -eq 0 ]; then
 
         judul 'Uji balapan'
         for s in uji-balapan-t4.mjs uji-balapan-t5.mjs; do
-            docker compose exec -T api php artisan migrate:fresh --seed >/dev/null 2>&1
-            docker compose exec -T api php artisan cache:clear >/dev/null 2>&1
+            segarkan
             if command -v timeout >/dev/null 2>&1; then
                 hasil="$(timeout 240 node "docs/uji/$s" 2>&1)"
             else

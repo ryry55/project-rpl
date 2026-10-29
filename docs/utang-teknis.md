@@ -132,30 +132,24 @@ dengan mengembalikan `url_spa` menjadi `url`.
 | ~~**S1.9 / REV-FIN-04** — tanggal masuk tidak boleh di masa depan~~ | ~~Pemilik tidak bisa mencatat penghuni yang sudah menyanggupi kamar untuk bulan depan~~ | **Sudah diperbaiki.** Batasnya kini satu tahun (menahan salah ketik tahun), dan tanggal masa depan melahirkan kontrak berstatus `dipesan` dengan kamar berstatus `dipesan`. Kontrak `dipesan` **tidak ditagih** dan **tidak dihitung menempati kamar**; `kontrak:mulai` (harian 00:05 WIB) mengubahnya menjadi `aktif`/`terisi` saat harinya tiba. Pemesanan ganda ditolak **indeks unik** `(kamar_id) WHERE status IN ('aktif','dipesan')`, bukan pemeriksaan aplikasi yang punya celah balapan. Dijaga 3 tes di `DataIndukTest` + 5 tes di `MulaiKontrakTest`, dan ketiganya dibuktikan bisa gagal dengan menyuntikkan cacat |
 | ~~Deposit dibaca saat kontrak dibuat, tidak dipakai lagi~~ | ~~Deposit tidak pernah mengurangi tagihan akhir~~ | **Sudah ditutup - deposit dihapus seluruhnya (fase terakhir).** Bukan dilengkapi, melainkan dibuang: deposit dikumpulkan saat kontrak dibuat tetapi tidak pernah dicatat sebagai uang masuk, tidak pernah mengurangi tagihan, dan tidak pernah dikembalikan saat penghuni keluar. Dua jalan keluarnya adalah merekamnya sebagai pembayaran sah lalu mengembalikan lewat baris negatif, atau berhenti berpura-pura menanganinya. Pemilik memilih yang kedua, dengan alasan yang layak dikutip: **kolom yang menyimpan angka tanpa akibat lebih buruk daripada kolom yang tidak ada, karena ia membuat orang mengira uangnya terjaga.** Yang dihapus: kolom `kontrak.deposit`, tipe kebijakan `deposit` beserta tiga nilainya, kelas `PenentuDeposit`, medan formulir dan kolom tabel di layar Kontrak, dan seluruh rujukannya di dokumen. Migrasi `2026_11_20_120000_hapus_deposit` melepas trigger append-only secara sadar untuk membuang baris kebijakan deposit, menyempitkan tiga CHECK, lalu memasang trigger kembali. Dijaga `MigrasiHapusDepositTest` (5 tes) dan `KebijakanKosTest::test_tipe_deposit_ditolak_validasi_maupun_constraint` |
 | Akun yang pernah menangani uang tidak bisa dihapus | `RESTRICT` pada FK `dicatat_oleh`/`diterima_oleh` | Disengaja: jejak uang tidak boleh yatim |
-| **DAT-03** — email dikirim sinkron (`QUEUE_CONNECTION=sync`), tanpa queue worker | Terbit massal mengirim satu email per penghuni, berurutan dalam satu permintaan: 30 penghuni = 30 email sebelum respons kembali, dan SMTP yang lambat memperlambat layar, bukan hanya emailnya | **Diterima sebagai utang, bukan cacat yang harus ditutup.** ~~Satu layanan Render tidak bisa menjalankan queue worker persisten, dan `sync` adalah konsekuensi arsitektur itu.~~ **Koreksi audit putaran 2:** alasan itu **tidak berlaku**. Supervisord di image produksi **sudah** menjalankan tiga proses termasuk `schedule:work` yang persisten, jadi program keempat (`queue:work`) secara teknis mungkin. Keputusannya tetap **tunda**, tetapi alasannya kini berbeda dan lebih jujur: manfaatnya belum sepadan untuk 30 email (< 10 detik), bukan karena mustahil. Kegagalan kirim sudah tidak membatalkan transaksi (R3). Jangan "memperbaikinya" dengan worker yang tidak akan hidup di produksi |
+| ~~**DAT-03** - email dikirim sinkron (`QUEUE_CONNECTION=sync`), tanpa queue worker~~ | ~~Terbit massal mengirim satu email per penghuni, berurutan dalam satu permintaan~~ | **Ditutup 29 Oktober 2026 (Fase 5.5, disetujui pemilik).** Produksi memakai `QUEUE_CONNECTION=database` + `[program:antrean]` (`queue:work --sleep=3 --max-time=3600`) di `docker/prod/supervisord.conf`. `Pemberitahu::setelahTransaksi` menaruh satu `App\Jobs\KirimPemberitahuan` per penerima; kegagalan kirim tetap ditangkap dan dicatat ke `log_audit` (`Pemberitahu::kirimEmail`), jadi B3 tidak hilang saat pengiriman pindah ke pekerja. Di laptop tetap `sync` - pekerjaan berjalan seketika, dan itulah yang diuji `NotifikasiTest::test_email_notifikasi_masuk_antrean` (memakai `Queue::fake()`, sebab dengan `sync` saja antre dan sinkron terlihat sama) |
 
-**Temuan samping saat menutup utang CI: `.env.example` menulis
+**Temuan samping saat menutup utang CI: `.env.example` dulu menulis
 `QUEUE_CONNECTION=database`.** Nilai itu adalah bawaan Laravel, dan kalau
 seseorang menyiapkan deploy dengan menyalin berkas contoh itu, setiap pekerjaan
 yang ANTRI akan ditaruh di tabel `jobs` dan menunggu `queue:work` yang tidak
-pernah dijalankan - image produksi hanya menjalankan php-fpm, dan satu layanan
-Render tidak bisa menampung worker persisten. Pekerjaan seperti itu tidak
-gagal; ia diam, dan diam adalah kegagalan yang paling sulit ditemukan.
+pernah dijalankan - image produksi waktu itu hanya menjalankan php-fpm, dan
+pekerjaan seperti itu tidak gagal; ia diam, dan diam adalah kegagalan yang
+paling sulit ditemukan.
 
-Sudah diperbaiki menjadi `sync`, dan kini keenam sumbernya sepakat:
-`.env.example`, `.env`, `docker-compose.yml`, `8_OPERATIONS_SOP.md`,
-`9_DEPLOY.md`, dan entri DAT-03 ini.
+Saat itu diperbaiki menjadi `sync`. **Status 29 Oktober 2026 (Fase 5.5): email
+memang diantrikan sekarang, jadi kedua nilai itu hidup lagi dan harus berubah
+bersama** - laptop `sync` (tidak ada pekerja di sana; pekerjaan berjalan di
+dalam permintaan), produksi `database` + program `antrean`. Komentar di
+`.env.example` menyebut pasangan itu, karena `database` tanpa pekerja tetap
+berarti email yang diam di tabel `jobs` tanpa satu pun galat.
 
-Yang **tidak** berubah, dan penting dicatat supaya tidak ada yang mengira
-temuan ini lebih besar daripada kenyataannya: aplikasi mengirim email lewat
-`Mail::send()`, bukan `Mail::queue()`, sehingga `QUEUE_CONNECTION` **tidak**
-memengaruhi email hari ini. Itu dibuktikan dengan menjalankan `Mail::raw` di
-bawah `queue.default=database` di dalam container dan menghitung tabel `jobs`
-sesudahnya - hasilnya tetap 0, artinya email dikirim langsung. Dugaan awal
-saya bahwa nilai itu bisa membuat email hilang **salah**, dan yang benar hanya
-ini: nilainya menyesatkan untuk pekerjaan yang nanti benar-benar diantrikan.
-
-| ~~Pembalik pembayaran belum punya tombol di layar~~ | ~~Koreksi salah catat masih lewat API (`POST /pembayaran/{id}/pembalik`)~~ | **Sudah ditutup (fase terakhir).** Tombol **Tarik kembali** ada di panel rincian tagihan, dengan formulir alasan wajib (server menolak 422 bila kosong, dan formulirnya tetap terbuka supaya pemilik tidak mengira penarikannya berhasil). Riwayat menampilkan baris negatif bertanda "ditarik kembali", dan tombolnya hilang untuk baris yang sudah ditarik. `TagihanResource` kini mengirim `adalah_pembalik` dan `sudah_dibalik` per baris; `null` pada yang kedua berarti relasinya tidak dimuat, dan layar hanya menawarkan tombol saat nilainya benar-benar `false`. Dijaga `uji-pembalik.mjs` (13 langkah) dan dua tes baru di `PembalikPembayaranTest`. Tinggal **antrean email** (DAT-03) yang masih terbuka |
+| ~~Pembalik pembayaran belum punya tombol di layar~~ | ~~Koreksi salah catat masih lewat API (`POST /pembayaran/{id}/pembalik`)~~ | **Sudah ditutup (fase terakhir).** Tombol **Tarik kembali** ada di panel rincian tagihan, dengan formulir alasan wajib (server menolak 422 bila kosong, dan formulirnya tetap terbuka supaya pemilik tidak mengira penarikannya berhasil). Riwayat menampilkan baris negatif bertanda "ditarik kembali", dan tombolnya hilang untuk baris yang sudah ditarik. `TagihanResource` kini mengirim `adalah_pembalik` dan `sudah_dibalik` per baris; `null` pada yang kedua berarti relasinya tidak dimuat, dan layar hanya menawarkan tombol saat nilainya benar-benar `false`. Dijaga `uji-pembalik.mjs` (13 langkah) dan dua tes baru di `PembalikPembayaranTest`. Antrean email (DAT-03) juga sudah ditutup - lihat barisnya di atas |
 | Pemaafan denda tidak punya halaman riwayat sendiri | Pemaafan hanya terlihat saat membuka satu tagihan, dan di `log_audit` | Disengaja: pemaafan adalah kolom pada `tagihan`, bukan entitas. Riwayat lengkapnya ada di Jejak audit dengan aksi `denda.maafkan` |
 | ~~Rekening tidak menyimpan gambar QRIS~~ | ~~`jenis: qris` hanya menyimpan teks (nama merchant dan nomor bila ada)~~ | **Sudah ditutup (fase terakhir).** Gambarnya disimpan di kolom **`bytea`** (`rekening.gambar`), bukan berkas di disk: `public/` dipasang read-only ke nginx dan Render free tidak punya disk persisten, sehingga berkas yang ditulis hari ini hilang saat restart - dan gambar QRIS yang hilang lebih buruk daripada tidak ada, karena pemilik mengira sudah mengunggah. Disajikan lewat `GET /api/rekening/{id}/gambar` dengan `Content-Type`, `nosniff`, dan CSP; penghuni hanya bisa membuka gambar rekening **aktif** (404, bukan 403). Hanya PNG/JPG/WEBP yang diterima - **SVG ditolak** karena bisa memuat skrip. Dijaga `GambarQrisRekeningTest` (19 tes) dan `uji-qris.mjs` (16 langkah). **Jebakan yang ditemukan saat mengerjakannya:** menulis `bytea` sebagai parameter teks biasa menyimpan **0 byte tanpa galat apa pun** - unggahan tampak berhasil, `gambar_ukuran` terisi, gambarnya kosong. Satu-satunya jalur tulis yang terbukti utuh adalah `decode(?, 'base64')`, dan karena itu `gambar` sengaja **tidak** masuk `$fillable`
 
@@ -200,8 +194,9 @@ kondisi lama, dan tepat satu asersi menjadi merah.
 
 Seluruh butir di bawah **sudah dikerjakan dan dibuktikan berjalan** lewat
 `docker build -f Dockerfile.prod` + `docker run` terhadap database lokal.
-Bukti yang dipegang: image boot, tiga proses (`php-fpm`, `nginx`, `penjadwal`)
-masuk RUNNING, `GET /` menyajikan HTML SPA, `/assets/*` ber-cache immutable,
+Bukti yang dipegang: image boot, empat proses (`php-fpm`, `nginx`, `penjadwal`,
+`antrean`) masuk RUNNING, `GET /` menyajikan HTML SPA, `/assets/*` ber-cache
+immutable,
 `/sw.js` ber-cache `no-store`, deep link `/tagihan` menjawab 200 HTML,
 `/api/health` menjawab `database: ok`, dan `POST /api/login` + `GET /api/me` +
 `GET /api/tagihan` mengembalikan data sungguhan — semuanya dari **satu origin**.
@@ -378,7 +373,7 @@ labelnya, jangan polanya, kecuali memang ingin menajamkan pola itu.
 | Tidak ada manifest, service worker, theme-color | **Selesai.** `manifest.webmanifest`, `sw.js`, 4 ikon PNG, `theme-color`; dijaga `uji-pwa.mjs` 26 langkah |
 | Kepala pemilik memakan 360px dari 800px layar | **Selesai.** Terukur turun ke 203px |
 | Target sentuh di bawah 44px | **Selesai** untuk `(pointer: coarse)` |
-| Luberan mendatar di 360px | **Selesai.** Dijaga `uji-tata-letak.mjs` 100/100 dan `uji-kartu-tabel.mjs` 65/65 di runner CI maupun lokal. Perbaikan `f2c73f0` ternyata **tidak cukup** - lihat catatan di bawah |
+| Luberan mendatar di 360px | **Selesai.** Dijaga `uji-tata-letak.mjs` 104/104 dan `uji-kartu-tabel.mjs` 65/65 di runner CI maupun lokal. Perbaikan `f2c73f0` ternyata **tidak cukup** - lihat catatan di bawah |
 | Orientasi lanskap di ponsel | **Selesai (uji).** `uji-tata-letak.mjs` mengukur 640x360 pada tiga halaman dengan elemen terlebar (Tagihan, Rekening, Pengelola). Kontrol negatifnya: satu `div` 2000px disisipkan - tiga asersi merah |
 | Uji luring sungguhan (matikan jaringan) | **Selesai (uji).** `uji-pwa.mjs` §5 menghapus cache HTTP, mematikan jaringan untuk halaman **dan** service worker, lalu membuka `/pemilik/tagihan` dari Cache Storage saja |
 

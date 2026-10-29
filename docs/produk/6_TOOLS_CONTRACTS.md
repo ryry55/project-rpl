@@ -427,6 +427,13 @@ Satu kamar hanya boleh punya satu kontrak aktif (indeks parsial). Melanggar →
 `POST /tagihan` — `{ kontrak_id, periode }`. `periode` = tanggal 1 bulan
 bersangkutan.
 
+`GET /api/tagihan` menerima `kontrak_id`, `periode`, dan — sejak K-05 —
+`per_page` (1–200) + `page`. **Tanpa `per_page` responsnya sama seperti
+sebelumnya**: seluruh baris, `meta` tanpa kunci halaman, dan layar Tagihan
+memakai bentuk itu. Dengan `per_page`, `meta` bertambah `per_page`, `halaman`,
+`halaman_terakhir`, `total`; nilai di luar batas dijawab **422**, bukan dipotong
+diam-diam.
+
 `GET /tagihan/{tagihan}` sengaja **tidak** memakai `peran:` — penghuni harus
 bisa membuka tagihannya sendiri. Isolasi ditegakkan `scopeMilikPenghuni` di
 query. Tagihan milik orang lain → **404**.
@@ -509,9 +516,10 @@ sudah ada akan memblokir seluruh bulan.
 
 Setiap penghuni menerima satu pemberitahuan untuk **tagihannya sendiri** — nominal
 dan jatuh temponya, bukan ringkasan batch (REV-DAT-02). Yang dilewati atau gagal
-tidak dikirimi: tidak ada tagihan yang bisa disebut nominalnya. Dengan
-`QUEUE_CONNECTION=sync`, 30 penghuni berarti 30 pengiriman berurutan di dalam
-satu permintaan — dicatat sebagai utang teknis (DAT-03).
+tidak dikirimi: tidak ada tagihan yang bisa disebut nominalnya. Pengirimannya
+**diantrikan** (Fase 5.5): satu `App\Jobs\KirimPemberitahuan` per penerima,
+dikerjakan program `antrean` di supervisord — sehingga 30 penghuni tidak lagi
+berarti 30 SMTP berurutan sebelum respons HTTP dikirim.
 
 ### 5.3 Pembayaran
 

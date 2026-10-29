@@ -113,6 +113,26 @@ function Jalankan-Docker {
     }
 }
 
+# Menyegarkan database demo sebelum tiap skrip uji browser.
+#
+# Kegagalannya dulu ditelan `| Out-Null`, dan akibatnya menyesatkan: bila
+# `migrate:fresh` gagal (mis. ada container lain yang menahan koneksi), data
+# skrip SEBELUMNYA masih ada, lalu skrip berikutnya gagal pada asersi yang tidak
+# ada hubungannya - "opsi kontrak tidak ada" - dan yang dikejar adalah bug yang
+# tidak ada. Sekarang kegagalan itu menghentikan gate di tempat kejadian.
+function SegarkanDatabase {
+    $hasil = Jalankan 'docker' @('compose', 'exec', '-T', 'api', 'php', 'artisan', 'migrate:fresh', '--seed')
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host '  GAGAL  database demo gagal disegarkan - sisa data skrip sebelumnya' -ForegroundColor Red
+        Write-Host '         akan membuat uji berikutnya gagal karena alasan yang salah' -ForegroundColor Red
+        $hasil | Select-Object -Last 10 | ForEach-Object { Write-Host ('    ' + $_) }
+        exit 1
+    }
+    # Cache ikut dibersihkan, bukan hanya database. Pembatas percobaan masuk
+    # menyimpan hitungannya di cache, dan migrate:fresh tidak menyentuhnya.
+    Jalankan 'docker' @('compose', 'exec', '-T', 'api', 'php', 'artisan', 'cache:clear') | Out-Null
+}
+
 if (-not $TanpaBuild) {
     Judul 'Build image'
     Catat 'image api dan web dibangun' (Jalankan-Docker compose build api web)
@@ -393,12 +413,7 @@ if (-not $Cepat) {
                 }
             } catch { }
 
-            docker compose exec -T api php artisan migrate:fresh --seed 2>&1 | Out-Null
-            # Cache ikut dibersihkan, bukan hanya database. Pembatas percobaan
-            # masuk menyimpan hitungannya di cache, dan migrate:fresh tidak
-            # menyentuhnya - sehingga kegagalan login yang disengaja oleh satu
-            # skrip membuat skrip berikutnya menerima 429 pada login yang BENAR.
-            docker compose exec -T api php artisan cache:clear 2>&1 | Out-Null
+            SegarkanDatabase
 
             $hasil = Jalankan 'node' "docs/uji/$s"
             $akhir = ($hasil | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
@@ -410,8 +425,7 @@ if (-not $Cepat) {
 
         Judul 'Uji balapan'
         foreach ($s in @('uji-balapan-t4.mjs', 'uji-balapan-t5.mjs')) {
-            docker compose exec -T api php artisan migrate:fresh --seed 2>&1 | Out-Null
-            docker compose exec -T api php artisan cache:clear 2>&1 | Out-Null
+            SegarkanDatabase
             $hasil = Jalankan 'node' "docs/uji/$s"
             $akhir = ($hasil | Select-String -Pattern 'langkah lulus' | Select-Object -Last 1).Line
             Catat $s ($LASTEXITCODE -eq 0) $(if ($akhir) { $akhir } else { '' })

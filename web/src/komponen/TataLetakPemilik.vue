@@ -104,6 +104,20 @@ const menu = computed(() =>
 )
 
 /**
+ * Tiga tujuan di navigasi bawah layar sempit (Fase 5.1).
+ *
+ * Diambil dari `menu` yang sudah tersaring, bukan ditulis ulang: label per
+ * peran ("Tunai saya"), wewenang, dan nama rutenya harus tetap satu sumber.
+ * Yang dipilih adalah pekerjaan bulanan - terbitkan dan periksa tagihan,
+ * siapa menunggak, berapa yang masuk. Sisanya lewat tombol Menu.
+ */
+const menuBawah = computed(() =>
+  ['tagihan', 'tunggakan', 'rekap']
+    .map((nama) => menu.value.find((m) => m.nama === nama))
+    .filter(Boolean),
+)
+
+/**
  * Jumlah usulan yang menunggu keputusan pemilik.
  *
  * Diambil sekali saat tata letak dipasang, bukan dari daftar usulan yang
@@ -319,6 +333,33 @@ async function keluar() {
     <main class="utama">
       <RouterView />
     </main>
+
+    <!-- Navigasi bawah, hanya di layar sempit. Laci sidebar tetap ada untuk
+         seluruh menu; tiga tautan di sini adalah pekerjaan yang dibuka tiap
+         bulan, supaya tidak perlu dua ketukan untuk hal yang paling sering. -->
+    <nav v-if="layarSempit" class="bawah" aria-label="Navigasi cepat">
+      <RouterLink
+        v-for="m in menuBawah"
+        :key="m.nama"
+        :to="{ name: `pemilik-${m.nama}` }"
+        class="bawah-tautan"
+        :class="{ aktif: route.name === `pemilik-${m.nama}` }"
+      >
+        <IkonMenu :nama="m.nama" />
+        <span class="bawah-label">{{ m.label }}</span>
+      </RouterLink>
+      <button
+        type="button"
+        class="bawah-tautan"
+        aria-label="Semua menu"
+        aria-controls="menu-utama"
+        :aria-expanded="menuTerbuka"
+        @click="bukaMenu"
+      >
+        <IkonMenu nama="menu" />
+        <span class="bawah-label">Menu</span>
+      </button>
+    </nav>
   </div>
 </template>
 
@@ -566,8 +607,9 @@ async function keluar() {
   text-underline-offset: 3px;
 }
 
-/* Bilah atas dan laci hanya ada di layar sempit. */
+/* Bilah atas, laci, dan navigasi bawah hanya ada di layar sempit. */
 .bilah-atas,
+.bawah,
 .tirai,
 .tutup-menu {
   display: none;
@@ -667,6 +709,54 @@ async function keluar() {
     background: rgba(10, 10, 10, 0.3);
   }
 
+  /* Empat kolom sama lebar: tiga tujuan dan tombol Menu. Tingginya ditambah
+     `safe-area-inset-bottom` supaya tidak tertutup bilah gestur ponsel. */
+  .bawah {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 45;
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--permukaan);
+    border-top: 1px solid var(--garis);
+  }
+
+  .bawah-tautan {
+    display: grid;
+    place-items: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 2px;
+    font-size: 11px;
+    color: var(--teks-lemah);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    text-decoration: none;
+  }
+
+  .bawah-tautan.aktif {
+    color: var(--teks);
+    background: var(--aktif);
+    font-weight: 500;
+  }
+
+  /* Tanpa ini, `button:hover` global (latar aksen gelap) menang atas
+     `.bawah-tautan`, dan tombol Menu berubah gelap dengan teks abu. */
+  .bawah-tautan:hover {
+    color: var(--teks);
+    background: var(--permukaan-turun);
+  }
+
+  .bawah-label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .merek {
     padding: 0 4px 10px;
   }
@@ -683,8 +773,10 @@ async function keluar() {
     font-size: 12px;
   }
 
+  /* Ruang bawah menyisakan tinggi navigasi, kalau tidak baris terakhir tabel
+     tertutup dan tidak bisa ditekan. */
   .utama {
-    padding: 18px 16px 40px;
+    padding: 18px 16px calc(70px + env(safe-area-inset-bottom));
   }
 }
 

@@ -179,6 +179,16 @@ akan lolos dari guardrail selamanya tanpa ada yang memberi tahu.
   baris - hasilnya `syntax error near unexpected token ')'` pada baris yang
   isinya tidak salah, dan `SEMUA LULUS` tidak pernah tercetak walau seluruh uji
   lulus. Sunting dulu, jalankan kemudian.
+- **Kegagalan `migrate:fresh` dulu ditelan gate.** `periksa.ps1` dan `periksa.sh`
+  menjalankan `migrate:fresh --seed` dengan keluaran dibuang, sehingga bila
+  penyegaran itu gagal - misalnya ada container lain yang masih menahan koneksi
+  ke database `kos` - data skrip SEBELUMNYA tetap ada dan skrip berikutnya gagal
+  pada asersi yang tidak berhubungan. Gejalanya `opsi kontrak tidak ada` di
+  `e2e-t3` plus sepuluh kegagalan turunan, padahal aplikasinya benar. Sejak
+  29 Oktober keduanya memanggil `SegarkanDatabase`/`segarkan`, yang berhenti
+  dengan pesan jelas. Jangan mengembalikan `| Out-Null`, dan jangan meninggalkan
+  container lain (`docker run` image produksi) yang terkoneksi ke database yang
+  sama selama gate berjalan.
 - **Pembatas percobaan masuk menyimpan hitungannya di CACHE, bukan di
   database.** `migrate:fresh --seed` tidak menyentuhnya, jadi kegagalan login
   yang sengaja dilakukan satu skrip E2E membuat skrip berikutnya menerima 429

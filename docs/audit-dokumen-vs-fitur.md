@@ -170,7 +170,8 @@ saat ia membacanya — berkas itu sudah ditimpa sesudahnya.
 ## 12. Putaran 29 Oktober 2026 — angka bergeser lagi, dan dua penjaga baru
 
 Gate penuh 29 Oktober: **806 tes PHP / 3767 asersi / 47 berkas**, **28/28 skrip
-lulus, 802 langkah, 455 detik**. Yang menggeser angka: `CspLaporanTest` (4 tes,
+lulus, 802 langkah, 455 detik**. *(Angka di bagian ini adalah keadaan pagi 29
+Oktober. Angka terakhir ada di §13.)* Yang menggeser angka: `CspLaporanTest` (4 tes,
 kolektor laporan CSP) dan `TagihanTest::test_daftar_tagihan_tidak_menambah_kueri_per_baris`
 (1 tes, penjaga N+1). Tambahan langkah: `uji-pwa.mjs` 25 → 26 (uji luring
 sungguhan) dan `uji-tata-letak.mjs` 94 → 100 (lanskap 640x360).
@@ -186,4 +187,31 @@ Dua hal yang perlu dibaca dosen, dan keduanya **bukan** kenaikan angka semata:
    target; service worker target tersendiri), dan uji lanskap belum pernah
    dijalankan sama sekali. Keduanya kini punya kontrol negatif yang benar-benar
    merah.
+
+---
+
+## 13. Putaran 29 Oktober 2026 (sore) — tiga janji yang tadinya hanya tulisan
+
+Gate penuh: **809 tes PHP / 3790 asersi / 47 berkas**, **28/28 skrip lulus, 806
+langkah, 434 detik**. Tiga tambahan, dan masing-masing menutup satu kalimat di
+dokumen yang sebelumnya tidak punya bukti:
+
+| Janji di dokumen | Yang sekarang membuktikannya | Kontra-uji |
+|---|---|---|
+| "Ekspor butuh daftar utuh" (K-05) | `GET /api/tagihan?per_page=1..200` + `page`. **Tanpa** `per_page` responsnya tidak berubah sama sekali, jadi layar Tagihan dan ekspor tidak tersentuh; di luar batas dijawab 422, bukan dipotong | Kembalikan `TagihanController::index()` ke versi lama: 1 gagal / 8 asersi |
+| Seluruh UI berbahasa Indonesia (C5) | `api/lang/id/validation.php` (kunci lengkap + peta nama kolom), `APP_LOCALE=id`, `APP_FALLBACK_LOCALE=id`. Pesan yang muncul kini `tipe tidak boleh lebih dari 40 karakter.` | Sembunyikan `lang/id` di dalam container: 1 gagal / 2 asersi |
+| "Antrean email" (DAT-03) | `App\Jobs\KirimPemberitahuan` + `[program:antrean]`; produksi `QUEUE_CONNECTION=database`. Diuji dengan `Queue::fake()`, sebab dengan `sync` saja antre dan sinkron terlihat sama | Kembalikan `Pemberitahu::setelahTransaksi()` ke `Mail::send()`: `The expected [KirimPemberitahuan] job was not pushed` |
+
+Bukti di luar tes, dijalankan pada image `Dockerfile.prod` terhadap database
+lokal: `supervisorctl status` menunjukkan **empat** program RUNNING (`php-fpm`,
+`nginx`, `penjadwal`, `antrean`); satu `KirimPemberitahuan` yang di-dispatch
+membuat tabel `jobs` berisi 1 lalu **0 dalam 8 detik**, `failed_jobs` tetap 0,
+dan `supervisorctl restart antrean` berhasil. Dua bagian (`[unix_http_server]`,
+`[rpcinterface:supervisor]`) ditambahkan ke `supervisord.conf` karena tanpa
+keduanya perintah pemulihan yang tertulis di `8_OPERATIONS_SOP.md` tidak bisa
+dijalankan sama sekali — `supervisorctl` menjawab "does not include supervisorctl
+section".
+
+Yang **tidak** dikerjakan, dan alasannya: K-06 (penjadwal di dalam container
+yang bisa tidur) ditunda pemilik sampai Fase 1 berjalan; A3 tetap terbuka.
 
