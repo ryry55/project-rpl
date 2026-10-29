@@ -151,6 +151,20 @@ akan lolos dari guardrail selamanya tanpa ada yang memberi tahu.
   Pasang lewat `Page.addScriptToEvaluateOnNewDocument` (lihat `pasangPerekam` di
   `asap-semua-halaman.mjs`), dan sertakan kontrol negatif yang sengaja melempar
   galat untuk membuktikan perekam masih hidup.
+- **`Network.emulateNetworkConditions` berlaku per target, dan service worker
+  adalah target tersendiri.** Mematikan jaringan di target halaman **tidak**
+  mematikan `fetch()` di dalam `sw.js`: navigasi "luring" tetap dilayani
+  jaringan, dan uji luring hijau tanpa membuktikan cache. Gejalanya senyap -
+  nginx mencatat `GET /` dari `sw.js` pada navigasi yang seharusnya luring.
+  Terbukti dari kontrol negatif: seluruh isi Cache Storage dihapus dan halaman
+  **tetap terbuka**. Yang benar: sambung ke target peramban
+  (`GET /json/version` → `webSocketDebuggerUrl`), `Target.attachToTarget
+  { flatten: true }` pada target `service_worker`, lalu kirim
+  `Network.emulateNetworkConditions` dengan `sessionId` itu (`kirim()` di
+  `_cdp.mjs` menerima parameter sesi). Melepas sesinya mengembalikan jaringan.
+  `Network.clearBrowserCache` wajib didahulukan, kalau tidak salinan HTML di
+  memori peramban menutupi peran cache service worker. Perintah ke target yang
+  sudah mati tidak dijawab dan tidak gagal - beri batas waktu.
 - **Asersi yang bergantung pada tanggal sistem akan gagal sendiri.** Dua skrip E2E
   memeriksa tagihan yang jatuh tempo 15 Okt. Asersi "denda masih 0 saat terbit"
   benar selama hari ini <= 22 Okt (hari terlambat 7, masih tenggang) dan gagal
@@ -222,6 +236,15 @@ lalu hapus. `>` menulis UTF-16 (pakai `cmd /c "..." > berkas`). Menyalurkan
 keluaran `gh` lewat `|` merusak UTF-8. Skrip `.ps1` di repo ini disimpan UTF-8
 tanpa BOM dan dibaca Windows PowerShell 5.1 sebagai ANSI — jangan menaruh simbol
 non-ASCII di dalamnya.
+
+**`Set-Content -Encoding UTF8` di Windows PowerShell 5.1 menulis BOM**, dan BOM
+itu mematikan berkas PHP: `Namespace declaration statement has to be the very
+first statement`. Gejalanya menyesatkan ke arah yang mahal - `docker compose
+build api` gagal di `composer dump-autoload` (exit 255), lalu `php artisan test`
+berjalan terhadap image **LAMA** dan memberi hijau yang tidak menguji apa pun.
+Sunting berkas PHP dengan tool `edit`, bukan dengan `Set-Content`/`-replace`.
+Kalau sudah terlanjur: `[IO.File]::ReadAllBytes(...)[0..2]` yang bernilai
+`239,187,191` adalah BOM.
 
 **Jangan memakai PowerShell untuk mengganti teks di banyak berkas.** Ini sudah
 menghasilkan kerusakan senyap: satu loop atas `@(@('berkas','cari','ganti'), ...)`

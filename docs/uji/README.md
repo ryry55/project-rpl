@@ -63,9 +63,9 @@ per tiket tidak pernah membuka halaman itu.
 
 | Berkas | Yang dibuktikan | Butuh |
 |---|---|---|
-| `uji-tata-letak.mjs` | Sepuluh halaman pemilik dan portal penghuni tidak meluber mendatar pada 360px, 390px, dan 768px; emulasi lebarnya diperiksa lebih dulu supaya asersinya tidak lulus tanpa mengukur | Chrome, seed |
+| `uji-tata-letak.mjs` | Sepuluh halaman pemilik dan portal penghuni tidak meluber mendatar pada 360px, 390px, dan 768px, ditambah tiga halaman terlebar pada lanskap 640x360; emulasi lebarnya diperiksa lebih dulu supaya asersinya tidak lulus tanpa mengukur | Chrome, seed |
 | `uji-kartu-tabel.mjs` | Tabel 4+ kolom berubah menjadi kartu di 360px dan 390px: setiap sel berlabel sesuai `<th>`-nya, `thead` tidak terlihat, dan kartunya tidak meluber. Di layar lebar tabelnya kembali normal | Chrome, seed |
-| `uji-pwa.mjs` | Manifest terbaca dan semua ikonnya tersaji; service worker terdaftar, aktif, dan mengendalikan halaman; **tidak ada respons `/api/` yang masuk cache** (R-07) | Chrome, build produksi, seed |
+| `uji-pwa.mjs` | Manifest terbaca dan semua ikonnya tersaji; service worker terdaftar, aktif, dan mengendalikan halaman; **tidak ada respons `/api/` yang masuk cache** (R-07); aplikasi **benar-benar terbuka tanpa jaringan** dengan jaringan dimatikan di halaman *dan* service worker | Chrome, build produksi, seed |
 | `uji-galat-muat.mjs` | Sepuluh layar yang memuat daftar: saat endpointnya dijawab 500, pesan galat tampil dan baris "Belum ada ..." **tidak** tampil. Kontrol negatif mencabut blokade dan memastikan galatnya hilang, supaya asersi tidak lulus karena halaman tidak pernah dimuat (REV-UI-04) | Chrome, seed |
 
 `uji-kartu-tabel.mjs` menutup celah yang sengaja ditinggalkan
@@ -79,6 +79,14 @@ permintaan `/api` dibuat, lalu `caches.keys()` dibaca. Asersinya sudah
 dibuktikan menahan — dengan blok pagar `/api` di `sw.js` dicabut sementara, uji
 ini **gagal** dengan `bocor: /api/me`. Uji yang tidak pernah terbukti bisa gagal
 bukan uji.
+
+Bagian luringnya juga sudah dibuktikan bisa gagal, dan pembuktian itu
+menemukan satu jebakan: `Network.emulateNetworkConditions` berlaku **per
+target**, dan service worker adalah target tersendiri. Sebelum diperbaiki,
+menghapus seluruh isi Cache Storage pun tetap membuat uji hijau — karena
+`fetch()` di `sw.js` masih sampai ke server. Perbaikannya menumpang sesi target
+`service_worker` dari koneksi ke target peramban (`Target.attachToTarget
+{ flatten: true }`), dan melepas sesi itu mengembalikan jaringannya.
 
 Skrip ini ada karena seluruh uji lain memeriksa isi DOM dan jawaban HTTP, tidak
 pernah ukuran. Halaman yang benar isinya tetapi lebih lebar daripada layar lolos
@@ -253,7 +261,7 @@ docker compose exec -T api sh /tmp/u.sh
 **Kenapa dijalankan manual, bukan di gate.** Skrip ini mengubah berkas kode di
 dalam container. Menjalankannya otomatis berarti gate sesekali menguji kode yang
 sedang disuntik - dan bila salah satu skrip mati di tengah jalan, cacatnya
-tertinggal. Yang otomatis adalah **tesnya** (799 tes PHP, 28 skrip browser);
+tertinggal. Yang otomatis adalah **tesnya** (806 tes PHP, 28 skrip browser);
 yang manual adalah **bukti bahwa tesnya bisa gagal**, dijalankan setiap kali
 sebuah pagar baru ditambahkan.
 

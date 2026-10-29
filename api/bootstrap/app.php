@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CspLaporanController;
 use App\Http\Middleware\CatatPermintaanGagal;
 use App\Http\Middleware\PaksaJson;
 use App\Http\Middleware\PastikanPeran;
@@ -11,6 +12,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,6 +20,13 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        // Laporan pelanggaran CSP (FASE 4.2). Didaftarkan di sini, bukan di
+        // routes/web.php, karena rute web membawa sesi dan CSRF: setiap laporan
+        // akan menulis satu baris `sessions` (SESSION_DRIVER=database) hanya
+        // untuk membuang 204, dan peramban tidak mengirim token CSRF. Rute ini
+        // sengaja tanpa kelompok middleware apa pun - hanya pembatas laju.
+        then: fn () => Route::post('/csp-laporan', CspLaporanController::class)
+            ->middleware('throttle:30,1'),
     )
     ->withMiddleware(function (Middleware $middleware) {
         // ------------------------------------------------------------------

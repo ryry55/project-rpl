@@ -44,6 +44,28 @@ import {
 const LEBAR = [360, 390, 768]
 
 /**
+ * Lanskap ponsel: 640x360.
+ *
+ * `manifest` mengunci `portrait-primary`, jadi aplikasi yang dipasang ke layar
+ * utama tidak berputar. Lanskap tetap terjadi saat aplikasi dibuka lewat tab
+ * peramban biasa lalu ponselnya diputar - dan di sanalah tinggi 360px memaksa
+ * kepala halaman, penyaring, dan tombol aksi berbagi ruang yang jauh lebih
+ * sempit daripada 360x900 yang diuji di atas.
+ *
+ * Tidak semua 15 halaman diuji di sini: yang dipilih tiga halaman dengan elemen
+ * terlebar (tabel tagihan, nomor rekening, kisi wewenang). Luberan mendatar
+ * diukur dari LEBAR, bukan dari tinggi, jadi halaman yang muat di 360px tegak
+ * tidak akan meluber di 640px mendatar karena tinggi yang berbeda.
+ */
+const LANSKAP = { lebar: 640, tinggi: 360 }
+
+const HALAMAN_LANSKAP = [
+  ['/pemilik/tagihan', 'Tagihan'],
+  ['/pemilik/rekening', 'Rekening tujuan pembayaran'],
+  ['/pemilik/pengelola', 'Pengelola'],
+]
+
+/**
  * Memasang lebar emulasi.
  *
  * `mobile: false` bukan kelalaian. Dengan `mobile: true`, Chrome memakai
@@ -54,13 +76,46 @@ const LEBAR = [360, 390, 768]
  * `innerWidth` benar-benar sama dengan lebar yang diminta, yaitu angka yang
  * dibaca media query CSS.
  */
-function pasangLebar(ws, lebar) {
+function pasangLebar(ws, lebar, tinggi = 900) {
   return kirim(ws, 'Emulation.setDeviceMetricsOverride', {
     width: lebar,
-    height: 900,
+    height: tinggi,
     deviceScaleFactor: 1,
     mobile: false,
   })
+}
+
+/**
+ * Mengukur luberan mendatar pada halaman yang sedang terbuka.
+ *
+ * Pelaku dicari juga, bukan hanya angkanya: tanpa nama elemen, laporan hanya
+ * berkata "794 lebih besar dari 390" dan tidak memberi tahu apa yang harus
+ * diperbaiki.
+ */
+function ukurLuber(ws) {
+  return evaluasi(
+    ws,
+    `
+    (() => {
+      const batas = window.innerWidth
+      const pelaku = []
+      document.querySelectorAll('*').forEach((el) => {
+        const r = el.getBoundingClientRect()
+        // Elemen di dalam .tabel-bungkus memang boleh lebih lebar:
+        // bungkus itulah yang menggulir, bukan halamannya.
+        if (r.right > batas + 1 && !el.closest('.tabel-bungkus')) {
+          pelaku.push(el.tagName + '.' + String(el.className || '').split(' ')[0])
+        }
+      })
+      return {
+        lebar: batas,
+        dokumen: document.documentElement.scrollWidth,
+        luber: document.documentElement.scrollWidth > batas + 1,
+        pelaku: [...new Set(pelaku)].slice(0, 4),
+      }
+    })()
+  `,
+  )
 }
 
 const HALAMAN_PEMILIK = [
@@ -139,32 +194,7 @@ jalankan(async () => {
         await pasangLebar(ws, lebar)
         await new Promise((r) => setTimeout(r, 500))
 
-        const ukur = await evaluasi(
-          ws,
-          `
-          (() => {
-            // Pelaku dicari juga, bukan hanya angkanya: tanpa nama elemen,
-            // laporan hanya berkata "794 lebih besar dari 390" dan tidak
-            // memberi tahu apa yang harus diperbaiki.
-            const batas = window.innerWidth
-            const pelaku = []
-            document.querySelectorAll('*').forEach((el) => {
-              const r = el.getBoundingClientRect()
-              // Elemen di dalam .tabel-bungkus memang boleh lebih lebar:
-              // bungkus itulah yang menggulir, bukan halamannya.
-              if (r.right > batas + 1 && !el.closest('.tabel-bungkus')) {
-                pelaku.push(el.tagName + '.' + String(el.className || '').split(' ')[0])
-              }
-            })
-            return {
-              lebar: batas,
-              dokumen: document.documentElement.scrollWidth,
-              luber: document.documentElement.scrollWidth > batas + 1,
-              pelaku: [...new Set(pelaku)].slice(0, 4),
-            }
-          })()
-        `,
-        )
+        const ukur = await ukurLuber(ws)
 
         // Asersi pertama menjaga asersi kedua tetap bermakna: kalau emulasi
         // gagal dan halaman ditata pada lebar jendela, "tidak luber" akan
@@ -180,6 +210,28 @@ jalankan(async () => {
           ukur?.luber ? `dokumen ${ukur.dokumen} > ${ukur.lebar} (${ukur.pelaku.join(', ')})` : '',
         )
       }
+    }
+
+    // Lanskap. Dipasang SESUDAH loop pokok dan SEBELUM portal penghuni, karena
+    // sesi pemilik masih aktif di sini dan data uji tata letak masih ada.
+    for (const [jalur, judul] of HALAMAN_LANSKAP) {
+      await kirim(ws, 'Page.navigate', { url: `${APP}${jalur}` })
+      await tungguSampai(ws, `document.querySelector('h1')?.textContent.includes(${JSON.stringify(judul)})`)
+      await pasangLebar(ws, LANSKAP.lebar, LANSKAP.tinggi)
+      await new Promise((r) => setTimeout(r, 500))
+
+      const ukur = await ukurLuber(ws)
+
+      lapor(
+        `lanskap ${LANSKAP.lebar}x${LANSKAP.tinggi} ${judul}: lebar emulasi benar-benar berlaku`,
+        ukur?.lebar === LANSKAP.lebar,
+        `innerWidth ${ukur?.lebar}`,
+      )
+      lapor(
+        `lanskap ${LANSKAP.lebar}x${LANSKAP.tinggi} ${judul}: tidak meluber mendatar`,
+        !ukur?.luber,
+        ukur?.luber ? `dokumen ${ukur.dokumen} > ${ukur.lebar} (${ukur.pelaku.join(', ')})` : '',
+      )
     }
 
     // Portal penghuni punya tata letaknya sendiri (bukan `.tata-letak`), jadi
@@ -202,27 +254,7 @@ jalankan(async () => {
       await pasangLebar(ws, lebar)
       await new Promise((r) => setTimeout(r, 500))
 
-      const ukur = await evaluasi(
-        ws,
-        `
-        (() => {
-          const batas = window.innerWidth
-          const pelaku = []
-          document.querySelectorAll('*').forEach((el) => {
-            const r = el.getBoundingClientRect()
-            if (r.right > batas + 1 && !el.closest('.tabel-bungkus')) {
-              pelaku.push(el.tagName + '.' + String(el.className || '').split(' ')[0])
-            }
-          })
-          return {
-            lebar: batas,
-            dokumen: document.documentElement.scrollWidth,
-            luber: document.documentElement.scrollWidth > batas + 1,
-            pelaku: [...new Set(pelaku)].slice(0, 4),
-          }
-        })()
-      `,
-      )
+      const ukur = await ukurLuber(ws)
 
       lapor(
         `${lebar}px Portal penghuni: lebar emulasi benar-benar berlaku`,

@@ -3,9 +3,9 @@
 > Dokumen ini menjawab: **apa yang dibuktikan tes, bagaimana menjalankannya, dan
 > bagaimana menambah tes yang benar-benar menahan.**
 >
-> Angka diambil dari aplikasi yang berjalan: **801 tes PHP (3684 asersi)** dalam
-> 46 berkas, dan **28 skrip uji** (25 browser + 2 balapan HTTP + 1 jalur proxy)
-> dengan **792 langkah**.
+> Angka diambil dari aplikasi yang berjalan: **806 tes PHP (3767 asersi)** dalam
+> 47 berkas, dan **28 skrip uji** (25 browser + 2 balapan HTTP + 1 jalur proxy)
+> dengan **802 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -90,7 +90,7 @@ menguji implementasi, bukan perilaku.
 
 ---
 
-## 3. Tes PHP — 801 tes, 3684 asersi
+## 3. Tes PHP — 806 tes, 3767 asersi
 
 ### 3.1 Menjalankan
 
@@ -178,7 +178,7 @@ berkas yang menjaga aturan, bukan seluruhnya:
 
 ---
 
-## 4. Skrip uji browser, balapan, dan jalur proxy - 28 skrip, 792 langkah
+## 4. Skrip uji browser, balapan, dan jalur proxy - 28 skrip, 802 langkah
 
 ### 4.1 Menjalankan
 
@@ -304,7 +304,7 @@ Dari `1_PRD.md` §6, dan bagaimana masing-masing dibuktikan.
 | U-6 | Halaman meluber di 360px | 0 | `uji-tata-letak.mjs` | Lulus 94/94 |
 | U-7 | Tabel tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` | Lulus 65/65 |
 | U-8 | Kepala pemilik sebelum konten | < 220px | Terukur | 203px |
-| U-9 | Cakupan tes PHP | 801 tes | CI | Lulus 3684 asersi |
+| U-9 | Cakupan tes PHP | 806 tes | CI | Lulus 3767 asersi |
 | U-10 | Pemuatan gagal menyamar sebagai data kosong | 0 layar | `uji-galat-muat.mjs` — **dibuktikan bisa gagal** | Lulus 30/30 |
 
 ---
@@ -322,7 +322,7 @@ seberapa besar kepercayaan pada hijau.
 | Orientasi lanskap ponsel | Waktu | 640×360 belum pernah diukur |
 | Uji luring sungguhan | `Network.emulateNetworkConditions` belum dipakai | Kerangka ter-cache, tetapi belum dibuktikan bisa dibuka tanpa jaringan |
 | Email sungguhan (Brevo) | Hanya Mailpit | Batas kirim Brevo dan reputasi domain belum diuji |
-| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 28 skrip / 792 langkah lulus di runner, 416 dtk |
+| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 28 skrip / 802 langkah lulus |
 | Tes komponen Vue | Tidak ada | Regresi di dalam komponen hanya tertangkap E2E |
 
 **E2E di CI sudah dipercaya lagi.** `continue-on-error` sudah **dicabut**;

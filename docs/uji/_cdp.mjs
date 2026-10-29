@@ -72,7 +72,7 @@ export { targetBaru, hubungkan }
 
 let idPesan = 0
 
-export function kirim(ws, method, params = {}) {
+export function kirim(ws, method, params = {}, sesi = null) {
   return new Promise((resolve, reject) => {
     const id = ++idPesan
     const onMsg = (ev) => {
@@ -88,7 +88,10 @@ export function kirim(ws, method, params = {}) {
       else resolve(msg.result)
     }
     ws.addEventListener('message', onMsg)
-    ws.send(JSON.stringify({ id, method, params }))
+    // `sesi` dipakai untuk target yang ditumpangi dengan `Target.attachToTarget
+    // { flatten: true }` - service worker, misalnya. Tanpa itu, perintah untuk
+    // target lain tidak bisa dikirim dari koneksi yang sudah ada.
+    ws.send(JSON.stringify(sesi ? { id, method, params, sessionId: sesi } : { id, method, params }))
   })
 }
 

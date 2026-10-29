@@ -187,13 +187,23 @@ langsung di basis data demo: `users` hanya berisi tiga akun demo, tidak ada
 | 4.4 | `client_max_body_size 4m` (menutup C1) | Unggah QRIS 1,9 MB berhasil dengan pesan ramah |
 | 4.5 | `Cache-Control: no-store` untuk `/api/*` terautentikasi | Respons tidak tersimpan di cache proxy |
 | 4.6 | Uji ulang pembatas login setelah `trustProxies` (B4) | Dua IP berbeda tidak saling mengunci |
+| 4.7 | `report-uri` + kolektor laporan CSP | Laporan pelanggaran masuk log, bukan hanya konsol peramban |
 
-**Status 29 Oktober 2026.** 4.1, 4.2, 4.4, 4.5 **selesai**, semuanya diperiksa
-pada image produksi sungguhan, bukan pada konfigurasi laptop. 4.6 sudah tertutup
-sejak Fase 0 (`uji-proxy.mjs`: 25 IP berbeda → 25×200, satu IP → 429 di
-percobaan ke-21). 4.3 **belum**: menegakkan CSP menuntut satu minggu laporan
-lebih dulu, dan domain Midtrans harus masuk `script-src`/`frame-src` bila kelak
-dipakai lewat Snap di dalam halaman.
+**Status 29 Oktober 2026.** 4.1, 4.2, 4.4, 4.5, 4.7 **selesai**, semuanya
+diperiksa pada image produksi sungguhan, bukan pada konfigurasi laptop. 4.6
+sudah tertutup sejak Fase 0 (`uji-proxy.mjs`: 25 IP berbeda → 25×200, satu IP →
+429 di percobaan ke-21). 4.3 **belum**: menegakkan CSP menuntut satu minggu
+laporan lebih dulu, dan domain Midtrans harus masuk `script-src`/`frame-src`
+bila kelak dipakai lewat Snap di dalam halaman.
+
+4.7 dikerjakan karena 4.3 tidak bisa dijalankan tanpanya: `Report-Only` tanpa
+`report-uri` hanya menulis ke konsol pengguna, sehingga "seminggu laporan
+bersih" tidak akan pernah bisa diperiksa dari sini. Kolektornya
+`POST /csp-laporan` (`CspLaporanController`, `throttle:30,1`), menulis satu baris
+log berawalan `csp.lapor`, dan sengaja **di luar `/api/`** supaya kontrak 86
+endpoint tidak berubah. Yang harus dilakukan pemilik setelah aplikasi hidup:
+cari `csp.lapor` di log Render selama seminggu; kalau kosong atau hanya berisi
+`blocked-uri: inline`, naikkan ke menegakkan.
 
 ---
 

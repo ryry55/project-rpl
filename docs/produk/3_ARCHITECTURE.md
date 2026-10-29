@@ -410,13 +410,13 @@ penutupan. Daftar yang tidak dicatat akan terlupakan.
 ```
 api/
   app/Domain/            52 kelas, 13 folder - semua aturan
-  app/Http/Controllers/  26 pengendali — hanya menerjemahkan
+  app/Http/Controllers/  27 pengendali — hanya menerjemahkan
   app/Http/Middleware/   6 middleware
   app/Http/Requests/     validasi
   app/Http/Resources/    14 resource — bentuk JSON
   app/Models/            21 model — hanya bentuk data
   database/migrations/   41 migrasi
-  tests/                 46 berkas tes, 801 tes
+  tests/                 47 berkas tes, 806 tes
 
 web/
   src/views/             27 view (7 publik + 20 pemilik dan panelnya)

@@ -467,6 +467,22 @@ ditemukan saat mengerjakannya:
    pemantauan tanpa pelanggaran berarti, dan itu tidak bisa dipercepat dari
    laptop. Jangan naikkan ke menegakkan tanpa membaca laporan lebih dulu.
 
+**Status lanjutan 29 Oktober 2026: kolektor laporan ada.** Mode lapor tanpa
+`report-uri` tidak mengumpulkan apa pun - pelanggaran hanya muncul di konsol
+peramban pengguna, jadi kalimat "tunggu seminggu laporan bersih" tidak bisa
+dijalankan. Sekarang: `report-uri /csp-laporan`, dilayani
+`App\Http\Controllers\CspLaporanController`, dibatasi `throttle:30,1`, dan
+menulis satu baris log berawalan **`csp.lapor`** (terbaca di dashboard log
+Render karena `LOG_CHANNEL=stderr`). Tiga sifat yang dijaga, masing-masing
+dibuktikan bisa gagal oleh `CspLaporanTest`: selalu 204 (peramban tidak membaca
+jawaban; 4xx hanya memicu kirim ulang), hanya medan yang dikenal dan sudah
+dipotong yang dicatat (isinya datang dari luar tanpa autentikasi), dan
+pengiriman berulang kena 429. Rutenya sengaja di luar `/api/` supaya kontrak 86
+endpoint dan peta use case tidak berubah - ia infrastruktur, bukan use case.
+Membacanya: cari `csp.lapor` di log, lihat `blocked-uri` dan
+`violated-directive`. Laporan yang muncul berulang dari `unsafe-inline` berarti
+masih ada gaya/script sebaris sebelum CSP bisa ditegakkan.
+
 ### B6. Data uji dan akun demo berada di database yang sama dengan data sungguhan
 
 **Bukti.** Seeder menolak di `APP_ENV=production` dan `RUN_SEEDER=false`
@@ -494,6 +510,8 @@ data contoh, buat kos baru lewat layar.
 | C5 | `APP_LOCALE=en` padahal seluruh UI berbahasa Indonesia | Pesan validasi bawaan berbahasa Inggris. Kecil, tetapi terlihat |
 | C6 | `pm.max_requests = 500` | Sudah benar (mencegah kebocoran memori). Dicatat sebagai hal yang **jangan** dinaikkan tanpa mengukur |
 | C7 | ~~`Cache-Control` untuk `/api/*`~~ **SELESAI 29 Okt 2026** | Temuan ini menulis "tidak ada", padahal bawaan Laravel sudah mengirim `no-cache, private` — yang belum tertutup adalah cache peramban. `TanpaCache` kini menyetel `no-store, private` untuk jawaban JSON; ekspor CSV dan gambar QRIS (`max-age=300`) tidak ditimpa, dan keduanya dijaga dua tes |
+| C8 | ~~Kerentanan dependensi~~ **SELESAI 29 Okt 2026** | `composer audit --locked` semula melaporkan satu advisori pada `symfony/mime` 7.4.19; kini **7.4.22** (+ `polyfill-mbstring` 1.43.3) dan audit bersih. `npm audit --omit=dev`: 0. Efek samping yang wajar: `composer update` di repo ini juga membuang tiga paket yang hanya ada di lockfile (`laravel/sail`, `laravel/pail`, `symfony/yaml`) — tidak satu pun disebut di kode, `docs`, atau skrip |
+| C9 | ~~Daftar tagihan bisa menjadi N+1 tanpa ketahuan~~ **SELESAI 29 Okt 2026** | Uji beban 390 tagihan = 550 KB / 297 ms; angkanya masih wajar, tetapi tidak ada yang menahan `->load()` di dalam loop. `TagihanTest::test_daftar_tagihan_tidak_menambah_kueri_per_baris` menyamakan jumlah kueri untuk 2 dan 6 baris (kontra-uji: satu kueri per baris membuatnya **7 → 11**) |
 
 ---
 

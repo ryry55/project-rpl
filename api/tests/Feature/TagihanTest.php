@@ -12,6 +12,7 @@ use App\Models\Tagihan;
 use App\Models\TarifSewa;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\Concerns\MenyiapkanKebijakan;
 use Tests\TestCase;
@@ -522,5 +523,60 @@ class TagihanTest extends TestCase
         $this->actingAs($akun, 'sanctum')
             ->postJson('/api/tagihan', ['kontrak_id' => 1, 'periode' => '2026-10-01'])
             ->assertStatus(403);
+    }
+
+    // --- Beban daftar tagihan ---------------------------------------------
+
+    /**
+     * Jumlah kueri `GET /api/tagihan` tidak boleh tumbuh bersama jumlah baris.
+     *
+     * Uji beban 29 Oktober 2026 mengukur 390 tagihan = 550 KB / 297 ms. Angka
+     * itu masih wajar, tetapi ia hanya wajar **selama** relasi dimuat sekali di
+     * muka: `TagihanController::index()` memakai `with(['rincian',
+     * 'kontrak.kamar', 'kontrak.penghuni'])`. Satu `->load()` yang tertinggal di
+     * dalam loop - atau `$tagihan->pembayaran` yang dibaca langsung di resource -
+     * mengubah 390 baris menjadi 390 kueri tambahan, dan waktunya berlipat tanpa
+     * satu asersi pun gagal: responsnya tetap benar, hanya lambat.
+     *
+     * Yang diuji karena itu bukan durasi (yang berubah-ubah menurut mesin),
+     * melainkan **bentuk** akses datanya: dua baris dan enam baris harus
+     * memakai jumlah kueri yang sama.
+     */
+    public function test_daftar_tagihan_tidak_menambah_kueri_per_baris(): void
+    {
+        $kontrak = $this->siapkanKontrak('2026-01-01');
+
+        $terbitkan = function (string $periode) use ($kontrak): void {
+            $this->sebagaiPemilik()
+                ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => $periode])
+                ->assertCreated();
+        };
+
+        $kueri = 0;
+        DB::listen(function () use (&$kueri): void {
+            $kueri++;
+        });
+
+        $ukur = function () use (&$kueri): int {
+            $kueri = 0;
+            $this->sebagaiPemilik()->getJson('/api/tagihan')->assertOk();
+
+            return $kueri;
+        };
+
+        $terbitkan('2026-01-01');
+        $terbitkan('2026-02-01');
+        $dua = $ukur();
+
+        foreach (['2026-03-01', '2026-04-01', '2026-05-01', '2026-06-01'] as $periode) {
+            $terbitkan($periode);
+        }
+        $enam = $ukur();
+
+        $this->assertSame(
+            $dua,
+            $enam,
+            "jumlah kueri daftar tagihan naik dari {$dua} ke {$enam} saat baris bertambah dari 2 ke 6 - ada relasi yang dimuat per baris (N+1)",
+        );
     }
 }

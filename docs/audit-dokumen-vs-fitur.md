@@ -108,7 +108,7 @@ tetap hijau, dan angka 85 bertahan di sepuluh dokumen.
 | Yang diklaim | Hasil |
 |---|---|
 | 23 tabel domain / 201 kolom / 26 kunci asing / 8 trigger / 32 tabel `public` | `psql` menghitung angka yang sama |
-| 799 tes, 3674 asersi, 45 berkas | keluaran phpunit |
+| 806 tes, 3767 asersi, 47 berkas | keluaran phpunit |
 | Unit 100 tes / 1056 asersi; `KalkulatorTest` 22 tes / 160 asersi | keluaran phpunit |
 | Token warna `achromatic-ledger` (`#f8f8f8`, `#ffffff`, `#0a0a0a`, `#6b6b6b`, `#e6e6e6`, `#f0f0f0`, `#141414`) | `web/src/style.css:32-40` = `2_DESIGN_SYSTEM.md:91-101` |
 | 12+34+20+3+6+10 = 85 di §3-§8 kontrak | `cek-cakupan-kontrak.js` |
@@ -166,3 +166,24 @@ dijalankan sekarang, keduanya mencetak `COCOK` / `SEMUA ANGKA COCOK`. Gate
 penuh 28 Oktober: **28/28 skrip lulus, 792 langkah, 482 detik**; satu-satunya
 langkah merah adalah pemeriksa angka, karena `serah-terima.md` masih menulis 85
 saat ia membacanya — berkas itu sudah ditimpa sesudahnya.
+
+## 12. Putaran 29 Oktober 2026 — angka bergeser lagi, dan dua penjaga baru
+
+Gate penuh 29 Oktober: **806 tes PHP / 3767 asersi / 47 berkas**, **28/28 skrip
+lulus, 802 langkah, 455 detik**. Yang menggeser angka: `CspLaporanTest` (4 tes,
+kolektor laporan CSP) dan `TagihanTest::test_daftar_tagihan_tidak_menambah_kueri_per_baris`
+(1 tes, penjaga N+1). Tambahan langkah: `uji-pwa.mjs` 25 → 26 (uji luring
+sungguhan) dan `uji-tata-letak.mjs` 94 → 100 (lanskap 640x360).
+
+Dua hal yang perlu dibaca dosen, dan keduanya **bukan** kenaikan angka semata:
+
+1. **Kolektor CSP berada di luar `/api/`.** `POST /csp-laporan` sengaja tidak
+   masuk kontrak 86 endpoint, karena ia infra yang dipanggil peramban, bukan use
+   case. Karena itu `route:list --path=api` (dan seluruh hitungan endpoint di
+   dokumen ini) tetap 86 — bukan angka yang tertinggal.
+2. **Dua asersi lama ternyata bisa lulus tanpa mengukur apa pun.** Uji luring
+   PWA hijau walau seluruh Cache Storage dihapus (emulasi jaringan berlaku per
+   target; service worker target tersendiri), dan uji lanskap belum pernah
+   dijalankan sama sekali. Keduanya kini punya kontrol negatif yang benar-benar
+   merah.
+

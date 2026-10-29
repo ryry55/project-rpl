@@ -337,12 +337,15 @@ gagal, bukan hanya "sudah ditulis".
 | **C2** `SANCTUM_EXPIRATION` tak tercatat | Ditambahkan ke `api/.env.example` dengan alasannya | `config/sanctum.php:65` memang membacanya; bawaannya 14 hari |
 | **C7** `Cache-Control` API | Middleware `TanpaCache`: `no-store, private` untuk jawaban JSON | `HeaderCacheTest` (2 tes) merah bila middleware dicabut; gambar QRIS tetap `max-age=300` |
 | **B3** email gagal hanya masuk log | `log_audit` aksi `email.gagal`, entitas `email`, memuat penerima + sebab | Asersi di `NotifikasiTest` merah bila pencatatannya dikomentari |
-| **B5** tanpa HSTS/CSP | HSTS + `Content-Security-Policy-Report-Only` di nginx produksi | Diperiksa pada image produksi: `GET /` membawa keduanya. **Temuan samping: `add_header` nginx tidak diwarisi** oleh lokasi yang punya `add_header` sendiri, sehingga halaman utama selama ini juga kehilangan `nosniff`/`X-Frame-Options`/`Referrer-Policy`; ketiganya kini diulang di `location = /index.html` |
+| **B5** tanpa HSTS/CSP | HSTS + `Content-Security-Policy-Report-Only` di nginx produksi, **dan kolektor laporannya** | Diperiksa pada image produksi: `GET /` membawa keduanya. Kolektornya `POST /csp-laporan` (`CspLaporanController`, `throttle:30,1`), sengaja **di luar `/api/`** supaya kontrak 86 endpoint dan peta 14 use case tetap benar; `CspLaporanTest` (4 tes) merah bila daftar putih medan, pemotongan, atau pembatasnya dicabut. **Temuan samping: `add_header` nginx tidak diwarisi** oleh lokasi yang punya `add_header` sendiri, sehingga halaman utama selama ini juga kehilangan `nosniff`/`X-Frame-Options`/`Referrer-Policy`; ketiganya kini diulang di `location = /index.html` |
 
-**Yang masih terbuka dari daftar itu:** CSP belum menegakkan (butuh seminggu
-laporan), pemantau uptime dan latihan restore Neon (butuh akun), `APP_LOCALE=id`
+**Yang masih terbuka dari daftar itu:** CSP belum menegakkan (kolektornya baru
+ada 29 Oktober; butuh seminggu laporan bersih sebelum `Report-Only` dicabut),
+pemantau uptime dan latihan restore Neon (butuh akun), `APP_LOCALE=id`
 (mengubah pesan galat yang dilihat pengguna, jadi menunggu keputusan), dan
-`docs/uji` beban/tiga-peran yang tetap di luar gate.
+`docs/uji` beban/tiga-peran yang tetap di luar gate. Kerentanan dependensi
+ditutup 29 Oktober: `composer audit --locked` bersih setelah `symfony/mime`
+7.4.19 → 7.4.22, `npm audit --omit=dev` 0.
 
 **Jebakan yang menggigit saat mengerjakannya:** label saringan itu semula
 "Email **gagal** terkirim", dan `uji-galat-muat.mjs` memakai pola
@@ -372,19 +375,45 @@ labelnya, jangan polanya, kecuali memang ingin menajamkan pola itu.
 | Kurang | Status |
 |---|---|
 | Tabel 4+ kolom harus digeser ke samping di ponsel | **Selesai.** Direktif `v-kartu-tabel` melipat baris menjadi kartu di bawah 620px; dijaga `uji-kartu-tabel.mjs` 65 langkah |
-| Tidak ada manifest, service worker, theme-color | **Selesai.** `manifest.webmanifest`, `sw.js`, 4 ikon PNG, `theme-color`; dijaga `uji-pwa.mjs` 22 langkah |
+| Tidak ada manifest, service worker, theme-color | **Selesai.** `manifest.webmanifest`, `sw.js`, 4 ikon PNG, `theme-color`; dijaga `uji-pwa.mjs` 26 langkah |
 | Kepala pemilik memakan 360px dari 800px layar | **Selesai.** Terukur turun ke 203px |
 | Target sentuh di bawah 44px | **Selesai** untuk `(pointer: coarse)` |
-| Luberan mendatar di 360px | **Selesai.** Dijaga `uji-tata-letak.mjs` 94/94 dan `uji-kartu-tabel.mjs` 65/65 di runner CI maupun lokal. Perbaikan `f2c73f0` ternyata **tidak cukup** - lihat catatan di bawah |
+| Luberan mendatar di 360px | **Selesai.** Dijaga `uji-tata-letak.mjs` 100/100 dan `uji-kartu-tabel.mjs` 65/65 di runner CI maupun lokal. Perbaikan `f2c73f0` ternyata **tidak cukup** - lihat catatan di bawah |
+| Orientasi lanskap di ponsel | **Selesai (uji).** `uji-tata-letak.mjs` mengukur 640x360 pada tiga halaman dengan elemen terlebar (Tagihan, Rekening, Pengelola). Kontrol negatifnya: satu `div` 2000px disisipkan - tiga asersi merah |
+| Uji luring sungguhan (matikan jaringan) | **Selesai (uji).** `uji-pwa.mjs` §5 menghapus cache HTTP, mematikan jaringan untuk halaman **dan** service worker, lalu membuka `/pemilik/tagihan` dari Cache Storage saja |
 
 **Sisa yang belum dikerjakan:**
 
 | Kurang | Dampak | Catatan |
 |---|---|---|
 | Navigasi bawah (bottom bar) khusus ponsel | Menu masih berupa deret mendatar yang digeser | Bukan cacat, tetapi pola ponsel yang lazim |
-| Orientasi lanskap di ponsel | Belum diuji; `manifest` mengunci `portrait-primary` | Perlu uji tersendiri di 640x360 |
-| Uji luring sungguhan (matikan jaringan) | Kerangka ter-cache, tetapi belum pernah dibuktikan bisa dibuka tanpa jaringan | Bisa diuji dengan `Network.emulateNetworkConditions` |
 | `uji-pwa.mjs` memakai build produksi | Service worker tidak didaftarkan saat `npm run dev` | `periksa.sh` sudah memakai image, jadi aman di sana |
+
+**Dua batas yang diketahui dari uji luring** (dicatat supaya tidak dikira bug):
+
+1. Tanpa jaringan, aplikasi mendarat di `/masuk?lanjut=<tujuan>` - bukan di
+   halaman tujuan. Sesi dipulihkan lewat `GET /me`, dan itu tidak bisa dijawab
+   tanpa jaringan. Tokennya **tidak** dihapus (hanya 401 yang menghapus), jadi
+   sesi pulih sendiri begitu jaringan kembali; keduanya diasersikan di skrip.
+   Menyimpan identitas terakhir ke cache berarti mengubah perilaku yang dilihat
+   pengguna - menunggu keputusan pemilik, bukan diputuskan sendiri.
+2. Yang terbukti bisa dibuka luring hanyalah **kerangka aplikasi**. Tidak ada
+   data yang di-cache, dan itu memang aturan R-07, bukan kekurangan.
+
+**Jebakan yang menggigit saat mengerjakannya.** `Network.emulateNetworkConditions`
+berlaku **per target**, dan service worker adalah target tersendiri. Mematikan
+jaringan di target halaman tidak mematikan `fetch()` di dalam `sw.js`:
+navigasi "luring" tetap dilayani jaringan, dan uji luring lulus tanpa
+membuktikan apa pun. Gejalanya senyap - nginx mencatat `GET /` dari `sw.js`
+tepat pada navigasi yang seharusnya luring. Terbukti dari kontrol negatif:
+seluruh isi Cache Storage dihapus lebih dulu (terukur `["kos-kerangka-v1",
+"kos-aset-v1"]` menjadi `[]`) dan halaman **tetap terbuka**. Perbaikannya:
+sambung ke target **peramban** (`/json/version`), `Target.attachToTarget
+{ flatten: true }` pada target `service_worker`, lalu
+`Network.emulateNetworkConditions` dikirim dengan `sessionId` itu. Melepas
+sesinya mengembalikan jaringan (diukur). `Network.clearBrowserCache` juga wajib
+didahulukan, kalau tidak salinan HTML di memori peramban menutupi peran cache
+service worker.
 
 **Catatan penting - dan koreksi.** Luberan mendatar di 360px **sudah**
 diperbaiki, tetapi bukan oleh commit `f2c73f0` seperti yang tertulis sebelumnya.

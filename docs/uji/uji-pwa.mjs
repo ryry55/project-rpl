@@ -17,9 +17,107 @@
 //
 // Pakai: node docs/uji/uji-pwa.mjs
 
-import { APP, mulaiUji, masukSebagai, evaluasi, tungguSampai, kirim, jalankan } from './_cdp.mjs'
+import {
+  APP,
+  CDP_BASE,
+  hubungkan,
+  mulaiUji,
+  masukSebagai,
+  evaluasi,
+  tungguSampai,
+  kirim,
+  jalankan,
+} from './_cdp.mjs'
 
 const tidur = (ms) => new Promise((r) => setTimeout(r, ms))
+
+/**
+ * Batas waktu untuk perintah CDP yang bisa menggantung.
+ *
+ * Perintah ke target yang sudah mati TIDAK dijawab dan TIDAK gagal - ia diam,
+ * dan `kirim` menunggu selamanya. Gate lalu berhenti tanpa pesan yang
+ * menunjuk apa pun. Service worker memang bisa berhenti kapan saja, jadi
+ * setiap perintah ke sana diberi batas.
+ */
+const denganBatas = (janji, ms, nama) =>
+  Promise.race([
+    janji,
+    new Promise((_, tolak) => setTimeout(() => tolak(new Error(`${nama} melewati batas ${ms} ms`)), ms)),
+  ])
+
+let keadaanLuring = null
+
+/**
+ * Mematikan (atau menyalakan) jaringan untuk halaman DAN service worker-nya.
+ *
+ * Kenapa service worker harus dimatikan terpisah. `Network.emulateNetworkConditions`
+ * hanya berlaku pada target yang menerimanya, dan service worker adalah target
+ * tersendiri. Tanpa langkah kedua, `fetch()` di dalam `sw.js` tetap sampai ke
+ * server: navigasi "luring" dilayani jaringan, bukan cache, dan asersi luring
+ * lulus tanpa membuktikan apa pun.
+ *
+ * Ini bukan dugaan. Kontrol negatifnya sudah dijalankan: dengan seluruh isi
+ * Cache Storage dihapus lebih dulu, skrip TETAP hijau sebelum perbaikan ini -
+ * dan nginx mencatat `GET /` dari `sw.js` tepat pada navigasi yang seharusnya
+ * luring. Sesudah perbaikan, kontrol yang sama menghasilkan halaman 503 bawaan
+ * service worker, yaitu asersi yang benar-benar bisa gagal.
+ */
+async function aturLuring(ws, offline) {
+  const parameter = { offline, latency: 0, downloadThroughput: -1, uploadThroughput: -1 }
+
+  await kirim(ws, 'Network.emulateNetworkConditions', parameter)
+
+  if (offline) {
+    // Koneksi kedua ke PERAMBAN (bukan ke tab): service worker bukan anak dari
+    // tab, jadi satu-satunya cara menjangkaunya adalah dari target peramban,
+    // lalu menumpang sesinya dengan `flatten: true`.
+    const info = await (await fetch(`${CDP_BASE}/json/version`)).json()
+    const peramban = await hubungkan(info.webSocketDebuggerUrl)
+
+    let target = null
+    for (let percobaan = 0; percobaan < 2 && !target; percobaan++) {
+      const { targetInfos = [] } = await kirim(peramban, 'Target.getTargets')
+      target = targetInfos.find((t) => t.type === 'service_worker' && t.url.includes('/sw.js'))
+      if (!target) await tidur(500)
+    }
+
+    if (!target) {
+      peramban.close()
+      return 0
+    }
+
+    const { sessionId } = await kirim(peramban, 'Target.attachToTarget', {
+      targetId: target.targetId,
+      flatten: true,
+    })
+
+    await denganBatas(kirim(peramban, 'Network.enable', {}, sessionId), 5000, 'Network.enable SW')
+    await denganBatas(
+      kirim(peramban, 'Network.emulateNetworkConditions', parameter, sessionId),
+      5000,
+      'emulasi luring SW',
+    )
+
+    keadaanLuring = { peramban, sessionId }
+
+    return 1
+  }
+
+  // Melepas sesi ikut mengembalikan jaringan service worker: emulasinya hidup
+  // selama sesi itu. Sudah diukur - sesudah dilepas, navigasi berikutnya
+  // dilayani jaringan lagi tanpa perlu memuat ulang apa pun.
+  if (keadaanLuring) {
+    await denganBatas(
+      kirim(keadaanLuring.peramban, 'Target.detachFromTarget', { sessionId: keadaanLuring.sessionId }),
+      5000,
+      'detach SW',
+    ).catch(() => {})
+    keadaanLuring.peramban.close()
+    keadaanLuring = null
+  }
+
+  return 0
+}
 
 jalankan(async () => {
   const uji = await mulaiUji()
@@ -126,9 +224,21 @@ jalankan(async () => {
 
     // Muat ulang supaya worker yang baru langsung mengendalikan halaman
     // (klaim hanya berlaku setelah ada navigasi).
+    //
+    // Dua percobaan, bukan satu dengan jeda tetap. Di gate, navigasi ini
+    // kadang tiba sebelum worker siap melayani, dan `controller` baru terisi
+    // pada dokumen berikutnya - asersinya lalu merah dengan `null` padahal
+    // service worker-nya sehat. Yang diuji tetap hal yang sama: halaman yang
+    // sedang terbuka benar-benar dikendalikan `sw.js`.
     await kirim(ws, 'Page.navigate', { url: `${APP}/masuk` })
     await tungguSampai(ws, `document.querySelector('#email')`)
-    await tidur(800)
+
+    let terkendali = await tungguSampai(ws, `navigator.serviceWorker.controller`, 8000)
+    if (!terkendali) {
+      await kirim(ws, 'Page.navigate', { url: `${APP}/masuk` })
+      await tungguSampai(ws, `document.querySelector('#email')`)
+      terkendali = await tungguSampai(ws, `navigator.serviceWorker.controller`, 8000)
+    }
 
     const pengendali = await evaluasi(
       ws,
@@ -275,6 +385,75 @@ jalankan(async () => {
        })()`,
     )
     lapor('tidak ada URL bertanda token di cache', tokenDiCache === null, String(tokenDiCache))
+
+    // --- 5. Luring sungguhan ----------------------------------------------
+    //
+    // Sampai di sini yang dibuktikan baru "kerangka TERSIMPAN", dan itu bukan
+    // jawaban atas pertanyaan yang sebenarnya: apakah aplikasi bisa DIBUKA
+    // tanpa jaringan. Kerangka yang tersimpan tetapi tidak pernah dipakai hanya
+    // menambah pemakaian disk.
+    //
+    // Jaringan dimatikan di tingkat halaman DAN service worker lewat CDP, bukan
+    // dengan mencabut kabel: koneksi CDP sendiri tetap hidup, jadi skrip ini
+    // masih bisa membaca hasilnya.
+    const jumlahPekerja = await aturLuring(ws, true)
+    lapor(
+      'luring: jaringan dimatikan pada halaman dan service worker',
+      jumlahPekerja > 0,
+      `${jumlahPekerja} service worker`,
+    )
+
+    // Cache HTTP peramban dibersihkan lebih dulu, supaya satu-satunya sumber
+    // yang tersisa untuk kerangka adalah Cache Storage milik service worker.
+    // Tanpa langkah ini, "luring" bisa lulus karena peramban masih memegang
+    // salinan HTML-nya sendiri - dan pagar cache service worker tidak teruji.
+    await kirim(ws, 'Network.clearBrowserCache')
+
+    // Rute yang sama dengan yang barusan dibuka, supaya berkas ber-hash-nya
+    // memang sudah ada di cache. Rute lain hanya akan menguji keberuntungan.
+    await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/tagihan` })
+    await tungguSampai(ws, `document.readyState === 'complete' && document.body !== null`, 15000)
+    await tidur(800)
+
+    const luring = await evaluasi(
+      ws,
+      `({ teks: document.body.innerText, jalur: location.pathname, cari: location.search })`,
+    )
+
+    lapor(
+      'luring: kerangka aplikasi terbuka, bukan halaman galat peramban',
+      Boolean(luring?.teks) &&
+        !/ERR_INTERNET_DISCONNECTED|This site can|Aplikasi belum pernah dimuat/i.test(luring.teks),
+      (luring?.teks || '').slice(0, 80),
+    )
+
+    // Batas yang diketahui, dan disengaja untuk saat ini: sesi dipulihkan lewat
+    // GET /me, yang tidak bisa dijawab tanpa jaringan. Karena itu aplikasi
+    // mendarat di halaman masuk, dengan tujuan semula disimpan di lanjut=.
+    // Asersi ini mencatat keadaan itu supaya perubahan perilakunya terlihat.
+    // Kalau kelak identitas terakhir di-cache atas keputusan pemilik, ubah
+    // asersinya - jangan hapus.
+    lapor(
+      'luring: diarahkan ke /masuk dan tujuan semula disimpan di lanjut=',
+      luring?.jalur === '/masuk' && String(luring?.cari || '').includes('lanjut='),
+      `${luring?.jalur}${luring?.cari || ''}`,
+    )
+
+    // Dipulihkan sebelum skrip selesai. Tab ini ditutup di akhir, tetapi
+    // emulasi yang tertinggal membuat kegagalan berikutnya terbaca seperti
+    // gangguan jaringan.
+    await aturLuring(ws, false)
+
+    // Sesi harus pulih sendiri: tokennya tidak dihapus saat jaringan putus
+    // (hanya 401 yang menghapusnya), jadi pemuatan berikutnya harus kembali
+    // menampilkan halaman yang dituju.
+    await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/tagihan` })
+    const pulih = await tungguSampai(
+      ws,
+      `document.querySelector('h1')?.textContent.includes('Tagihan')`,
+      15000,
+    )
+    lapor('sesi pulih setelah jaringan kembali', pulih)
   } finally {
     await uji.selesai()
   }

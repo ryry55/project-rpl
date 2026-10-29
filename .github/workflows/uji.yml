@@ -8,7 +8,7 @@
 #           kesalahan format dan variabel mati dijawab dalam hitungan detik,
 #           bukan setelah sepuluh menit membangun image.
 #
-#   uji   - membangun image, menjalankan 801 tes PHP di dalam container, lalu
+#   uji   - membangun image, menjalankan 806 tes PHP di dalam container, lalu
 #           seluruh skrip uji browser terhadap Chrome headless.
 #
 # Kenapa uji browser TIDAK ditulis ulang memakai Playwright, padahal rencana

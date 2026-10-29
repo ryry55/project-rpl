@@ -44,7 +44,7 @@ on:
   #      "bisakah artefaknya didorong dan dipasang", dan itu memang hanya
   #      relevan saat rilis.
   #   2. Kalau berkas ini juga berjalan pada push ke main, ia memanggil
-  #      `uji.yml` lagi - sehingga setiap push menjalankan 801 tes dua kali.
+  #      `uji.yml` lagi - sehingga setiap push menjalankan 806 tes dua kali.
   #      Menit runner gratis terbatas, dan uji yang dijalankan karena
   #      kebetulan bukan uji yang dipercaya.
   push:

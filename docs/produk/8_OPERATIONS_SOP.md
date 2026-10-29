@@ -100,6 +100,33 @@ docker compose ps
 docker compose logs --tail=50 api
 ```
 
+### 2.3 Laporan pelanggaran CSP
+
+CSP dipasang `Report-Only`, dan peramban mengirim laporan ke `POST /csp-laporan`
+(bukan `/api/`). Setiap laporan menjadi satu baris log berawalan `csp.lapor`
+dengan medan yang sudah dipotong: `document-uri`, `blocked-uri`,
+`violated-directive`, `effective-directive`, `source-file`, `line-number`,
+`script-sample`, `disposition`.
+
+```bash
+# di Render: dashboard log, saring "csp.lapor"
+docker compose logs api | grep csp.lapor        # di laptop
+```
+
+Membacanya:
+
+| Yang terlihat | Artinya |
+|---|---|
+| Tidak ada baris sama sekali | Baik: tidak ada yang dilanggar. Ini syarat menaikkan CSP ke menegakkan |
+| `violated-directive: style-src`, `blocked-uri: inline` | Ada atribut `style=` sebaris di templat; `style-src 'unsafe-inline'` sudah diizinkan, jadi laporan ini seharusnya tidak muncul |
+| `violated-directive: script-src` | Ada `<script>` sebaris atau sumber luar yang belum diizinkan. **Jangan** tambahkan `'unsafe-inline'` ke `script-src`; perbaiki sumbernya |
+| `blocked-uri` berisi domain luar | Ekstensi peramban pengguna, bukan aplikasi. Abaikan kecuali berulang dari banyak pengguna |
+
+Rute ini dibatasi `throttle:30,1`: halaman yang salah bisa mengirim ratusan
+laporan, dan tanpa batas satu tab memenuhi log. Jawabannya selalu `204`,
+termasuk untuk badan yang tidak berbentuk laporan — peramban tidak membaca
+jawaban, jadi `4xx` hanya memicu pengiriman ulang yang sama.
+
 ---
 
 ## 3. Backup
@@ -209,7 +236,7 @@ tag v*  →  rilis.yml  →  bangun image → dorong ke GHCR
                       →  deploy.yml (produksi)
 ```
 
-`uji.yml` berjalan pada setiap push: lint → 801 tes PHP → skrip browser di Chrome
+`uji.yml` berjalan pada setiap push: lint → 806 tes PHP → skrip browser di Chrome
 headless.
 
 | Workflow | Pemicu |

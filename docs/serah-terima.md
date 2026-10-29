@@ -6,7 +6,7 @@
 >
 > **Maksimal 120 baris.** Kalau lebih, isinya sudah menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: Penutupan temuan B/C audit putaran 2 — 29 Oktober 2026
+Terakhir diperbarui: Verifikasi lapis 2 (CVE, luring, lanskap, N+1, kolektor CSP) — 29 Oktober 2026
 
 ---
 
@@ -14,12 +14,15 @@ Terakhir diperbarui: Penutupan temuan B/C audit putaran 2 — 29 Oktober 2026
 
 | Hal | Nilai |
 |---|---|
-| Fase terakhir selesai | **Penutupan temuan B/C** audit putaran 2: 5 temuan ditutup (C1, C2, C7, B3, B5) + 2 lapis header keamanan |
-| Suite PHP | **801 lulus / 3684 asersi** (Feature 701 / Unit 100), 46 berkas; pint & eslint bersih |
+| Fase terakhir selesai | **Verifikasi lapis 2**: kerentanan dependensi ditutup, uji luring PWA dibuktikan bisa gagal, lanskap 640x360 diuji, penjaga N+1 ditambahkan, kolektor laporan CSP dibuat |
+| Suite PHP | **806 lulus / 3767 asersi** (Feature 706 / Unit 100), 47 berkas; pint & eslint bersih |
 | Migrasi / endpoint / tabel domain | **41** / **86** / **23** (total 32 di skema `public`) |
 | Skrip uji | **29** `.mjs`: **28** (25 browser + 2 balapan + 1 jalur proxy) dijalankan gate + `_cdp.mjs` |
-| Langkah E2E | **792 langkah** (jumlah `langkah lulus` dari gate), gate penuh **415 detik** |
-| Gate lokal | **SEMUA LULUS** (`-Cepat`, 29 Okt: 801 tes, pint, eslint, dokumen, ERD/LRS) |
+| Langkah E2E | **802 langkah** (jumlah `langkah lulus` dari gate), gate penuh **455 detik** |
+| Gate lokal | **SEMUA LULUS** (29 Okt: 806 tes, pint, eslint, dokumen, ERD/LRS, 28 skrip) |
+
+Catatan: `POST /csp-laporan` **tidak** masuk hitungan 86 endpoint - ia di luar
+`/api/` dan sengaja tidak masuk kontrak. `route:list --path=api` tetap 86.
 
 ## 2. Tiga aksi berikutnya
 
@@ -31,6 +34,10 @@ Terakhir diperbarui: Penutupan temuan B/C audit putaran 2 — 29 Oktober 2026
    `/api/tagihan`; A3 + penanda "periode ini belum terbit"). Keduanya
    keputusan pemilik, bukan pekerjaan yang bisa ditebak.
 
+Sesudah aplikasi hidup: cari `csp.lapor` di log Render selama seminggu. Kalau
+kosong atau hanya `blocked-uri: inline`, naikkan CSP ke menegakkan (FASE 4.3).
+Itu pekerjaan pemilik, bukan tebakan sesi berikutnya.
+
 ## 3. Yang tidak boleh diubah
 
 Jangan menyimpang dari ini tanpa keputusan pemilik.
@@ -41,7 +48,7 @@ Jangan menyimpang dari ini tanpa keputusan pemilik.
 | Wewenang pengelola (8) dan Model A | `SPEC.md` bagian 5 |
 | Konvensi T24-T29 | `AGENTS.md` |
 | Sumber tunggal DFD / use case | `docs/dfd/dfd-data.js`, `docs/akademik/usecase-data.js` |
-| Keputusan pemilik | `docs/keputusan-terbuka.md` (K-01..K-04 sudah `dijawab`) |
+| Keputusan pemilik | `docs/keputusan-terbuka.md` (K-01..K-04 `dijawab`, K-05/K-06 `menunggu`) |
 | Langkah deploy manual | `docs/produk/9_DEPLOY.md` |
 
 **Empat keputusan 28 Oktober 2026 (pilihan A semua).** **K-01**: Midtrans
@@ -64,26 +71,18 @@ layar, tanpa bayangan saat diam; `nav a`, `.tabel`, `.lencana-status`,
 
 ## 4. Yang ditutup sesi ini
 
-**Lima temuan audit putaran 2** (`11_AUDIT-PRODUKSI-2.md` §B/§C), semuanya
-dibuktikan bisa gagal — bukan hanya ditulis:
-
-| Temuan | Hasil |
+| Hal | Hasil |
 |---|---|
-| C1 batas unggah | `client_max_body_size 4m` di tiga nginx. 1,47 MB **413 → 201**; 2,4 MB → **422** berpesan Indonesia; 5 MB → 413. Di laptop batasnya ternyata **1 MB**, bukan 2 MB |
-| C7 cache API | Middleware `TanpaCache`: `no-store, private` untuk JSON; CSV dan gambar QRIS tidak ditimpa |
-| B3 email gagal | `log_audit` aksi `email.gagal` + saringan di layar Jejak audit |
-| B5 HSTS + CSP | HSTS dan CSP **mode lapor** di image produksi; `GET /` membawa keduanya |
-| C2 token | `SANCTUM_EXPIRATION` masuk `.env.example` dan `9_DEPLOY.md` |
+| Kerentanan dependensi | `symfony/mime` 7.4.19 → **7.4.22**, `polyfill-mbstring` 1.43.3; `composer audit --locked` **bersih**; `npm audit --omit=dev` 0. Efek samping wajar: `laravel/sail`, `laravel/pail`, `symfony/yaml` (hanya ada di lockfile) terbuang |
+| Uji luring PWA | `uji-pwa.mjs` 26 langkah: cache HTTP dibersihkan, jaringan dimatikan di halaman **dan** service worker, aplikasi dibuka dari Cache Storage saja |
+| Lanskap 640x360 | `uji-tata-letak.mjs` 100 langkah; tiga halaman terlebar. Kontrol negatif (`div` 2000px) membuat 3 asersi merah |
+| Penjaga N+1 | `TagihanTest::test_daftar_tagihan_tidak_menambah_kueri_per_baris`; suntikan satu kueri per baris membuatnya **7 → 11** |
+| Kolektor CSP | `POST /csp-laporan` + `throttle:30,1`, log `csp.lapor`, `CspLaporanTest` 4 tes |
 
-**Bukti 29 Oktober 2026** (semua di laptop; skrip sekali pakai, bukan gate):
-
-| Yang dibuktikan | Hasil |
-|---|---|
-| Restore backup | `backup.sh --uji-pulih` kode 0; `users` 5, `penghuni` 3, `kamar` 2, `kontrak` 2, `tagihan` 2, `pembayaran` 4, `log_audit` 17 |
-| Image produksi | `Dockerfile.prod` terbangun; tiga proses RUNNING; `smoke-produksi.sh` **LULUS** |
-| Pagar entrypoint | `APP_DEBUG=true`, `APP_DEMO_MODE=true`, SMTP jauh + alamat contoh — ketiganya keluar 1 |
-| Uji beban | 30 kamar × 13 periode = 390 tagihan; terbit massal 640 ms rata-rata; daftar tagihan 550 KB / 297 ms; DB 12 MB |
-| Tiga peran + papan ketik | Pemilik 15 menu, pengelola 11 (tanpa Kebijakan/Rekening/Pengelola), penghuni portal; `/api/tagihan` 403 untuk penghuni. 419 elemen: fokus selalu terlihat, tidak ada tombol tanpa nama |
+**Batas yang diketahui:** tanpa jaringan, aplikasi mendarat di
+`/masuk?lanjut=<tujuan>` karena `GET /me` tidak bisa dijawab; token tidak
+dihapus dan sesi pulih saat jaringan kembali (keduanya diasersikan). Menyimpan
+identitas terakhir ke cache = perilaku yang dilihat pengguna = keputusan pemilik.
 
 ## 5. Cara memeriksa keadaan
 
@@ -99,21 +98,20 @@ E2E hanya diketahui dari keluaran `phpunit`/skrip.
 
 ## 6. Jebakan yang menggigit di sesi ini
 
-1. **`add_header` nginx tidak diwarisi** oleh lokasi yang punya `add_header`
-   sendiri. Halaman SPA disajikan lewat `try_files` → `location = /index.html`,
-   jadi header di level `server` tidak sampai ke HTML; harus diulang di lokasi
-   itu. Sudah naik ke `AGENTS.md`.
-2. **Konfigurasi `api-web` dipasang sebagai volume, `web` dibakar ke image.**
-   Mengubah `api/docker/nginx/default.conf` cukup `restart api-web`; mengubah
-   `web/docker/nginx/default.conf` wajib `build web`. Tanpa itu hasil uji
-   membaca konfigurasi lama dan terlihat seperti perbaikan yang tidak bekerja.
-3. **Uji batas unggah harus lewat `web`**, bukan langsung ke `api-web`: dua
-   lapis nginx punya batas masing-masing, dan yang paling ketat yang menang.
-4. **Pemeriksa dokumen bisa hijau karena kode keluarnya salah.** `periksa.ps1`
+1. **`Network.emulateNetworkConditions` berlaku per target**, dan service worker
+   adalah target tersendiri. Uji luring hijau walau seluruh Cache Storage
+   dihapus, karena `fetch()` di `sw.js` tetap sampai ke server. Sudah naik ke
+   `AGENTS.md` beserta cara menumpang sesinya (`Target.attachToTarget`).
+2. **`Set-Content -Encoding UTF8` (PowerShell 5.1) menulis BOM** dan itu
+   mematikan berkas PHP (`Namespace declaration ...`). Build gagal, lalu tes
+   berjalan terhadap image **lama** dan memberi hijau. Sudah naik ke `AGENTS.md`.
+3. **`add_header` nginx tidak diwarisi** oleh lokasi yang punya `add_header`
+   sendiri (lihat `AGENTS.md`).
+4. **Menambah berkas pengendali di luar `Api/` mengubah angka dokumen**
+   (`3_ARCHITECTURE.md`, `KONTEKS_PROYEK.md`). `cek-angka-dokumen.js` menangkapnya
+   - jalankan sebelum commit.
+5. **Pemeriksa dokumen bisa hijau karena kode keluarnya salah.** `periksa.ps1`
    menilai `$LASTEXITCODE`; skrip Node tanpa `process.exitCode` selalu lulus.
-5. **`docker compose exec` lewat PowerShell bisa dilaporkan gagal** karena
+6. **`docker compose exec` lewat PowerShell bisa dilaporkan gagal** karena
    `psql` menulis `NOTICE` ke stderr — baca kode dari dalam:
-   `sh -c '...; echo kode=$?'`. Dan "sudah masuk" diuji lewat formulir, bukan
-   dengan menyuntik token ke `localStorage`.
-6. **Tanpa `DB_CONNECTION=pgsql`, migrasi produksi jatuh ke SQLite** dengan galat
-   trigger yang menyesatkan. Lihat `9_DEPLOY.md` §2.
+   `sh -c '...; echo kode=$?'`.

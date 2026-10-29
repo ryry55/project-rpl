@@ -109,8 +109,20 @@ http {
         # origin sendiri sebagai `blob:` (pratinjau) atau `data:`, kuitansi
         # cetak sebagai iframe `srcdoc`, dan service worker.
         # `connect-src 'self'` sudah cukup karena produksi satu origin.
-        set $csp_lapor "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'";
+        #
+        # `report-uri` wajib ada: tanpa tujuan, mode lapor hanya menulis ke
+        # konsol peramban pengguna dan tidak ada yang bisa dibaca dari sini.
+        # Tujuannya rute Laravel `/csp-laporan` (bukan `/api/` - lihat
+        # CspLaporanController).
+        set $csp_lapor "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; report-uri /csp-laporan";
         add_header Content-Security-Policy-Report-Only $csp_lapor always;
+
+        # Laporan pelanggaran CSP. Tanpa blok ini, POST ke sini jatuh ke
+        # `location /` dan dijawab `index.html` - sehingga tidak ada laporan
+        # yang pernah sampai ke Laravel. Polanya sama dengan `location /api/`.
+        location = /csp-laporan {
+            try_files $uri /index.php?$query_string;
+        }
 
         # --- API: diserahkan ke Laravel ------------------------------------
         location /api/ {
