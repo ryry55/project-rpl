@@ -47,6 +47,7 @@ const ENTITAS = [
   { nilai: 'tarif_sewa', label: 'Tarif sewa' },
   { nilai: 'kebijakan_kos', label: 'Kebijakan kos' },
   { nilai: 'usulan_perubahan', label: 'Usulan perubahan' },
+  { nilai: 'email', label: 'Email' },
 ]
 
 const AKSI = [
@@ -62,6 +63,7 @@ const AKSI = [
   { nilai: 'kebijakan.usul', label: 'Kebijakan diusulkan pengelola' },
   { nilai: 'kebijakan.setujui', label: 'Usulan kebijakan disetujui' },
   { nilai: 'kebijakan.tolak', label: 'Usulan kebijakan ditolak' },
+  { nilai: 'email.gagal', label: 'Email tidak terkirim' },
 ]
 
 /**
@@ -85,6 +87,7 @@ const labelAksi = {
   'kebijakan.usul': 'Kebijakan diusulkan',
   'kebijakan.setujui': 'Usulan kebijakan disetujui',
   'kebijakan.tolak': 'Usulan kebijakan ditolak',
+  'email.gagal': 'Email tidak terkirim',
 }
 
 const jumlahSaring = computed(() => {

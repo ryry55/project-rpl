@@ -48,9 +48,11 @@ http {
     keepalive_timeout 65;
 
     # Render free memberi 512 MB. Permintaan unggah di aplikasi ini hanya
-    # formulir JSON, jadi batas kecil sudah cukup dan menutup satu jalan
-    # menghabiskan memori.
-    client_max_body_size 2m;
+    # formulir JSON, kecuali SATU: gambar QRIS, yang divalidasi sampai 2 MB.
+    # Karena itu 4m, bukan 2m - berkas 2 MB ditambah pembungkus multipart
+    # sudah melewati 2 MB, dan nginx menjawabnya dengan 413 halaman HTML
+    # sebelum Laravel bisa memberi pesan "Gambar maksimal 2 MB" (C1).
+    client_max_body_size 4m;
 
     gzip on;
     gzip_types text/css application/javascript application/json image/svg+xml application/manifest+json;
@@ -89,6 +91,26 @@ http {
         add_header X-Content-Type-Options "nosniff" always;
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+        # HSTS (FASE 4.1). Render menangani TLS di depannya, jadi header ini
+        # yang memberi tahu peramban bahwa host ini tidak boleh dibuka lewat
+        # http:// lagi. Tanpa `includeSubDomains` dan tanpa `preload`: keduanya
+        # adalah janji yang tidak bisa ditarik kembali dalam hitungan bulan,
+        # dan domain ini belum tentu memiliki subdomain lain.
+        add_header Strict-Transport-Security "max-age=31536000" always;
+
+        # CSP mode lapor dulu (FASE 4.2), belum menegakkan apa pun. Urutannya
+        # disengaja: kebijakan yang menegakkan dan salah satu direktifnya keliru
+        # mematikan aplikasi di hadapan pengguna, sedangkan mode lapor hanya
+        # menulis pelanggaran ke konsol.
+        #
+        # Isinya mengikuti apa yang benar-benar dipakai SPA: berkas JS/CSS
+        # sendiri, gaya inline (Vue menulis atribut `style`), gambar QRIS dari
+        # origin sendiri sebagai `blob:` (pratinjau) atau `data:`, kuitansi
+        # cetak sebagai iframe `srcdoc`, dan service worker.
+        # `connect-src 'self'` sudah cukup karena produksi satu origin.
+        set $csp_lapor "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'";
+        add_header Content-Security-Policy-Report-Only $csp_lapor always;
 
         # --- API: diserahkan ke Laravel ------------------------------------
         location /api/ {
@@ -145,8 +167,20 @@ http {
         }
 
         # --- HTML: jangan di-cache ------------------------------------------
+        #
+        # Header keamanan DIULANG di sini, dan itu bukan kelalaian. Di nginx,
+        # `add_header` TIDAK diwarisi oleh blok yang punya `add_header`
+        # sendiri. Halaman SPA disajikan lewat internal redirect `try_files`
+        # ke lokasi ini, jadi tanpa pengulangan di bawah, SETIAP halaman
+        # aplikasi kehilangan HSTS dan CSP - persis respons yang paling
+        # membutuhkannya.
         location = /index.html {
             add_header Cache-Control "no-cache";
+            add_header X-Content-Type-Options "nosniff" always;
+            add_header X-Frame-Options "SAMEORIGIN" always;
+            add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+            add_header Strict-Transport-Security "max-age=31536000" always;
+            add_header Content-Security-Policy-Report-Only $csp_lapor always;
             expires off;
         }
 

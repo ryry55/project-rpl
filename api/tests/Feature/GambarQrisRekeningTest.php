@@ -265,6 +265,10 @@ class GambarQrisRekeningTest extends TestCase
         // `nosniff` yang menutup jalan "peramban menebak sendiri lalu
         // memperlakukannya sebagai HTML".
         $this->assertSame('nosniff', $saji->headers->get('X-Content-Type-Options'));
+
+        // Middleware `TanpaCache` hanya menyentuh jawaban JSON. Bila ia ikut
+        // menimpa gambar, QRIS diunduh ulang setiap kali panel dibuka.
+        $this->assertStringContainsString('max-age=300', (string) $saji->headers->get('Cache-Control'));
     }
 
     public function test_gambar_tanpa_isi_menghasilkan_404(): void

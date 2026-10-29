@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Domain\Akses\Wewenang;
+use App\Domain\Audit\PencatatAudit;
 use App\Domain\Kebijakan\PilihanKebijakan;
 use App\Domain\Notifikasi\Peristiwa;
 use App\Mail\PemberitahuanKos;
 use App\Models\Kamar;
 use App\Models\KebijakanKos;
 use App\Models\Kontrak;
+use App\Models\LogAudit;
 use App\Models\PengaturanNotifikasi;
 use App\Models\PengelolaKewenangan;
 use App\Models\Penghuni;
@@ -256,6 +258,14 @@ class NotifikasiTest extends TestCase
         // Perubahan tetap tersimpan, dan notifikasi in-app tetap ada.
         $this->assertSame(1, TarifSewa::where('nilai', 2000000)->count());
         $this->assertSame(1, $this->pengelola->notifications()->count());
+
+        // B3: kegagalan kirim juga harus meninggalkan jejak yang bisa dihitung.
+        // Log container hilang saat layanan restart; `log_audit` tidak.
+        $jejak = LogAudit::where('aksi', PencatatAudit::AKSI_EMAIL_GAGAL)->get();
+
+        $this->assertCount(1, $jejak);
+        $this->assertSame('email', $jejak->first()->entitas);
+        $this->assertSame('pengelola@kos.test', $jejak->first()->nilai_baru['penerima']);
     }
 
     // --- Preferensi kanal -------------------------------------------------

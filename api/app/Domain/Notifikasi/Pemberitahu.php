@@ -2,6 +2,7 @@
 
 namespace App\Domain\Notifikasi;
 
+use App\Domain\Audit\PencatatAudit;
 use App\Mail\PemberitahuanKos;
 use App\Models\User;
 use App\Notifications\NotifikasiKos;
@@ -40,11 +41,16 @@ use Throwable;
  * Kegagalan email **tidak pernah** dilempar ulang. Email bisa gagal karena
  * SMTP mati, kuota penuh, atau alamat salah - dan tidak satu pun dari itu
  * membuat perubahan tarif menjadi tidak sah. Kegagalannya dicatat ke log
- * supaya bisa diperiksa, dan pengguna melihat perubahannya tersimpan.
+ * **dan** ke `log_audit`: log menjawab "apa yang terjadi tadi malam", audit
+ * menjawab "berapa email hilang bulan ini" - pertanyaan yang tidak bisa
+ * dijawab log container yang hilang saat layanan restart.
  */
 class Pemberitahu
 {
-    public function __construct(private readonly PengaturanKanal $pengaturan) {}
+    public function __construct(
+        private readonly PengaturanKanal $pengaturan,
+        private readonly PencatatAudit $audit,
+    ) {}
 
     /**
      * Tulis notifikasi in-app. Dipanggil DI DALAM transaksi perubahan.
@@ -105,7 +111,37 @@ class Pemberitahu
                     'penerima' => $user->email,
                     'sebab' => $e->getMessage(),
                 ]);
+
+                $this->catatGagalKirim($surat, $user->email, $e);
             }
+        }
+    }
+
+    /**
+     * Jejak kegagalan kirim yang bisa dihitung, bukan hanya dibaca (B3).
+     *
+     * Penulisannya dilindungi `try` sendiri: bila database sedang tidak sehat,
+     * kegagalan email tidak boleh berubah menjadi galat permintaan. Emailnya
+     * sudah gagal; menambah galat tidak menolong siapa pun, dan perubahan yang
+     * sudah commit akan terlihat seperti tidak tersimpan.
+     */
+    private function catatGagalKirim(Surat $surat, string $email, Throwable $e): void
+    {
+        try {
+            $this->audit->catat(
+                aksi: PencatatAudit::AKSI_EMAIL_GAGAL,
+                entitas: 'email',
+                nilaiBaru: [
+                    'peristiwa' => $surat->peristiwa,
+                    'penerima' => $email,
+                    'sebab' => $e->getMessage(),
+                ],
+            );
+        } catch (Throwable $gagal) {
+            Log::warning('Jejak kegagalan email tidak bisa dicatat.', [
+                'penerima' => $email,
+                'sebab' => $gagal->getMessage(),
+            ]);
         }
     }
 

@@ -169,6 +169,12 @@ Fase ini yang membedakan "sudah deploy" dari "bisa dioperasikan".
 **Definisi selesai:** Anda bisa menjawab "bagaimana saya tahu kalau aplikasi ini
 rusak?" tanpa mengandalkan ingatan.
 
+**Status 29 Oktober 2026.** 3.3 **selesai** (`log_audit` aksi `email.gagal`,
+dijaga satu tes yang terbukti bisa gagal). 3.5 **sudah bersih** — diperiksa
+langsung di basis data demo: `users` hanya berisi tiga akun demo, tidak ada
+`bayar-*@kos.test`. 3.1 menunggu layanan pemantau, 3.2 menunggu keputusan A3
+(K-06), 3.4 menunggu Neon.
+
 ---
 
 ## FASE 4 — Pengerasan keamanan (½ hari)
@@ -181,6 +187,13 @@ rusak?" tanpa mengandalkan ingatan.
 | 4.4 | `client_max_body_size 4m` (menutup C1) | Unggah QRIS 1,9 MB berhasil dengan pesan ramah |
 | 4.5 | `Cache-Control: no-store` untuk `/api/*` terautentikasi | Respons tidak tersimpan di cache proxy |
 | 4.6 | Uji ulang pembatas login setelah `trustProxies` (B4) | Dua IP berbeda tidak saling mengunci |
+
+**Status 29 Oktober 2026.** 4.1, 4.2, 4.4, 4.5 **selesai**, semuanya diperiksa
+pada image produksi sungguhan, bukan pada konfigurasi laptop. 4.6 sudah tertutup
+sejak Fase 0 (`uji-proxy.mjs`: 25 IP berbeda → 25×200, satu IP → 429 di
+percobaan ke-21). 4.3 **belum**: menegakkan CSP menuntut satu minggu laporan
+lebih dulu, dan domain Midtrans harus masuk `script-src`/`frame-src` bila kelak
+dipakai lewat Snap di dalam halaman.
 
 ---
 

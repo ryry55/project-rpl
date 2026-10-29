@@ -89,6 +89,7 @@ menjalankan image produksi di laptop.
    | `SESSION_DRIVER` | `database` | Sesi bertahan saat container restart |
    | `CACHE_STORE` | `database` | Pembatas login bertahan saat restart |
    | `QUEUE_CONNECTION` | `sync` | Lihat DAT-03 di `docs/utang-teknis.md` |
+   | `SANCTUM_EXPIRATION` | `10080` (7 hari) | Umur token; tanpa ini bawaannya 14 hari |
    | `RUN_SEEDER` | `false` | Seeder menulis sandi `password` |
    | `LOG_CHANNEL` | `stderr` | Log terbaca dashboard Render |
    | `MAIL_MAILER` | `smtp` | Brevo |

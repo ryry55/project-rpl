@@ -91,7 +91,7 @@ urutan langkahnya menentukan, dan salah urutan menghasilkan hijau yang menyesatk
 
 ### CI/CD
 
-Tiga workflow di `.github/workflows/`: `uji.yml` (kebenaran kode - lint lalu 799
+Tiga workflow di `.github/workflows/`: `uji.yml` (kebenaran kode - lint lalu 801
 tes PHP lalu 28 skrip uji di Chrome headless), `rilis.yml` (bangun image,
 dorong ke GHCR, staging lalu produksi), dan `deploy.yml` (satu lingkungan,
 dipanggil dua kali). Rinciannya di `docs/ci-cd.md`.
@@ -124,6 +124,13 @@ akan lolos dari guardrail selamanya tanpa ada yang memberi tahu.
   `API menjawab`. Sejak 29 Oktober 2026 `default.conf` memakai
   `resolver 127.0.0.11` + `set $api_upstream api:9000`, jadi nama itu
   diselesaikan ulang. Jangan kembalikan `fastcgi_pass api:9000` langsung.
+- **`add_header` nginx tidak diwarisi oleh lokasi yang punya `add_header` sendiri.** Halaman SPA
+  dilayani lewat internal redirect `try_files` ke `location = /index.html`, dan lokasi itu memasang
+  `add_header Cache-Control` sendiri. Akibatnya setiap header di level `server` (`nosniff`,
+  `X-Frame-Options`, `Referrer-Policy`, lalu HSTS dan CSP) **hilang tepat di halaman utama** —
+  satu-satunya respons yang paling membutuhkannya. Gejalanya senyap: `curl` ke `/api/health`
+  memperlihatkan semua header, sedangkan `curl` ke `/` tidak. Header keamanan karena itu diulang
+  di lokasi itu, dan komentarnya jangan dihapus.
 - **Kolom yang `nullable` di validasi belum tentu `NOT NULL` di basis data.** `komponen_biaya.satuan`
   punya `default('rupiah/bulan')`, tetapi formulir yang membiarkan kolomnya kosong mengirim `null`
   eksplisit (karena `ConvertEmptyStringsToNull`), dan `null` eksplisit **mengalahkan bawaan kolom**:

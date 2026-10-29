@@ -6,7 +6,7 @@
 >
 > **Maksimal 120 baris.** Kalau lebih, isinya sudah menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: Audit ulang + bukti restore, beban, image produksi, tiga peran — 29 Oktober 2026
+Terakhir diperbarui: Penutupan temuan B/C audit putaran 2 — 29 Oktober 2026
 
 ---
 
@@ -14,15 +14,12 @@ Terakhir diperbarui: Audit ulang + bukti restore, beban, image produksi, tiga pe
 
 | Hal | Nilai |
 |---|---|
-| Fase terakhir selesai | **Audit ulang**: 1 klaim basi ditemukan; 5 pekerjaan yang tidak butuh akun diselesaikan |
-| Suite PHP | **799 lulus / 3674 asersi** (Feature 699 / Unit 100), 45 berkas; pint & eslint bersih |
+| Fase terakhir selesai | **Penutupan temuan B/C** audit putaran 2: 5 temuan ditutup (C1, C2, C7, B3, B5) + 2 lapis header keamanan |
+| Suite PHP | **801 lulus / 3684 asersi** (Feature 701 / Unit 100), 46 berkas; pint & eslint bersih |
 | Migrasi / endpoint / tabel domain | **41** / **86** / **23** (total 32 di skema `public`) |
 | Skrip uji | **29** `.mjs`: **28** (25 browser + 2 balapan + 1 jalur proxy) dijalankan gate + `_cdp.mjs` |
-| Langkah E2E | **792 langkah** (jumlah `langkah lulus` dari gate), gate penuh **482 detik** |
-| Gate lokal | **SEMUA LULUS** (`-Cepat`, 29 Okt: 799 tes, pint, eslint, dokumen, ERD/LRS) |
-
-Catatan: putaran 28 Oktober sempat merah di pemeriksa angka karena berkas ini
-masih menulis 85 endpoint; sudah diperbaiki dan `-Cepat` 29 Oktober lulus.
+| Langkah E2E | **792 langkah** (jumlah `langkah lulus` dari gate), gate penuh **415 detik** |
+| Gate lokal | **SEMUA LULUS** (`-Cepat`, 29 Okt: 801 tes, pint, eslint, dokumen, ERD/LRS) |
 
 ## 2. Tiga aksi berikutnya
 
@@ -30,8 +27,9 @@ masih menulis 85 endpoint; sudah diperbaiki dan `-Cepat` 29 Oktober lulus.
    `APP_URL`, environment GitHub `staging`/`production`. Rincian: `9_DEPLOY.md`.
 2. **Verifikasi Midtrans sandbox.** Butuh `MIDTRANS_SERVER_KEY` asli. Yang sudah
    terbukti: `item_details` terkirim (harga × jumlah = `gross_amount`).
-3. **Putuskan A3** (cron eksternal / plan berbayar / terbit manual) **dan**
-   penanda dasbor "periode ini belum terbit" — keduanya keputusan pemilik.
+3. **Jawab K-05 dan K-06** di `docs/keputusan-terbuka.md` (paginasi
+   `/api/tagihan`; A3 + penanda "periode ini belum terbit"). Keduanya
+   keputusan pemilik, bukan pekerjaan yang bisa ditebak.
 
 ## 3. Yang tidak boleh diubah
 
@@ -66,24 +64,26 @@ layar, tanpa bayangan saat diam; `nav a`, `.tabel`, `.lencana-status`,
 
 ## 4. Yang ditutup sesi ini
 
-- **Dokumen yang menyangkal fitur** (Midtrans, backup dan tagihan terjadwal,
-  `Dockerfile.prod`, "dua peran", 11 folder) dan **angka basi** (85→86 endpoint,
-  792→799 tes, langkah per skrip dari keluaran gate) — 22 temuan, dokumen saja.
-- **Pemeriksa yang tidak menahan**: dua skrip selalu keluar 0; sekarang
-  `process.exitCode`. `cek-cakupan-kontrak.js` kini memeriksa baris **Total** §9
-  dan menganggap `/webhook/midtrans` tercatat lewat §8.0.1. Kontrak §9 = 86.
+**Lima temuan audit putaran 2** (`11_AUDIT-PRODUKSI-2.md` §B/§C), semuanya
+dibuktikan bisa gagal — bukan hanya ditulis:
 
-**Bukti baru 29 Oktober 2026** (semua di laptop; skrip sekali pakai, bukan gate):
+| Temuan | Hasil |
+|---|---|
+| C1 batas unggah | `client_max_body_size 4m` di tiga nginx. 1,47 MB **413 → 201**; 2,4 MB → **422** berpesan Indonesia; 5 MB → 413. Di laptop batasnya ternyata **1 MB**, bukan 2 MB |
+| C7 cache API | Middleware `TanpaCache`: `no-store, private` untuk JSON; CSV dan gambar QRIS tidak ditimpa |
+| B3 email gagal | `log_audit` aksi `email.gagal` + saringan di layar Jejak audit |
+| B5 HSTS + CSP | HSTS dan CSP **mode lapor** di image produksi; `GET /` membawa keduanya |
+| C2 token | `SANCTUM_EXPIRATION` masuk `.env.example` dan `9_DEPLOY.md` |
+
+**Bukti 29 Oktober 2026** (semua di laptop; skrip sekali pakai, bukan gate):
 
 | Yang dibuktikan | Hasil |
 |---|---|
 | Restore backup | `backup.sh --uji-pulih` kode 0; `users` 5, `penghuni` 3, `kamar` 2, `kontrak` 2, `tagihan` 2, `pembayaran` 4, `log_audit` 17 |
-| Image produksi | `Dockerfile.prod` terbangun (948 MB); tiga proses RUNNING; `smoke-produksi.sh` **LULUS** 4/4 |
+| Image produksi | `Dockerfile.prod` terbangun; tiga proses RUNNING; `smoke-produksi.sh` **LULUS** |
 | Pagar entrypoint | `APP_DEBUG=true`, `APP_DEMO_MODE=true`, SMTP jauh + alamat contoh — ketiganya keluar 1 |
 | Uji beban | 30 kamar × 13 periode = 390 tagihan; terbit massal 640 ms rata-rata; daftar tagihan 550 KB / 297 ms; DB 12 MB |
-| Tiga peran + papan ketik | Tiga profil Chrome: pemilik 15 menu, pengelola 11 (tanpa Kebijakan/Rekening/Pengelola), penghuni portal; `/api/tagihan` 403 untuk penghuni. 419 elemen: fokus selalu terlihat, tidak ada tombol tanpa nama |
-Klaim basi yang ditemukan dan sudah diperbaiki: `11_AUDIT-PRODUKSI-2.md` §B1
-("tidak ada perintah restore", "tidak pernah ada latihan restore") — salah sejak T27-T29.
+| Tiga peran + papan ketik | Pemilik 15 menu, pengelola 11 (tanpa Kebijakan/Rekening/Pengelola), penghuni portal; `/api/tagihan` 403 untuk penghuni. 419 elemen: fokus selalu terlihat, tidak ada tombol tanpa nama |
 
 ## 5. Cara memeriksa keadaan
 
@@ -99,22 +99,21 @@ E2E hanya diketahui dari keluaran `phpunit`/skrip.
 
 ## 6. Jebakan yang menggigit di sesi ini
 
-1. **Pemeriksa dokumen bisa hijau karena kode keluarnya salah.** `periksa.ps1`
+1. **`add_header` nginx tidak diwarisi** oleh lokasi yang punya `add_header`
+   sendiri. Halaman SPA disajikan lewat `try_files` → `location = /index.html`,
+   jadi header di level `server` tidak sampai ke HTML; harus diulang di lokasi
+   itu. Sudah naik ke `AGENTS.md`.
+2. **Konfigurasi `api-web` dipasang sebagai volume, `web` dibakar ke image.**
+   Mengubah `api/docker/nginx/default.conf` cukup `restart api-web`; mengubah
+   `web/docker/nginx/default.conf` wajib `build web`. Tanpa itu hasil uji
+   membaca konfigurasi lama dan terlihat seperti perbaikan yang tidak bekerja.
+3. **Uji batas unggah harus lewat `web`**, bukan langsung ke `api-web`: dua
+   lapis nginx punya batas masing-masing, dan yang paling ketat yang menang.
+4. **Pemeriksa dokumen bisa hijau karena kode keluarnya salah.** `periksa.ps1`
    menilai `$LASTEXITCODE`; skrip Node tanpa `process.exitCode` selalu lulus.
-2. **Potret rute bukan sumber kebenaran**; `rute-api.json` hanya sah dibaca
-   setelah disegarkan dari `route:list`. Gate dan CI melakukannya sendiri.
-3. **`>` di PowerShell menulis UTF-16.** Pakai
-   `[IO.File]::WriteAllText(..., UTF8Encoding($false))`.
-4. **Hitungan statis `lapor(` ≠ langkah sebenarnya** (610 vs 792). Hanya
-   keluaran `langkah lulus` yang sah.
-5. **Angka per tiket di `docs/tiket.md` dan tabel riwayat
-   `audit-ketertelusuran.md` adalah potret saat tiket selesai.** Yang harus cocok
-   dengan gate: baris R-01..R-07 dan §4.2 katalog.
-6. **`docs/uji/*.png` ditulis ulang setiap E2E** — kembalikan yang tidak relevan
-   (`git checkout -- docs/uji/*.png`); `print()` tidak bisa diasersikan dari CDP.
-7. **Dua jebakan saat menguji:** `docker compose exec` lewat PowerShell bisa
-   dilaporkan gagal karena `psql` menulis `NOTICE` ke stderr — baca kode dari
-   dalam (`sh -c '...; echo kode=$?'`); dan "sudah masuk" diuji lewat formulir,
-   bukan dengan menyuntik token ke `localStorage`.
-8. **Tanpa `DB_CONNECTION=pgsql`, migrasi produksi jatuh ke SQLite** dengan galat
+5. **`docker compose exec` lewat PowerShell bisa dilaporkan gagal** karena
+   `psql` menulis `NOTICE` ke stderr — baca kode dari dalam:
+   `sh -c '...; echo kode=$?'`. Dan "sudah masuk" diuji lewat formulir, bukan
+   dengan menyuntik token ke `localStorage`.
+6. **Tanpa `DB_CONNECTION=pgsql`, migrasi produksi jatuh ke SQLite** dengan galat
    trigger yang menyesatkan. Lihat `9_DEPLOY.md` §2.

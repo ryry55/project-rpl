@@ -185,6 +185,21 @@ class PencatatAudit
 
     public const AKSI_ATURAN_HAPUS = 'aturan.hapus';
 
+    /**
+     * Email notifikasi gagal dikirim (B3).
+     *
+     * Entitasnya `email` dengan `entitas_id` kosong: yang gagal adalah
+     * pengiriman, bukan baris data tertentu. Tanpa baris ini, email yang tidak
+     * sampai hanya meninggalkan jejak di berkas log container - yang hilang
+     * saat Render me-restart - sehingga pertanyaan "berapa email hilang bulan
+     * ini, dan ke siapa" tidak bisa dijawab dari aplikasi sama sekali.
+     *
+     * `nilai_baru` memuat penerima, peristiwa, dan sebabnya; alamat email
+     * bukan rahasia di sini, dan tanpa alamatnya baris ini tidak bisa
+     * ditindaklanjuti.
+     */
+    public const AKSI_EMAIL_GAGAL = 'email.gagal';
+
     public function catat(
         string $aksi,
         string $entitas,

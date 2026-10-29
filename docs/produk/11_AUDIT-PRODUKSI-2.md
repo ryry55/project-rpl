@@ -402,6 +402,16 @@ hilang — dan tidak ada yang tahu email mana yang gagal.
 (1 email per pemilik, bukan per tagihan) atau naikkan paket. Yang lebih penting:
 **catat kegagalan kirim** ke `log_audit` supaya bisa dihitung.
 
+**Status 29 Oktober 2026: SELESAI untuk bagian yang penting.** `Pemberitahu`
+kini menulis `log_audit` dengan aksi `email.gagal` (entitas `email`, memuat
+penerima, peristiwa, dan sebabnya) setiap kali `Mail::send()` melempar. Barisnya
+bisa disaring di layar Jejak audit, dan penulisannya dilindungi `try` sendiri
+supaya database yang sedang tidak sehat tidak mengubah kegagalan email menjadi
+galat permintaan. Dijaga `NotifikasiTest::test_email_gagal_tidak_membatalkan_perubahan`
+(terbukti bisa gagal: dengan pemanggilan itu dikomentari, asersinya merah).
+Kuota Brevo sendiri masih belum dihitung otomatis — yang sudah ada sekarang
+adalah **datanya**, bukan peringatannya.
+
 ### B4. `PembatasMasuk` berubah perilaku setelah `trustProxies` diperbaiki
 
 **Bukti.** `PembatasMasuk` memakai `email + IP` (5/menit, 20/jam) dan
@@ -441,6 +451,22 @@ kunjungan pertama lewat `http://` bisa dicegat sebelum dialihkan.
 butuh `style-src 'unsafe-inline'`; mulai dengan `Content-Security-Policy-
 Report-Only` supaya tidak mematahkan aplikasi, lalu naikkan.
 
+**Status 29 Oktober 2026: SELESAI untuk HSTS dan CSP mode lapor.** Keduanya
+dipasang di `docker/prod/nginx.conf.template` dan diperiksa pada image produksi
+sungguhan (`GET /` → `Strict-Transport-Security: max-age=31536000` dan
+`Content-Security-Policy-Report-Only` berisi 11 direktif). Dua hal yang
+ditemukan saat mengerjakannya:
+
+1. **`add_header` di nginx tidak diwarisi oleh lokasi yang punya `add_header`
+   sendiri.** Halaman SPA disajikan lewat internal redirect `try_files` ke
+   `location = /index.html`, yang sudah punya `add_header Cache-Control`.
+   Akibatnya — **sebelum** perbaikan ini — justru halaman utama yang tidak
+   membawa `nosniff`, `X-Frame-Options`, maupun `Referrer-Policy`. Header-nya
+   kini diulang di lokasi itu, dengan komentar supaya tidak dihapus.
+2. **CSP-nya masih lapor, belum menegakkan.** FASE 4.3 menuntut satu minggu
+   pemantauan tanpa pelanggaran berarti, dan itu tidak bisa dipercepat dari
+   laptop. Jangan naikkan ke menegakkan tanpa membaca laporan lebih dulu.
+
 ### B6. Data uji dan akun demo berada di database yang sama dengan data sungguhan
 
 **Bukti.** Seeder menolak di `APP_ENV=production` dan `RUN_SEEDER=false`
@@ -461,13 +487,13 @@ data contoh, buat kos baru lewat layar.
 
 | # | Hal | Alasan |
 |---|---|---|
-| C1 | `client_max_body_size 2m` vs validasi `max:2048` tepat 2 MB | Berkas 2 MB + overhead multipart → **413 dari nginx** sebelum Laravel memberi pesan ramah. Naikkan nginx ke `4m` |
-| C2 | `SANCTUM_EXPIRATION` tidak ada di `.env.example` | Bawaannya 14 hari; harus jadi keputusan sadar, bukan bawaan |
+| C1 | ~~`client_max_body_size 2m` vs validasi `max:2048` tepat 2 MB~~ **SELESAI 29 Okt 2026** | Berkas 2 MB + overhead multipart → **413 dari nginx** sebelum Laravel memberi pesan ramah. Kini `4m` di ketiga nginx (prod, `api-web`, `web`). Diukur: 1,47 MB → **201** (sebelumnya **413**), 2,4 MB → **422** dengan pesan "Gambar maksimal 2 MB", 5 MB → **413**. Catatan yang ditemukan saat mengukur: di laptop batasnya bahkan bukan 2 MB melainkan **1 MB**, karena `api-web` dan `web` tidak menyetel batas sama sekali dan memakai bawaan nginx |
+| C2 | ~~`SANCTUM_EXPIRATION` tidak ada di `.env.example`~~ **SELESAI 29 Okt 2026** | Bawaannya 14 hari; harus jadi keputusan sadar, bukan bawaan. Kini ada di `api/.env.example` beserta alasannya |
 | C3 | `GET /penghuni` & `GET /rekening` tanpa paginasi | Benar untuk 5–30 kamar. **Jangan** tambahkan paginasi; ini catatan, bukan tugas |
 | C4 | Argumen DAT-03 perlu dikoreksi | Alasan yang tercatat ("satu layanan tidak bisa worker persisten") **tidak berlaku**: supervisord sudah menjalankan proses ketiga. Kode tidak perlu diubah, tetapi alasannya jangan dikutip sebagai kebenaran |
 | C5 | `APP_LOCALE=en` padahal seluruh UI berbahasa Indonesia | Pesan validasi bawaan berbahasa Inggris. Kecil, tetapi terlihat |
 | C6 | `pm.max_requests = 500` | Sudah benar (mencegah kebocoran memori). Dicatat sebagai hal yang **jangan** dinaikkan tanpa mengukur |
-| C7 | `Cache-Control` untuk `/api/*` | Tidak ada; jawaban API bisa di-cache proxy. Tambahkan `no-store` untuk respons terautentikasi |
+| C7 | ~~`Cache-Control` untuk `/api/*`~~ **SELESAI 29 Okt 2026** | Temuan ini menulis "tidak ada", padahal bawaan Laravel sudah mengirim `no-cache, private` — yang belum tertutup adalah cache peramban. `TanpaCache` kini menyetel `no-store, private` untuk jawaban JSON; ekspor CSV dan gambar QRIS (`max-age=300`) tidak ditimpa, dan keduanya dijaga dua tes |
 
 ---
 

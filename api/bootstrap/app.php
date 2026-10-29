@@ -5,6 +5,7 @@ use App\Http\Middleware\PaksaJson;
 use App\Http\Middleware\PastikanPeran;
 use App\Http\Middleware\PastikanWewenang;
 use App\Http\Middleware\SimulasiTanggal;
+use App\Http\Middleware\TanpaCache;
 use App\Http\Middleware\WajibGantiSandi;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -94,6 +95,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // DILEMPAR sebelum handler rute berjalan, sehingga middleware yang
         // berada di dalam keduanya tidak pernah melihatnya.
         $middleware->prependToGroup('api', CatatPermintaanGagal::class);
+
+        // C7 - jawaban JSON tidak boleh tersimpan di cache peramban.
+        // Ditempel paling luar supaya ia melihat respons akhir, termasuk yang
+        // dibuat pengendali galat (401 dari `auth:sanctum`, 422 dari validasi).
+        $middleware->prependToGroup('api', TanpaCache::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Semua permintaan ke /api/* dijawab JSON, termasuk 401 dan 404,

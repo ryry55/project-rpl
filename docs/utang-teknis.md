@@ -3,7 +3,7 @@
 Hal-hal yang diketahui kurang, disengaja ditunda, dan alasannya. Daftar ini ada
 supaya penundaan tetap tercatat, bukan supaya terlupakan.
 
-Status per LANGKAH 9 (commit `f2c73f0`).
+Status per 29 Oktober 2026 (audit putaran 2 + penutupan temuan B/C).
 
 ---
 
@@ -325,6 +325,32 @@ selama ini hanya ada di kepala pengembang.
 - **Halaman Bantuan tidak punya tombol "hubungi dukungan".** Tidak ada tim
   dukungan di balik pemasangan mandiri; tombol yang membuka surel ke alamat yang
   tidak pernah dibaca lebih buruk daripada tidak ada tombol.
+
+### 4d. Temuan B/C audit putaran 2 yang ditutup 29 Oktober 2026
+
+Lima temuan yang bisa dikerjakan tanpa akun. Masing-masing dibuktikan bisa
+gagal, bukan hanya "sudah ditulis".
+
+| Temuan | Yang dikerjakan | Bukti |
+|---|---|---|
+| **C1** batas unggah 2 MB vs bawaan nginx | `client_max_body_size 4m` di ketiga nginx | 1,47 MB → **413 sebelum**, **201 sesudah**; 2,4 MB → **422** dengan pesan Indonesia; 5 MB → 413. Yang ditemukan saat mengukur: di laptop batasnya **1 MB**, bukan 2 MB, karena `web` dan `api-web` tidak menyetel apa pun |
+| **C2** `SANCTUM_EXPIRATION` tak tercatat | Ditambahkan ke `api/.env.example` dengan alasannya | `config/sanctum.php:65` memang membacanya; bawaannya 14 hari |
+| **C7** `Cache-Control` API | Middleware `TanpaCache`: `no-store, private` untuk jawaban JSON | `HeaderCacheTest` (2 tes) merah bila middleware dicabut; gambar QRIS tetap `max-age=300` |
+| **B3** email gagal hanya masuk log | `log_audit` aksi `email.gagal`, entitas `email`, memuat penerima + sebab | Asersi di `NotifikasiTest` merah bila pencatatannya dikomentari |
+| **B5** tanpa HSTS/CSP | HSTS + `Content-Security-Policy-Report-Only` di nginx produksi | Diperiksa pada image produksi: `GET /` membawa keduanya. **Temuan samping: `add_header` nginx tidak diwarisi** oleh lokasi yang punya `add_header` sendiri, sehingga halaman utama selama ini juga kehilangan `nosniff`/`X-Frame-Options`/`Referrer-Policy`; ketiganya kini diulang di `location = /index.html` |
+
+**Yang masih terbuka dari daftar itu:** CSP belum menegakkan (butuh seminggu
+laporan), pemantau uptime dan latihan restore Neon (butuh akun), `APP_LOCALE=id`
+(mengubah pesan galat yang dilihat pengguna, jadi menunggu keputusan), dan
+`docs/uji` beban/tiga-peran yang tetap di luar gate.
+
+**Jebakan yang menggigit saat mengerjakannya:** label saringan itu semula
+"Email **gagal** terkirim", dan `uji-galat-muat.mjs` memakai pola
+`/gagal|galat|kesalahan|tidak dapat|error/i` pada **seluruh teks halaman**.
+Label di `<select>` ikut terbaca, sehingga kontrol negatif uji itu merah padahal
+tidak ada galat apa pun. Diganti "Email **tidak** terkirim". Kalau kelak ada
+label lain yang memuat kata "gagal", uji itu akan menangkapnya lagi — perbaiki
+labelnya, jangan polanya, kecuali memang ingin menajamkan pola itu.
 
 ---
 
