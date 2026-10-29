@@ -143,3 +143,59 @@ itu endpoint baru lolos tanpa ada yang memberi tahu. Mana yang dipakai?
 `periksa.ps1`/`periksa.sh` harus tetap sinkron (CI memeriksa daftar skripnya).
 
 **Kalau tidak dijawab.** Tidak ada perubahan; temuan F-01..F-04 tetap terbuka.
+
+---
+
+## K-05 — `GET /api/tagihan` belum berhalaman: tambah paginasi atau catat batasnya — menunggu
+
+**Fase:** audit ulang · **Tanggal:** 29 Oktober 2026
+
+**Pertanyaan.** Uji beban 29 Oktober (30 kamar × 13 periode) menunjukkan
+`GET /api/tagihan` menjawab **550 KB / 297 ms** untuk 390 tagihan, dan
+`TagihanController::index()` memakai `->get()` tanpa `paginate`. Tambah
+paginasi, atau biarkan dan catat sebagai batas?
+
+**Pilihan.**
+- **A. Tambah paginasi.** `per_page` bawaan 50 + kontrol halaman di layar
+  Tagihan. Respons turun ke ~70 KB. Menyentuh layar yang dilihat pemilik dan
+  mengubah bentuk respons API (`data` + `meta`), jadi dua hal yang dilarang
+  diputuskan sendiri.
+- **B. Biarkan.** Kos 5-30 kamar: 30 × 12 bulan = 360 baris, ~0,5 MB, masih
+  wajar. Batasnya sudah dicatat di `7_TESTING_EVALS.md` §7.
+- **C. Parameter opsional saja.** `?per_page=` dihormati bila dikirim, layar
+  tidak berubah. Tidak menolong pengguna, tetapi memberi jalan keluar untuk
+  ekspor dan integrasi kelak.
+
+**Karena.** Menambah/mengurangi perilaku yang dilihat pengguna dan mengubah
+bentuk respons endpoint — dua hal di tabel "wajib bertanya" `AGENTS.md`.
+
+**Kalau tidak dijawab.** B dipakai: tidak ada kode yang berubah, batasnya tetap
+tertulis di dokumen uji.
+
+---
+
+## K-06 — A3: tagihan terjadwal di container yang bisa tidur — menunggu
+
+**Fase:** audit ulang · **Tanggal:** 29 Oktober 2026
+
+**Pertanyaan.** Penjadwal di dalam container hanya hidup selama container
+hidup; di Render gratis ia tidur setelah tanpa lalu lintas, jadi tagihan bulanan
+tidak terbit sendiri. Mana yang dipakai, dan apakah dasbor diberi penanda
+"periode ini belum terbit"? Rincian pilihan ada di `11_AUDIT-PRODUKSI-2.md` §A3.
+
+**Pilihan.**
+- **A. Cron eksternal.** Layanan cron gratis memanggil endpoint terjadwal tiap
+  hari. Tanpa biaya, tetapi menambah satu titik yang bisa mati diam-diam, dan
+  butuh token yang disimpan di layanan pihak ketiga.
+- **B. Render plan berbayar.** Container tidak tidur; penjadwal di dalamnya
+  bekerja seperti di laptop. Paling sederhana secara kode, berbiaya bulanan.
+- **C. Terbit manual.** Pemilik menekan "Terbitkan" tiap bulan; dasbor menandai
+  periode yang belum terbit. Tanpa biaya dan tanpa titik mati, tetapi bergantung
+  pada ingatan manusia — dan penanda itu layar baru yang harus disetujui.
+
+**Karena.** Ini menyangkut uang (tagihan yang tidak terbit = denda yang tidak
+jalan) dan perilaku yang dilihat pengguna (penanda dasbor).
+
+**Kalau tidak dijawab.** Tidak ada perubahan; A3 tetap terbuka dan deploy
+memakai B sementara bila plan berbayar dipilih saat mendaftar Render.
+
