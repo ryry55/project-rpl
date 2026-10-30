@@ -71,10 +71,13 @@ Masuk sebagai **pemilik**. Buka menu **Kebijakan**.
 > nominal tetap, ada yang tidak mendenda. Jadi ketiga aturan ini bukan ditulis di kode — pemilik
 > yang memilih."
 
-Tunjukkan tiga kartu yang **masih kosong**, lalu buka **Tagihan** dan tekan **Terbitkan tagihan**.
+Tunjukkan tiga kartu yang **masih kosong**, lalu buka **Tagihan**. Tombol terbit **tidak ada** di sini:
+yang muncul panel **"Kebijakan kos belum lengkap"** yang menyebut ketiganya, dan tautan **Isi kebijakan
+dulu**.
 
-> "Dan selama ketiganya belum diisi, sistem **menolak menerbitkan tagihan** — 422 yang menyebut
-> tipe mana yang kurang. Bukan menerbitkan dengan angka tebakan."
+> "Selama ketiganya belum diisi, sistem **menolak menerbitkan tagihan**. Di layar tombolnya memang
+> tidak ada; kalau ada yang menembak API-nya langsung, jawabannya **422** yang menyebut tipe mana yang
+> kurang. Bukan menerbitkan dengan angka tebakan."
 
 Kembali ke **Kebijakan**, isi ketiganya:
 
@@ -115,7 +118,8 @@ Kalau ingin menunjukkan bahwa tanggal 1 **tidak** diprorata (jebakan `tarif − 
 | 16 September (30 hari) | 15/30 | Rp 750.000 |
 | 15 Oktober (31 hari) | 17/31 | Rp 822.581 |
 
-Satu hal lagi yang layak disebut sambil menunjuk tanggal jatuh temponya:
+Satu hal lagi yang layak disebut sambil menunjuk tanggal jatuh temponya. Di layar tanggalnya
+disingkat ("16 Sep 2026"), jadi sebutkan bentuk lengkapnya sambil menunjuk:
 
 > "Jatuh temponya **16 September** — tanggal ia masuk, bukan tanggal 15. Kebijakan kos ini berbunyi
 > 'jatuh tempo tanggal 15', dan kalau aturan itu diterapkan apa adanya di bulan pertama, tagihan
@@ -157,11 +161,15 @@ Masih di rincian tagihan, **Catat pembayaran** sebagian (misal Rp 500.000). Lalu
 > yang menunjuk baris aslinya. Riwayatnya jadi dua baris, jadi pertanyaan 'dulu pernah dicatat
 > Rp 500.000, lalu kenapa hilang' tetap bisa dijawab."
 
-Coba simpan dengan **alasan kosong** — ditolak 422 dan formulirnya **tetap terbuka**.
+Coba simpan dengan **alasan kosong** — formulirnya **tetap terbuka**. Yang menolak lebih dulu adalah
+peramban (medan wajib); server juga menolak, `POST /pembayaran/{id}/pembalik` tanpa `alasan` menjawab
+422, dan itu yang dibuktikan `uji-pembalik.mjs`. Keduanya menyebutkan hal yang sama, dan itu memang
+disengaja: pagar yang hanya ada di peramban bukan pagar.
 
 > "Formulir yang menutup diri saat gagal akan membuat pemilik mengira penarikannya berhasil."
 
-Sesudah ditarik, tunjukkan **status tagihan kembali menunggak**, dan sebutkan akibat sampingannya:
+Sesudah ditarik, tunjukkan **status tagihan kembali belum bayar** (lencananya berbunyi huruf kecil
+"belum bayar" di layar pemilik), dan sebutkan akibat sampingannya:
 
 > "Ini juga membuka kebuntuan: tagihan yang tadinya tidak bisa dibatalkan karena masih ada uang
 > menempel kini bisa dibatalkan."
