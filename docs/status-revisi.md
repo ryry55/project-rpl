@@ -8,7 +8,7 @@
 >
 > **Cara dibaca:** status di bawah hasil **pembacaan statis** kode dan tes pada
 > 29 Oktober 2026, ditambah gate yang hijau hari itu (812 tes / 3807 asersi,
-> 28 skrip / 806 langkah). Ia membuktikan perbaikan **ada di kode**; ia bukan
+> 29 skrip / 834 langkah). Ia membuktikan perbaikan **ada di kode**; ia bukan
 > bukti runtime baru. Kolom Bukti menyebut tempat memeriksanya sendiri.
 
 ## Ringkasan

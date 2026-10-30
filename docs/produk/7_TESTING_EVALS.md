@@ -4,8 +4,8 @@
 > bagaimana menambah tes yang benar-benar menahan.**
 >
 > Angka diambil dari aplikasi yang berjalan: **812 tes PHP (3807 asersi)** dalam
-> 47 berkas, dan **28 skrip uji** (25 browser + 2 balapan HTTP + 1 jalur proxy)
-> dengan **806 langkah**.
+> 47 berkas, dan **29 skrip uji** (26 browser + 2 balapan HTTP + 1 jalur proxy)
+> dengan **834 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -71,11 +71,11 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
 
 ```
         ┌──────────────────────────────────────┐
-        │  28 skrip uji                        │  paling lambat, tetapi
-        │  (25 browser + 2 balapan + 1 proxy)  │  satu-satunya yang melihat
+        │  29 skrip uji                        │  paling lambat, tetapi
+        │  (26 browser + 2 balapan + 1 proxy)  │  satu-satunya yang melihat
         └──────────────────────────────────────┘
       ┌──────────────────────────────────────┐
-      │  709 tes Feature                     │  ~42 dtk, jalur penuh
+      │  712 tes Feature                     │  ~42 dtk, jalur penuh
       │  (validasi, izin, isolasi, balapan)  │  lewat middleware nyata
       └──────────────────────────────────────┘
     ┌──────────────────────────────────────┐
@@ -113,7 +113,7 @@ Rata-rata 23 detik untuk seluruhnya.
 
 ### 3.3 Tes Feature
 
-709 tes Feature, dikelompokkan menurut apa yang dijaga. Tabel di bawah menyoroti
+712 tes Feature, dikelompokkan menurut apa yang dijaga. Tabel di bawah menyoroti
 berkas yang menjaga aturan, bukan seluruhnya:
 
 **Uang dan tagihan**
@@ -178,7 +178,7 @@ berkas yang menjaga aturan, bukan seluruhnya:
 
 ---
 
-## 4. Skrip uji browser, balapan, dan jalur proxy - 28 skrip, 806 langkah
+## 4. Skrip uji browser, balapan, dan jalur proxy - 29 skrip, 834 langkah
 
 ### 4.1 Menjalankan
 
@@ -322,7 +322,7 @@ seberapa besar kepercayaan pada hijau.
 | ~~Orientasi lanskap ponsel~~ | **Sudah diukur 29 Okt 2026** | `uji-tata-letak.mjs` menguji 640×360 pada Tagihan, Rekening, dan Pengelola; kontra-uji dengan div 2000px membuat tiga asersi merah |
 | ~~Uji luring sungguhan~~ | **Sudah dibuktikan 29 Okt 2026** | `uji-pwa.mjs` mematikan jaringan pada target service worker (bukan hanya halaman) dan menghapus Cache Storage sebagai kontrol negatif. Batasnya: hanya di Chrome desktop, bukan ponsel sungguhan |
 | Email sungguhan (Brevo) | Hanya Mailpit | Batas kirim Brevo dan reputasi domain belum diuji |
-| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 28 skrip / 806 langkah lulus |
+| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 29 skrip / 834 langkah lulus |
 | Tes komponen Vue | Tidak ada | Regresi di dalam komponen hanya tertangkap E2E |
 
 > **Sejak 29 Oktober 2026 deploy produksi dibatalkan pemilik.** Baris yang

@@ -1,11 +1,11 @@
 # Skrip uji
 
-Dua puluh delapan skrip di folder ini menguji aplikasi dari luar: dua puluh lima
+Dua puluh sembilan skrip di folder ini menguji aplikasi dari luar: dua puluh enam
 lewat browser sungguhan (termasuk satu yang menyapu seluruh halaman, satu yang
-mengukur tata letak di lebar ponsel, dan satu yang mensimulasikan pemuatan
-gagal), dua menguji balapan HTTP, dan satu menguji jalur proxy. Ditambah satu
-berkas bersama (`_cdp.mjs`) yang dipakai semuanya, jadi ada dua puluh sembilan
-berkas `.mjs`.
+mengukur tata letak di lebar ponsel, satu yang mensimulasikan pemuatan gagal,
+dan satu yang memakai ketiga peran bergantian), dua menguji balapan HTTP, dan
+satu menguji jalur proxy. Ditambah satu berkas bersama (`_cdp.mjs`) yang dipakai
+semuanya, jadi ada tiga puluh berkas `.mjs`.
 
 Semuanya memakai **database demo** (`kos`), bukan `kos_test`. Kecuali dinyatakan
 lain, tiap skrip **mengubah** isinya.
@@ -129,6 +129,7 @@ halaman baru dimuat, jadi harus dipasang ulang setelah `Page.navigate`.
 | `uji-pembalik.mjs` | Tombol **Tarik kembali** menulis baris **negatif** yang menunjuk baris aslinya; alasan kosong ditolak 422 dan formulirnya tetap terbuka; baris pembalik tampil sebagai angka negatif bertanda "ditarik kembali", bukan disembunyikan; sesudah ditarik tagihan kembali menunggak dan **tagihan yang tadinya buntu karena uangnya menempel kini bisa dibatalkan** | Chrome, seed |
 | `uji-qris.mjs` | Medan unggah gambar hanya muncul untuk jenis QRIS; pratinjau tampil **sebelum** disimpan; sesudah tersimpan daftar menyebut gambarnya ada; penghuni melihat gambarnya **benar-benar termuat** (`naturalWidth` > 0, disajikan sebagai blob, bukan URL bertoken); gambar pada rekening transfer ditolak 422 dengan pesan yang bisa dibaca; penghuni tidak bisa membuka gambar rekening nonaktif (404) | Chrome, seed |
 | `e2e-fase35.mjs` | Penanda penyiapan benar-benar dirender untuk pemilik; ekspor benar-benar terunduh sebagai berkas (diperiksa dari peristiwa unduhan CDP, bukan kode status); pengelola tidak melihat tombol ekspor rekap yang pasti ditolak server; halaman bantuan terbuka untuk kedua peran | Chrome, seed |
+| `uji-tiga-peran.mjs` | Pemilik, pengelola, dan penghuni bergantian dalam **satu** sesi peramban. Yang dibuktikan: endpoint pemilik-saja menolak pengelola **dan** penghuni dengan **403** (bukan 401, bukan 404 - tiga kode itu tiga arti berbeda); portal penghuni menolak pemilik dan pengelola; pengelola tetap bisa membaca data kos; token peran sebelumnya tetap menjawab peran asalnya dan **tidak** mewarisi hak peran yang baru masuk; penghuni mendapat **404** (bukan 403) untuk tagihan penghuni lain, dan portalnya tidak memuat tagihan itu; sesudah ketiga peran bergantian, pemilik masuk lagi dan batasnya kembali utuh | Chrome, seed |
 
 ### Balapan
 
@@ -282,7 +283,7 @@ docker compose exec -T api sh /tmp/u.sh
 **Kenapa dijalankan manual, bukan di gate.** Skrip ini mengubah berkas kode di
 dalam container. Menjalankannya otomatis berarti gate sesekali menguji kode yang
 sedang disuntik - dan bila salah satu skrip mati di tengah jalan, cacatnya
-tertinggal. Yang otomatis adalah **tesnya** (812 tes PHP, 28 skrip browser);
+tertinggal. Yang otomatis adalah **tesnya** (812 tes PHP, 29 skrip browser);
 yang manual adalah **bukti bahwa tesnya bisa gagal**, dijalankan setiap kali
 sebuah pagar baru ditambahkan.
 

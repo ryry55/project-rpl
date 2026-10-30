@@ -272,7 +272,7 @@ Satu hal, dan itu perintah Anda sendiri: **deploy dibatalkan 29 Oktober 2026**, 
 Render/Neon, Midtrans sandbox, pinger uptime, dan verifikasi Brevo tidak akan dikerjakan.
 Aplikasi dinilai dan didemokan dari laptop. Antrean email sudah ditutup
 (Fase 5.5: program `antrean` + `KirimPemberitahuan`). Uji E2E di CI **sudah hijau** —
-28 skrip / 806 langkah. Tidak ada yang disembunyikan.
+29 skrip / 834 langkah. Tidak ada yang disembunyikan.
 
 **"Bagaimana kalau angkanya dipertanyakan?"**
 Setiap perubahan angka punya jejak: `log_audit` mencatat aktor, waktu, nilai lama, dan nilai baru,

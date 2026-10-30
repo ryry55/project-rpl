@@ -417,7 +417,13 @@ if (-not $Cepat) {
             # skrip mana pun di atas - perintah artisan yang tidak pernah
             # dibuka lewat HTTP, panel yang hanya tampil saat kos belum siap,
             # dan berkas yang diunduh alih-alih ditampilkan.
-            'e2e-fase35.mjs'
+            'e2e-fase35.mjs',
+            # Tiga peran BERGANTAIAN dalam satu sesi. Skrip lain memakai satu
+            # peran masing-masing; tidak ada yang memeriksa apa yang terjadi
+            # saat peran berganti di peramban yang sama - dan kebocoran yang
+            # paling mungkin pada sistem multi-peran justru keadaan yang
+            # tertinggal dari peran sebelumnya.
+            'uji-tiga-peran.mjs'
         )
 
         # Batas waktu per skrip. `periksa.sh` sudah memakai `timeout 240`; di

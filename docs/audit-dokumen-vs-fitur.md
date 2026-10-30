@@ -67,11 +67,11 @@ audit, dan dokumen akademik mengatakan tidak bisa.
 |---|---|---|---|
 | D-01 | 792 tes PHP | **799** (3674 asersi) | `AGENTS.md:94`, `PRODUCT.md:83`, `docs/ci-cd.md:39`, `.github/workflows/uji.yml:11` |
 | D-02 | 715 tes | 799 | `.github/workflows/rilis.yml:47` |
-| D-03 | "Dua puluh lima berkas … dua puluh dua lewat browser" | 29 berkas `.mjs`, 28 skrip uji: 25 browser, 2 balapan, 1 proxy | `docs/uji/README.md:3-7` |
-| D-04 | Katalog §4.2 berisi 26 baris; dua skrip yang benar-benar berjalan tidak ada di sana — `e2e-fase35.mjs` dan `uji-proxy.mjs` | 28 skrip di gate | `docs/produk/7_TESTING_EVALS.md` §4.2 |
+| D-03 | "Dua puluh lima berkas … dua puluh dua lewat browser" | 29 berkas `.mjs`, 29 skrip uji: 25 browser, 2 balapan, 1 proxy | `docs/uji/README.md:3-7` |
+| D-04 | Katalog §4.2 berisi 26 baris; dua skrip yang benar-benar berjalan tidak ada di sana — `e2e-fase35.mjs` dan `uji-proxy.mjs` | 29 skrip di gate | `docs/produk/7_TESTING_EVALS.md` §4.2 |
 | D-05 | "52 kelas, **11 folder**" | **13** folder (`Laporan/`, `Penyiapan/`, `Rekening/` tidak tertulis) | `docs/produk/3_ARCHITECTURE.md:409`; tabel `:76-89` hanya 10 baris |
 | D-06 | "85 endpoint" | 86 | `docs/akademik/README.md:109` |
-| D-07 | `26 skrip`, `24 skrip`, `375 detik` sebagai keadaan sekarang | 28 skrip, 419 s; kalimat itu riwayat | `docs/utang-teknis.md:26,43` |
+| D-07 | `26 skrip`, `24 skrip`, `375 detik` sebagai keadaan sekarang | 29 skrip, 419 s; kalimat itu riwayat | `docs/utang-teknis.md:26,43` |
 | D-08 | Jumlah langkah per skrip: `uji-balapan-t4` 9, `uji-balapan-t5` 11, `e2e-t9` 23, `e2e-fase35` 18, `uji-proxy` 5 | 11, 13, 26, 19, 6 pemanggilan laporan di skripnya | `audit-ketertelusuran.md`, `SPEC.md` §10, `tiket.md` |
 | D-09 | "792 langkah" | tidak ada yang memverifikasi angka ini. Hitungan statis pemanggilan laporan = 610; angka 792 hanya bisa datang dari satu putaran tertentu | `docs/produk/7_TESTING_EVALS.md:7` |
 
@@ -108,13 +108,13 @@ tetap hijau, dan angka 85 bertahan di sepuluh dokumen.
 | Yang diklaim | Hasil |
 |---|---|
 | 23 tabel domain / 201 kolom / 26 kunci asing / 8 trigger / 32 tabel `public` | `psql` menghitung angka yang sama |
-| 806 tes, 3767 asersi, 47 berkas | keluaran phpunit |
+| 812 tes, 3807 asersi, 47 berkas | keluaran phpunit (angka terakhir: §14) |
 | Unit 100 tes / 1056 asersi; `KalkulatorTest` 22 tes / 160 asersi | keluaran phpunit |
 | Token warna `achromatic-ledger` (`#f8f8f8`, `#ffffff`, `#0a0a0a`, `#6b6b6b`, `#e6e6e6`, `#f0f0f0`, `#141414`) | `web/src/style.css:32-40` = `2_DESIGN_SYSTEM.md:91-101` |
 | 12+34+20+3+6+10 = 85 di §3-§8 kontrak | `cek-cakupan-kontrak.js` |
 | `smoke-produksi.sh` 9 pemeriksaan dalam 4 kelompok | skripnya (tabel dokumen meringkas 9 menjadi 7 baris — bukan salah angka, hanya lebih kasar) |
 | Bukti O-1, O-5, O-6 (kontrak di portal, kuitansi, panel hunian) | `GET /penghuni/kontrak`, `web/src/kuitansi.js`, `RekapPendapatan::hunian()` |
-| 28 skrip terdaftar di gate, 25 browser + 2 balapan + 1 proxy | `periksa.ps1:335-355` dan `periksa.sh` |
+| 29 skrip terdaftar di gate, 26 browser + 2 balapan + 1 proxy | `periksa.ps1:392-427` dan `periksa.sh` |
 
 ## 9. H — Cara mengulang pemeriksaan ini
 
@@ -163,15 +163,15 @@ dokumen. Tidak ada aturan R-01..R-07 yang disentuh.
 
 Perintah di §9 di atas masih berguna sebagai bukti **apa yang dulu terlihat**;
 dijalankan sekarang, keduanya mencetak `COCOK` / `SEMUA ANGKA COCOK`. Gate
-penuh 28 Oktober: **28/28 skrip lulus, 792 langkah, 482 detik**; satu-satunya
+penuh 28 Oktober: **29/29 skrip lulus, 792 langkah, 482 detik**; satu-satunya
 langkah merah adalah pemeriksa angka, karena `serah-terima.md` masih menulis 85
 saat ia membacanya — berkas itu sudah ditimpa sesudahnya.
 
 ## 12. Putaran 29 Oktober 2026 — angka bergeser lagi, dan dua penjaga baru
 
-Gate penuh 29 Oktober: **806 tes PHP / 3767 asersi / 47 berkas**, **28/28 skrip
+Gate penuh 29 Oktober: **806 tes PHP / 3767 asersi / 47 berkas**, **29/29 skrip
 lulus, 802 langkah, 455 detik**. *(Angka di bagian ini adalah keadaan pagi 29
-Oktober. Angka terakhir ada di §13.)* Yang menggeser angka: `CspLaporanTest` (4 tes,
+Oktober. Angka terakhir ada di §14.)* Yang menggeser angka: `CspLaporanTest` (4 tes,
 kolektor laporan CSP) dan `TagihanTest::test_daftar_tagihan_tidak_menambah_kueri_per_baris`
 (1 tes, penjaga N+1). Tambahan langkah: `uji-pwa.mjs` 25 → 26 (uji luring
 sungguhan) dan `uji-tata-letak.mjs` 94 → 100 (lanskap 640x360).
@@ -192,8 +192,8 @@ Dua hal yang perlu dibaca dosen, dan keduanya **bukan** kenaikan angka semata:
 
 ## 13. Putaran 29 Oktober 2026 (sore) — tiga janji yang tadinya hanya tulisan
 
-Gate penuh: **812 tes PHP / 3807 asersi / 47 berkas**, **28/28 skrip lulus, 806
-langkah, 434 detik**. Tiga tambahan, dan masing-masing menutup satu kalimat di
+Gate penuh: **812 tes PHP / 3807 asersi / 47 berkas**, **29/29 skrip lulus, 806
+langkah, 434 detik**. *(Angka putaran sore ini; angka terakhir ada di §14.)* Tiga tambahan, dan masing-masing menutup satu kalimat di
 dokumen yang sebelumnya tidak punya bukti:
 
 | Janji di dokumen | Yang sekarang membuktikannya | Kontra-uji |
@@ -216,4 +216,35 @@ Yang **tidak** dikerjakan, dan alasannya: K-06 (penjadwal di dalam container
 yang bisa tidur) **ditutup 29 Oktober 2026** karena deploy dibatalkan pemilik —
 tidak ada Render, jadi tidak ada container yang tidur. A3 ikut ditutup, bukan
 diperbaiki.
+
+---
+
+## 14. Putaran 29 Oktober 2026 (malam) — yang tinggal hanya pembacaan manusia
+
+Gate penuh: **812 tes PHP / 3807 asersi / 47 berkas**, **29/29 skrip lulus, 834
+langkah, 517 detik**. Angka ini menggantikan §13; §12 dan §13 sengaja dibiarkan
+sebagai catatan keadaan pagi dan sore hari yang sama.
+
+Tiga tambahan, dan dua di antaranya menutup temuan audit yang sebelumnya
+berstatus "selesai tanpa tes" — artinya perbaikannya ada, tetapi tidak ada yang
+akan menangkap bila dicabut:
+
+| Yang ditutup | Bukti | Kontra-uji |
+|---|---|---|
+| **REV-SEC-02** — pengelola menetapkan tarif lewat formulir kontrak | `PengelolaTest::test_pengelola_tidak_bisa_menetapkan_tarif_pertama_lewat_formulir_kontrak` menuntut 422 `tarif_perlu_pemilik` **plus** nol baris `tarif_sewa` dan nol baris `kontrak`; pasangannya `test_pemilik_boleh_...` menuntut pemilik tetap 201 | Penjaganya dimatikan (`if (false && ...)`): tes pengelola merah `Expected 422 but received 201`, tes pemilik tetap hijau |
+| **REV-DFD-05** — denda/umur digantung pada bukti pembayaran | `DendaHttpTest::test_denda_dan_umur_dihitung_tanpa_satu_pun_pembayaran`: denda 450.000 dan kelompok `31_60` terisi pada tagihan dengan **nol baris pembayaran**, dan tetap nol sesudahnya | Cacat DFD lamanya disuntikkan kembali (`->whereHas('pembayaran')` di `DaftarTunggakan`): merah `tagihan tanpa pembayaran tidak masuk daftar tunggakan` |
+| **Delapan temuan DFD** yang "selesai" hanya karena pernah dilihat | `docs/uji/cek-dfd.js` kini langkah tersendiri di `periksa.ps1`, `periksa.sh`, dan `uji.yml`: `periksaSemantik()` bersih **dan** keempat SVG sama persis dengan hasil penggambaran `dfd-data.js` sekarang | Rute `I-1` dihapus → `tidak punya rute di DFD level 1`; pembacaan `D1` dibuang → `black hole`; satu baris ditambahkan ke SVG → `BEDA dari hasil penggambaran data sekarang`; lewat gerbangnya sendiri `periksa.ps1 -Cepat` mencetak `GAGAL  DFD konsisten dan gambarnya tidak basi` |
+| **Uji tiga-peran** yang dulu disebut ada padahal tidak | `docs/uji/uji-tiga-peran.mjs` (28 langkah): pemilik, pengelola, penghuni bergantian dalam **satu** sesi | `peran:penghuni` pada `/penghuni/tagihan` dilonggarkan jadi `peran:penghuni,pemilik` → 27/28, merah `portal penghuni kembali ditolak untuk pemilik - status 200` |
+
+**Yang skrip tiga-peran itu sendiri koreksi.** Asumsi pertama saya salah dan
+skripnya yang membuktikannya: login **tidak** mencabut token lama, karena
+`AuthController::MAKS_SESI = 3` sengaja mengizinkan tiga sesi hidup bersamaan
+dan `batasiSesi()` hanya memutus yang terlama ketika jumlahnya melewati batas.
+Yang benar diuji bukan "token lama mati", melainkan **token lama tidak berubah
+peran** — token pemilik tetap menjawab `pemilik` setelah pengelola masuk.
+Menguji yang pertama akan menghasilkan tes yang merah pada perilaku yang benar.
+
+Sesudah putaran ini tidak ada lagi temuan yang "selesai tanpa tes":
+`docs/status-revisi.md` mencatat **32 selesai, 0 selesai tanpa tes, 3 tidak
+berlaku, 1 masih terbuka (REV-UI-01)**.
 
