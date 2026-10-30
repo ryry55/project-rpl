@@ -74,7 +74,58 @@ async function jalan() {
   const tokenTersimpan = await evaluasi(ws, `Boolean(localStorage.getItem('kos.token'))`)
   lapor('token tersimpan di localStorage', Boolean(tokenTersimpan))
 
-  // --- 4. Pemisahan peran: penghuni tidak boleh masuk /pemilik -------------
+  // --- 4. Token mati di tengah pemakaian (REV-UI-01) -----------------------
+  // Token dicabut DI SERVER, bukan dihapus dari localStorage: yang diuji adalah
+  // jawaban 401 atas permintaan yang masih membawa token - keadaan yang terjadi
+  // ketika masa berlaku token habis saat pemilik sedang bekerja, dan yang dulu
+  // hanya menghasilkan tulisan "Permintaan gagal (401)" di layar.
+  const dicabut = await evaluasi(ws, `
+    (async () => {
+      const res = await fetch('${API}/logout', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          Authorization: 'Bearer ' + localStorage.getItem('kos.token'),
+        },
+      })
+      return res.status
+    })()
+  `)
+  lapor('token dicabut di server selagi sesi masih terbuka', dicabut === 200, `status ${dicabut}`)
+
+  // Perpindahan DI DALAM aplikasi (klik menu), bukan mengetik alamat: kalau
+  // halamannya dimuat ulang, penjaga router sudah mengeluarkan sesi tanpa
+  // bantuan apa pun, dan asersinya akan lulus walau perbaikannya dicabut.
+  // Yang diuji adalah permintaan pertama sesudah token mati, selagi pengguna
+  // masih berdiri di halamannya.
+  const pindah = await evaluasi(ws, `
+    (() => {
+      const tautan = [...document.querySelectorAll('nav a')]
+        .find(a => /tunggakan/i.test(a.textContent))
+      if (!tautan) return false
+      tautan.click()
+      return true
+    })()
+  `)
+  lapor('menu Tunggakan bisa diklik selagi sesi masih terbuka', Boolean(pindah))
+
+  const kembaliKeMasuk = await tungguSampai(ws, `location.pathname === '/masuk'`, 8000)
+  lapor('permintaan dengan token mati mengeluarkan sesi ke /masuk', Boolean(kembaliKeMasuk),
+    await evaluasi(ws, 'location.pathname'))
+
+  const pesanBerakhir = await tungguSampai(
+    ws, `document.body.textContent.includes('Sesi Anda berakhir')`, 6000)
+  lapor('layar masuk menjelaskan sesinya berakhir, bukan diam', Boolean(pesanBerakhir))
+
+  const tokenDibersihkan = await evaluasi(ws, `!localStorage.getItem('kos.token')`)
+  lapor('token dihapus dari localStorage saat sesi berakhir', Boolean(tokenDibersihkan))
+
+  const lanjutTersimpan = await evaluasi(
+    ws, `new URLSearchParams(location.search).get('lanjut')`)
+  lapor('halaman yang terputus dibawa sebagai lanjut', lanjutTersimpan === '/pemilik/tunggakan',
+    String(lanjutTersimpan))
+
+  // --- 5. Pemisahan peran: penghuni tidak boleh masuk /pemilik -------------
   await evaluasi(ws, `localStorage.clear(); true`)
   await kirim(ws, 'Page.navigate', { url: `${APP}/masuk` })
   await tungguSampai(ws, `document.querySelector('#email')`)
@@ -101,7 +152,7 @@ async function jalan() {
   lapor('penghuni diarahkan keluar dari /pemilik', Boolean(ditolak),
     await evaluasi(ws, 'location.pathname'))
 
-  // --- 5. Keluar -----------------------------------------------------------
+  // --- 6. Keluar -----------------------------------------------------------
   const keluarBerkas = await evaluasi(ws, `
     (() => {
       const btn = [...document.querySelectorAll('button')].find(b => /keluar/i.test(b.textContent))

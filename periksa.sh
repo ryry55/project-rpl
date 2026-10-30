@@ -214,6 +214,14 @@ if [ "$HANYA_E2E" -eq 0 ]; then
         kode=$?
         catat 'eslint' "$([ "$kode" -eq 0 ] && echo 0 || echo 1)" 'jalankan: cd web; npm run lint'
         if [ "$kode" -ne 0 ]; then printf '%s\n' "$keluaran_lint" | grep -i 'error' | head -n 10 | sed 's/^/    /'; fi
+
+        # Vitest: jawaban yang salah pada fungsi murni - pemformatan uang/tanggal
+        # dan pemotong halaman. Sebab kegagalannya berbeda dari eslint: yang ini
+        # soal angka yang tampil keliru, bukan soal gaya.
+        keluaran_vitest="$(cd web && npm test 2>&1)"
+        kode=$?
+        catat 'vitest' "$([ "$kode" -eq 0 ] && echo 0 || echo 1)" 'jalankan: cd web; npm test'
+        if [ "$kode" -ne 0 ]; then printf '%s\n' "$keluaran_vitest" | grep -E 'FAIL|AssertionError|Expected|Received' | head -n 10 | sed 's/^/    /'; fi
     else
         echo '  dilewati: web/node_modules belum ada (cd web; npm install)'
     fi

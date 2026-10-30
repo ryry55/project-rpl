@@ -4,8 +4,8 @@
 > bagaimana menambah tes yang benar-benar menahan.**
 >
 > Angka diambil dari aplikasi yang berjalan: **812 tes PHP (3807 asersi)** dalam
-> 47 berkas, dan **29 skrip uji** (26 browser + 2 balapan HTTP + 1 jalur proxy)
-> dengan **834 langkah**.
+> 47 berkas, **19 tes Vitest** untuk fungsi murni frontend, dan **29 skrip uji**
+> (26 browser + 2 balapan HTTP + 1 jalur proxy) dengan **844 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -84,9 +84,10 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
     └──────────────────────────────────────┘
 ```
 
-Yang **tidak** ada: tes komponen Vue (Vitest). Tidak ada satu pun. Setiap
-komponen yang berharga sudah diuji lewat browser, dan tes komponen akan
-menguji implementasi, bukan perilaku.
+Yang **tidak** ada: tes komponen Vue yang merender markup. Sejak 30 Oktober ada
+Vitest, tetapi isinya fungsi murni (format uang/tanggal, pemotong halaman) yang
+tidak butuh DOM. Setiap komponen yang berharga sudah diuji lewat browser, dan
+tes komponen yang merender akan menguji implementasi, bukan perilaku.
 
 ---
 
@@ -178,7 +179,7 @@ berkas yang menjaga aturan, bukan seluruhnya:
 
 ---
 
-## 4. Skrip uji browser, balapan, dan jalur proxy - 29 skrip, 834 langkah
+## 4. Skrip uji browser, balapan, dan jalur proxy - 29 skrip, 844 langkah
 
 ### 4.1 Menjalankan
 
@@ -200,10 +201,10 @@ Prasyarat: `docker compose up`, Chrome dengan `--remote-debugging-port=9222`,
 
 | Skrip | Langkah | Yang dibuktikan |
 |---|---|---|
-| `e2e-t1.mjs` | 9 | Walking skeleton: login dua peran, dashboard, keluar |
+| `e2e-t1.mjs` | 15 | Walking skeleton: login dua peran, dashboard, keluar; **token dicabut di server selagi sesi terbuka** mengeluarkan pengguna ke `/masuk` dengan pesan dan `lanjut` (REV-UI-01) |
 | `e2e-t2.mjs` | 18 | Kamar, penghuni, kontrak |
 | `e2e-t3.mjs` | 19 | Terbit tagihan, rincian, snapshot |
-| `e2e-t4.mjs` | 16 | Terbit massal: yang sudah ada dilewati |
+| `e2e-t4.mjs` | 20 | Terbit massal: yang sudah ada dilewati; kendali halaman memotong 52 tagihan jadi 50 + 2 tanpa mengubah total di kepala halaman (K-08) |
 | `e2e-t5.mjs` | 22 | Catat pembayaran, status berubah |
 | `e2e-t6.mjs` | 24 | Denda dan simulasi |
 | `e2e-t7.mjs` | 32 | Tunggakan berjenjang |
@@ -222,8 +223,9 @@ Prasyarat: `docker compose up`, Chrome dengan `--remote-debugging-port=9222`,
 | `asap-semua-halaman.mjs` | 24 | Semua halaman terbuka tanpa galat konsol/5xx |
 | `uji-tata-letak.mjs` | 104 | Tidak meluber di 360/390/768px; navigasi bawah muncul di layar sempit dan hilang di 1280px |
 | `uji-kartu-tabel.mjs` | 65 | Tabel 4+ kolom jadi kartu; label sesuai `<th>`; desktop kembali normal |
-| `uji-pwa.mjs` | 22 | Manifest, service worker, **pagar R-07** |
+| `uji-pwa.mjs` | 26 | Manifest, service worker, **pagar R-07** |
 | `uji-galat-muat.mjs` | 30 | Pemuatan gagal tidak menyamar sebagai "Belum ada" (REV-UI-04) |
+| `uji-tiga-peran.mjs` | 28 | Pemilik, pengelola, penghuni bergantian dalam **satu** sesi; batas peran ditegakkan server (403 vs 404 dibedakan), token lama tidak mewarisi peran baru |
 | `uji-balapan-t4.mjs` | 10 | 10 permintaan terbit paralel → satu 201, sisanya 409 |
 | `uji-balapan-t5.mjs` | 12 | Pembayaran paralel tidak melebihi sisa |
 | `e2e-fase35.mjs` | 18 | Penanda penyiapan dirender; ekspor benar-benar terunduh (peristiwa unduhan CDP, bukan kode status); pengelola tidak melihat tombol ekspor rekap; halaman bantuan terbuka untuk kedua peran |
@@ -317,13 +319,13 @@ seberapa besar kepercayaan pada hijau.
 | Tidak diuji | Kenapa | Risiko yang diterima |
 |---|---|---|
 | Midtrans sungguhan | Belum ada akun sandbox | Alur webhook hanya diuji dengan payload tiruan |
-| Uji beban | Sudah diukur di laptop 29 Okt 2026: 30 kamar × 13 periode = 390 tagihan; terbit massal 640 ms rata-rata (terlama 788 ms); daftar tagihan 550 KB / 297 ms; tunggakan dan rekap ~580 ms; basis data 12 MB | Angka di Render/Neon belum ada. Daftar tagihan bisa berhalaman lewat `?per_page=` (K-05, pilihan C), tetapi layar Tagihan sengaja masih memakai daftar utuh — 30 kamar × 12 bulan = 550 KB |
+| Uji beban | Sudah ada skripnya 30 Okt 2026: `docs/beban/uji-beban.mjs`, 50 bersamaan / 500 permintaan, ambang p95 1.000 ms (K-10). Terukur di laptop: 77 permintaan/detik, p95 840 ms, 0 galat. Bukan bagian gate | Angka di Render/Neon belum ada. Daftar tagihan bisa berhalaman lewat `?per_page=` (K-05, pilihan C), dan layar Tagihan memotong 50 baris per halaman di peramban (K-08) |
 | Uji aksesibilitas otomatis (axe) | Waktu | Pelanggaran kontras/ARIA tidak tertangkap mesin. Pemeriksaan manual 29 Okt 2026: 419 elemen di `/masuk` dan `/pemilik/tagihan`, fokus selalu terlihat (outline 2px), tidak ada tombol tanpa nama; pembaca layar sungguhan tetap belum |
 | ~~Orientasi lanskap ponsel~~ | **Sudah diukur 29 Okt 2026** | `uji-tata-letak.mjs` menguji 640×360 pada Tagihan, Rekening, dan Pengelola; kontra-uji dengan div 2000px membuat tiga asersi merah |
 | ~~Uji luring sungguhan~~ | **Sudah dibuktikan 29 Okt 2026** | `uji-pwa.mjs` mematikan jaringan pada target service worker (bukan hanya halaman) dan menghapus Cache Storage sebagai kontrol negatif. Batasnya: hanya di Chrome desktop, bukan ponsel sungguhan |
 | Email sungguhan (Brevo) | Hanya Mailpit | Batas kirim Brevo dan reputasi domain belum diuji |
-| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 29 skrip / 834 langkah lulus |
-| Tes komponen Vue | Tidak ada | Regresi di dalam komponen hanya tertangkap E2E |
+| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 29 skrip / 844 langkah lulus |
+| Tes komponen Vue | Tidak ada yang merender markup | Regresi tampilan hanya tertangkap E2E; fungsi murni sudah dijaga Vitest |
 
 > **Sejak 29 Oktober 2026 deploy produksi dibatalkan pemilik.** Baris yang
 > menyebut Midtrans sungguhan, email Brevo, beban di Render/Neon, dan cold start

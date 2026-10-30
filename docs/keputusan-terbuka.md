@@ -221,3 +221,66 @@ memakai B sementara bila plan berbayar dipilih saat mendaftar Render.
 > container yang bisa tidur. Jawaban lengkap ada di atas; pilihan A/B/C di
 > bawah disimpan sebagai riwayat bila keputusan itu berubah.
 
+---
+
+## K-07 — Token mati di tengah pemakaian — dijawab
+
+**Fase:** penutupan temuan · **Tanggal:** 30 Oktober 2026
+
+**Jawaban (30 Oktober 2026). Perbaiki sekarang.** `sesiHabis()` dipanggil
+`panggil()` dan `unduhBerkas()` pada 401 selama token masih ada: sesi
+dibersihkan, peramban dimuat ulang ke `/masuk?pesan=berakhir&lanjut=…`. Dijaga
+`e2e-t1.mjs`; penanganannya dimatikan → 4 asersi merah.
+
+**Pertanyaan.** REV-UI-01, satu-satunya temuan Kritis yang terbuka: 401 di
+tengah pemakaian hanya menghasilkan tulisan "Permintaan gagal (401)". Otomatis
+keluar dan pindah ke layar masuk mengubah perilaku yang dilihat pengguna.
+
+## K-08 — Sisa K-05: kendali halaman di layar Tagihan — dijawab
+
+**Fase:** penutupan temuan · **Tanggal:** 30 Oktober 2026
+
+**Jawaban (30 Oktober 2026). Buat kendali halaman, tetapi dipotong di layar.**
+`per_page` tetap dipakai ekspor; layar memuat daftar yang sama lalu menampilkan
+50 baris per halaman. Alasannya uang: pokok/denda/sisa di kepala halaman
+dihitung dari `sisa` per baris yang hanya bisa dihitung PHP (denda bergantung
+hari ini, pemaafan, pembatalan); meminta per halaman ke server akan mengubah
+arti ketiga angka itu menjadi "halaman ini". Dijaga `e2e-t4.mjs` (52 tagihan:
+50 + 2) dan uji Vitest `halaman.test.js`.
+
+**Pertanyaan.** K-05 opsi A: tambah tombol Sebelumnya/Berikutnya di
+`TagihanView.vue`.
+
+## K-09 — Uji komponen Vue dengan Vitest — dijawab
+
+**Fase:** penutupan temuan · **Tanggal:** 30 Oktober 2026
+
+**Jawaban (30 Oktober 2026). Pasang.** Satu dependensi (`vitest`, tanpa jsdom
+karena yang diuji fungsi murni), dijalankan `periksa.ps1`, `periksa.sh`, dan
+`uji.yml`. Isinya pemformatan rupiah/tanggal dan pemotong halaman: satu asersi
+salah hitung di sini jauh lebih murah dilacak daripada lewat tangkapan layar.
+
+**Pertanyaan.** Belum ada uji komponen; Vitest berarti dependensi npm baru.
+
+## K-10 — Ambang uji beban — dijawab
+
+**Fase:** penutupan temuan · **Tanggal:** 30 Oktober 2026
+
+**Jawaban (30 Oktober 2026). 50 bersamaan, 500 permintaan, p95 < 1.000 ms,
+dijalankan manual.** `docs/beban/uji-beban.mjs`; tidak masuk gate karena ambang
+waktu di runner bersama mengukur tetangga, bukan aplikasi. Terukur di laptop
+30 Oktober: 77 permintaan/detik, p95 **840 ms**, 0 galat - lulus dengan sisa
+tipis. Kontrol negatif: `AMBANG_P95=1` → `GAGAL p95 … melewati ambang 1 ms`.
+
+**Pertanyaan.** Skrip beban tanpa ambang hanya mencetak angka; angkanya harus
+dari pemilik.
+
+## K-11 — Anotasi `docs/revisi.md` — dijawab
+
+**Fase:** penutupan temuan · **Tanggal:** 30 Oktober 2026
+
+**Jawaban (30 Oktober 2026). Jangan sentuh.** Berkas masukan audit, gitignored,
+dan status 36 temuannya sudah punya rumah yang terlihat semua sesi:
+`docs/status-revisi.md` (33 selesai, 0 selesai tanpa tes, 3 tidak berlaku,
+0 terbuka).
+

@@ -109,10 +109,10 @@ halaman baru dimuat, jadi harus dipasang ulang setelah `Page.navigate`.
 
 | Berkas | Yang dibuktikan | Butuh |
 |---|---|---|
-| `e2e-t1.mjs` | Login, token tersimpan, pengalihan peran, keluar membersihkan token | Chrome, seed |
+| `e2e-t1.mjs` | Login, token tersimpan, pengalihan peran, keluar membersihkan token; **token yang dicabut di server selagi sesi terbuka** mengeluarkan pengguna ke `/masuk` dengan pesan "Sesi Anda berakhir" dan `lanjut` berisi halaman yang terputus (REV-UI-01) | Chrome, seed |
 | `e2e-t2.mjs` | Data induk lewat UI: 8 kamar, 6 penghuni, kontrak | Chrome, seed |
 | `e2e-t3.mjs` | Terbit tagihan, rincian, prorata bulan masuk | Chrome, seed |
-| `e2e-t4.mjs` | Terbit massal, penolakan duplikat periode, ringkasan tiga nasib | Chrome, seed |
+| `e2e-t4.mjs` | Terbit massal, penolakan duplikat periode, ringkasan tiga nasib; kendali halaman memotong 52 tagihan menjadi 50 + 2 sementara kepala halaman tetap menghitung seluruh 52 | Chrome, seed |
 | `e2e-t5.mjs` | Catat pembayaran sebagian lalu lunas, kelebihan bayar ditolak | Chrome, seed |
 | `e2e-t6.mjs` | Denda 0 → 15.000 → 450.000 lewat simulasi tanggal | Chrome, seed |
 | `e2e-t7.mjs` | Empat kelompok umur tunggakan, konsisten dengan denda | Chrome, seed |
@@ -153,6 +153,35 @@ muncul kalau ia menunggu transaksi pertama commit lalu membaca ulang.
 | Berkas | Isi |
 |---|---|
 | `_cdp.mjs` | Helper CDP: `mulaiUji`, `masukSebagai`, `panggilApi`, `teksMemuat`, `tangkapLayar`, `bersihkanTab`, `aktifkanAkun`, `tautanAkunTerakhir`, `panggilApiPublik`, `lewatiPersetujuanPdp` |
+
+### Uji fungsi murni (Vitest)
+
+Sepuluh detik, tanpa browser, dan dijalankan setiap gate (`periksa.ps1`,
+`periksa.sh`, `uji.yml`):
+
+| Berkas | Yang dibuktikan |
+|---|---|
+| `web/src/format.test.js` | Rupiah bertitik ribuan tanpa desimal, nol tetap "Rp 0" sementara nilai kosong "—", persen berkoma, tanggal murni tidak bergeser sehari karena zona waktu, ringkasan galat validasi |
+| `web/src/halaman.test.js` | Pemotong halaman: halaman kedua mulai dari baris ke-51, halaman terakhir berisi sisanya, halaman di luar rentang kosong (bukan mengulang halaman lain) |
+
+Yang diuji sengaja fungsi murni, bukan komponen: layar sudah diperiksa oleh
+skrip browser sungguhan, dan menambah render komponen di Node berarti dua
+rangkian uji yang akan berbeda pendapat - alasan yang sama dengan penolakan
+Playwright. Diverifikasi bisa gagal: `potong()` dibuat selalu mulai dari baris
+pertama → 3 asersi merah.
+
+### Uji beban (manual, bukan gate)
+
+`docs/beban/uji-beban.mjs` mengukur `GET /api/tagihan` dengan 50 permintaan
+bersamaan (500 total) dan gagal bila p95 melewati 1.000 ms atau ada jawaban
+non-2xx. Letaknya di luar folder ini karena **tidak** dijalankan gate: ambang
+waktu di runner bersama mengukur tetangga, bukan aplikasi, dan gerbang yang
+merah acak berhenti dibaca. Ambangnya ditetapkan pemilik (K-10).
+
+```powershell
+node docs/beban/uji-beban.mjs          # LULUS / GAGAL
+$env:AMBANG_P95='1'; node docs/beban/uji-beban.mjs   # kontrol negatif
+```
 
 ### Kenapa `tungguSampai` menahan sebagian galat
 

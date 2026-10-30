@@ -84,17 +84,20 @@ Satu perintah memeriksa seluruh repo:
 powershell -ExecutionPolicy Bypass -File periksa.ps1
 ```
 
-Ia menjalankan build image, tes PHP, pint, lalu seluruh uji browser dan uji balapan.
+Ia menjalankan build image, tes PHP, pint, eslint, vitest, empat pemeriksa
+dokumen, lalu seluruh uji browser dan uji balapan.
 `-Cepat` melewati uji browser. **Pakai ini, jangan menjalankan tes satu per satu** —
 urutan langkahnya menentukan, dan salah urutan menghasilkan hijau yang menyesatkan
 (lihat di bawah).
 
+Uji beban **tidak** ikut gate: `node docs/beban/uji-beban.mjs` dijalankan manual.
+
 ### CI/CD
 
-Tiga workflow di `.github/workflows/`: `uji.yml` (kebenaran kode - lint lalu 812
-tes PHP lalu 29 skrip uji di Chrome headless), `rilis.yml` (bangun image,
-dorong ke GHCR, staging lalu produksi), dan `deploy.yml` (satu lingkungan,
-dipanggil dua kali). Rinciannya di `docs/ci-cd.md`.
+Tiga workflow di `.github/workflows/`: `uji.yml` (kebenaran kode - lint, vitest,
+lalu 812 tes PHP lalu 29 skrip uji di Chrome headless), `rilis.yml` (bangun
+image, dorong ke GHCR, staging lalu produksi), dan `deploy.yml` (satu
+lingkungan, dipanggil dua kali). Rinciannya di `docs/ci-cd.md`.
 
 Uji browser **tidak** ditulis ulang dengan Playwright. Dua puluh sembilan skrip browser di
 `docs/uji/` berbicara CDP mentah, dan endpoint CDP-nya dapat diatur lewat

@@ -11,6 +11,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { sesi } from '../../sesi.js'
 import { rupiah, pesanGalat } from '../../format.js'
+import { PER_HALAMAN, jumlahHalaman, potong } from '../../halaman.js'
 import { simulasiTanggal } from '../../simulasi.js'
 import KendaliSimulasi from '../../komponen/KendaliSimulasi.vue'
 import KepalaHalaman from '../../komponen/ui/KepalaHalaman.vue'
@@ -58,6 +59,17 @@ const totalPokok = computed(() => daftar.value.reduce((j, t) => j + t.pokok, 0))
 const totalDenda = computed(() => daftar.value.reduce((j, t) => j + (t.denda || 0), 0))
 
 /**
+ * Halaman tabel (K-05, kendali halaman).
+ *
+ * `daftar` tetap memuat SELURUH tagihan; yang dipotong hanya yang dirender,
+ * supaya angka pokok/denda/sisa di kepala halaman tetap berarti seluruh tagihan
+ * - bukan hanya yang kebetulan terlihat.
+ */
+const halaman = ref(1)
+const halamanTerakhir = computed(() => jumlahHalaman(daftar.value.length, PER_HALAMAN))
+const tampil = computed(() => potong(daftar.value, halaman.value, PER_HALAMAN))
+
+/**
  * Total yang belum masuk.
  *
  * Dihitung di frontend dari `sisa` tiap baris, bukan dari `total - dibayar`
@@ -103,6 +115,11 @@ async function muat() {
     ])
     daftar.value = hasilTagihan.data
     kontrak.value = hasilKontrak.data.filter((k) => k.status === 'aktif')
+
+    // Daftar bisa menyusut di bawah halaman yang sedang dibuka (tagihan
+    // dibatalkan, periode disaring ulang). Tanpa ini layar tampak kosong
+    // padahal datanya ada di halaman sebelumnya.
+    halaman.value = Math.min(halaman.value, jumlahHalaman(daftar.value.length))
 
     // Rekening dimuat terpisah dan kegagalannya diabaikan: tagihan tetap harus
     // tampil walau daftar rekening belum diisi. Yang hilang hanya satu baris di
@@ -275,13 +292,24 @@ onMounted(muat)
     />
 
     <TabelTagihan
-      :daftar="daftar"
+      :daftar="tampil"
       :memuat="memuat"
       :memuat-detail="memuatDetail"
       :galat-muat="Boolean(galatMuat)"
       :pesan-kosong="pesanKosong"
       @buka="bukaDetail"
     />
+
+    <!-- Kendali halaman hanya muncul bila memang ada halaman kedua. Tombol
+         yang selalu ada tetapi tidak pernah berpindah mengajarkan pemilik
+         bahwa tombolnya rusak. -->
+    <nav v-if="halamanTerakhir > 1" class="kendali-halaman" aria-label="Halaman tagihan">
+      <button class="halus" :disabled="halaman <= 1" @click="halaman -= 1">Sebelumnya</button>
+      <span class="lemah mungil">Halaman {{ halaman }} dari {{ halamanTerakhir }}</span>
+      <button class="halus" :disabled="halaman >= halamanTerakhir" @click="halaman += 1">
+        Berikutnya
+      </button>
+    </nav>
   </div>
 </template>
 
@@ -298,5 +326,16 @@ onMounted(muat)
 
 .gerbang-tagihan :deep(h2) {
   color: var(--teks);
+}
+
+/* Kendali halaman duduk di bawah tabel, sejajar kanan seperti baris aksi lain
+   di layar ini. Tombolnya memakai gaya `halus` yang sudah ada supaya tidak
+   menjadi tombol kedua yang hampir hitam di halaman yang sama. */
+.kendali-halaman {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 14px;
 }
 </style>

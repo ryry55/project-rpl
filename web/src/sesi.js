@@ -51,6 +51,13 @@ async function panggil(path, opsi = {}) {
   }
 
   if (!res.ok) {
+    // Token mati di tengah pemakaian (REV-UI-01). Tanpa ini layar hanya
+    // menampilkan "Permintaan gagal (401)" dan membiarkan pengguna menekan
+    // tombol yang tidak akan pernah berhasil.
+    if (res.status === 401 && token.value) {
+      sesiHabis()
+    }
+
     const galat = new Error(isi?.message || `Permintaan gagal (${res.status})`)
     galat.status = res.status
     galat.errors = isi?.errors || {}
@@ -98,11 +105,9 @@ async function muatSaya() {
     perluPersetujuanPdp.value = hasil.meta?.perlu_persetujuan_pdp === true
     versiPdp.value = hasil.meta?.versi_pdp || ''
     return user.value
-  } catch (e) {
-    // Token kedaluwarsa atau dicabut — bersihkan supaya tidak mencoba terus.
-    if (e.status === 401) {
-      keluarLokal()
-    }
+  } catch {
+    // Token kedaluwarsa atau dicabut: `panggil()` sudah membersihkan sesinya
+    // (lihat `sesiHabis`). Di sini cukup melaporkan bahwa tidak ada pengguna.
     return null
   }
 }
@@ -123,6 +128,38 @@ function keluarLokal() {
   perluPersetujuanPdp.value = false
   versiPdp.value = ''
   localStorage.removeItem(KUNCI_TOKEN)
+}
+
+/**
+ * Sesi ditolak server di tengah pemakaian (REV-UI-01).
+ *
+ * Dimuat ulang ke layar masuk, bukan `router.push`: `sesi.js` tidak boleh
+ * mengimpor router (router yang mengimpor berkas ini), dan seluruh keadaan di
+ * memori memang sudah tidak sah - form yang setengah terisi, panel yang
+ * terbuka, angka yang dimuat dengan token yang sudah mati.
+ *
+ * `lanjut` membawa pengguna kembali ke halaman yang sedang dibukanya. Tanpa
+ * itu, sesi yang habis saat mencatat pembayaran melempar pemilik ke halaman
+ * muka dan ia harus mencari sendiri pekerjaan yang tadi terputus.
+ */
+let sedangMengeluarkan = false
+
+function sesiHabis() {
+  if (sedangMengeluarkan) {
+    return
+  }
+  sedangMengeluarkan = true
+
+  const lanjut = window.location.pathname + window.location.search
+  keluarLokal()
+
+  // Beberapa permintaan bisa dijawab 401 bersamaan; yang pertama sudah cukup.
+  if (lanjut.startsWith('/masuk')) {
+    sedangMengeluarkan = false
+    return
+  }
+
+  window.location.assign(`/masuk?pesan=berakhir&lanjut=${encodeURIComponent(lanjut)}`)
 }
 
 /**
@@ -173,6 +210,10 @@ async function unduhBerkas(path, opsi = {}) {
   })
 
   if (!res.ok) {
+    if (res.status === 401 && token.value) {
+      sesiHabis()
+    }
+
     // Server menjawab JSON untuk penolakan (403, 422) walaupun endpointnya
     // berektensi CSV. Pesannya diambil supaya layar bisa menyebut sebabnya -
     // "tidak berhak" berbeda dari "rentang tanggal salah".

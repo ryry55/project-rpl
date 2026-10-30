@@ -7,18 +7,19 @@
 > sudah?"*
 >
 > **Cara dibaca:** status di bawah hasil **pembacaan statis** kode dan tes pada
-> 29 Oktober 2026, ditambah gate yang hijau hari itu (812 tes / 3807 asersi,
-> 29 skrip / 834 langkah). Ia membuktikan perbaikan **ada di kode**; ia bukan
-> bukti runtime baru. Kolom Bukti menyebut tempat memeriksanya sendiri.
+> 30 Oktober 2026, ditambah gate yang hijau hari itu (812 tes PHP / 3807 asersi,
+> 19 tes Vitest, 29 skrip / 844 langkah, 544 detik). Ia membuktikan perbaikan
+> **ada di kode**; ia bukan bukti runtime baru. Kolom Bukti menyebut tempat
+> memeriksanya sendiri.
 
 ## Ringkasan
 
 | Status | Jumlah | Arti |
 |---|---|---|
-| **Selesai** | 32 | Perbaikan ada di kode dan ada tes/skrip yang menjaganya |
+| **Selesai** | 33 | Perbaikan ada di kode dan ada tes/skrip yang menjaganya |
 | **Selesai tanpa tes** | 0 | Perbaikan ada, tidak ada penjaga otomatis |
 | **Tidak berlaku** | 3 | Temuan menyebut hal yang memang tidak ada di desain |
-| **Masih terbuka** | 1 | Perbaikan belum ada di kode |
+| **Masih terbuka** | 0 | Perbaikan belum ada di kode |
 
 ## Tabel
 
@@ -52,7 +53,7 @@
 | REV-DAT-03 | Sedang | Email sinkron, tanpa pekerja antrean | Selesai | `docker/prod/supervisord.conf:90`; `Jobs/KirimPemberitahuan.php`; `NotifikasiTest::test_email_notifikasi_masuk_antrean` |
 | REV-DAT-04 | Sedang | Tak ada indeks (kontrak_id,status) | Selesai | migrasi `2026_11_06_090400`; `SkemaRiwayatKamarTest:175` |
 | REV-DAT-05 | Sedang | Data induk tak masuk log audit | Selesai | `KamarController.php:55`, `PenghuniController.php:54`, `AturanController.php:59`; `JejakDataIndukTest` |
-| REV-UI-01 | Kritis | 401 tak ditangani di `panggil()` | **Masih terbuka** | `web/src/sesi.js:53-63`; lihat catatan 1 |
+| REV-UI-01 | Kritis | 401 tak ditangani di `panggil()` | Selesai | `web/src/sesi.js` (`sesiHabis()`: token dibersihkan + dimuat ulang ke `/masuk?pesan=berakhir&lanjut=…`); `e2e-t1.mjs` langkah *"permintaan dengan token mati mengeluarkan sesi ke /masuk"* |
 | REV-UI-02 | Kritis | Form komponen biaya tak dibuat | Selesai | `KamarView.vue:505-516`; `e2e-t2.mjs:395` |
 | REV-UI-03 | Kritis | Tak ada WhatsApp / salin rincian | Selesai | `bagikan.js:160`; `PanelDetailTagihan.vue:579-595`; `e2e-r3.mjs:549` |
 | REV-UI-04 | Sedang | "Belum ada tagihan" saat API gagal | Selesai | `DashboardPenghuni.vue:496-504`; `uji-galat-muat.mjs` (30 langkah) |
@@ -63,12 +64,15 @@
 
 ## Yang perlu dibaca sebelum sidang
 
-1. **REV-UI-01 masih terbuka, dan itu satu-satunya.** `panggil()`
-   (`web/src/sesi.js:53-63`) hanya melempar galat saat 401. Pembersihan sesi
-   (`keluarLokal()`) dipanggil dari `muatSaya()`, jadi token yang mati **di
-   tengah pemakaian** menyisakan antarmuka seolah masih masuk sampai halaman
-   dimuat ulang. Perbaikannya menyentuh perilaku yang dilihat pengguna
-   (otomatis keluar + pindah ke layar masuk), jadi menunggu keputusan pemilik.
+1. **REV-UI-01 ditutup 30 Oktober, sesudah keputusan pemilik.** `panggil()` dan
+   `unduhBerkas()` kini memanggil `sesiHabis()` pada 401 selama masih ada token:
+   sesi dibersihkan lalu peramban dimuat ulang ke `/masuk` dengan pesan
+   "Sesi Anda berakhir" dan `lanjut` berisi halaman yang terputus. Muat ulang,
+   bukan `router.push`, karena `sesi.js` tidak boleh mengimpor router dan seluruh
+   keadaan di memori memang sudah tidak sah. Dijaga `e2e-t1.mjs`, yang mencabut
+   token di server **selagi sesi terbuka** lalu memindahkan halaman lewat menu.
+   Diverifikasi bisa gagal: penanganan 401 dimatikan (`if (false && ...)`) →
+   4 asersi merah, pengguna tertinggal di `/pemilik/tunggakan`.
 2. **REV-FIN-01 tertutup lewat aksi terpisah, bukan otomatis.** Verifikasi
    `tolak` sengaja tidak mengubah angka (`PembayaranController.php:226-232`);
    uang baru berkurang lewat tombol **Tarik kembali**. Penolakan sendirian

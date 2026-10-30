@@ -2,9 +2,9 @@
  * Pemformat tampilan.
  *
  * Semua uang di sistem ini bilangan bulat rupiah (numeric(14,0)). Karena itu
- * pemformatan tidak pernah membulatkan: kalau ada nilai pecahan yang sampai ke
- * sini, itu tanda ada yang salah di hulu, dan tampilannya akan menunjukkan
- * pecahan itu alih-alih menyembunyikannya.
+ * tampilannya sengaja tanpa desimal: kalau ada nilai pecahan yang sampai ke
+ * sini, itu tanda ada yang salah di hulu - dan `Intl` membulatkannya ke rupiah
+ * terdekat, jadi jangan andalkan layar untuk menemukannya.
  */
 
 const pemformatRupiah = new Intl.NumberFormat('id-ID', {

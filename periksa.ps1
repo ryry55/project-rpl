@@ -223,12 +223,24 @@ if (Test-Path web\node_modules) {
     try {
         $keluaranLint = Jalankan 'npm' 'run', 'lint'
         $lintOk = $LASTEXITCODE -eq 0
+
+        # Vitest: jawaban yang salah pada fungsi murni - pemformatan uang/tanggal
+        # dan pemotong halaman. Dipisah dari eslint karena sebab kegagalannya
+        # berbeda: eslint soal gaya, ini soal angka yang tampil keliru.
+        # Dijalankan DI DALAM `web`: `npm test` di akar repo tidak menemukan
+        # package.json dan gagal karena alasan yang tidak ada hubungannya.
+        $keluaranVitest = Jalankan 'npm' 'test'
+        $vitestOk = $LASTEXITCODE -eq 0
     } finally {
         Pop-Location
     }
     Catat 'eslint' $lintOk 'jalankan: cd web; npm run lint'
     if (-not $lintOk) {
         $keluaranLint | Select-String -Pattern 'error' | Select-Object -First 10 | ForEach-Object { Write-Host ('    ' + $_.Line.Trim()) }
+    }
+    Catat 'vitest' $vitestOk 'jalankan: cd web; npm test'
+    if (-not $vitestOk) {
+        $keluaranVitest | Select-String -Pattern 'FAIL|AssertionError|Expected|Received' | Select-Object -First 10 | ForEach-Object { Write-Host ('    ' + $_.Line.Trim()) }
     }
 } else {
     Write-Host '  dilewati: web\node_modules belum ada (cd web; npm install)' -ForegroundColor Yellow

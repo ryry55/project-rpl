@@ -108,6 +108,13 @@ jobs:
         working-directory: web
         run: npm run lint
 
+      # Fungsi murni (format uang/tanggal, pemotong halaman) diuji di sini,
+      # bukan lewat browser: satu asersi salah hitung di Vitest jauh lebih
+      # murah dilacak daripada lewat tangkapan layar.
+      - name: vitest
+        working-directory: web
+        run: npm test
+
       # Build menangkap galat kompilasi template Vue yang lolos eslint -
       # `v-if` dengan ekspresi rusak, slot yang tidak ada, komponen yang salah
       # impor. Tanpa langkah ini galat seperti itu baru muncul saat halamannya

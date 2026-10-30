@@ -283,6 +283,90 @@ async function jalan() {
     hasilKedua.galat || '',
   )
 
+  // --- Kendali halaman (K-05) ---------------------------------------------
+  // 52 tagihan: 2 dari panel di atas, 50 lagi terbit lewat API. Tanpa data
+  // sebanyak ini tombol "Berikutnya" tidak pernah dirender, jadi kendali
+  // halamannya tidak teruji sama sekali.
+  const periodeUji = []
+  for (let i = 1; i <= 25; i += 1) {
+    const d = new Date(Date.UTC(2026, 10 + i, 1))
+    periodeUji.push(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-01`)
+  }
+
+  const banjir = await evaluasi(ws, `
+    (async () => {
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + localStorage.getItem('kos.token'),
+      }
+      const semua = await (await fetch('${API}/kontrak', { headers })).json()
+      const kontrak = semua.data.filter(
+        (k) => k.status === 'aktif' && ['T4-A', 'T4-B'].includes(k.kamar?.nomor))
+      let terbit = 0
+      for (const k of kontrak) {
+        for (const periode of ${JSON.stringify(periodeUji)}) {
+          const res = await fetch('${API}/tagihan', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ kontrak_id: k.id, periode }),
+          })
+          if (res.status === 201) terbit += 1
+        }
+      }
+      return terbit
+    })()
+  `)
+  lapor('50 tagihan tambahan terbit untuk mengisi halaman kedua', banjir === 50, `${banjir} terbit`)
+
+  await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/tagihan` })
+  await tungguSampai(ws, `document.querySelector('.kendali-halaman')`, 8000)
+
+  const halamanSatu = await evaluasi(ws, `
+    (() => {
+      const tabel = [...document.querySelectorAll('.kartu .tabel')]
+        .find(t => [...t.querySelectorAll('th')].some(th => /periode/i.test(th.textContent)))
+      return {
+        baris: tabel ? tabel.querySelectorAll('tbody tr').length : 0,
+        teks: (document.querySelector('.kendali-halaman')?.textContent || '')
+          .replace(/\\s+/g, ' ').trim(),
+        kepala: document.body.textContent.includes('52 tagihan'),
+      }
+    })()
+  `)
+  lapor(
+    'halaman pertama menampilkan 50 dari 52 baris',
+    halamanSatu.baris === 50 && /Halaman 1 dari 2/.test(halamanSatu.teks),
+    `${halamanSatu.baris} baris - ${halamanSatu.teks}`,
+  )
+  lapor(
+    'kepala halaman tetap menghitung SELURUH tagihan, bukan satu halaman',
+    halamanSatu.kepala,
+    halamanSatu.kepala ? '52 tagihan' : '52 tagihan tidak ditemukan di kepala halaman',
+  )
+
+  const halamanDua = await evaluasi(ws, `
+    (async () => {
+      const tombol = [...document.querySelectorAll('.kendali-halaman button')]
+        .find(b => /berikutnya/i.test(b.textContent))
+      if (!tombol) return { galat: 'tombol Berikutnya tidak ada' }
+      tombol.click()
+      await new Promise(r => setTimeout(r, 400))
+      const tabel = [...document.querySelectorAll('.kartu .tabel')]
+        .find(t => [...t.querySelectorAll('th')].some(th => /periode/i.test(th.textContent)))
+      return {
+        baris: tabel ? tabel.querySelectorAll('tbody tr').length : 0,
+        teks: (document.querySelector('.kendali-halaman')?.textContent || '')
+          .replace(/\\s+/g, ' ').trim(),
+      }
+    })()
+  `)
+  lapor(
+    'Berikutnya memuat sisa 2 baris, bukan mengulang halaman pertama',
+    !halamanDua.galat && halamanDua.baris === 2 && /Halaman 2 dari 2/.test(halamanDua.teks),
+    halamanDua.galat || `${halamanDua.baris} baris - ${halamanDua.teks}`,
+  )
+
   // --- Jumlah tagihan di API tetap benar ----------------------------------
   const jumlahApi = await evaluasi(ws, `
     (async () => {

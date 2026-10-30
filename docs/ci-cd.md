@@ -16,9 +16,10 @@ jawaban.
 
 1. `pint --test` pada **seluruh** kode, bukan hanya berkas yang berubah.
 2. `eslint`.
-3. `vite build`.
-4. Daftar skrip uji di `periksa.ps1` dan `periksa.sh` harus **sama**.
-5. `docs/uji/periksa-profil-produksi.sh`.
+3. `vitest` - fungsi murni frontend: format uang/tanggal dan pemotong halaman.
+4. `vite build`.
+5. Daftar skrip uji di `periksa.ps1` dan `periksa.sh` harus **sama**.
+6. `docs/uji/periksa-profil-produksi.sh`.
 
 Dua yang terakhir bukan pemeriksaan kode aplikasi, melainkan penjaga agar
 perkakasnya sendiri tidak membusuk:

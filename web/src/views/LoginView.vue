@@ -30,13 +30,15 @@ const galatField = ref({})
  *
  * Dipakai setelah penghapusan identitas (T28): akunnya sudah tidak ada, jadi
  * layar masuk tidak bisa menjelaskan apa pun lewat sesi - satu-satunya jalan
- * adalah membawa penjelasannya di alamat.
+ * adalah membawa penjelasannya di alamat. `berakhir` dipakai saat token mati di
+ * tengah pemakaian (REV-UI-01): pengguna harus tahu mengapa ia tiba-tiba
+ * berada di sini, bukan menduga aplikasinya rusak.
  */
-const pesan = ref(
-  route.query.pesan === 'dihapus'
-    ? 'Identitas Anda sudah dilepas dari catatan kos ini. Riwayat pembayaran tetap tersimpan tanpa nama.'
-    : '',
-)
+const PESAN = {
+  dihapus: 'Identitas Anda sudah dilepas dari catatan kos ini. Riwayat pembayaran tetap tersimpan tanpa nama.',
+  berakhir: 'Sesi Anda berakhir. Silakan masuk lagi.',
+}
+const pesan = ref(PESAN[route.query.pesan] || '')
 
 async function kirim() {
   galat.value = ''

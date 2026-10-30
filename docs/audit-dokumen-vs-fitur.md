@@ -248,3 +248,38 @@ Sesudah putaran ini tidak ada lagi temuan yang "selesai tanpa tes":
 `docs/status-revisi.md` mencatat **32 selesai, 0 selesai tanpa tes, 3 tidak
 berlaku, 1 masih terbuka (REV-UI-01)**.
 
+## 15. Putaran 30 Oktober 2026 — temuan terakhir ditutup, empat penjaga baru
+
+Gate penuh: **812 tes PHP / 3807 asersi / 47 berkas**, **19 tes Vitest**,
+**29/29 skrip lulus, 844 langkah, 544 detik**. Angka ini menggantikan §14; §11-§14
+sengaja dibiarkan sebagai riwayat putaran sebelumnya.
+
+Pemilik menjawab lima pertanyaan pada 30 Oktober (K-07..K-11 di
+`docs/keputusan-terbuka.md`), dan kelimanya dieksekusi di putaran ini:
+
+| Yang ditutup | Bukti | Kontra-uji |
+|---|---|---|
+| **REV-UI-01** — 401 di tengah pemakaian tidak mengeluarkan sesi. Temuan Kritis **terakhir** yang terbuka | `sesiHabis()` di `web/src/sesi.js`, dipanggil `panggil()` dan `unduhBerkas()` saat 401 selama token masih ada: sesi dibersihkan, muat ulang ke `/masuk?pesan=berakhir&lanjut=…`. `e2e-t1.mjs` naik 9 → 15 langkah: token dicabut **di server** selagi sesi terbuka, lalu menu Tunggakan diklik (tanpa muat ulang halaman) | Penanganan 401 dimatikan (`if (false && …)`) → 11/15, empat asersi merah, pengguna **tertinggal** di `/pemilik/tunggakan` dengan token masih tersimpan |
+| **K-08 kendali halaman** di layar Tagihan | `web/src/halaman.js` (`PER_HALAMAN = 50`, `jumlahHalaman`, `potong`) + `TagihanView.vue`: `daftar` tetap utuh, `tampil` yang dirender | `:daftar="daftar"` → 18/20, merah `52 baris` yang seharusnya `50`; Vitest: `potong()` selalu mulai baris 1 → 3 tes merah |
+| **K-09 Vitest** | `vitest` 5.0.5 tanpa jsdom, 19 tes di `web/src/format.test.js` dan `halaman.test.js`; langkah tersendiri di `periksa.ps1`, `periksa.sh`, `uji.yml` | `potong()` dibuat selalu mulai dari baris pertama → 3 merah (`expected 1 to be 51`, panjang 50 bukan 20, halaman di luar rentang tidak kosong) |
+| **K-10 uji beban** | `docs/beban/uji-beban.mjs`: 500 permintaan / 50 bersamaan pada `GET /tagihan`, gagal bila p95 > 1.000 ms atau ada non-2xx. Manual, **bukan** gate | `AMBANG_P95=1` → `GAGAL p95 787 ms melewati ambang 1 ms`, kode keluar 1 |
+
+**Hasil uji beban 30 Oktober:** 500 permintaan dalam 6,5 detik, 77 permintaan/detik,
+p50/p95/p99 = 596/840/936 ms, 0 galat — **lulus dengan sisa 160 ms**. Angka ini
+diukur di laptop yang sama dengan gate, tanpa Chrome; ia bukan jaminan untuk mesin
+lain, jadi jalankan ulang sebelum demo (tercatat di `docs/serah-terima.md` §2).
+
+**Satu bug gerbang ditemukan oleh gerbangnya sendiri.** Langkah Vitest pertama
+kali ditulis **setelah** `Pop-Location`, jadi ia berjalan di akar repo yang tidak
+punya `package.json`: `npm test` gagal karena alasan yang tidak ada hubungannya
+dengan kode, dan gate penuh berakhir `GAGAL: 1 langkah (533 detik) - vitest`
+padahal `cd web; npm test` hijau 19/19 saat dijalankan tangan. Perbaikannya
+memindahkan blok itu **ke dalam** `try` setelah `Push-Location`. Ini alasan
+langkah baru wajib lewat gate penuh, bukan hanya `-Cepat`.
+
+**Efek samping yang perlu dicatat:** `TagihanView.vue` sekarang memuat dua
+`computed` baru, dan `format.js` komentarnya dikoreksi — ia **selalu** membulatkan
+ke rupiah terdekat lewat `Intl` (`maximumFractionDigits: 0`), jadi komentar lama
+"tidak pernah membulatkan" salah. Uji yang menuntut pecahan tampil sebagai pecahan
+karena itu dihapus, bukan dipaksakan.
+

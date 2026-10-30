@@ -350,10 +350,13 @@ server - termasuk bahwa token peran sebelumnya tidak mewarisi hak peran yang
 baru masuk, dan bahwa penghuni mendapat 404 (bukan 403) untuk tagihan orang
 lain. Diverifikasi bisa gagal: dengan `peran:penghuni` pada `/penghuni/tagihan`
 dilonggarkan menjadi `peran:penghuni,pemilik`, langkah terakhir merah (status
-200 yang seharusnya 403). **Uji beban masih tidak punya skrip**: pengukurannya
-manual (390 tagihan = 550 KB / 297 ms, `11_AUDIT-PRODUKSI-2.md` C9) - kalimat
-lama di sini menyebut "uji beban dan uji tiga-peran di `docs/uji`" padahal
-keduanya tidak pernah ada. Kerentanan dependensi ditutup 29 Oktober:
+200 yang seharusnya 403). **Uji beban sudah punya skripnya sejak 30 Oktober**:
+`docs/beban/uji-beban.mjs` (50 bersamaan, 500 permintaan, gagal bila p95
+melewati ambang yang ditetapkan pemilik: 1.000 ms). Letaknya di luar
+`docs/uji/` karena tidak dijalankan gate - ambang waktu di runner bersama
+mengukur tetangga, bukan aplikasi. Terukur 30 Oktober: 77 permintaan/detik,
+p95 840 ms, 0 galat. Diverifikasi bisa gagal: `AMBANG_P95=1` → `GAGAL p95 …
+melewati ambang 1 ms`. Kerentanan dependensi ditutup 29 Oktober:
 `composer audit --locked` bersih setelah `symfony/mime` 7.4.19 → 7.4.22,
 `npm audit --omit=dev` 0.
 
