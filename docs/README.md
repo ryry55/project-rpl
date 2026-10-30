@@ -49,6 +49,7 @@ disunting tangan.
 | `serah-terima.md` | **Sesi berikutnya.** Keadaan repo, apa yang belum selesai |
 | `utang-teknis.md` | Hal yang diketahui kurang, beserta alasannya |
 | `demo-sidang.md` | Anda, saat gladi bersih: alur demo 5 menit |
+| `fase-akhir.md` | **Anda, sekarang:** sisa pekerjaan yang hanya bisa dilakukan manusia, plus tiga pertanyaan yang hampir pasti ditanya |
 | `panduan-tim.md` | Anggota tim yang baru bergabung |
 | `ci-cd.md` | Cara pipeline bekerja |
 | `keputusan-terbuka.md` | Pertanyaan yang menunggu jawaban pemilik |
