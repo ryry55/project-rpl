@@ -6,9 +6,9 @@
 >
 > **Maksimal 120 baris.** Kalau lebih, isinya sudah menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: 30 Oktober 2026 (malam), sesudah lima keputusan pemilik
-dieksekusi (REV-UI-01, kendali halaman, Vitest, uji beban), lalu axe diperluas ke
-tiga keadaan yang baru muncul dari tindakan pengguna dan K-12 dijawab
+Terakhir diperbarui: 30 Oktober 2026 (malam). Sesudah gladi demo dijalankan
+sungguhan (39/39) dan menemukan empat kalimat yang tidak cocok dengan layar,
+lalu kontrol negatif `role="alert"` ditutup: 26/27 merah, 27/27 sesudah pulih.
 
 ---
 
@@ -22,8 +22,8 @@ tiga keadaan yang baru muncul dari tindakan pengguna dan K-12 dijawab
 | Migrasi / endpoint / tabel domain | **41** / **86** / **23** (total 32 di skema `public`) |
 | Skrip uji | **31** `.mjs`: **30** (27 browser + 2 balapan + 1 jalur proxy) dijalankan gate + `_cdp.mjs` |
 | Langkah E2E | **871 langkah** (dihitung dari keluaran CI, bukan katalog), gate penuh **409 detik di CI** |
-| Gate lokal | **Hijau pada `adbb4a9`**; tiga commit sesudahnya diverifikasi **CI** run `41065788815` (`Uji`, hijau 30 Okt 13:55 UTC). Tidak ada gate lokal untuk 871 langkah — Docker Desktop mati berulang, dan itu tidak diulang |
-| Image `web` di laptop | **Basi.** Berisi build sebelum `role="alert"`. `docker compose build web` + `up -d web` wajib sebelum demo |
+| Gate lokal | **Hijau pada `adbb4a9`**; commit sesudahnya diverifikasi **CI** (`41065788815`, `41067553821`, hijau). `uji-aksesibilitas.mjs` **27/27** juga dijalankan di laptop 30 Okt malam |
+| Image `web` di laptop | **Sudah benar** — dibangun ulang sesudah `role="alert"` dan dibuktikan 27/27 di laptop, bukan hanya di CI |
 
 Catatan: `POST /csp-laporan` di luar `/api/`, sengaja tidak masuk hitungan 86 endpoint.
 
@@ -33,18 +33,15 @@ Catatan: `POST /csp-laporan` di luar `/api/`, sengaja tidak masuk hitungan 86 en
 penilaian dan demo dari laptop lewat `docker compose`; `9_DEPLOY.md`,
 `Dockerfile.prod`, dan `deploy.yml` tinggal sebagai bukti kerja, tidak dipakai.
 
-1. **Tutup kontrol negatif yang masih terbuka.** Balik `PesanBaris` ke
-   `:role="peran || undefined"`, `docker compose build web` + `up -d web`, lalu
-   `node docs/uji/uji-aksesibilitas.mjs` — langkah "galat validasi tampil di
-   formulir" **harus merah** dengan "pesan galat muncul tetapi tidak punya
-   role="alert"". Sesudah itu pulihkan perbaikannya dan build sekali lagi.
-   Ini satu-satunya pagar baru yang belum dibuktikan bisa gagal.
-2. **Gladi demo** menurut `docs/demo-sidang.md` (sudah diperbaiki dari dry-run
-   statis 30 Okt: tarif lewat **Atur tarif**, Terbitkan tagihan minta **Kontrak**
-   + periode `2026-09-01`, usulan tarif butuh wewenang dulu) dengan database
-   segar, dan siapkan jawaban jujur untuk "sudah dipakai penghuni sungguhan?" —
-   belum, demo lokal.
-3. **Uji beban manual sebelum demo** di laptop yang dipakai sidang:
+1. **Gladi demo bertiga, di layar.** Yang bisa diperiksa tanpa manusia sudah
+   selesai 30 Okt: penggerak sekali pakai menegaskan **39/39** klaim
+   `docs/demo-sidang.md` (angka prorata, empat titik denda, status sesudah
+   penarikan, tiga profil tidak saling menendang, pengelola ditolak 403) pada
+   database segar, dan menemukan **empat kalimat yang tidak cocok dengan layar**
+   — keempatnya sudah diperbaiki. Yang tersisa hanya latihan mengucapkan lima
+   menit itu, dan menyiapkan jawaban jujur untuk "sudah dipakai penghuni
+   sungguhan?" — belum, demo lokal.
+2. **Uji beban manual sebelum demo** di laptop yang dipakai sidang:
    `node docs/beban/uji-beban.mjs` (50 bersamaan, 500 permintaan, p95 < 1.000 ms).
    Terakhir p95 840 ms — lulus tipis, jadi ukur lagi bila mesinnya berbeda.
 
@@ -85,7 +82,7 @@ sungguhan, pinger uptime, latihan restore, verifikasi domain Brevo, domain
 | Vitest | `vitest` saja (tanpa jsdom): `format.test.js` + `halaman.test.js`, 19 tes, langkah tersendiri di `periksa.ps1`/`periksa.sh`/`uji.yml` |
 | Uji beban (K-10) | `docs/beban/uji-beban.mjs`, **manual** (bukan gate): 50 bersamaan / 500 permintaan, gagal bila p95 > 1.000 ms. Terukur p95 840 ms, 77 rps, 0 galat |
 | Axe pada keadaan yang muncul dari tindakan | `uji-aksesibilitas.mjs` 23 → **27 langkah**: data uji disiapkan sendiri (seeder hanya berisi akun), lalu tiga keadaan diukur — panel rincian, form catat pembayaran, galat validasi. Tiap keadaan wajib terbukti muncul lebih dulu, sebab tindakan yang gagal membuka formulir akan diukur sebagai halaman biasa dan lulus dengan mudah |
-| Cacat kedua yang ditemukannya | **Tidak satu pun pesan galat diumumkan pembaca layar.** `PesanBaris` hanya memasang `role` bila pemanggil menulis `peran="alert"`, dan 0 dari 39 pemanggil menulisnya. Kini komponen itu memasang `role="alert"` sendiri untuk `jenis="galat"`; langkah galat validasi menuntutnya. Kontrol negatifnya **belum dijalankan sampai merah** — yang ada: pada build lama `.pesan-galat` terukur `role: null` |
+| Cacat kedua yang ditemukannya | **Tidak satu pun pesan galat diumumkan pembaca layar.** `PesanBaris` hanya memasang `role` bila pemanggil menulis `peran="alert"`, dan 0 dari 39 pemanggil menulisnya. Kini komponen itu memasang `role="alert"` sendiri untuk `jenis="galat"`; langkah galat validasi menuntutnya. **Kontrol negatifnya sudah dijalankan 30 Okt**: `PesanBaris` dibalik → **26/27**, merah tepat di langkah itu dengan "pesan galat muncul tetapi tidak punya role=\"alert\"", lalu dipulihkan → **27/27** |
 
 **Kontra-uji, semuanya sudah dijalankan:** `per_page` dicabut → 1 gagal/8 asersi;
 `lang/id` disembunyikan → 1 gagal/2 asersi; `Pemberitahu` kembali ke `Mail::send()`
@@ -93,7 +90,8 @@ sungguhan, pinger uptime, latihan restore, verifikasi domain Brevo, domain
 `->whereHas('pembayaran')` disuntikkan → tagihan tanpa pembayaran hilang dari
 tunggakan; DFD (rute dihapus / `D1` black hole / SVG disentuh) → ketiganya merah;
 penanganan 401 dimatikan → 4 asersi E2E merah; `:daftar="daftar"` → 2 asersi merah;
-`potong()` selalu mulai baris 1 → 3 tes Vitest merah; `AMBANG_P95=1` → GAGAL.
+`potong()` selalu mulai baris 1 → 3 tes Vitest merah; `AMBANG_P95=1` → GAGAL;
+`role="alert"` dicabut → 26/27 merah di langkah galat validasi.
 
 **Putaran sebelumnya** (5.1, 5.4, 5.5, rotasi log, `supervisorctl`, batas waktu
 per skrip, penjaga DFD, uji tiga-peran): lihat `docs/audit-dokumen-vs-fitur.md` §13-§14.
