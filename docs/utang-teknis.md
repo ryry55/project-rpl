@@ -215,6 +215,17 @@ immutable,
 | Target deploy | **Dibatalkan pemilik 29 Okt 2026.** Tidak ada Render/Neon; demo dari laptop. `deploy.yml` tetap melaporkan `siap=false` alih-alih gagal, dan `9_DEPLOY.md` disimpan sebagai rujukan |
 | T22 Midtrans | **Selesai, kecuali verifikasi sandbox — dan itu tidak akan dikerjakan.** Kode lengkap: `MidtransGateway` (tanda tangan SHA512, `hash_equals`, pemetaan status), `PembayaranGateway` (buat transaksi + tangani webhook), tabel `transaksi_gateway`, endpoint `POST /api/webhook/midtrans` (tanpa auth, tanda tangan sebagai satu-satunya bukti) dan `POST /api/tagihan/{id}/bayar-daring`, plus tombol "Bayar daring" di portal penghuni. 16 tes berjalan dengan kredensial palsu; tiga pengaman (tanda tangan, idempotensi, pencocokan nominal) dibuktikan bisa gagal. **Yang tidak akan ada:** transaksi sungguhan ke sandbox Midtrans, karena webhook butuh alamat HTTPS publik |
 
+**Cadangan sudah pernah dipulihkan, dan diuji lagi 31 Oktober 2026.**
+`backup.sh --uji-pulih` memulihkan ke `kos_pulih`, menghitung tujuh tabel, lalu
+menghapusnya — kode keluar 0. Pemeriksaan tambahan hari itu membandingkan
+**isi**, bukan hanya keberadaan tabel: dump data basis data asli dan basis data
+hasil pulih punya md5 yang sama (93 baris `INSERT`; baris pengaman `\restrict`
+yang tokennya acak di tiap dump dibuang lebih dulu), kedelapan trigger ikut
+terbawa (UPDATE pada `kebijakan_kos` hasil pulih tetap ditolak pesan R-06), dan
+basis data kosong sebagai kontrol negatif memberi md5 berbeda. Yang tetap belum:
+pemulihan dari Neon (tidak ada deploy) dan menjalankan aplikasi terhadap data
+hasil pulih.
+
 Dua hal di atas yang masih "belum" bukan kelalaian yang disembunyikan:
 keduanya hanya bisa ditutup dengan akun pihak ketiga, dan pemilik memutuskan
 tidak membukanya. Menulisnya sebagai selesai akan membuat audit berikutnya

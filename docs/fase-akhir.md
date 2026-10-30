@@ -50,9 +50,13 @@ disamarkan.
 - **"Sudah dipakai penghuni sungguhan?"** — Belum. Yang ada: demo lokal dengan
   data contoh, 812 tes, dan uji browser yang menjalankan alurnya di peramban.
 - **"Kalau servernya mati, datanya hilang?"** — Basis data PostgreSQL di dalam
-  Docker, dan ada perintah cadangan: `docker compose exec -T api sh
-  /var/www/html/docker/backup.sh` (menulis `/var/backups/kos/kos-<UTC>.sql`).
-  Latihan pemulihannya belum pernah dijalankan, dan itu disebutkan sebagai batas.
+  Docker, dan cadangannya sudah **diuji pulih**, bukan hanya dibuat:
+  `docker compose exec -T api sh /var/www/html/docker/backup.sh --uji-pulih`
+  memulihkan ke basis data sementara lalu menghapusnya lagi (kode keluar 0, tujuh
+  tabel terhitung). Pemeriksaan 31 Oktober juga membandingkan isinya: dump data
+  asli dan hasil pulih identik, dan kedelapan trigger ikut terbawa. Yang belum:
+  menjalankan aplikasi terhadap data hasil pulih, dan pemulihan dari Neon (tidak
+  ada deploy).
 - **"Kenapa tidak online?"** — Deploy dibatalkan pemilik 29 Oktober 2026;
   penilaian dari laptop. Berkas deploy dan CI-nya tetap ada sebagai bukti kerja.
 
@@ -78,9 +82,24 @@ Sebutkan sebagai batas bila ditanya, jangan dijanjikan. Rinciannya di
 
 - Deploy ke hosting, Midtrans sungguhan, email Brevo sungguhan.
 - Pemasangan PWA di ponsel asli, audit pembaca layar sungguhan (NVDA/VoiceOver).
-- Latihan pemulihan cadangan, penegakan CSP.
+- Penegakan CSP di peramban sungguhan.
 
 **Fase 6 (laporan) masih menunggu format dari dosen.** Bila formatnya datang,
 yang perlu dibuat hanya `docs/akademik/*` — berkas itu dibangkitkan dari data
 yang sudah ada (`usecase-data.js`, `dfd-data.js`, hasil uji), bukan ditulis
 ulang dari nol.
+
+## Satu tiket GitHub yang tetap terbuka
+
+**#13 (T14: laporan kerusakan properti + status kamar `perbaikan`).** Isinya
+benar-benar belum ada: tidak ada tabel, model, unggahan foto, maupun status
+`perbaikan` pada `kamar` — kamar rusak hari ini hanya bisa ditandai `kosong`, dan
+itu berarti ia tampak siap disewakan. Bila dikerjakan, tiga hal harus Anda
+putuskan lebih dulu: apakah kamar `perbaikan` tetap ditagih, siapa yang boleh
+menutup laporan, dan apakah biaya perbaikan pernah masuk ke tagihan penghuni.
+
+Tiga tiket lain ditutup 31 Oktober 2026 setelah diperiksa, bukan dibatalkan:
+**#11** satuan sewa per kamar (mingguan/harian) ternyata sudah ada di
+`Kalkulator` dan layar Kebijakan, **#12** mode jatuh tempo + saklar denda +
+pembebasan denda sudah ada di `kebijakan_kos`, dan **#14** deposit tidak berlaku
+karena deposit dihapus seluruhnya.
