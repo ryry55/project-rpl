@@ -90,15 +90,17 @@ Kembali ke **Kebijakan**, isi ketiganya:
 
 ## Menit 2 — "Tagihan dan prorata"
 
-Buka **Kamar → Tambah kamar** (satu kamar, tarif bulanan Rp 1.500.000). Lalu **Penghuni → Tambah
-penghuni**, dan **Kontrak → Buat kontrak** dengan **tanggal masuk di tengah bulan** — untuk demo ini
-pakai **16 September 2026** (September 30 hari).
+Buka **Kamar → Tambah kamar** (satu kamar). Tarif **tidak** diisi di formulir itu: pada baris kamar
+yang baru muncul, tekan **Atur tarif**, isi **Tarif baru per bulan** = `1500000`, lalu **Berlakukan
+tarif**. Lalu **Penghuni → Tambah penghuni**, dan **Kontrak → Buat kontrak** dengan **tanggal masuk di
+tengah bulan** — untuk demo ini pakai **16 September 2026** (September 30 hari).
 
 > Tanggalnya harus **hari ini atau sudah lewat**. Kontrak bertanggal masa depan tersimpan berstatus
 > `dipesan` dan belum bisa ditagih — itu memang perilaku yang benar (S1.9: pemilik boleh mencatat
 > penghuni yang baru menyanggupi kamar bulan depan), tetapi ia bukan bahan demo prorata.
 
-Buka **Tagihan → Terbitkan tagihan**, periode **September 2026**.
+Buka **Tagihan → Terbitkan tagihan**, pilih **Kontrak** yang barusan dibuat, lalu isi **Periode**
+(`2026-09-01` — medan tanggal, bukan pemilih bulan).
 
 > "Penghuni yang masuk tanggal 16 tidak ditagih sebulan penuh. Proratanya
 > `tarif × hari tinggal ÷ hari dalam bulan`, dan hari masuknya ikut dihitung: 30 − 16 + 1 = **15
@@ -226,7 +228,8 @@ Tunjukkan juga bahwa pengelola **tetap bisa membaca** daftar kamar dan nama peng
 
 ## Kalau masih ada waktu — tiga demo tambahan
 
-**Persetujuan pemilik (7 hari).** Masuk sebagai pengelola yang punya `ubah_tarif`, ajukan perubahan
+**Persetujuan pemilik (7 hari).** Sebagai pemilik, beri pengelola wewenang `ubah_tarif` di halaman
+**Pengelola** (tanpa itu tombol pengajuan tidak muncul). Masuk sebagai pengelola itu, ajukan perubahan
 tarif. Keluar, masuk sebagai pemilik, buka **Persetujuan** — usulan itu menunggu, dengan angka lama
 dan angka baru berdampingan.
 
