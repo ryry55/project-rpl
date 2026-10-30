@@ -27,25 +27,23 @@ lalu kontrol negatif `role="alert"` ditutup: 26/27 merah, 27/27 sesudah pulih.
 
 Catatan: `POST /csp-laporan` di luar `/api/`, sengaja tidak masuk hitungan 86 endpoint.
 
-## 2. Tiga aksi berikutnya
+## 2. Dua aksi berikutnya
 
 **Tidak ada pekerjaan deploy.** Pemilik membatalkan deploy 29 Oktober 2026:
 penilaian dan demo dari laptop lewat `docker compose`; `9_DEPLOY.md`,
 `Dockerfile.prod`, dan `deploy.yml` tinggal sebagai bukti kerja, tidak dipakai.
 
+**Rincian kedua aksi ini, beserta tiga pertanyaan yang akan ditanya penguji dan
+urutan H-1: `docs/fase-akhir.md`.**
+
 1. **Gladi demo bertiga, di layar.** Yang bisa diperiksa tanpa manusia sudah
-   selesai 30 Okt: penggerak sekali pakai menegaskan **39/39** klaim
-   `docs/demo-sidang.md` (angka prorata, empat titik denda, status sesudah
-   penarikan, tiga profil tidak saling menendang, pengelola ditolak 403) pada
-   database segar, dan menemukan **empat kalimat yang tidak cocok dengan layar**
-   — keempatnya sudah diperbaiki. Yang tersisa hanya latihan mengucapkan lima
-   menit itu, dan menyiapkan jawaban jujur untuk "sudah dipakai penghuni
-   sungguhan?" — belum, demo lokal.
-2. **Uji beban manual sebelum demo** di laptop yang dipakai sidang:
+   selesai 30 Okt: **39/39** klaim `docs/demo-sidang.md` ditegaskan pada database
+   segar, dan menemukan **empat kalimat yang tidak cocok dengan layar** —
+   keempatnya sudah diperbaiki. Sisanya latihan mengucapkan lima menit itu.
+2. **Uji beban manual** di laptop yang dipakai sidang:
    `node docs/beban/uji-beban.mjs` (50 bersamaan, 500 permintaan, p95 < 1.000 ms).
-   Dua pengukuran di laptop ini: p95 **840 ms** (77 rps) dan, sesudah data demo
-   terisi, **464 ms** (123 rps) — 0 galat keduanya. Selisih itu besar, jadi yang
-   benar rentangnya, dan mesin sidang tetap harus diukur sendiri.
+   Dua pengukuran di laptop ini: **840 ms** (77 rps) dan **464 ms** (123 rps),
+   0 galat keduanya — yang benar rentangnya, dan mesin sidang diukur sendiri.
 
 **Tidak ada keputusan pemilik yang masih menunggu.** K-01..K-12 dijawab atau
 ditutup; yang terakhir (30 Okt): REV-UI-01, kendali halaman, Vitest, ambang uji

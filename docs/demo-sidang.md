@@ -7,6 +7,10 @@ Satu aturan yang berlaku sepanjang demo: **setiap batas yang ditunjukkan harus d
 bukan di layar.** Tombol yang hilang tidak membuktikan apa pun — peramban bisa diakali. Karena itu
 di dua tempat di bawah ada langkah yang sengaja menembak API langsung memakai token pengelola.
 
+**Baru mulai dan ingin tahu apa yang masih tersisa sebelum sidang?** Baca `docs/fase-akhir.md` lebih
+dulu — latihan, uji beban di laptop sidang, tiga pertanyaan penguji, urutan H-1. Halaman ini hanya
+alur demonya.
+
 ## Sebelum mulai (sekali saja)
 
 ```powershell
