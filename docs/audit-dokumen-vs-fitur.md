@@ -287,7 +287,7 @@ karena itu dihapus, bukan dipaksakan.
 ## 16. Putaran 30 Oktober 2026 (kedua) — utang aksesibilitas ditutup, dan cacat kontras yang ditemukannya
 
 Gate penuh: **812 tes PHP / 3807 asersi / 47 berkas**, **19 tes Vitest**,
-**30/30 skrip lulus, 867 langkah, 479 detik**. Angka ini menggantikan §15;
+**30/30 skrip lulus, 871 langkah, 479 detik**. Angka ini menggantikan §15;
 §11-§15 dibiarkan sebagai riwayat.
 
 Yang dikerjakan adalah satu-satunya utang teknis yang masih berupa kode, yaitu
@@ -296,8 +296,9 @@ Yang dikerjakan adalah satu-satunya utang teknis yang masih berupa kode, yaitu
 
 | Yang ditutup | Bukti | Kontra-uji |
 |---|---|---|
-| **Uji aksesibilitas otomatis** | `docs/uji/uji-aksesibilitas.mjs` (23 langkah): axe-core pada 21 halaman - 2 publik, 15 layar pemilik, portal penghuni, halaman Data pribadi, dan halaman 404 - dengan aturan WCAG 2.0/2.1 level A/AA. Terdaftar di `periksa.ps1`, `periksa.sh`, dan `uji.yml` | Skripnya membawa **dua** kontrol negatif: empat cacat yang disisipkan (tautan tanpa nama, gambar tanpa teks alternatif, medan tanpa label, teks kontras rendah) wajib terdeteksi 4/4, dan halaman wajib kembali bersih setelah cacatnya dibuang |
+| **Uji aksesibilitas otomatis** | `docs/uji/uji-aksesibilitas.mjs` (27 langkah): axe-core pada 21 halaman - 2 publik, 15 layar pemilik, portal penghuni, halaman Data pribadi, dan halaman 404 - **ditambah tiga keadaan yang baru muncul dari tindakan pengguna** (panel rincian terbuka, form catat pembayaran terbuka, pesan galat validasi), dengan aturan WCAG 2.0/2.1 level A/AA. Terdaftar di `periksa.ps1`, `periksa.sh`, dan `uji.yml` | Skripnya membawa **dua** kontrol negatif: empat cacat yang disisipkan (tautan tanpa nama, gambar tanpa teks alternatif, medan tanpa label, teks kontras rendah) wajib terdeteksi 4/4, dan halaman wajib kembali bersih setelah cacatnya dibuang |
 | **Cacat kontras yang ditemukannya** | Kode peristiwa di `PengaturanNotifikasiView.vue` memakai `opacity: 0.8` di atas `--teks-lemah` (#6b6b6b) sehingga menjadi #898989 di atas putih: **3,49:1**, di bawah 4,5:1 yang dituntut AA. Transparansinya dibuang, jadi warnanya kembali 5,3:1 | Transparansinya dikembalikan → 22/23, tepat satu halaman merah dengan pesan `color-contrast (serious, 9x)` |
+| **Cacat yang ditemukan keadaan baru** | Tiga keadaan tambahan (panel rincian, form bayar, galat validasi) langsung menemukan cacat kedua: pesan galat tidak pernah diumumkan pembaca layar. `PesanBaris.vue` hanya memasang `role` bila pemanggil menulis `peran="alert"`, dan **0 dari 39** pemanggil menulisnya. Kini `PesanBaris` memasang `role="alert"` sendiri untuk `jenis="galat"` | Diukur pada build lama: `.pesan-galat` punya `role` **null** (`peran: null` dari evaluasi DOM), sementara asersi baru menuntut `[role="alert"]` ada. Pesan galat juga tampil di `.galat-bidang` yang memang tidak ber-`role`, jadi tidak ada elemen lain yang bisa membuat asersi itu lolos |
 | **Baris dokumen yang basi** | `docs/utang-teknis.md` §6 masih menulis "navigasi bawah ponsel: belum dikerjakan", padahal `nav.bawah` sudah ada di `TataLetakPemilik.vue:340` sejak Fase 5.1 dan dijaga `uji-tata-letak.mjs` | - |
 | **Mojibake yang tertinggal** | `api/tests/Feature/KebijakanKosTest.php` (5x `Ã—` -> `×`) dan `web/src/views/PengaturanPdpView.vue` (2x `Memuatâ€¦` -> `Memuat…`, terlihat pengguna) | Penggantian memakai skrip Node yang menghitung kemunculan lebih dulu dan berhenti bila angkanya tidak sesuai; berkas PHP diperiksa tidak ber-BOM lalu image dibangun ulang |
 

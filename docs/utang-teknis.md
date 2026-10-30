@@ -419,8 +419,9 @@ labelnya, jangan polanya, kecuali memang ingin menajamkan pola itu.
    halaman tujuan. Sesi dipulihkan lewat `GET /me`, dan itu tidak bisa dijawab
    tanpa jaringan. Tokennya **tidak** dihapus (hanya 401 yang menghapus), jadi
    sesi pulih sendiri begitu jaringan kembali; keduanya diasersikan di skrip.
-   Menyimpan identitas terakhir ke cache berarti mengubah perilaku yang dilihat
-   pengguna - menunggu keputusan pemilik, bukan diputuskan sendiri.
+   **Diputuskan pemilik 30 Oktober 2026 (K-12): dibiarkan.** Halaman tujuan
+   luring tidak dibuka; perilaku hari ini dijaga `uji-pwa.mjs` supaya tidak
+   berubah tanpa keputusan.
 2. Yang terbukti bisa dibuka luring hanyalah **kerangka aplikasi**. Tidak ada
    data yang di-cache, dan itu memang aturan R-07, bukan kekurangan.
 

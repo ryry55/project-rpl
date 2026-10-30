@@ -21,7 +21,15 @@ defineProps({
 </script>
 
 <template>
-  <p :class="['pesan-' + jenis, { mungil }]" :role="peran || undefined">
+  <!-- `galat` diumumkan tanpa perlu diminta. Sebelumnya `role` hanya dipasang
+       bila pemanggil menulis `peran="alert"`, dan tidak satu pun dari 39
+       pemanggil menulisnya - jadi seluruh pesan galat di aplikasi ini diam
+       bagi pembaca layar. Bawaan yang benar adalah yang sudah disebut komentar
+       di atas, bukan yang harus diingat di setiap tempat pemakaian. -->
+  <p
+    :class="['pesan-' + jenis, { mungil }]"
+    :role="peran || (jenis === 'galat' ? 'alert' : undefined)"
+  >
     <slot />
   </p>
 </template>

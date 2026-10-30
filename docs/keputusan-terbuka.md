@@ -284,3 +284,36 @@ dan status 36 temuannya sudah punya rumah yang terlihat semua sesi:
 `docs/status-revisi.md` (33 selesai, 0 selesai tanpa tes, 3 tidak berlaku,
 0 terbuka).
 
+## K-12 — Luring mendarat di `/masuk`, bukan di halaman tujuan — dijawab
+
+**Fase:** penutupan utang aksesibilitas · **Tanggal:** 30 Oktober 2026
+
+**Jawaban (30 Oktober 2026). Pilihan A: biarkan apa adanya, dan catat sebagai
+batas yang diketahui.** Halaman tetap mendarat di `/masuk?lanjut=<tujuan>`
+ketika dibuka tanpa jaringan; token tidak dihapus, jadi sesi pulih sendiri
+begitu jaringan kembali. Alasan pemilik: demo dan penilaian dilakukan dari
+laptop dengan jaringan, sehingga menukar satu perilaku yang terlihat pengguna
+dengan manfaat yang tidak akan diuji bukanlah pertukaran yang sepadan.
+Batasnya tinggal di `docs/utang-teknis.md` §6 butir 1, dan perilaku hari ini
+dijaga `uji-pwa.mjs` (langkah 5) supaya tidak berubah tanpa keputusan.
+
+**Pertanyaan.** Saat dibuka tanpa jaringan, aplikasi mendarat di
+`/masuk?lanjut=<tujuan>`, bukan di halaman yang diminta: sesi dipulihkan lewat
+`GET /me`, dan itu tidak bisa dijawab tanpa jaringan. Simpan identitas terakhir
+ke cache supaya halaman tujuan bisa dibuka, atau biarkan?
+
+**Pilihan.**
+- **A. Biarkan.** Tidak ada kode yang berubah; batasnya dicatat. Halaman tetap
+  meminta masuk lebih dulu, dan sesi pulih sendiri saat jaringan kembali.
+- **B. Simpan identitas terakhir (`/me`) ke cache.** Halaman tujuan terbuka
+  luring, tetapi identitas yang tersimpan di perangkat bisa basi (peran berubah,
+  akun dinonaktifkan) dan aplikasi akan menampilkannya seolah berlaku.
+- **C. Simpan hanya nama dan peran, tanpa hak akses.** Layar terbuka dengan
+  keterangan "luring"; setiap aksi tetap ditolak sampai jaringan ada.
+
+**Karena.** Menyentuh perilaku yang dilihat pengguna (ke mana mereka mendarat
+dan apa yang mereka lihat saat jaringan mati) dan menyentuh data pribadi yang
+disimpan di perangkat — dua hal yang `AGENTS.md` larang diputuskan sendiri.
+
+**Kalau tidak dijawab.** A, yaitu keadaan hari ini; tidak ada yang berubah.
+
