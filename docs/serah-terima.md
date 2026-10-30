@@ -21,8 +21,8 @@ tiga keadaan yang baru muncul dari tindakan pengguna dan K-12 dijawab
 | Suite Vitest | **19 tes** (2 berkas) untuk fungsi murni: format uang/tanggal, pemotong halaman |
 | Migrasi / endpoint / tabel domain | **41** / **86** / **23** (total 32 di skema `public`) |
 | Skrip uji | **31** `.mjs`: **30** (27 browser + 2 balapan + 1 jalur proxy) dijalankan gate + `_cdp.mjs` |
-| Langkah E2E | **871 langkah**; gate penuh terakhir **479 detik** dihitung pada 867, jadi durasi sesudah 871 belum terukur |
-| Gate lokal | **Hijau pada `adbb4a9`**. Dua commit sesudahnya (`6ddb6f4`, `b56b029`) **belum di-gate**: Docker Desktop mati tiga kali. Angka 871 adalah jumlah kolom Langkah di `7_TESTING_EVALS.md`, bukan keluaran gate |
+| Langkah E2E | **871 langkah** (dihitung dari keluaran CI, bukan katalog), gate penuh **409 detik di CI** |
+| Gate lokal | **Hijau pada `adbb4a9`**; tiga commit sesudahnya diverifikasi **CI** run `41065788815` (`Uji`, hijau 30 Okt 13:55 UTC). Tidak ada gate lokal untuk 871 langkah — Docker Desktop mati berulang, dan itu tidak diulang |
 | Image `web` di laptop | **Basi.** Berisi build sebelum `role="alert"`. `docker compose build web` + `up -d web` wajib sebelum demo |
 
 Catatan: `POST /csp-laporan` di luar `/api/`, sengaja tidak masuk hitungan 86 endpoint.
@@ -33,10 +33,12 @@ Catatan: `POST /csp-laporan` di luar `/api/`, sengaja tidak masuk hitungan 86 en
 penilaian dan demo dari laptop lewat `docker compose`; `9_DEPLOY.md`,
 `Dockerfile.prod`, dan `deploy.yml` tinggal sebagai bukti kerja, tidak dipakai.
 
-1. **Jalankan gate sekali** (`periksa.ps1`) untuk dua commit terakhir. Yang
-   paling perlu dilihat: `uji-aksesibilitas.mjs` 27/27 dengan `PesanBaris` yang
-   sudah benar. Bila jumlah langkahnya bukan 871, perbaiki angka di §1 dan di
-   seluruh dokumen, **sesudah** gate — bukan sebelum.
+1. **Tutup kontrol negatif yang masih terbuka.** Balik `PesanBaris` ke
+   `:role="peran || undefined"`, `docker compose build web` + `up -d web`, lalu
+   `node docs/uji/uji-aksesibilitas.mjs` — langkah "galat validasi tampil di
+   formulir" **harus merah** dengan "pesan galat muncul tetapi tidak punya
+   role="alert"". Sesudah itu pulihkan perbaikannya dan build sekali lagi.
+   Ini satu-satunya pagar baru yang belum dibuktikan bisa gagal.
 2. **Gladi demo** menurut `docs/demo-sidang.md` (sudah diperbaiki dari dry-run
    statis 30 Okt: tarif lewat **Atur tarif**, Terbitkan tagihan minta **Kontrak**
    + periode `2026-09-01`, usulan tarif butuh wewenang dulu) dengan database

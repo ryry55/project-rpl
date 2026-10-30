@@ -287,7 +287,7 @@ karena itu dihapus, bukan dipaksakan.
 ## 16. Putaran 30 Oktober 2026 (kedua) — utang aksesibilitas ditutup, dan cacat kontras yang ditemukannya
 
 Gate penuh: **812 tes PHP / 3807 asersi / 47 berkas**, **19 tes Vitest**,
-**30/30 skrip lulus, 871 langkah, 479 detik**. Angka ini menggantikan §15;
+**30/30 skrip lulus, 871 langkah, 409 detik** (CI, run `41065788815`). Angka ini menggantikan §15;
 §11-§15 dibiarkan sebagai riwayat.
 
 Yang dikerjakan adalah satu-satunya utang teknis yang masih berupa kode, yaitu

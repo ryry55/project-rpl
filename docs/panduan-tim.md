@@ -297,8 +297,8 @@ bash periksa.sh                                        # Linux/macOS/CI
 Itu menjalankan **seluruh** pagar: pint, eslint, vitest, 812 tes PHP, empat pemeriksa
 kesesuaian dokumen, dan **30 skrip uji browser** (31 berkas `.mjs` di
 `docs/uji/`; satu di antaranya, `_cdp.mjs`, adalah pembantu yang tidak
-dijalankan sendiri). Butuh sekitar **8 menit** - 479 detik pada mesin
-pengembangan proyek ini.
+dijalankan sendiri). Butuh sekitar **7 menit** - 409 detik di CI, 479 detik pada
+mesin pengembangan proyek ini ketika langkah E2E masih 867.
 
 Jangan menjalankan tes satu per satu — urutannya menentukan hasil, dan salah
 urutan menghasilkan hijau yang menyesatkan.
