@@ -268,6 +268,10 @@ Pemilik menjawab lima pertanyaan pada 30 Oktober (K-07..K-11 di
 p50/p95/p99 = 596/840/936 ms, 0 galat — **lulus dengan sisa 160 ms**. Angka ini
 diukur di laptop yang sama dengan gate, tanpa Chrome; ia bukan jaminan untuk mesin
 lain, jadi jalankan ulang sebelum demo (tercatat di `docs/serah-terima.md` §2).
+**Diukur ulang 30 Oktober malam** sesudah gladi demo, database berisi data demo:
+500 permintaan dalam 4,0 detik, 123 permintaan/detik, p50/p95/p99 = 379/464/548 ms,
+0 galat. Dua angka ini berjarak jauh, jadi yang jujur adalah rentangnya
+(p95 464-840 ms), bukan salah satunya.
 
 **Satu bug gerbang ditemukan oleh gerbangnya sendiri.** Langkah Vitest pertama
 kali ditulis **setelah** `Pop-Location`, jadi ia berjalan di akar repo yang tidak

@@ -43,7 +43,9 @@ penilaian dan demo dari laptop lewat `docker compose`; `9_DEPLOY.md`,
    sungguhan?" — belum, demo lokal.
 2. **Uji beban manual sebelum demo** di laptop yang dipakai sidang:
    `node docs/beban/uji-beban.mjs` (50 bersamaan, 500 permintaan, p95 < 1.000 ms).
-   Terakhir p95 840 ms — lulus tipis, jadi ukur lagi bila mesinnya berbeda.
+   Dua pengukuran di laptop ini: p95 **840 ms** (77 rps) dan, sesudah data demo
+   terisi, **464 ms** (123 rps) — 0 galat keduanya. Selisih itu besar, jadi yang
+   benar rentangnya, dan mesin sidang tetap harus diukur sendiri.
 
 **Tidak ada keputusan pemilik yang masih menunggu.** K-01..K-12 dijawab atau
 ditutup; yang terakhir (30 Okt): REV-UI-01, kendali halaman, Vitest, ambang uji
@@ -80,7 +82,7 @@ sungguhan, pinger uptime, latihan restore, verifikasi domain Brevo, domain
 | REV-UI-01 (401 di tengah pemakaian) | `sesiHabis()` di `web/src/sesi.js`: 401 selama token masih ada → sesi dibersihkan, muat ulang ke `/masuk?pesan=berakhir&lanjut=…`. Dijaga `e2e-t1.mjs` |
 | Kendali halaman Tagihan (K-08) | `web/src/halaman.js` + `TagihanView.vue`: `daftar` tetap utuh (kepala halaman menjumlahkan semua), `tampil` dipotong 50 baris. Dijaga `e2e-t4.mjs` (52 → 50 + 2) |
 | Vitest | `vitest` saja (tanpa jsdom): `format.test.js` + `halaman.test.js`, 19 tes, langkah tersendiri di `periksa.ps1`/`periksa.sh`/`uji.yml` |
-| Uji beban (K-10) | `docs/beban/uji-beban.mjs`, **manual** (bukan gate): 50 bersamaan / 500 permintaan, gagal bila p95 > 1.000 ms. Terukur p95 840 ms, 77 rps, 0 galat |
+| Uji beban (K-10) | `docs/beban/uji-beban.mjs`, **manual** (bukan gate): 50 bersamaan / 500 permintaan, gagal bila p95 > 1.000 ms. Dua pengukuran di laptop ini: p95 840 ms (77 rps) dan 464 ms (123 rps) sesudah data demo terisi, 0 galat keduanya |
 | Axe pada keadaan yang muncul dari tindakan | `uji-aksesibilitas.mjs` 23 → **27 langkah**: data uji disiapkan sendiri (seeder hanya berisi akun), lalu tiga keadaan diukur — panel rincian, form catat pembayaran, galat validasi. Tiap keadaan wajib terbukti muncul lebih dulu, sebab tindakan yang gagal membuka formulir akan diukur sebagai halaman biasa dan lulus dengan mudah |
 | Cacat kedua yang ditemukannya | **Tidak satu pun pesan galat diumumkan pembaca layar.** `PesanBaris` hanya memasang `role` bila pemanggil menulis `peran="alert"`, dan 0 dari 39 pemanggil menulisnya. Kini komponen itu memasang `role="alert"` sendiri untuk `jenis="galat"`; langkah galat validasi menuntutnya. **Kontrol negatifnya sudah dijalankan 30 Okt**: `PesanBaris` dibalik → **26/27**, merah tepat di langkah itu dengan "pesan galat muncul tetapi tidak punya role=\"alert\"", lalu dipulihkan → **27/27** |
 
