@@ -4,8 +4,8 @@
 > bagaimana menambah tes yang benar-benar menahan.**
 >
 > Angka diambil dari aplikasi yang berjalan: **812 tes PHP (3807 asersi)** dalam
-> 47 berkas, **19 tes Vitest** untuk fungsi murni frontend, dan **29 skrip uji**
-> (26 browser + 2 balapan HTTP + 1 jalur proxy) dengan **844 langkah**.
+> 47 berkas, **19 tes Vitest** untuk fungsi murni frontend, dan **30 skrip uji**
+> (27 browser + 2 balapan HTTP + 1 jalur proxy) dengan **867 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -71,7 +71,7 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
 
 ```
         ┌──────────────────────────────────────┐
-        │  29 skrip uji                        │  paling lambat, tetapi
+        │  30 skrip uji                        │  paling lambat, tetapi
         │  (26 browser + 2 balapan + 1 proxy)  │  satu-satunya yang melihat
         └──────────────────────────────────────┘
       ┌──────────────────────────────────────┐
@@ -179,7 +179,7 @@ berkas yang menjaga aturan, bukan seluruhnya:
 
 ---
 
-## 4. Skrip uji browser, balapan, dan jalur proxy - 29 skrip, 844 langkah
+## 4. Skrip uji browser, balapan, dan jalur proxy - 30 skrip, 867 langkah
 
 ### 4.1 Menjalankan
 
@@ -226,6 +226,7 @@ Prasyarat: `docker compose up`, Chrome dengan `--remote-debugging-port=9222`,
 | `uji-pwa.mjs` | 26 | Manifest, service worker, **pagar R-07** |
 | `uji-galat-muat.mjs` | 30 | Pemuatan gagal tidak menyamar sebagai "Belum ada" (REV-UI-04) |
 | `uji-tiga-peran.mjs` | 28 | Pemilik, pengelola, penghuni bergantian dalam **satu** sesi; batas peran ditegakkan server (403 vs 404 dibedakan), token lama tidak mewarisi peran baru |
+| `uji-aksesibilitas.mjs` | 23 | axe-core pada 21 halaman (WCAG 2.0/2.1 A/AA); kontrol negatif menyisipkan empat cacat dan menuntut keempatnya terdeteksi |
 | `uji-balapan-t4.mjs` | 10 | 10 permintaan terbit paralel → satu 201, sisanya 409 |
 | `uji-balapan-t5.mjs` | 12 | Pembayaran paralel tidak melebihi sisa |
 | `e2e-fase35.mjs` | 18 | Penanda penyiapan dirender; ekspor benar-benar terunduh (peristiwa unduhan CDP, bukan kode status); pengelola tidak melihat tombol ekspor rekap; halaman bantuan terbuka untuk kedua peran |
@@ -320,11 +321,11 @@ seberapa besar kepercayaan pada hijau.
 |---|---|---|
 | Midtrans sungguhan | Belum ada akun sandbox | Alur webhook hanya diuji dengan payload tiruan |
 | Uji beban | Sudah ada skripnya 30 Okt 2026: `docs/beban/uji-beban.mjs`, 50 bersamaan / 500 permintaan, ambang p95 1.000 ms (K-10). Terukur di laptop: 77 permintaan/detik, p95 840 ms, 0 galat. Bukan bagian gate | Angka di Render/Neon belum ada. Daftar tagihan bisa berhalaman lewat `?per_page=` (K-05, pilihan C), dan layar Tagihan memotong 50 baris per halaman di peramban (K-08) |
-| Uji aksesibilitas otomatis (axe) | Waktu | Pelanggaran kontras/ARIA tidak tertangkap mesin. Pemeriksaan manual 29 Okt 2026: 419 elemen di `/masuk` dan `/pemilik/tagihan`, fokus selalu terlihat (outline 2px), tidak ada tombol tanpa nama; pembaca layar sungguhan tetap belum |
+| ~~Uji aksesibilitas otomatis (axe)~~ | ~~Waktu~~ | **Sudah ada 30 Oktober 2026:** `docs/uji/uji-aksesibilitas.mjs` (axe-core, 21 halaman, WCAG 2.0/2.1 A/AA, 23 langkah) dijalankan gate. Cacat pertama yang ditemukannya nyata: kontras 3,49:1 pada kode peristiwa di Pengaturan notifikasi, kini 5,3:1. Yang tetap belum: pembaca layar sungguhan (NVDA/VoiceOver), karena itu butuh manusia di depan mesin |
 | ~~Orientasi lanskap ponsel~~ | **Sudah diukur 29 Okt 2026** | `uji-tata-letak.mjs` menguji 640×360 pada Tagihan, Rekening, dan Pengelola; kontra-uji dengan div 2000px membuat tiga asersi merah |
 | ~~Uji luring sungguhan~~ | **Sudah dibuktikan 29 Okt 2026** | `uji-pwa.mjs` mematikan jaringan pada target service worker (bukan hanya halaman) dan menghapus Cache Storage sebagai kontrol negatif. Batasnya: hanya di Chrome desktop, bukan ponsel sungguhan |
 | Email sungguhan (Brevo) | Hanya Mailpit | Batas kirim Brevo dan reputasi domain belum diuji |
-| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 29 skrip / 844 langkah lulus |
+| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 30 skrip / 867 langkah lulus |
 | Tes komponen Vue | Tidak ada yang merender markup | Regresi tampilan hanya tertangkap E2E; fungsi murni sudah dijaga Vitest |
 
 > **Sejak 29 Oktober 2026 deploy produksi dibatalkan pemilik.** Baris yang

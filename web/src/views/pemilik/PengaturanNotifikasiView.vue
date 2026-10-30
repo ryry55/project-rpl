@@ -195,7 +195,12 @@ onMounted(muat)
   margin: 1px 0 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
-  opacity: 0.8;
+  /* Dulu `opacity: 0.8`. Di atas --teks-lemah (#6b6b6b) itu menghasilkan
+     #898989 di atas putih - kontras 3,49:1, di bawah 4,5:1 yang dituntut WCAG
+     AA untuk teks normal, dan axe melaporkannya di sembilan baris matriks ini.
+     Hierarki tetap terbaca dari ukuran 11px dan rupa monospace, jadi
+     transparansinya dibuang, bukan ditebus dengan warna abu baru. */
+  color: var(--teks-lemah);
   /* Kode peristiwa seperti `tagihan.terbit` adalah satu kata tanpa spasi, jadi
      ia tidak bisa dibungkus dan memaksa kolom pertama selebar 407px — terukur:
      tabel 3 kolom ini meluber 47px pada layar 360px meski hanya punya tiga

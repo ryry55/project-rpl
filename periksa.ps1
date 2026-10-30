@@ -435,7 +435,12 @@ if (-not $Cepat) {
             # saat peran berganti di peramban yang sama - dan kebocoran yang
             # paling mungkin pada sistem multi-peran justru keadaan yang
             # tertinggal dari peran sebelumnya.
-            'uji-tiga-peran.mjs'
+            'uji-tiga-peran.mjs',
+            # Aksesibilitas (axe-core): 21 halaman, aturan WCAG 2.0/2.1 A/AA.
+            # Sebelumnya tidak ada pemeriksaan otomatis sama sekali, dan yang
+            # pertama ditemukannya pun nyata - kontras 3,49:1 pada kode
+            # peristiwa di Pengaturan notifikasi.
+            'uji-aksesibilitas.mjs'
         )
 
         # Batas waktu per skrip. `periksa.sh` sudah memakai `timeout 240`; di

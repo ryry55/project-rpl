@@ -95,11 +95,11 @@ Uji beban **tidak** ikut gate: `node docs/beban/uji-beban.mjs` dijalankan manual
 ### CI/CD
 
 Tiga workflow di `.github/workflows/`: `uji.yml` (kebenaran kode - lint, vitest,
-lalu 812 tes PHP lalu 29 skrip uji di Chrome headless), `rilis.yml` (bangun
+lalu 812 tes PHP lalu 30 skrip uji di Chrome headless), `rilis.yml` (bangun
 image, dorong ke GHCR, staging lalu produksi), dan `deploy.yml` (satu
 lingkungan, dipanggil dua kali). Rinciannya di `docs/ci-cd.md`.
 
-Uji browser **tidak** ditulis ulang dengan Playwright. Dua puluh sembilan skrip browser di
+Uji browser **tidak** ditulis ulang dengan Playwright. Tiga puluh skrip browser di
 `docs/uji/` berbicara CDP mentah, dan endpoint CDP-nya dapat diatur lewat
 `CDP_BASE`/`APP_URL`/`API_URL`/`MAILPIT_URL` - jadi skrip yang sama berjalan di
 Chrome berjendela di laptop dan di Chrome headless di runner tanpa satu baris pun

@@ -3,20 +3,20 @@
 #
 # Dua pekerjaan, dan pemisahannya disengaja:
 #
-#   lint  - pint + eslint + vite build. Sekitar satu menit, tidak butuh
+#   lint  - pint + eslint + vitest + vite build. Sekitar satu menit, tidak butuh
 #           database dan tidak butuh Docker. Dijalankan lebih dulu supaya
 #           kesalahan format dan variabel mati dijawab dalam hitungan detik,
 #           bukan setelah sepuluh menit membangun image.
 #
-#   uji   - membangun image, menjalankan 806 tes PHP di dalam container, lalu
+#   uji   - membangun image, menjalankan 812 tes PHP di dalam container, lalu
 #           seluruh skrip uji browser terhadap Chrome headless.
 #
 # Kenapa uji browser TIDAK ditulis ulang memakai Playwright, padahal rencana
-# awal menyebutkannya sebagai pilihan: kedua puluh delapan skrip browser di docs/uji/
+# awal menyebutkannya sebagai pilihan: ketiga puluh skrip browser di docs/uji/
 # berbicara CDP mentah lewat WebSocket, dan endpoint CDP-nya dapat diatur lewat
 # variabel lingkungan (CDP_BASE/APP_URL/API_URL/MAILPIT_URL). Artinya skrip yang
 # SAMA berjalan di Chrome berjendela di laptop dan di Chrome headless di runner
-# tanpa satu baris pun diubah. Menulis ulang kedua puluh delapan skrip berarti
+# tanpa satu baris pun diubah. Menulis ulang ketiga puluh skrip berarti
 # membuang bukti yang sudah ada dan membuat dua rangkaian uji yang akan berbeda
 # pendapat - dan yang di CI selalu kalah, karena tidak ada yang membacanya.
 #
@@ -176,6 +176,13 @@ jobs:
         # Nilainya sama dengan yang dipakai di laptop, termasuk port 8081 -
         # supaya skrip uji yang menulis URL tidak perlu tahu bedanya.
         run: cp .env.example .env
+
+      # Satu-satunya skrip browser yang butuh pustaka npm di HOST: uji
+      # aksesibilitas menyuntikkan `axe-core` dari web/node_modules ke dalam
+      # peramban. Skrip lain hanya butuh CDP dan `fetch`.
+      - name: Pasang dependensi web untuk axe-core
+        working-directory: web
+        run: npm ci --no-audit --no-fund
 
       - name: Bangun image
         # Nama tag HARUS sama dengan `image:` di docker-compose.yml, kalau tidak

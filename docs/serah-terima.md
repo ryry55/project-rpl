@@ -19,9 +19,9 @@ dieksekusi: REV-UI-01 ditutup, kendali halaman, Vitest, dan skrip uji beban
 | Suite PHP | **812 lulus / 3807 asersi** (712 Feature / 100 Unit), 47 berkas; pint & eslint bersih |
 | Suite Vitest | **19 tes** (2 berkas) untuk fungsi murni: format uang/tanggal, pemotong halaman |
 | Migrasi / endpoint / tabel domain | **41** / **86** / **23** (total 32 di skema `public`) |
-| Skrip uji | **30** `.mjs`: **29** (26 browser + 2 balapan + 1 jalur proxy) dijalankan gate + `_cdp.mjs` |
-| Langkah E2E | **844 langkah**, gate penuh **544 detik** |
-| Gate lokal | **SEMUA LULUS** (30 Okt: 812 tes, 19 Vitest, pint, eslint, 4 pemeriksa dokumen, 29 skrip) |
+| Skrip uji | **31** `.mjs`: **30** (27 browser + 2 balapan + 1 jalur proxy) dijalankan gate + `_cdp.mjs` |
+| Langkah E2E | **867 langkah**, gate penuh **479 detik** |
+| Gate lokal | **SEMUA LULUS** (30 Okt: 812 tes, 19 Vitest, pint, eslint, 4 pemeriksa dokumen, 30 skrip) |
 
 Catatan: `POST /csp-laporan` di luar `/api/`, sengaja tidak masuk hitungan 86 endpoint.
 

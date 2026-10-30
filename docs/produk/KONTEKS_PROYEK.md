@@ -15,7 +15,7 @@ Versi 1.0 · 26 Oktober 2026 · Status: diserahkan
 Aplikasi web untuk pemilik kos kecil (5-30 kamar) mengelola kamar, penghuni,
 tagihan, dan pembayaran. Dibangun sebagai tugas besar mata kuliah Rekayasa
 Perangkat Lunak: Laravel 12.70.1 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah
-Docker Compose untuk menjalankan, 812 tes PHP dan 29 skrip uji untuk
+Docker Compose untuk menjalankan, 812 tes PHP dan 30 skrip uji untuk
 menjaganya. Yang membedakannya dari aplikasi sejenis: **setiap kos boleh punya
 cara kerja sendiri** — satuan sewa, jatuh tempo, dan bentuk dendanya dipilih dari
 menu, bukan dipaksa mengikuti satu pola.
@@ -97,7 +97,7 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 | Middleware | **6** |
 | Trigger basis data | **8** (7 append-only + 1 penjaga pembalik) |
 | Tes PHP | **812** (3807 asersi) di **47** berkas |
-| Skrip browser | **30** `.mjs` (29 terdaftar di gate; `uji-proxy.mjs` terpisah) |
+| Skrip browser | **31** `.mjs` (30 terdaftar di gate; `uji-proxy.mjs` terpisah) |
 | Halaman SPA | **27** komponen view · **31** rute bernama |
 | Wewenang pengelola | **8** |
 | Peristiwa notifikasi | **9** |
@@ -168,7 +168,7 @@ Diurutkan menurut **risiko**, bukan kemudahan.
 | ~~**Antrean email**~~ | ~~Sedang - 30 penghuni = 30 pengiriman berurutan~~ | **Sudah ditutup (Fase 5.5):** satu `KirimPemberitahuan` per penerima, dikirim program `antrean` di supervisord |
 | ~~**Deposit tidak dipakai**~~ | ~~Sedang — dibaca saat kontrak, lalu tidak pernah dipakai~~ | **Sudah ditutup.** Deposit dihapus seluruhnya di fase terakhir: kolom `kontrak.deposit`, tipe kebijakan `deposit`, dan seluruh alurnya. Kolom yang menyimpan angka tanpa akibat membuat orang mengira uangnya terjaga |
 | ~~**E2E menggantung di CI**~~ | ~~Sedang - CI tidak membuktikan frontend~~ | **Sudah ditutup.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip (34-41 dtk), sehingga E2E tidak pernah berjalan. Kini seluruh 29 skrip terdaftar di gate lulus di runner; `continue-on-error` dicabut |
-| **Uji aksesibilitas otomatis** | Rendah | Waktu |
+| ~~**Uji aksesibilitas otomatis**~~ | ~~Rendah~~ | **Sudah ditutup 30 Oktober 2026:** `docs/uji/uji-aksesibilitas.mjs` (axe-core, 21 halaman, WCAG A/AA) dijalankan gate |
 | **Lanskap ponsel belum diuji** | Rendah | Waktu |
 | **Uji luring sungguhan** | Rendah | Waktu |
 | ~~**Pembayaran pembalik**~~ | ~~Rendah~~ | **Sudah ditutup (fase terakhir):** endpoint dan tombolnya sudah ada, dijaga `uji-pembalik.mjs` dan `PembalikPembayaranTest` |
@@ -247,7 +247,7 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 ├── 4_AGENTS.md           Cara mengubah kode tanpa merusak apa pun
 ├── 5_SCHEMAS.md          23 tabel, CHECK, indeks, trigger (dari DB nyata)
 ├── 6_TOOLS_CONTRACTS.md  86 endpoint, middleware, bentuk request/response
-├── 7_TESTING_EVALS.md    812 tes, 29 skrip, prinsip "buktikan bisa gagal"
+├── 7_TESTING_EVALS.md    812 tes, 30 skrip, prinsip "buktikan bisa gagal"
 └── 8_OPERATIONS_SOP.md   Deploy, backup, pemulihan, insiden, batas gratis
 ```
 
@@ -258,7 +258,7 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 | `AGENTS.md` | Pintu masuk singkat untuk agen; menunjuk ke `4_AGENTS.md` |
 | `SPEC.md` | Spesifikasi 42 KB; sumber kebenaran aturan bisnis |
 | `docs/utang-teknis.md` | Register utang teknis — **baca ini sebelum mengeluh** |
-| `docs/uji/README.md` | Katalog 29 skrip uji dan jebakannya |
+| `docs/uji/README.md` | Katalog 30 skrip uji dan jebakannya |
 | `docs/ci-cd.md` | Tiga workflow, rinci |
 | `docs/dfd/` | Diagram alir data dan kamus data |
 | `docs/charter/` | Project Charter (docx + pdf) |

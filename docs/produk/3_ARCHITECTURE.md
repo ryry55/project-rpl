@@ -396,7 +396,7 @@ dibatasi adalah tebakan, bukan pemakaian.
 | ~~Penerbitan tagihan terjadwal~~ | ~~Render gratis tanpa cron yang andal~~ | **Sudah ada** (`schedule:work` di supervisord, tanggal 1 pukul 00:10 WIB). Batasnya: container gratis tidur, jadi ia bisa tidak berbunyi — dicatat di `11_AUDIT-PRODUKSI-2.md` A3 |
 | ~~Antrean email~~ | ~~Tanpa worker persisten~~ | **Sudah ada (Fase 5.5):** `KirimPemberitahuan` + program `antrean` di supervisord; produksi memakai `QUEUE_CONNECTION=database` |
 | ~~Tombol pembalik di layar~~ | ~~Endpoint `POST /pembayaran/{id}/pembalik` sudah ada sejak R2, tetapi belum ada tombolnya~~ | **Sudah ditutup (fase terakhir).** Panel rincian tagihan kini punya tombol **Tarik kembali** beserta formulir alasan wajib; `TagihanResource` mengirim `adalah_pembalik`/`sudah_dibalik` supaya layar tahu baris mana yang sudah ditarik. Dijaga `uji-pembalik.mjs` (13 langkah) |
-| Uji aksesibilitas otomatis | Waktu | Utang teknis |
+| ~~Uji aksesibilitas otomatis~~ | ~~Waktu~~ | **Sudah ada 30 Oktober 2026:** `docs/uji/uji-aksesibilitas.mjs` menjalankan axe-core pada 21 halaman dengan aturan WCAG 2.0/2.1 A/AA, termasuk kontrol negatif yang membuktikan pelanggaran memang tertangkap |
 | Multi-kos | Ditolak (§3.6) | — |
 | Aplikasi native | PWA cukup | Capacitor dicatat sebagai opsi |
 

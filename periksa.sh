@@ -364,6 +364,10 @@ if [ "$CEPAT" -eq 0 ]; then
             # paling mungkin pada sistem multi-peran justru keadaan yang
             # tertinggal dari peran sebelumnya.
             uji-tiga-peran.mjs
+            # Aksesibilitas (axe-core): 21 halaman, aturan WCAG 2.0/2.1 A/AA.
+            # Axe diambil dari web/node_modules, jadi langkah ini butuh
+            # `npm ci` di web/ - sama seperti eslint dan vitest.
+            uji-aksesibilitas.mjs
         )
 
         tutup_tab() {

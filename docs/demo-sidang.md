@@ -272,7 +272,15 @@ Satu hal, dan itu perintah Anda sendiri: **deploy dibatalkan 29 Oktober 2026**, 
 Render/Neon, Midtrans sandbox, pinger uptime, dan verifikasi Brevo tidak akan dikerjakan.
 Aplikasi dinilai dan didemokan dari laptop. Antrean email sudah ditutup
 (Fase 5.5: program `antrean` + `KirimPemberitahuan`). Uji E2E di CI **sudah hijau** —
-29 skrip / 844 langkah. Tidak ada yang disembunyikan.
+30 skrip / 867 langkah. Tidak ada yang disembunyikan.
+
+**"Bagaimana aksesibilitasnya dibuktikan?"**
+`docs/uji/uji-aksesibilitas.mjs` menjalankan axe-core pada 21 halaman (publik, pemilik,
+penghuni, dan halaman 404) dengan aturan WCAG 2.0/2.1 level A/AA, dan ikut dijalankan
+gate. Cacat pertama yang ditemukannya nyata: kode peristiwa di layar Pengaturan
+notifikasi berkontras 3,49:1 karena transparansi 0,8 di atas abu sekunder; transparansi
+itu dibuang sehingga menjadi 5,3:1. Yang tetap belum: pembaca layar sungguhan
+(NVDA/VoiceOver), karena itu butuh manusia di depan mesin.
 
 **"Bagaimana kalau angkanya dipertanyakan?"**
 Setiap perubahan angka punya jejak: `log_audit` mencatat aktor, waktu, nilai lama, dan nilai baru,

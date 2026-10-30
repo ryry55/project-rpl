@@ -388,8 +388,13 @@ tautan duplikat bagi pembaca layar di desktop. Dijaga `uji-tata-letak.mjs`.
 | Tabel kartu | `thead` disembunyikan dengan `clip-path: inset(50%)`, **bukan** `display: none` — pembaca layar masih menemukannya |
 | Bahasa | `<html lang="id">` |
 
-**Yang belum dikerjakan:** belum ada uji aksesibilitas otomatis (axe). Ini
-utang teknis yang dicatat, bukan yang diabaikan.
+**Uji otomatis (axe).** Sejak 30 Oktober 2026 `docs/uji/uji-aksesibilitas.mjs`
+menjalankan axe-core pada 21 halaman (publik, pemilik, penghuni, dan halaman
+404) dengan aturan WCAG 2.0/2.1 level A dan AA. Cacat pertama yang ditemukannya
+nyata: kode peristiwa di layar Pengaturan notifikasi berkontras 3,49:1 karena
+`opacity: 0.8` di atas `--teks-lemah`; transparansinya dibuang sehingga menjadi
+5,3:1. Yang tetap tidak tercakup mesin: urutan fokus yang masuk akal dan teks
+alternatif yang benar-benar menjelaskan gambarnya.
 
 ---
 

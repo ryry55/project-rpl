@@ -49,21 +49,21 @@ perkakasnya sendiri tidak membusuk:
    pertama langkah ini menyerah pada detik ke-30 padahal log Chrome menunjukkan
    `DevTools listening` tiga detik kemudian. Menunggu 30 detik bukan pagar, ia
    hanya durasi yang kebetulan cukup di laptop.
-6. `./periksa.sh --hanya-e2e` - 26 skrip browser, 2 uji balapan, dan 1 uji jalur
-   proxy (29 skrip).
+6. `./periksa.sh --hanya-e2e` - 27 skrip browser, 2 uji balapan, dan 1 uji jalur
+   proxy (30 skrip).
 
 ### Kenapa uji browser tidak ditulis ulang dengan Playwright
 
 Rencana awal menyebut Playwright sebagai pengganti CDP. Yang dipilih adalah
 kebalikannya, dan alasannya bukan kemalasan:
 
-Kedua puluh sembilan skrip uji di `docs/uji/` berbicara CDP mentah lewat WebSocket, dan
+Ketiga puluh skrip uji di `docs/uji/` berbicara CDP mentah lewat WebSocket, dan
 endpoint CDP-nya **dapat diatur lewat variabel lingkungan**
 (`CDP_BASE`/`APP_URL`/`API_URL`/`MAILPIT_URL`). Artinya skrip yang sama berjalan
 di Chrome berjendela di laptop dan di Chrome headless di runner tanpa satu baris
 pun diubah.
 
-Menulis ulang kedua puluh sembilan skrip uji berarti membuang bukti yang sudah ada dan
+Menulis ulang ketiga puluh skrip uji berarti membuang bukti yang sudah ada dan
 membuat **dua** rangkaian uji yang akan berbeda pendapat. Yang di CI selalu
 kalah dalam perbedaan itu, karena tidak ada yang membacanya.
 

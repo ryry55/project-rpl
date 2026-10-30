@@ -283,3 +283,30 @@ ke rupiah terdekat lewat `Intl` (`maximumFractionDigits: 0`), jadi komentar lama
 "tidak pernah membulatkan" salah. Uji yang menuntut pecahan tampil sebagai pecahan
 karena itu dihapus, bukan dipaksakan.
 
+
+## 16. Putaran 30 Oktober 2026 (kedua) — utang aksesibilitas ditutup, dan cacat kontras yang ditemukannya
+
+Gate penuh: **812 tes PHP / 3807 asersi / 47 berkas**, **19 tes Vitest**,
+**30/30 skrip lulus, 867 langkah, 479 detik**. Angka ini menggantikan §15;
+§11-§15 dibiarkan sebagai riwayat.
+
+Yang dikerjakan adalah satu-satunya utang teknis yang masih berupa kode, yaitu
+**uji aksesibilitas otomatis (axe)** yang selama ini hanya tercatat di
+`3_ARCHITECTURE.md` §9 dan `7_TESTING_EVALS.md` §6:
+
+| Yang ditutup | Bukti | Kontra-uji |
+|---|---|---|
+| **Uji aksesibilitas otomatis** | `docs/uji/uji-aksesibilitas.mjs` (23 langkah): axe-core pada 21 halaman - 2 publik, 15 layar pemilik, portal penghuni, halaman Data pribadi, dan halaman 404 - dengan aturan WCAG 2.0/2.1 level A/AA. Terdaftar di `periksa.ps1`, `periksa.sh`, dan `uji.yml` | Skripnya membawa **dua** kontrol negatif: empat cacat yang disisipkan (tautan tanpa nama, gambar tanpa teks alternatif, medan tanpa label, teks kontras rendah) wajib terdeteksi 4/4, dan halaman wajib kembali bersih setelah cacatnya dibuang |
+| **Cacat kontras yang ditemukannya** | Kode peristiwa di `PengaturanNotifikasiView.vue` memakai `opacity: 0.8` di atas `--teks-lemah` (#6b6b6b) sehingga menjadi #898989 di atas putih: **3,49:1**, di bawah 4,5:1 yang dituntut AA. Transparansinya dibuang, jadi warnanya kembali 5,3:1 | Transparansinya dikembalikan → 22/23, tepat satu halaman merah dengan pesan `color-contrast (serious, 9x)` |
+| **Baris dokumen yang basi** | `docs/utang-teknis.md` §6 masih menulis "navigasi bawah ponsel: belum dikerjakan", padahal `nav.bawah` sudah ada di `TataLetakPemilik.vue:340` sejak Fase 5.1 dan dijaga `uji-tata-letak.mjs` | - |
+| **Mojibake yang tertinggal** | `api/tests/Feature/KebijakanKosTest.php` (5x `Ã—` -> `×`) dan `web/src/views/PengaturanPdpView.vue` (2x `Memuatâ€¦` -> `Memuat…`, terlihat pengguna) | Penggantian memakai skrip Node yang menghitung kemunculan lebih dulu dan berhenti bila angkanya tidak sesuai; berkas PHP diperiksa tidak ber-BOM lalu image dibangun ulang |
+
+**Dua mojibake yang SENGAJA tidak diperbaiki:** `api/app/Domain/Laporan/EksporCsv.php`
+menulis `"Ayu NurhalizÃ¢"` dan `docs/produk/6_TOOLS_CONTRACTS.md` menulis `Ã©`
+sebagai **contoh** hasil rusaknya - keduanya menggambarkan cacat, bukan
+mengalaminya. Pembersihan menyeluruh berikutnya jangan "membetulkannya".
+
+**Pelajaran yang berlaku umum:** pemeriksa yang baru dipasang sebaiknya dicoba
+pada aplikasi yang **belum** diperbaiki. Axe menemukan satu cacat nyata dalam
+hitungan detik pada kode yang sudah lolos 844 langkah E2E dan pembacaan manual
+sebelumnya - karena tidak ada skrip yang pernah mengukur kontras.

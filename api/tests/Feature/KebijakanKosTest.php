@@ -418,7 +418,7 @@ class KebijakanKosTest extends TestCase
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_MASUK);
         $this->dendaBawaan();
 
-        // Oktober 31 hari, masuk tanggal 1: 50.000 Ã— 31 = 1.550.000.
+        // Oktober 31 hari, masuk tanggal 1: 50.000 × 31 = 1.550.000.
         $this->sebagaiPemilik()
             ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-10-01'])
             ->assertCreated()
@@ -432,7 +432,7 @@ class KebijakanKosTest extends TestCase
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_MASUK);
         $this->dendaBawaan();
 
-        // 350.000 Ã— 31 / 7 = 1.550.000 tepat.
+        // 350.000 × 31 / 7 = 1.550.000 tepat.
         $this->sebagaiPemilik()
             ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-10-01'])
             ->assertCreated()
@@ -447,7 +447,7 @@ class KebijakanKosTest extends TestCase
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_MASUK);
         $this->dendaBawaan();
 
-        // 50.000 Ã— 17 = 850.000, bukan 50.000 Ã— 31. Penghuni yang masuk tanggal
+        // 50.000 × 17 = 850.000, bukan 50.000 × 31. Penghuni yang masuk tanggal
         // 15 tidak boleh ditagih sebulan penuh hanya karena kosnya harian.
         $this->sebagaiPemilik()
             ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-10-01'])
@@ -462,7 +462,7 @@ class KebijakanKosTest extends TestCase
         $this->kebijakan(PilihanKebijakan::TIPE_JATUH_TEMPO, PilihanKebijakan::JATUH_TEMPO_TANGGAL_MASUK);
         $this->dendaBawaan();
 
-        // November 30 hari: 50.000 Ã— 30 = 1.500.000.
+        // November 30 hari: 50.000 × 30 = 1.500.000.
         $this->sebagaiPemilik()
             ->postJson('/api/tagihan', ['kontrak_id' => $kontrak->id, 'periode' => '2026-11-01'])
             ->assertCreated()

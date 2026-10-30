@@ -118,7 +118,7 @@ onMounted(muat)
 
     <PesanBaris v-if="galatMuat" jenis="galat">{{ galatMuat }}</PesanBaris>
 
-    <p v-if="memuat" class="lemah mungil">Memuatâ€¦</p>
+    <p v-if="memuat" class="lemah mungil">Memuat…</p>
 
     <template v-else-if="data">
       <PanelKartu judul="Akun dan kontak">
@@ -275,7 +275,7 @@ onMounted(muat)
         <p v-if="galatHapus" class="pesan-galat" role="alert">{{ galatHapus }}</p>
 
         <button type="button" class="bahaya" :disabled="!bolehHapus || adaKontrakAktif" @click="hapus">
-          {{ menghapus ? 'Menghapusâ€¦' : 'Lepas identitas saya' }}
+          {{ menghapus ? 'Menghapus…' : 'Lepas identitas saya' }}
         </button>
 
         <p class="bantuan mungil">

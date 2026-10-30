@@ -80,7 +80,7 @@ pendapatan, tiga ekspor CSV, jejak audit append-only, wewenang pengelola,
 persetujuan pemilik, persetujuan PDP, dan portal penghuni.
 
 Laravel 12 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah Docker Compose.
-86 endpoint, 23 tabel, 812 tes PHP, 29 skrip uji.
+86 endpoint, 23 tabel, 812 tes PHP, 30 skrip uji.
 
 Yang **sengaja tidak** dikerjakan: multi-kos untuk satu pemilik, pembukuan
 akuntansi, inventaris aset, chat di dalam aplikasi, prediksi/analitik.
@@ -127,7 +127,7 @@ merek lain di luar lencana teks tersebut.
 
 - `docs/produk/` — PRD, naskah wawancara pemilik kos, arsitektur, skema,
   kontrak endpoint, rencana uji, SOP operasi, catatan deploy.
-- `docs/uji/` — 29 skrip uji (26 di antaranya lewat browser sungguhan), dan tangkapan
+- `docs/uji/` — 30 skrip uji (27 di antaranya lewat browser sungguhan), dan tangkapan
   layar bukti untuk T2–T28, QR, r3, PB.
 - `docs/erd/` — ERD berjenjang dan LRS, dibangkitkan dari basis data hidup.
 - `docs/akademik/` — laporan akademik yang sudah diserahkan.
@@ -160,5 +160,6 @@ pengguna, angka pendapatan, logo, foto properti, atau studi kasus.
 - Tabel yang berubah menjadi kartu di ponsel tetap menyimpan `<table>`,
   `<tbody>`, `<tr>`, `<td>` agar pembaca layar tidak kehilangan struktur.
 - `<html lang="id">`.
-- Belum ada uji aksesibilitas otomatis (axe). Ini utang teknis yang dicatat,
-  bukan yang diabaikan.
+- Uji aksesibilitas otomatis ada sejak 30 Oktober 2026: `docs/uji/uji-aksesibilitas.mjs`
+  menjalankan axe-core pada 21 halaman dengan aturan WCAG 2.0/2.1 A/AA. Pembaca
+  layar sungguhan (NVDA/VoiceOver) tetap menunggu manusia di depan mesin.

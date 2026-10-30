@@ -8,7 +8,7 @@
 >
 > **Cara dibaca:** status di bawah hasil **pembacaan statis** kode dan tes pada
 > 30 Oktober 2026, ditambah gate yang hijau hari itu (812 tes PHP / 3807 asersi,
-> 19 tes Vitest, 29 skrip / 844 langkah, 544 detik). Ia membuktikan perbaikan
+> 19 tes Vitest, 30 skrip / 867 langkah, 479 detik). Ia membuktikan perbaikan
 > **ada di kode**; ia bukan bukti runtime baru. Kolom Bukti menyebut tempat
 > memeriksanya sendiri.
 

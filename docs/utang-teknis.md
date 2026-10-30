@@ -410,7 +410,7 @@ labelnya, jangan polanya, kecuali memang ingin menajamkan pola itu.
 
 | Kurang | Dampak | Catatan |
 |---|---|---|
-| Navigasi bawah (bottom bar) khusus ponsel | Menu masih berupa deret mendatar yang digeser | Bukan cacat, tetapi pola ponsel yang lazim |
+| ~~Navigasi bawah (bottom bar) khusus ponsel~~ | ~~Menu masih berupa deret mendatar yang digeser~~ | **Sudah ada sejak Fase 5.1 (29 Okt 2026):** `nav.bawah` di `TataLetakPemilik.vue` merender tiga tujuan + tombol Menu dari larik `menu` yang sama, hanya saat `layarSempit`. Dijaga `uji-tata-letak.mjs` pada 360/390/768px, termasuk asersi bahwa ia **hilang** di 1280px |
 | `uji-pwa.mjs` memakai build produksi | Service worker tidak didaftarkan saat `npm run dev` | `periksa.sh` sudah memakai image, jadi aman di sana |
 
 **Dua batas yang diketahui dari uji luring** (dicatat supaya tidak dikira bug):
