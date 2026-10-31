@@ -242,6 +242,14 @@ ketahuan setelah build, 738 tes PHP, pint, dan eslint selesai. `periksa.ps1`
 sekarang menjalankan `node --check` pada semua `.mjs` lebih dulu, tetapi jalankan
 sendiri saat menyunting satu berkas: `node --check docs/uji/<berkas>.mjs`.
 
+**Menunggu `h1` bukan menunggu halamannya siap.** Judul dirender saat komponen
+dipasang, sedangkan isinya menunggu `fetch`. Skrip yang hanya menunggu `h1` lalu
+langsung membaca DOM akan lulus di laptop dan **merah di runner CI yang lebih
+lambat**, dengan gejala yang menyesatkan: seluruh kolom `false`, seolah data
+tidak boleh dilihat. Terjadi di `e2e-t28` (31 Okt). Tunggu penanda yang hanya
+muncul setelah data terisi - misalnya email akun itu sendiri - dengan batas
+waktu yang sama.
+
 ### PowerShell
 
 `git commit -m` memotong pesan panjang; tulis ke berkas, pakai `-F <berkas>`,
