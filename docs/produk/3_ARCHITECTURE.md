@@ -33,7 +33,7 @@ Versi 1.0 · 26 Oktober 2026
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
 │  PostgreSQL 16                                               │
-│  23 tabel · 8 trigger (7 append-only) · CHECK sebagai pagar  │
+│  24 tabel · 8 trigger (7 append-only) · CHECK sebagai pagar  │
 └──────────────────────────────────────────────────────────────┘
 
   di luar jalur utama:
@@ -410,13 +410,13 @@ penutupan. Daftar yang tidak dicatat akan terlupakan.
 ```
 api/
   app/Domain/            52 kelas, 13 folder - semua aturan
-  app/Http/Controllers/  27 pengendali — hanya menerjemahkan
+  app/Http/Controllers/  28 pengendali — hanya menerjemahkan
   app/Http/Middleware/   6 middleware
   app/Http/Requests/     validasi
-  app/Http/Resources/    14 resource — bentuk JSON
-  app/Models/            21 model — hanya bentuk data
-  database/migrations/   41 migrasi
-  tests/                 47 berkas tes, 812 tes
+  app/Http/Resources/    15 resource — bentuk JSON
+  app/Models/            22 model — hanya bentuk data
+  database/migrations/   42 migrasi
+  tests/                 48 berkas tes, 830 tes
 
 web/
   src/views/             27 view (7 publik + 20 pemilik dan panelnya)

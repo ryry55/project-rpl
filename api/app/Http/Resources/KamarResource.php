@@ -43,6 +43,18 @@ class KamarResource extends JsonResource
                     'nama' => $f->nama,
                     'ikon' => $f->ikon,
                 ])->values()),
+            // Laporan kerusakan yang belum selesai (T14). Inilah penjelasan
+            // kenapa `status_huni` bernilai `perbaikan`; tanpa ini layar hanya
+            // menampilkan lencana tanpa alasan, dan pemilik harus membuka
+            // halaman lain untuk tahu apa yang rusak.
+            'laporan_terbuka' => $this->whenLoaded('laporanTerbuka', fn () => $this->laporanTerbuka
+                ? [
+                    'id' => $this->laporanTerbuka->id,
+                    'deskripsi' => $this->laporanTerbuka->deskripsi,
+                    'dilaporkan_pada' => $this->laporanTerbuka->created_at?->toIso8601String(),
+                    'pelapor' => $this->laporanTerbuka->pelapor?->name,
+                ]
+                : null),
         ];
     }
 }

@@ -110,7 +110,7 @@ halaman baru dimuat, jadi harus dipasang ulang setelah `Page.navigate`.
 | Berkas | Yang dibuktikan | Butuh |
 |---|---|---|
 | `e2e-t1.mjs` | Login, token tersimpan, pengalihan peran, keluar membersihkan token; **token yang dicabut di server selagi sesi terbuka** mengeluarkan pengguna ke `/masuk` dengan pesan "Sesi Anda berakhir" dan `lanjut` berisi halaman yang terputus (REV-UI-01) | Chrome, seed |
-| `e2e-t2.mjs` | Data induk lewat UI: 8 kamar, 6 penghuni, kontrak | Chrome, seed |
+| `e2e-t2.mjs` | Data induk lewat UI: 8 kamar, 6 penghuni, kontrak, dan laporan kerusakan (T14) yang menandai kamar `perbaikan` lalu mengembalikannya | Chrome, seed |
 | `e2e-t3.mjs` | Terbit tagihan, rincian, prorata bulan masuk | Chrome, seed |
 | `e2e-t4.mjs` | Terbit massal, penolakan duplikat periode, ringkasan tiga nasib; kendali halaman memotong 52 tagihan menjadi 50 + 2 sementara kepala halaman tetap menghitung seluruh 52 | Chrome, seed |
 | `e2e-t5.mjs` | Catat pembayaran sebagian lalu lunas, kelebihan bayar ditolak | Chrome, seed |
@@ -313,7 +313,7 @@ docker compose exec -T api sh /tmp/u.sh
 **Kenapa dijalankan manual, bukan di gate.** Skrip ini mengubah berkas kode di
 dalam container. Menjalankannya otomatis berarti gate sesekali menguji kode yang
 sedang disuntik - dan bila salah satu skrip mati di tengah jalan, cacatnya
-tertinggal. Yang otomatis adalah **tesnya** (812 tes PHP, 30 skrip browser);
+tertinggal. Yang otomatis adalah **tesnya** (830 tes PHP, 30 skrip browser);
 yang manual adalah **bukti bahwa tesnya bisa gagal**, dijalankan setiap kali
 sebuah pagar baru ditambahkan.
 

@@ -6,9 +6,9 @@
 >
 > **Maksimal 120 baris.** Kalau lebih, isinya sudah menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: 30 Oktober 2026 (malam). Sesudah gladi demo dijalankan
-sungguhan (39/39) dan menemukan empat kalimat yang tidak cocok dengan layar,
-lalu kontrol negatif `role="alert"` ditutup: 26/27 merah, 27/27 sesudah pulih.
+Terakhir diperbarui: 31 Oktober 2026 (malam), sesudah **T14 (#13) selesai** —
+tabel `laporan_kerusakan`, status kamar `perbaikan`, dan seluruh dokumen
+akademik/ERD/LRS dibangun ulang dengan angka skema yang baru.
 
 ---
 
@@ -16,43 +16,37 @@ lalu kontrol negatif `role="alert"` ditutup: 26/27 merah, 27/27 sesudah pulih.
 
 | Hal | Nilai |
 |---|---|
-| Fase terakhir selesai | **Fase 5.1 / 5.4 / 5.5** + **K-05..K-12**, dijawab pemilik 29-30 Okt |
-| Suite PHP | **812 lulus / 3807 asersi** (712 Feature / 100 Unit), 47 berkas; pint & eslint bersih |
+| Fase terakhir selesai | **T14 laporan kerusakan** (#13) + K-13 dijawab 31 Okt |
+| Suite PHP | **830 lulus / 3883 asersi**, **48 berkas**; pint & eslint bersih |
 | Suite Vitest | **19 tes** (2 berkas) untuk fungsi murni: format uang/tanggal, pemotong halaman |
-| Migrasi / endpoint / tabel domain | **41** / **86** / **23** (total 32 di skema `public`) |
+| Migrasi / endpoint / tabel domain | **42** / **89** / **24** (total 33 di skema `public`) |
+| Skema | **209 kolom, 29 kunci asing, 8 trigger** (tidak ada trigger baru) |
 | Skrip uji | **31** `.mjs`: **30** (27 browser + 2 balapan + 1 jalur proxy) dijalankan gate + `_cdp.mjs` |
-| Langkah E2E | **871 langkah** (dihitung dari keluaran CI, bukan katalog), gate penuh **409 detik di CI** |
-| Gate lokal | **Hijau pada `adbb4a9`**; commit sesudahnya diverifikasi **CI** (`41065788815`, `41067553821`, hijau). `uji-aksesibilitas.mjs` **27/27** juga dijalankan di laptop 30 Okt malam |
-| Image `web` di laptop | **Sudah benar** — dibangun ulang sesudah `role="alert"` dan dibuktikan 27/27 di laptop, bukan hanya di CI |
+| Langkah E2E | `e2e-t2` kini **26/26**, delapan di antaranya T14 (browser sungguhan, 31 Okt) |
+| Ticket GitHub | **#11, #12, #13, #14 tertutup.** Tidak ada issue terbuka |
+| ERD/LRS | `cek-erd-lrs.js` **LULUS**: 24 tabel / 209 kolom / 29 kunci asing; L3 terbaca 2,74 mm di A3 |
 
-Catatan: `POST /csp-laporan` di luar `/api/`, sengaja tidak masuk hitungan 86 endpoint.
+Catatan: `POST /csp-laporan` di luar `/api/`, sengaja tidak masuk hitungan 89 endpoint.
 
 ## 2. Dua aksi berikutnya
 
-**Tidak ada pekerjaan deploy.** Pemilik membatalkan deploy 29 Oktober 2026:
-penilaian dan demo dari laptop lewat `docker compose`; `9_DEPLOY.md`,
-`Dockerfile.prod`, dan `deploy.yml` tinggal sebagai bukti kerja, tidak dipakai.
+**Tidak ada pekerjaan deploy.** Pemilik membatalkan deploy 29 Oktober 2026: demo dari laptop
+lewat `docker compose`; `9_DEPLOY.md`, `Dockerfile.prod`, `deploy.yml` tinggal sebagai bukti.
 
-**Rincian kedua aksi ini, beserta tiga pertanyaan yang akan ditanya penguji dan
-urutan H-1: `docs/fase-akhir.md`.**
+**Rinciannya, beserta tiga pertanyaan yang akan ditanya penguji dan urutan H-1:
+`docs/fase-akhir.md`.**
 
-1. **Gladi demo bertiga, di layar.** Yang bisa diperiksa tanpa manusia sudah
-   selesai 30 Okt: **39/39** klaim `docs/demo-sidang.md` ditegaskan pada database
-   segar, dan menemukan **empat kalimat yang tidak cocok dengan layar** —
-   keempatnya sudah diperbaiki. Sisanya latihan mengucapkan lima menit itu.
-2. **Uji beban manual** di laptop yang dipakai sidang:
-   `node docs/beban/uji-beban.mjs` (50 bersamaan, 500 permintaan, p95 < 1.000 ms).
-   Dua pengukuran di laptop ini: **840 ms** (77 rps) dan **464 ms** (123 rps),
-   0 galat keduanya — yang benar rentangnya, dan mesin sidang diukur sendiri.
+1. **Gladi demo bertiga, di layar** — tiga kali, dihitung waktunya
+   (`docs/demo-sidang.md`). Ini satu-satunya pekerjaan yang tersisa.
+2. **Fase 6 (laporan) menunggu format dosen**; bila datang, hanya `docs/akademik/*` yang dibuat.
 
-**Tidak ada keputusan pemilik yang masih menunggu.** K-01..K-12 dijawab atau
-ditutup; yang terakhir (30 Okt): REV-UI-01, kendali halaman, Vitest, ambang uji
-beban, `docs/revisi.md` tidak disentuh, dan **K-12** — luring tetap mendarat di
-`/masuk`.
+**Tidak ada keputusan pemilik yang masih menunggu.** K-01..K-13 dijawab atau
+ditutup. Yang terakhir (31 Okt, **K-13**): tabel tersendiri, kamar `perbaikan`
+tetap ditagih penuh, pemilik **dan** pengelola boleh menutup laporan, dan biaya
+perbaikan tidak pernah masuk tagihan penghuni.
 
-Yang **tidak** dikerjakan dan tidak akan ditawarkan lagi: Render/Neon, Midtrans
-sungguhan, pinger uptime, latihan restore, verifikasi domain Brevo, domain
-`.my.id`, dan menegakkan CSP.
+Tidak dikerjakan dan tidak akan ditawarkan lagi: Render/Neon, Midtrans sungguhan, pinger uptime,
+latihan restore, verifikasi domain Brevo, domain `.my.id`, dan menegakkan CSP.
 
 ## 3. Yang tidak boleh diubah
 
@@ -62,39 +56,31 @@ sungguhan, pinger uptime, latihan restore, verifikasi domain Brevo, domain
 | Wewenang pengelola (8) dan Model A | `SPEC.md` bagian 5 |
 | Konvensi T24-T29 | `AGENTS.md` |
 | Sumber tunggal DFD / use case | `docs/dfd/dfd-data.js`, `docs/akademik/usecase-data.js` |
-| Keputusan pemilik | `docs/keputusan-terbuka.md` (K-01..K-12, semuanya `dijawab` atau `ditutup`) |
+| Keputusan pemilik | `docs/keputusan-terbuka.md` (K-01..K-13) |
 | Langkah deploy manual | `docs/produk/9_DEPLOY.md` |
 
-**K-05 (29 Okt, C: "harus bisa diekspor"):** `GET /api/tagihan?per_page=1..200` hanya dihormati bila dikirim; di luar batas → 422. **K-08 (30 Okt)** menambah kendali halaman **di layar** (50 baris), bukan `per_page`, supaya angka uang di kepala halaman tetap berarti seluruh tagihan.
-**Keputusan 28 Oktober (A semua):** K-01 Midtrans mengirim `item_details`; K-02 `SPEC.md` disunting faktual; K-03 `GET /api/penghuni/kontrak` masuk UC-13; K-04 gate dan CI menyegarkan `rute-api.json`.
+**Keputusan lama tetap berlaku:** `occupancy_rate` = hari-kamar; kuitansi tanpa
+nomor urut (penandanya id pembayaran + periode); **deposit dihapus seluruhnya**.
 
-**Keputusan lama tetap berlaku:** `occupancy_rate` = hari-kamar; kuitansi tanpa nomor urut (penandanya id pembayaran + periode).
+**Bahasa visual: "buku besar tanpa warna".** Arah "kartu indeks katalog"
+**ditolak pemilik**. Satu tombol hampir hitam per layar; `nav a`, `.tabel`,
+`.lencana-status`, `.aksi-kepala`, `.merek p`, `.kartu-kelompok`, `.kendali`
+tetap ada. **Narasi tetap 4 halaman**; **harga Charter Rp 50.000.000**.
 
-**Bahasa visual: "buku besar tanpa warna".** Arah "kartu indeks katalog" **ditolak pemilik**. Satu tombol hampir hitam per layar; `nav a`, `.tabel`, `.lencana-status`, `.aksi-kepala`, `.merek p`, `.kartu-kelompok`, `.kendali` tetap ada. **Narasi tetap 4 halaman**; **harga Charter Rp 50.000.000**.
-
-## 4. Yang ditutup 30 Oktober 2026
+## 4. Yang dibangun di T14
 
 | Hal | Hasil |
 |---|---|
-| Status 36 temuan audit | `docs/status-revisi.md`: **33 selesai, 0 selesai tanpa tes, 3 tidak berlaku, 0 terbuka**. REV-UI-01 yang terakhir ditutup |
-| REV-UI-01 (401 di tengah pemakaian) | `sesiHabis()` di `web/src/sesi.js`: 401 selama token masih ada → sesi dibersihkan, muat ulang ke `/masuk?pesan=berakhir&lanjut=…`. Dijaga `e2e-t1.mjs` |
-| Kendali halaman Tagihan (K-08) | `web/src/halaman.js` + `TagihanView.vue`: `daftar` tetap utuh (kepala halaman menjumlahkan semua), `tampil` dipotong 50 baris. Dijaga `e2e-t4.mjs` (52 → 50 + 2) |
-| Vitest | `vitest` saja (tanpa jsdom): `format.test.js` + `halaman.test.js`, 19 tes, langkah tersendiri di `periksa.ps1`/`periksa.sh`/`uji.yml` |
-| Uji beban (K-10) | `docs/beban/uji-beban.mjs`, **manual** (bukan gate): 50 bersamaan / 500 permintaan, gagal bila p95 > 1.000 ms. Dua pengukuran di laptop ini: p95 840 ms (77 rps) dan 464 ms (123 rps) sesudah data demo terisi, 0 galat keduanya |
-| Axe pada keadaan yang muncul dari tindakan | `uji-aksesibilitas.mjs` 23 → **27 langkah**: data uji disiapkan sendiri (seeder hanya berisi akun), lalu tiga keadaan diukur — panel rincian, form catat pembayaran, galat validasi. Tiap keadaan wajib terbukti muncul lebih dulu, sebab tindakan yang gagal membuka formulir akan diukur sebagai halaman biasa dan lulus dengan mudah |
-| Cacat kedua yang ditemukannya | **Tidak satu pun pesan galat diumumkan pembaca layar.** `PesanBaris` hanya memasang `role` bila pemanggil menulis `peran="alert"`, dan 0 dari 39 pemanggil menulisnya. Kini komponen itu memasang `role="alert"` sendiri untuk `jenis="galat"`; langkah galat validasi menuntutnya. **Kontrol negatifnya sudah dijalankan 30 Okt**: `PesanBaris` dibalik → **26/27**, merah tepat di langkah itu dengan "pesan galat muncul tetapi tidak punya role=\"alert\"", lalu dipulihkan → **27/27** |
+| Tabel | `laporan_kerusakan` (8 kolom): `kamar_id`, `deskripsi`, `dilaporkan_oleh`, `selesai_pada`, `ditutup_oleh`. Indeks unik **parsial** `laporan_kerusakan_satu_terbuka_per_kamar` |
+| Status kamar | CHECK `kamar.status_huni` kini menerima `perbaikan` |
+| Endpoint | `GET /api/laporan-kerusakan`, `POST /api/laporan-kerusakan`, `POST /api/laporan-kerusakan/{laporan}/selesai` |
+| Pagar di jalur lain | Kontrak baru pada kamar `perbaikan` → 422; `akhiri` kontrak **tidak** mengosongkan kamar yang diperbaiki; `MulaiKontrak` tetap `perbaikan`; ubah `status_huni` manual ditolak selama laporan terbuka |
+| Jejak audit | `kerusakan.lapor` / `kerusakan.selesai`, menempel pada entitas `kamar` |
+| Layar | `KamarView.vue`: panel "Laporkan kerusakan", tombol "Laporkan rusak" / "Selesai diperbaiki", `.status-perbaikan`, hitungan "diperbaiki" terpisah dari "kosong" |
 
-**Kontra-uji, semuanya sudah dijalankan:** `per_page` dicabut → 1 gagal/8 asersi;
-`lang/id` disembunyikan → 1 gagal/2 asersi; `Pemberitahu` kembali ke `Mail::send()`
-→ `job was not pushed`; penjaga tarif dimatikan → pengelola 201 (bukan 422);
-`->whereHas('pembayaran')` disuntikkan → tagihan tanpa pembayaran hilang dari
-tunggakan; DFD (rute dihapus / `D1` black hole / SVG disentuh) → ketiganya merah;
-penanganan 401 dimatikan → 4 asersi E2E merah; `:daftar="daftar"` → 2 asersi merah;
-`potong()` selalu mulai baris 1 → 3 tes Vitest merah; `AMBANG_P95=1` → GAGAL;
-`role="alert"` dicabut → 26/27 merah di langkah galat validasi.
-
-**Putaran sebelumnya** (5.1, 5.4, 5.5, rotasi log, `supervisorctl`, batas waktu
-per skrip, penjaga DFD, uji tiga-peran): lihat `docs/audit-dokumen-vs-fitur.md` §13-§14.
+**Kontra-uji T14:** `KerusakanTest` menembak indeks unik parsial **langsung ke
+basis data** (tanpa HTTP) dan mengharapkan `QueryException` — pemeriksaan
+`exists()` di controller punya celah balapan, dan hanya indeks itu yang menutupnya.
 
 ## 5. Cara memeriksa keadaan
 
@@ -107,12 +93,28 @@ Tanpa uji browser: `-Cepat`. Di Linux/CI: `./periksa.sh`. Bila mengubah
 `web/src`: `npm run build`, `docker compose build web`, lalu `up -d web` — kode
 dibakar ke image. Angka §1 diubah **sesudah** gate.
 
+Membangun ulang dokumen akademik/ERD: urutan perintahnya ada di
+`docs/erd/README.md` §"Urutan membangun" dan `docs/akademik/README.md`.
+
 ## 6. Jebakan yang menggigit di sesi ini
 
-1. **`Queue::fake()` wajib untuk menguji antrean.** Dengan `sync`, pekerjaan berjalan di dalam permintaan dan `Mail::assertSent` tetap lulus.
-2. **`supervisord.conf` tanpa `[unix_http_server]` + `[rpcinterface:supervisor]` tidak bisa dikendalikan `supervisorctl`** ("does not include supervisorctl section").
-3. **Komentar ber-backtick di dalam template literal memutus string** — juga di dalam `evaluasi()` skrip browser. Terjadi saat menulis `uji-tiga-peran.mjs`.
-4. **Asumsi tentang aplikasi bisa salah, dan tes yang menguji asumsi itu merah pada perilaku yang benar.** Login tidak mencabut token lama (`MAKS_SESI = 3`), dan `POST /tagihan` butuh `kontrak_id`, bukan `periode`. Perbaiki skripnya, bukan aplikasinya.
-5. **`Set-Content -Encoding UTF8` (PS 5.1) menulis BOM** dan mematikan berkas PHP; build gagal lalu tes menguji image **lama**.
-6. **`node -e "..."` lewat PowerShell merusak tanda kutip** — tulis berkas `.js` dulu.
-7. **Gate dulu menelan kegagalan `migrate:fresh`.** Container lain yang masih terkoneksi ke database `kos` membuat penyegaran gagal dan data skrip sebelumnya tertinggal. `SegarkanDatabase`/`segarkan` kini berhenti dengan pesan jelas; hapus container uji sebelum gate.
+1. **Menambah tabel membuat 4 garis LRS berimpit tanpa ada yang merah.**
+   `build-tingkat.js` mencetak `LULUS`, tetapi `cek-erd-lrs.js` menemukan empat
+   pasang garis berjarak **1,2 px** — terbaca sebagai satu garis di kertas.
+   Sebabnya `panjangBerimpit()` di `papan.js` memakai toleransi 0,5 px sedangkan
+   pemeriksa memakai 3 px. Sudah disamakan; jangan kembalikan ke 0,5.
+2. **`bab4-data.js` punya dua angka yang diketik tangan** ("23 tabel / 201
+   kolom"), dan build tidak bisa menangkapnya karena keduanya kalimat prosa.
+   Kini memakai `${jumlahKolom}`/`${SKEMA.jumlah_tabel}`. Angka yang diketik akan
+   tertinggal lagi.
+3. **Gate memanggang kode ke image.** `php artisan test` tanpa
+   `docker compose build api` menguji kode **lama** dan memberi hijau yang tidak
+   menguji apa pun. Berlaku juga untuk `web`.
+4. **`Queue::fake()` wajib untuk menguji antrean.** Dengan `sync`, pekerjaan
+   berjalan di dalam permintaan dan `Mail::assertSent` tetap lulus.
+5. **Komentar ber-backtick memutus template literal** (termasuk di dalam
+   `evaluasi()`); `Set-Content -Encoding UTF8` (PS 5.1) menulis BOM dan mematikan
+   berkas PHP. Jalankan `node --check`, sunting PHP dengan tool `edit`.
+6. **Menutup tab terakhir mematikan Chrome**, bukan hanya tabnya — dan `fetch
+   failed` di E2E terbaca seperti aplikasi mati. Bila CDP perlu hidup lagi:
+   `chrome --headless=new --remote-debugging-port=9222 --user-data-dir=<temp>`.

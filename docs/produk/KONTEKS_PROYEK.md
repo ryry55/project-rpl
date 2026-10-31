@@ -15,7 +15,7 @@ Versi 1.0 · 26 Oktober 2026 · Status: diserahkan
 Aplikasi web untuk pemilik kos kecil (5-30 kamar) mengelola kamar, penghuni,
 tagihan, dan pembayaran. Dibangun sebagai tugas besar mata kuliah Rekayasa
 Perangkat Lunak: Laravel 12.70.1 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah
-Docker Compose untuk menjalankan, 812 tes PHP dan 30 skrip uji untuk
+Docker Compose untuk menjalankan, 830 tes PHP dan 30 skrip uji untuk
 menjaganya. Yang membedakannya dari aplikasi sejenis: **setiap kos boleh punya
 cara kerja sendiri** — satuan sewa, jatuh tempo, dan bentuk dendanya dipilih dari
 menu, bukan dipaksa mengikuti satu pola.
@@ -88,15 +88,15 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 
 | Hal | Angka |
 |---|---|
-| Endpoint API | **86** |
-| Tabel (di luar infrastruktur Laravel) | **23** (32 di skema `public`) |
-| Migrasi | **41** |
-| Model Eloquent | **21** |
-| Kelas domain | **43** (10 folder) |
-| Pengendali | **27** |
+| Endpoint API | **89** |
+| Tabel (di luar infrastruktur Laravel) | **24** (33 di skema `public`) |
+| Migrasi | **42** |
+| Model Eloquent | **22** |
+| Kelas domain | **52** (13 folder) |
+| Pengendali | **28** |
 | Middleware | **6** |
 | Trigger basis data | **8** (7 append-only + 1 penjaga pembalik) |
-| Tes PHP | **812** (3807 asersi) di **47** berkas |
+| Tes PHP | **830** (3883 asersi) di **48** berkas |
 | Skrip browser | **31** `.mjs` (30 terdaftar di gate; `uji-proxy.mjs` terpisah) |
 | Halaman SPA | **27** komponen view · **31** rute bernama |
 | Wewenang pengelola | **8** |
@@ -107,7 +107,7 @@ Seluruh rangkaian browser: **SEMUA LULUS (576 detik)** di laptop.
 > **Angka-angka ini punya cara diperiksa, dan cara itu ada di repo.** Sebelum
 > fase terakhir, tabel ini tertinggal jauh (71 endpoint, 22 tabel, 36 migrasi,
 > 748 tes) karena diketik tangan. Yang benar sekarang dibaca dari sumbernya:
-> `node docs/akademik/build-dokumen.js` mencetak `86 endpoint · 23 tabel`, dan
+> `node docs/akademik/build-dokumen.js` mencetak `89 endpoint · 24 tabel`, dan
 > `php artisan test` mencetak jumlah tesnya. Jangan mengetik ulang angkanya -
 > angka yang diketik akan tertinggal lagi.
 
@@ -245,9 +245,9 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 ├── 2_DESIGN_SYSTEM.md    Token, komponen, tabel→kartu, PWA, a11y
 ├── 3_ARCHITECTURE.md     Lapisan, 9 keputusan besar + alternatif yang ditolak
 ├── 4_AGENTS.md           Cara mengubah kode tanpa merusak apa pun
-├── 5_SCHEMAS.md          23 tabel, CHECK, indeks, trigger (dari DB nyata)
-├── 6_TOOLS_CONTRACTS.md  86 endpoint, middleware, bentuk request/response
-├── 7_TESTING_EVALS.md    812 tes, 30 skrip, prinsip "buktikan bisa gagal"
+├── 5_SCHEMAS.md          24 tabel, CHECK, indeks, trigger (dari DB nyata)
+├── 6_TOOLS_CONTRACTS.md  89 endpoint, middleware, bentuk request/response
+├── 7_TESTING_EVALS.md    830 tes, 30 skrip, prinsip "buktikan bisa gagal"
 └── 8_OPERATIONS_SOP.md   Deploy, backup, pemulihan, insiden, batas gratis
 ```
 

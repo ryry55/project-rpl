@@ -17,7 +17,7 @@
  * build gagal.
  */
 
-/** Penjelasan satu baris per tabel. Wajib ada untuk seluruh 23 tabel. */
+/** Penjelasan satu baris per tabel. Wajib ada untuk seluruh 24 tabel. */
 const KETERANGAN_TABEL = {
   users:
     'Akun untuk masuk aplikasi. Kolom `peran` menentukan hak akses: pemilik, pengelola, atau penghuni.',
@@ -25,6 +25,8 @@ const KETERANGAN_TABEL = {
     'Data orang yang menyewa kamar. Sengaja dipisah dari `users` supaya penghuni bisa dicatat sebelum punya akun.',
   kamar:
     'Unit kamar yang disewakan, beserta status huninya.',
+  laporan_kerusakan:
+    'Catatan kerusakan satu kamar, sejak dilaporkan sampai diperbaiki. Laporan yang belum ditutup membuat kamar berstatus `perbaikan`.',
   fasilitas:
     'Daftar fasilitas yang bisa dimiliki kamar, mis. kasur, AC, kamar mandi dalam.',
   kamar_fasilitas:
@@ -78,7 +80,11 @@ const KETERANGAN_KOLOM = {
   'users.wajib_ganti_sandi': 'true bila sandi dibuatkan pihak lain dan harus diganti saat pertama masuk',
   'penghuni.email': 'dipakai mengirim tautan aktivasi akun',
   'kamar.nomor': 'unik; dipakai penghuni mengenali kamarnya',
-  'kamar.status_huni': 'kosong | terisi | dipesan',
+  'kamar.status_huni': 'kosong | terisi | dipesan | perbaikan',
+  'laporan_kerusakan.deskripsi': 'apa yang rusak, apa adanya dari pelapor',
+  'laporan_kerusakan.dilaporkan_oleh': 'akun yang melaporkan; kosong bila akunnya kemudian dihapus',
+  'laporan_kerusakan.selesai_pada': 'kosong berarti laporan masih terbuka dan kamar masih diperbaiki',
+  'laporan_kerusakan.ditutup_oleh': 'akun yang menyatakan perbaikan selesai',
   'tarif_sewa.nilai': 'rupiah bulat per satuan sewa yang berlaku',
   'tarif_sewa.berlaku_dari': 'tanggal mulai berlakunya tarif; tarif lama tidak dihapus',
   'komponen_biaya.nama': 'mis. Listrik, Air, Kebersihan',
@@ -134,6 +140,7 @@ const URUTAN_TABEL = [
   'users',
   'penghuni',
   'kamar',
+  'laporan_kerusakan',
   'fasilitas',
   'kamar_fasilitas',
   'tarif_sewa',

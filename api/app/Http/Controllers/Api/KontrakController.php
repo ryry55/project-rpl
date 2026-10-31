@@ -10,6 +10,7 @@ use App\Http\Requests\Api\SimpanKontrakRequest;
 use App\Http\Resources\KontrakResource;
 use App\Models\Kamar;
 use App\Models\Kontrak;
+use App\Models\LaporanKerusakan;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -36,6 +37,20 @@ class KontrakController extends Controller
     {
         $tglMasuk = Carbon::parse($request->string('tgl_masuk')->value());
         $kamar = Kamar::findOrFail($request->integer('kamar_id'));
+
+        // Kamar yang sedang diperbaiki tidak boleh disewakan (T14). Layar
+        // kontrak memang hanya menawarkan kamar `kosong`, tetapi formulir
+        // bukan satu-satunya jalan masuk - dan kamar yang disewakan saat
+        // diperbaiki akan kehilangan status perbaikannya tanpa jejak.
+        if ($kamar->status_huni === 'perbaikan') {
+            return response()->json([
+                'message' => sprintf(
+                    'Kamar %s sedang diperbaiki. Tandai laporan kerusakannya selesai lebih dulu di layar Kamar.',
+                    $kamar->nomor,
+                ),
+                'errors' => ['kamar_id' => ['Kamar sedang diperbaiki.']],
+            ], 422);
+        }
 
         // Tarif kontrak harus berasal dari satu tempat: riwayat `tarif_sewa`.
         // Kalau kamar sudah punya tarif yang berlaku pada tanggal masuk, itulah
@@ -221,7 +236,17 @@ class KontrakController extends Controller
                 ->exists();
 
             if (! $masihAktif) {
-                Kamar::whereKey($kontrak->kamar_id)->update(['status_huni' => 'kosong']);
+                // Kamar yang sedang diperbaiki tetap `perbaikan` (T14).
+                // Menyetelnya `kosong` akan membuat kamar yang plafonnya bocor
+                // muncul di daftar pilihan kontrak, dan bisa disewa sebelum
+                // perbaikannya selesai.
+                $sedangDiperbaiki = LaporanKerusakan::where('kamar_id', $kontrak->kamar_id)
+                    ->whereNull('selesai_pada')
+                    ->exists();
+
+                Kamar::whereKey($kontrak->kamar_id)->update([
+                    'status_huni' => $sedangDiperbaiki ? 'perbaikan' : 'kosong',
+                ]);
             }
 
             // REV-DAT-05: berakhirnya kontrak adalah kejadian yang mengubah

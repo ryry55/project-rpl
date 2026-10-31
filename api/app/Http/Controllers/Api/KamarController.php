@@ -32,7 +32,15 @@ class KamarController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = Kamar::query()->with(['kontrakAktif.penghuni', 'tarifTerakhir', 'fasilitas']);
+        $query = Kamar::query()->with([
+            'kontrakAktif.penghuni',
+            'tarifTerakhir',
+            'fasilitas',
+            // Laporan kerusakan yang belum selesai (T14). Dimuat bersama
+            // daftar kamar supaya layar bisa menjelaskan MENGAPA sebuah kamar
+            // berstatus `perbaikan` tanpa permintaan kedua per kamar.
+            'laporanTerbuka.pelapor',
+        ]);
 
         if ($request->filled('status_huni')) {
             $query->where('status_huni', $request->string('status_huni')->value());
@@ -67,13 +75,23 @@ class KamarController extends Controller
 
     public function show(Kamar $kamar): JsonResponse
     {
-        $kamar->load(['kontrakAktif.penghuni', 'tarif', 'tarifTerakhir', 'fasilitas']);
+        $kamar->load(['kontrakAktif.penghuni', 'tarif', 'tarifTerakhir', 'fasilitas', 'laporanTerbuka.pelapor']);
 
         return response()->json(['data' => new KamarResource($kamar)]);
     }
 
     public function update(SimpanKamarRequest $request, Kamar $kamar): JsonResponse
     {
+        // Status kamar tidak boleh diubah tangan selama ada laporan kerusakan
+        // terbuka (T14): menyetelnya menjadi `terisi` akan membuat kamar yang
+        // plafonnya bocor tampil siap dihuni, dan laporannya tetap menggantung.
+        if ($request->filled('status_huni') && $kamar->laporanTerbuka()->exists()) {
+            return response()->json([
+                'message' => 'Kamar ini sedang diperbaiki. Tandai laporan kerusakannya selesai lebih dulu di layar Kamar.',
+                'errors' => ['status_huni' => ['Kamar sedang diperbaiki.']],
+            ], 422);
+        }
+
         DB::transaction(function () use ($request, $kamar) {
             // Disalin SEBELUM update, dan hanya kolom yang benar-benar
             // berubah yang dikirim: `nilai_lama` yang berisi seluruh baris

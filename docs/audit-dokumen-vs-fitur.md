@@ -107,8 +107,8 @@ tetap hijau, dan angka 85 bertahan di sepuluh dokumen.
 
 | Yang diklaim | Hasil |
 |---|---|
-| 23 tabel domain / 201 kolom / 26 kunci asing / 8 trigger / 32 tabel `public` | `psql` menghitung angka yang sama |
-| 812 tes, 3807 asersi, 47 berkas | keluaran phpunit (angka terakhir: §14) |
+| 24 tabel domain / 209 kolom / 29 kunci asing / 8 trigger / 33 tabel `public` | `psql` menghitung angka yang sama |
+| 830 tes, 3883 asersi, 48 berkas | keluaran phpunit (angka terakhir: §14) |
 | Unit 100 tes / 1056 asersi; `KalkulatorTest` 22 tes / 160 asersi | keluaran phpunit |
 | Token warna `achromatic-ledger` (`#f8f8f8`, `#ffffff`, `#0a0a0a`, `#6b6b6b`, `#e6e6e6`, `#f0f0f0`, `#141414`) | `web/src/style.css:32-40` = `2_DESIGN_SYSTEM.md:91-101` |
 | 12+34+20+3+6+10 = 85 di §3-§8 kontrak | `cek-cakupan-kontrak.js` |

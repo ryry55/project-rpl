@@ -14,13 +14,13 @@ Versi 1.0 · 26 Oktober 2026 · PostgreSQL 16
 
 ## 1. Gambaran
 
-**23 tabel** (di luar tabel infrastruktur Laravel: `cache`, `cache_locks`,
+**24 tabel** (di luar tabel infrastruktur Laravel: `cache`, `cache_locks`,
 `jobs`, `job_batches`, `failed_jobs`, `migrations`, `password_reset_tokens`,
-`personal_access_tokens`, `sessions`). Dua puluh dua di antaranya adalah tabel
-domain yang diuraikan di §2; yang kedua puluh tiga adalah `notifications` milik
+`personal_access_tokens`, `sessions`). Dua puluh tiga di antaranya adalah tabel
+domain yang diuraikan di §2; yang kedua puluh empat adalah `notifications` milik
 kanal in-app bawaan Laravel.
 
-Total di skema `public`: **32 tabel**.
+Total di skema `public`: **33 tabel**.
 
 ```
                     ┌──────────┐
@@ -135,10 +135,12 @@ anonimisasi PDP, `nama` → `'pengguna dihapus'`, `email`/`no_hp` → NULL.
 | `status_huni` | varchar(255) | tidak | `'kosong'` |
 | `catatan` | text | ya | |
 
-**CHECK:** `status_huni IN ('kosong', 'terisi')`
+**CHECK:** `status_huni IN ('kosong', 'terisi', 'dipesan', 'perbaikan')`
 
-`status_huni` **diturunkan** dari ada tidaknya kontrak aktif, bukan diisi
-manual. Diisi manual berarti bisa berbeda dari kenyataan.
+`status_huni` **diturunkan** dari ada tidaknya kontrak aktif dan laporan
+kerusakan yang masih terbuka, bukan diisi manual. Diisi manual berarti bisa
+berbeda dari kenyataan. `perbaikan` hanya dipakai selama ada baris
+`laporan_kerusakan` yang `selesai_pada`-nya kosong (T14).
 
 ---
 
@@ -523,9 +525,13 @@ dijawab padahal perubahan itu menentukan tagihan bulan berikutnya. Kamar,
 penghuni, kontrak, fasilitas, dan aturan kos kini menulis `log_audit` dengan pola
 `<entitas>.tambah` / `.ubah` / `.hapus`. Entitasnya sudah dibedakan kolom
 `entitas`, jadi yang perlu dibaca manusia adalah `nilai_lama`/`nilai_baru`.
-Perpindahan `kamar.status_huni` **tidak** dicatat terpisah: ia berubah otomatis
-saat kontrak dibuat atau diakhiri, dan jejaknya sudah ada di `kontrak.tambah` /
-`kontrak.akhir` — mencatatnya lagi menghasilkan dua baris untuk satu kejadian.
+Perpindahan `kamar.status_huni` akibat kontrak **tidak** dicatat terpisah: ia
+berubah otomatis saat kontrak dibuat atau diakhiri, dan jejaknya sudah ada di
+`kontrak.tambah` / `kontrak.akhir` — mencatatnya lagi menghasilkan dua baris
+untuk satu kejadian. Pengecualiannya laporan kerusakan (T14): perpindahan ke
+`perbaikan` dan kembalinya kamar dicatat sebagai `kerusakan.lapor` /
+`kerusakan.selesai` pada entitas `kamar`, karena tidak ada tabel lain yang
+menjadi rumah kejadian itu.
 
 **Pengecualian UPDATE (UU PDP).** Trigger `log_audit_append_only` mengizinkan
 UPDATE **hanya** bila **semua** syarat ini terpenuhi:
@@ -731,6 +737,36 @@ WHERE sumber = 'gateway_webhook' AND referensi IS NOT NULL`. Parsial karena
 
 ---
 
+### 2.22 `laporan_kerusakan` (T14)
+
+| Kolom | Tipe | Null | Bawaan |
+|---|---|---|---|
+| `id` | bigint | tidak | |
+| `kamar_id` | bigint | tidak | FK → `kamar`, `ON DELETE RESTRICT` |
+| `deskripsi` | text | tidak | apa yang rusak, apa adanya dari pelapor |
+| `dilaporkan_oleh` | bigint | ya | FK → `users`, `ON DELETE SET NULL` |
+| `selesai_pada` | timestamptz | ya | kosong = laporan masih terbuka |
+| `ditutup_oleh` | bigint | ya | FK → `users`, `ON DELETE SET NULL` |
+
+**Indeks:** `laporan_kerusakan_satu_terbuka_per_kamar` — unik **parsial** pada
+`(kamar_id) WHERE selesai_pada IS NULL`, dan indeks biasa pada `selesai_pada`.
+
+**Kenapa tabel sendiri, bukan kolom `catatan` di `kamar`.** Satu kolom hanya
+menyimpan kalimat terakhir. Yang ditanyakan di lapangan adalah sejak kapan kamar
+ini rusak, siapa yang melaporkan, dan sejak kapan selesai — tiga hal yang tidak
+muat di satu kolom yang ditimpa setiap kali ada yang mengetik.
+
+**Kenapa tidak ada kolom status.** Laporan hanya punya dua keadaan, dan yang
+kedua adalah saat penutupannya. `status` + `selesai_pada` selalu bisa
+bertentangan; satu kolom bernilai null tidak punya keadaan mustahil.
+
+**Kenapa tidak ada kolom nominal.** Biaya perbaikan tidak pernah masuk tagihan
+penghuni (keputusan pemilik 31 Oktober 2026), dan kamar `perbaikan` tetap
+ditagih penuh. Tidak ada jalur uang di tabel ini, jadi tidak ada angka yang bisa
+bocor ke `tagihan`.
+
+---
+
 ## 3. Trigger append-only
 
 Delapan trigger: tujuh pasang `append_only` (UPDATE dan DELETE) ditambah satu
@@ -770,6 +806,7 @@ Indeks ini bukan untuk kecepatan — ia menegakkan aturan bisnis.
 | `komponen_biaya_nama_tanggal_kamar_unique` (NULLS NOT DISTINCT) | Tidak ada komponen ganda |
 | `token_akun_token_hash_unique` | Satu token, satu pemilik |
 | `persetujuan_pdp_user_id_versi_unique` | Satu persetujuan per versi |
+| `laporan_kerusakan_satu_terbuka_per_kamar` (partial unique) | Satu kamar = satu laporan kerusakan terbuka |
 
 ---
 
@@ -803,7 +840,7 @@ uang dari JSON berarti parsing di jalur yang menghitung uang.
 
 | Nilai | Diturunkan dari | Kenapa tidak disimpan |
 |---|---|---|
-| `kamar.status_huni` | ada/tidaknya kontrak aktif | Kalau disimpan, bisa berbeda dari kenyataan |
+| `kamar.status_huni` | ada/tidaknya kontrak aktif dan laporan kerusakan terbuka | Kalau disimpan, bisa berbeda dari kenyataan |
 | Usulan `kedaluwarsa` | `kedaluwarsa_pada < now()` | Tidak perlu cron; tidak ada baris yang berubah sendiri |
 | Tarif "berlaku sampai" | baris `tarif_sewa` berikutnya | Dua kolom yang harus konsisten = satu pasti salah |
 | `sudah_aktif` akun | `email_verified_at IS NOT NULL` | Satu sumber kebenaran |
@@ -812,7 +849,7 @@ uang dari JSON berarti parsing di jalur yang menghitung uang.
 
 ## 6. Migrasi
 
-**41 migrasi**, dijalankan berurutan. Tiga yang paling perlu dipahami:
+**42 migrasi**, dijalankan berurutan. Tiga yang paling perlu dipahami:
 
 | Migrasi | Isi |
 |---|---|

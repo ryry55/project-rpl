@@ -317,3 +317,37 @@ disimpan di perangkat — dua hal yang `AGENTS.md` larang diputuskan sendiri.
 
 **Kalau tidak dijawab.** A, yaitu keadaan hari ini; tidak ada yang berubah.
 
+---
+
+## K-13 — Bentuk T14: laporan kerusakan kamar — dijawab
+
+**Fase:** T14 (#13) · **Tanggal:** 31 Oktober 2026
+
+**Jawaban (31 Oktober 2026).**
+
+1. **Bentuk: tabel `laporan_kerusakan` tersendiri.** Bukan kolom `catatan` di
+   `kamar`. Kolom catatan hanya menyimpan satu kalimat terakhir; pertanyaan
+   "sejak kapan rusak, siapa melapor, sejak kapan selesai" tidak muat di sana.
+   Akibatnya angka skema berubah: 23 → **24 tabel**, 201 → **209 kolom**,
+   26 → **29 kunci asing**, 32 → **33 tabel `public`** (trigger tetap 8).
+2. **Kamar `perbaikan` tetap ditagih penuh.** Perbaikan biasanya singkat dan
+   kontraknya masih berjalan. Tidak ada rumus baru dan tidak ada perubahan di
+   `Kalkulator`.
+3. **Pemilik dan pengelola boleh menutup laporan**, lewat wewenang
+   `kelola_kamar` yang sudah ada. Tidak ada wewenang baru.
+4. **Biaya perbaikan tidak pernah masuk tagihan penghuni**, dicatat terpisah.
+   Tabelnya karena itu tidak punya kolom nominal, dan tidak ada jalur uang yang
+   dibuka.
+
+**Pertanyaan.** T14 bisa dibangun sebagai status + catatan di `kamar`, atau
+sebagai tabel laporan tersendiri; kamar yang diperbaiki bisa tetap ditagih atau
+tidak; dan penutupan laporan bisa dibatasi ke pemilik saja.
+
+**Karena.** Menyentuh uang (tagihan kamar yang diperbaiki), perilaku yang dilihat
+pengguna (status kamar baru, siapa boleh menutup), cakupan (tabel baru), dan
+angka skema yang sudah dikunci di `SPEC.md` §4-§7.
+
+**Kalau tidak dijawab.** T14 dikerjakan sebagai status + `catatan` (pilihan yang
+tidak mengubah angka skema), dengan tagihan tetap penuh dan penutupan oleh
+pemilik saja. Pilihan itu tidak dipakai.
+

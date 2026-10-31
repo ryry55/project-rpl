@@ -9,7 +9,7 @@
 > dokumen ini berbeda dengan migrasi, migrasi yang benar — dan dokumen ini
 > yang harus dibangun ulang dengan `node docs/erd/build-lrs.js`.
 
-Versi 1.0 · 23 tabel · 201 kolom · PostgreSQL 16
+Versi 1.0 · 24 tabel · 209 kolom · PostgreSQL 16
 
 ## 1. Hubungan dengan ERD
 
@@ -49,6 +49,7 @@ dari akun, ke kamar, ke uang, lalu ke jejak dan pengaturan.
 users = (<u>id</u>, name, email, email_verified_at, password, remember_token, created_at, updated_at, peran, penghuni_id*, pemilik_id*, wajib_ganti_sandi)
 penghuni = (<u>id</u>, nama, no_hp, created_at, updated_at, email)
 kamar = (<u>id</u>, nomor, tipe, status_huni, catatan, created_at, updated_at)
+laporan_kerusakan = (<u>id</u>, kamar_id*, deskripsi, dilaporkan_oleh*, selesai_pada, ditutup_oleh*, created_at, updated_at)
 fasilitas = (<u>id</u>, nama, ikon, urutan, created_at, updated_at)
 kamar_fasilitas = (<u>id</u>, kamar_id*, fasilitas_id*, created_at, updated_at)
 tarif_sewa = (<u>id</u>, kamar_id*, nilai, berlaku_dari, created_at, updated_at)
@@ -118,12 +119,31 @@ Unit kamar yang disewakan, beserta status huninya.
 | `id` | bigint | wajib | PK |  |
 | `nomor` | varchar(20) | wajib | UQ | unik; dipakai penghuni mengenali kamarnya |
 | `tipe` | varchar(40) | boleh | — |  |
-| `status_huni` | varchar(255) | wajib | — | kosong \| terisi \| dipesan |
+| `status_huni` | varchar(255) | wajib | — | kosong \| terisi \| dipesan \| perbaikan |
 | `catatan` | text | boleh | — |  |
 | `created_at` | timestamp | boleh | — |  |
 | `updated_at` | timestamp | boleh | — |  |
 
-### 4.4 fasilitas
+### 4.4 laporan_kerusakan
+
+Catatan kerusakan satu kamar, sejak dilaporkan sampai diperbaiki. Laporan yang belum ditutup membuat kamar berstatus `perbaikan`.
+
+| Kolom | Tipe | Null | Kunci | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint | wajib | PK |  |
+| `kamar_id` | bigint | wajib | FK | → `kamar.id` |
+| `deskripsi` | text | wajib | — | apa yang rusak, apa adanya dari pelapor |
+| `dilaporkan_oleh` | bigint | boleh | FK | akun yang melaporkan; kosong bila akunnya kemudian dihapus · → `users.id` |
+| `selesai_pada` | timestamptz | boleh | — | kosong berarti laporan masih terbuka dan kamar masih diperbaiki |
+| `ditutup_oleh` | bigint | boleh | FK | akun yang menyatakan perbaikan selesai · → `users.id` |
+| `created_at` | timestamp | boleh | — |  |
+| `updated_at` | timestamp | boleh | — |  |
+
+Indeks unik parsial — aturan bisnis yang ditegakkan basis data:
+
+- `laporan_kerusakan_satu_terbuka_per_kamar`: CREATE UNIQUE INDEX laporan_kerusakan_satu_terbuka_per_kamar ON public.laporan_kerusakan USING btree (kamar_id) WHERE (selesai_pada IS NULL)
+
+### 4.5 fasilitas
 
 Daftar fasilitas yang bisa dimiliki kamar, mis. kasur, AC, kamar mandi dalam.
 
@@ -136,7 +156,7 @@ Daftar fasilitas yang bisa dimiliki kamar, mis. kasur, AC, kamar mandi dalam.
 | `created_at` | timestamp | boleh | — |  |
 | `updated_at` | timestamp | boleh | — |  |
 
-### 4.5 kamar_fasilitas
+### 4.6 kamar_fasilitas
 
 Tabel penghubung kamar dan fasilitas. Satu kamar punya banyak fasilitas, satu fasilitas dipakai banyak kamar.
 
@@ -152,7 +172,7 @@ Kunci unik gabungan:
 
 - (`kamar_id`, `fasilitas_id`) — kombinasi ini tidak boleh berulang
 
-### 4.6 tarif_sewa
+### 4.7 tarif_sewa
 
 Tarif sewa per kamar yang berlaku mulai tanggal tertentu. Riwayat, bukan satu nilai yang ditimpa.
 
@@ -169,7 +189,7 @@ Kunci unik gabungan:
 
 - (`kamar_id`, `berlaku_dari`) — kombinasi ini tidak boleh berulang
 
-### 4.7 komponen_biaya
+### 4.8 komponen_biaya
 
 Biaya tambahan per kamar (listrik, air, kebersihan) yang ikut ditagihkan setiap bulan.
 
@@ -188,7 +208,7 @@ Kunci unik gabungan:
 
 - (`nama`, `berlaku_dari`, `kamar_id`) — kombinasi ini tidak boleh berulang
 
-### 4.8 kebijakan_kos
+### 4.9 kebijakan_kos
 
 Kebijakan kos: satuan sewa, jatuh tempo, dan aturan denda. Berlaku untuk seluruh kos bila `kamar_id` kosong, atau khusus satu kamar bila diisi.
 
@@ -210,7 +230,7 @@ Kunci unik gabungan:
 
 - (`tipe`, `kamar_id`, `berlaku_dari`) — kombinasi ini tidak boleh berulang
 
-### 4.9 kontrak
+### 4.10 kontrak
 
 Perjanjian sewa seorang penghuni pada satu kamar, lengkap dengan tanggal masuk dan statusnya.
 
@@ -230,7 +250,7 @@ Indeks unik parsial — aturan bisnis yang ditegakkan basis data:
 
 - `kontrak_satu_aktif_per_kamar`: CREATE UNIQUE INDEX kontrak_satu_aktif_per_kamar ON public.kontrak USING btree (kamar_id) WHERE ((status)::text = ANY ((ARRAY['aktif'::character varying, 'dipesan'::character varying])::text[]))
 
-### 4.10 tagihan
+### 4.11 tagihan
 
 Tagihan bulanan per kontrak: pokok, denda, total akhir, dan status pembayaran.
 
@@ -263,7 +283,7 @@ Indeks unik parsial — aturan bisnis yang ditegakkan basis data:
 
 - `tagihan_kontrak_periode_aktif_unique`: CREATE UNIQUE INDEX tagihan_kontrak_periode_aktif_unique ON public.tagihan USING btree (kontrak_id, periode) WHERE ((status)::text <> 'dibatalkan'::text)
 
-### 4.11 tagihan_rincian
+### 4.12 tagihan_rincian
 
 Rincian baris penyusun tagihan, supaya angka pokok bisa dipertanggungjawabkan.
 
@@ -277,7 +297,7 @@ Rincian baris penyusun tagihan, supaya angka pokok bisa dipertanggungjawabkan.
 | `created_at` | timestamp | boleh | — |  |
 | `updated_at` | timestamp | boleh | — |  |
 
-### 4.12 pembayaran
+### 4.13 pembayaran
 
 Pembayaran yang dicatat atas sebuah tagihan. Pembalik disimpan sebagai baris bernilai negatif yang menunjuk baris asalnya.
 
@@ -300,7 +320,7 @@ Indeks unik parsial — aturan bisnis yang ditegakkan basis data:
 
 - `pembayaran_gateway_satu_per_order`: CREATE UNIQUE INDEX pembayaran_gateway_satu_per_order ON public.pembayaran USING btree (referensi) WHERE (((sumber)::text = 'gateway_webhook'::text) AND (referensi IS NOT NULL))
 
-### 4.13 verifikasi_pembayaran
+### 4.14 verifikasi_pembayaran
 
 Pemeriksaan bukti transfer oleh pengelola sebelum pembayaran diakui sah.
 
@@ -313,7 +333,7 @@ Pemeriksaan bukti transfer oleh pengelola sebelum pembayaran diakui sah.
 | `catatan` | varchar(255) | boleh | — |  |
 | `created_at` | timestamp | boleh | — |  |
 
-### 4.14 transaksi_gateway
+### 4.15 transaksi_gateway
 
 Transaksi Midtrans untuk pembayaran daring, termasuk `order_id` dan statusnya.
 
@@ -338,7 +358,7 @@ Indeks unik parsial — aturan bisnis yang ditegakkan basis data:
 
 - `transaksi_gateway_satu_menunggu_per_tagihan`: CREATE UNIQUE INDEX transaksi_gateway_satu_menunggu_per_tagihan ON public.transaksi_gateway USING btree (tagihan_id) WHERE ((status)::text = 'menunggu'::text)
 
-### 4.15 rekening
+### 4.16 rekening
 
 Rekening tujuan pembayaran milik kos, termasuk gambar QRIS yang disimpan sebagai biner.
 
@@ -358,7 +378,7 @@ Rekening tujuan pembayaran milik kos, termasuk gambar QRIS yang disimpan sebagai
 | `gambar_mime` | varchar(60) | boleh | — |  |
 | `gambar_ukuran` | integer | boleh | — |  |
 
-### 4.16 aturan_kos
+### 4.17 aturan_kos
 
 Teks aturan dan sanksi yang ditampilkan kepada penghuni.
 
@@ -374,7 +394,7 @@ Teks aturan dan sanksi yang ditampilkan kepada penghuni.
 | `created_at` | timestamp | boleh | — |  |
 | `updated_at` | timestamp | boleh | — |  |
 
-### 4.17 pengelola_kewenangan
+### 4.18 pengelola_kewenangan
 
 Wewenang terperinci yang diberikan pemilik kepada seorang pengelola.
 
@@ -388,7 +408,7 @@ Kunci unik gabungan:
 
 - (`user_id`, `wewenang`) — kombinasi ini tidak boleh berulang
 
-### 4.18 usulan_perubahan
+### 4.19 usulan_perubahan
 
 Usulan perubahan tarif atau kebijakan oleh pengelola yang menunggu keputusan pemilik. Kedaluwarsa setelah 7 hari.
 
@@ -406,7 +426,7 @@ Usulan perubahan tarif atau kebijakan oleh pengelola yang menunggu keputusan pem
 | `diputuskan_pada` | timestamp | boleh | — |  |
 | `kedaluwarsa_pada` | timestamp | wajib | — | usulan yang tidak diputuskan dalam 7 hari menjadi kedaluwarsa |
 
-### 4.19 log_audit
+### 4.20 log_audit
 
 Jejak setiap tindakan yang mengubah data, beserta pelaku dan waktunya.
 
@@ -422,7 +442,7 @@ Jejak setiap tindakan yang mengubah data, beserta pelaku dan waktunya.
 | `nilai_baru` | jsonb | boleh | — |  |
 | `dibuat_pada` | timestamptz | wajib | — |  |
 
-### 4.20 pengaturan_notifikasi
+### 4.21 pengaturan_notifikasi
 
 Preferensi kanal notifikasi per pengguna per peristiwa.
 
@@ -438,7 +458,7 @@ Kunci unik gabungan:
 
 - (`user_id`, `peristiwa`, `kanal`) — kombinasi ini tidak boleh berulang
 
-### 4.21 persetujuan_pdp
+### 4.22 persetujuan_pdp
 
 Rekaman persetujuan pemrosesan data pribadi, beserta versi pernyataan yang disetujui.
 
@@ -454,7 +474,7 @@ Kunci unik gabungan:
 
 - (`user_id`, `versi`) — kombinasi ini tidak boleh berulang
 
-### 4.22 token_akun
+### 4.23 token_akun
 
 Token sekali pakai untuk aktivasi akun dan atur ulang sandi. Disimpan sebagai hash, bukan teks asli.
 
@@ -468,7 +488,7 @@ Token sekali pakai untuk aktivasi akun dan atur ulang sandi. Disimpan sebagai ha
 | `dipakai_pada` | timestamptz | boleh | — |  |
 | `dibuat_pada` | timestamptz | wajib | — |  |
 
-### 4.23 notifications
+### 4.24 notifications
 
 Notifikasi dalam aplikasi bawaan Laravel. Tidak punya kunci asing karena memakai relasi polimorfik.
 
@@ -492,32 +512,35 @@ Arah panah menunjukkan arah rujukan: kolom di kiri harus ada di tabel kanan.
 |---|---|---|---|---|---|
 | 1 | `users` | `pemilik_id` | `users.id` | boleh kosong | relasi diri: satu users boleh dirujuk banyak users lain |
 | 2 | `users` | `penghuni_id` | `penghuni.id` | boleh kosong | satu penghuni boleh punya banyak users |
-| 3 | `kamar_fasilitas` | `fasilitas_id` | `fasilitas.id` | wajib | satu fasilitas boleh punya banyak kamar_fasilitas |
-| 4 | `kamar_fasilitas` | `kamar_id` | `kamar.id` | wajib | satu kamar boleh punya banyak kamar_fasilitas |
-| 5 | `tarif_sewa` | `kamar_id` | `kamar.id` | wajib | satu kamar boleh punya banyak tarif_sewa |
-| 6 | `komponen_biaya` | `kamar_id` | `kamar.id` | boleh kosong | satu kamar boleh punya banyak komponen_biaya |
-| 7 | `kebijakan_kos` | `kamar_id` | `kamar.id` | boleh kosong | satu kamar boleh punya banyak kebijakan_kos |
-| 8 | `kontrak` | `kamar_id` | `kamar.id` | wajib | satu kamar boleh punya banyak kontrak |
-| 9 | `kontrak` | `penghuni_id` | `penghuni.id` | wajib | satu penghuni boleh punya banyak kontrak |
-| 10 | `tagihan` | `denda_dimaafkan_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak tagihan |
-| 11 | `tagihan` | `dibatalkan_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak tagihan |
-| 12 | `tagihan` | `kontrak_id` | `kontrak.id` | wajib | satu kontrak boleh punya banyak tagihan |
-| 13 | `tagihan_rincian` | `tagihan_id` | `tagihan.id` | wajib | satu tagihan boleh punya banyak tagihan_rincian |
-| 14 | `pembayaran` | `dicatat_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak pembayaran |
-| 15 | `pembayaran` | `diterima_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak pembayaran |
-| 16 | `pembayaran` | `pembalik_id` | `pembayaran.id` | boleh kosong | relasi diri: satu pembayaran menunjuk tepat satu pembayaran lain |
-| 17 | `pembayaran` | `tagihan_id` | `tagihan.id` | wajib | satu tagihan boleh punya banyak pembayaran |
-| 18 | `verifikasi_pembayaran` | `diverifikasi_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak verifikasi_pembayaran |
-| 19 | `verifikasi_pembayaran` | `pembayaran_id` | `pembayaran.id` | wajib | satu pembayaran boleh punya banyak verifikasi_pembayaran |
-| 20 | `transaksi_gateway` | `tagihan_id` | `tagihan.id` | wajib | satu tagihan boleh punya banyak transaksi_gateway |
-| 21 | `pengelola_kewenangan` | `user_id` | `users.id` | wajib | satu users boleh punya banyak pengelola_kewenangan |
-| 22 | `usulan_perubahan` | `diajukan_oleh` | `users.id` | wajib | satu users boleh punya banyak usulan_perubahan |
-| 23 | `usulan_perubahan` | `diputuskan_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak usulan_perubahan |
-| 24 | `pengaturan_notifikasi` | `user_id` | `users.id` | wajib | satu users boleh punya banyak pengaturan_notifikasi |
-| 25 | `persetujuan_pdp` | `user_id` | `users.id` | wajib | satu users boleh punya banyak persetujuan_pdp |
-| 26 | `token_akun` | `user_id` | `users.id` | wajib | satu users boleh punya banyak token_akun |
+| 3 | `laporan_kerusakan` | `dilaporkan_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak laporan_kerusakan |
+| 4 | `laporan_kerusakan` | `ditutup_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak laporan_kerusakan |
+| 5 | `laporan_kerusakan` | `kamar_id` | `kamar.id` | wajib | satu kamar boleh punya banyak laporan_kerusakan |
+| 6 | `kamar_fasilitas` | `fasilitas_id` | `fasilitas.id` | wajib | satu fasilitas boleh punya banyak kamar_fasilitas |
+| 7 | `kamar_fasilitas` | `kamar_id` | `kamar.id` | wajib | satu kamar boleh punya banyak kamar_fasilitas |
+| 8 | `tarif_sewa` | `kamar_id` | `kamar.id` | wajib | satu kamar boleh punya banyak tarif_sewa |
+| 9 | `komponen_biaya` | `kamar_id` | `kamar.id` | boleh kosong | satu kamar boleh punya banyak komponen_biaya |
+| 10 | `kebijakan_kos` | `kamar_id` | `kamar.id` | boleh kosong | satu kamar boleh punya banyak kebijakan_kos |
+| 11 | `kontrak` | `kamar_id` | `kamar.id` | wajib | satu kamar boleh punya banyak kontrak |
+| 12 | `kontrak` | `penghuni_id` | `penghuni.id` | wajib | satu penghuni boleh punya banyak kontrak |
+| 13 | `tagihan` | `denda_dimaafkan_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak tagihan |
+| 14 | `tagihan` | `dibatalkan_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak tagihan |
+| 15 | `tagihan` | `kontrak_id` | `kontrak.id` | wajib | satu kontrak boleh punya banyak tagihan |
+| 16 | `tagihan_rincian` | `tagihan_id` | `tagihan.id` | wajib | satu tagihan boleh punya banyak tagihan_rincian |
+| 17 | `pembayaran` | `dicatat_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak pembayaran |
+| 18 | `pembayaran` | `diterima_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak pembayaran |
+| 19 | `pembayaran` | `pembalik_id` | `pembayaran.id` | boleh kosong | relasi diri: satu pembayaran menunjuk tepat satu pembayaran lain |
+| 20 | `pembayaran` | `tagihan_id` | `tagihan.id` | wajib | satu tagihan boleh punya banyak pembayaran |
+| 21 | `verifikasi_pembayaran` | `diverifikasi_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak verifikasi_pembayaran |
+| 22 | `verifikasi_pembayaran` | `pembayaran_id` | `pembayaran.id` | wajib | satu pembayaran boleh punya banyak verifikasi_pembayaran |
+| 23 | `transaksi_gateway` | `tagihan_id` | `tagihan.id` | wajib | satu tagihan boleh punya banyak transaksi_gateway |
+| 24 | `pengelola_kewenangan` | `user_id` | `users.id` | wajib | satu users boleh punya banyak pengelola_kewenangan |
+| 25 | `usulan_perubahan` | `diajukan_oleh` | `users.id` | wajib | satu users boleh punya banyak usulan_perubahan |
+| 26 | `usulan_perubahan` | `diputuskan_oleh` | `users.id` | boleh kosong | satu users boleh punya banyak usulan_perubahan |
+| 27 | `pengaturan_notifikasi` | `user_id` | `users.id` | wajib | satu users boleh punya banyak pengaturan_notifikasi |
+| 28 | `persetujuan_pdp` | `user_id` | `users.id` | wajib | satu users boleh punya banyak persetujuan_pdp |
+| 29 | `token_akun` | `user_id` | `users.id` | wajib | satu users boleh punya banyak token_akun |
 
-Jumlah kunci asing: **26**.
+Jumlah kunci asing: **29**.
 
 ## 6. Tabel Tanpa Relasi
 
@@ -542,6 +565,7 @@ satu kontrak punya dua tagihan hidup pada periode yang sama (R-02):
 | Nama indeks | Letak |
 |---|---|
 | `kontrak_satu_aktif_per_kamar` | indeks unik parsial pada `kontrak` |
+| `laporan_kerusakan_satu_terbuka_per_kamar` | indeks unik parsial pada `laporan_kerusakan` |
 | `pembayaran_gateway_satu_per_order` | indeks unik parsial pada `pembayaran` |
 | `tagihan_kontrak_periode_aktif_unique` | indeks unik parsial pada `tagihan` |
 | `transaksi_gateway_satu_menunggu_per_tagihan` | indeks unik parsial pada `transaksi_gateway` |

@@ -6,14 +6,14 @@ Delapan gambar, satu dokumen teks, satu sumber: **basis data yang berjalan**.
 |---|---|---|
 | `00-L0-konseptual.svg` / `.png` | 0 — konseptual | 11 entitas inti, relasi, **tanpa atribut** |
 | `01-L1-logikal.svg` / `.png` | 1 — logikal | 12 entitas, relasi + atribut kunci |
-| `02-L2-fisikal-{a,b,c}.svg` / `.png` | 2 — fisikal | 23 tabel, **seluruh kolom dan tipenya** |
-| `03-L3-lrs.svg` / `.png` | 3 — LRS | 23 tabel, **seluruh 201 kolom**, satu lembar **A3** |
-| `03-lrs.md` | 3 — LRS | LRS lengkap sebagai teks: 201 kolom, 26 kunci asing |
+| `02-L2-fisikal-{a,b,c}.svg` / `.png` | 2 — fisikal | 24 tabel, **seluruh kolom dan tipenya** |
+| `03-L3-lrs.svg` / `.png` | 3 — LRS | 24 tabel, **seluruh 209 kolom**, satu lembar **A3** |
+| `03-lrs.md` | 3 — LRS | LRS lengkap sebagai teks: 209 kolom, 29 kunci asing |
 | `skema.json` | — | Potret skema dari basis data; sumber semua berkas di atas |
 
 ## Kenapa berjenjang, bukan satu gambar
 
-ERD yang menggambar 23 tabel dan 201 kolom sekaligus **tidak bisa dibaca di
+ERD yang menggambar 24 tabel dan 209 kolom sekaligus **tidak bisa dibaca di
 A4**, dan itu bukan soal resolusi. Sudah diukur: pada satu lembar A4 berisi
 seluruh tabel, tinggi hurufnya hanya **2,03 mm** — di bawah ambang 2,52 mm.
 Menambah skala ekspor tidak menolong sama sekali, karena yang menentukan adalah
@@ -24,9 +24,9 @@ Yang perlu dicatat: **kegagalan itu bukan karena jumlah tabelnya, melainkan
 karena jumlah kolomnya.** Karena itu pemecahan lembar pada tingkat 2 ditentukan
 oleh pengukuran, bukan ditebak. Lihat `pecahTerbaca` di `build-tingkat.js`.
 
-## LRS: satu lembar A3, seluruh 201 kolom
+## LRS: satu lembar A3, seluruh 209 kolom
 
-LRS digambar **satu lembar berisi seluruh 201 kolom**, dan itu hanya terbaca
+LRS digambar **satu lembar berisi seluruh 209 kolom**, dan itu hanya terbaca
 bila dicetak di **A3 tegak**. Ini hasil pengukuran, bukan pilihan selera. Pada
 ambang baca 2,52 mm (setara 1,2% lebar A4), dengan seluruh kolom:
 
@@ -190,7 +190,7 @@ yang basi tidak memberi tanda apa pun.
 
 ## Yang sengaja tidak digambar
 
-### Tingkat 0 dan 1 tidak memuat seluruh 23 tabel
+### Tingkat 0 dan 1 tidak memuat seluruh 24 tabel
 
 ERD konseptual menjawab "benda apa saja yang terlibat", bukan "tabel apa saja
 yang ada". Tabel teknis seperti `token_akun`, `notifications`, dan `log_audit`
@@ -236,9 +236,9 @@ berbeda sepanjang sisinya masih terbaca.
 
 Tingkat 0 sengaja tanpa atribut sama sekali: `kunci: []` membuat `chen.js` tidak
 menggambar elips. Tingkat 1 menggambar kunci primer dan satu atribut pembeda.
-Seluruh 201 kolom ada di tingkat 2, di lembar LRS A3, dan di `03-lrs.md`.
+Seluruh 209 kolom ada di tingkat 2, di lembar LRS A3, dan di `03-lrs.md`.
 
-Menggambar 201 kolom sebagai elips mustahil dibaca, dan itu bukan penghematan —
+Menggambar 209 kolom sebagai elips mustahil dibaca, dan itu bukan penghematan —
 ERD Chen yang baik memang tidak menampilkan seluruh kolom.
 
 ## Catatan notasi
@@ -266,7 +266,7 @@ Konvensi tingkat 2–3 (kotak tabel):
 
 Kenapa begitu: LRS adalah notasi **relasional** — hubungan dinyatakan oleh kunci
 asing yang menunjuk tabel induk, bukan oleh angka kardinalitas. Angka `1`/`N`
-milik notasi Chen. Pada satu lembar berisi 23 tabel, `users` menerima sembilan
+milik notasi Chen. Pada satu lembar berisi 24 tabel, `users` menerima sembilan
 panah; menambahkan delapan belas label di sekelilingnya memenuhi gambar dengan
 angka yang tidak menambah informasi, dan sebagian tidak mendapat tempat sama
 sekali. Arah hubungan karena itu dibawa oleh **panah**, bukan angka.

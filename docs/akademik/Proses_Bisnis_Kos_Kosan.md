@@ -1,7 +1,7 @@
 # Proses Bisnis & Spesifikasi Pemodelan Sistem Informasi Operasional Kos-Kosan
 
 > **Dibangkitkan, jangan disunting tangan** — `node docs/akademik/build-dokumen.js`.
-> Angka dibaca dari `rute-api.json` (86 endpoint), `tabel-domain.json` (23 tabel),
+> Angka dibaca dari `rute-api.json` (89 endpoint), `tabel-domain.json` (24 tabel),
 > `usecase-data.js` (14 use case), `api/composer.lock` (Laravel 12.70.1),
 > dan `docs/dfd/dfd-data.js` (16 aliran batas).
 
@@ -17,8 +17,8 @@ Pembedanya dari pencatatan manual bukan kelengkapan fitur, melainkan **siapa
 yang berhak melakukan apa**: **pemilik** memutuskan, **pengelola** berwenang
 terbatas mengusulkan, **penghuni** hanya membaca. Pengelola ber-wewenang
 `ubah_tarif` pun tidak menetapkan tarif. Uang dicatat sebagai peristiwa yang
-tidak bisa diubah. Cakupan: **86 endpoint** `/api`, **14 use case**, **3
-aktor**, **23 tabel domain** dari **41 migrasi**.
+tidak bisa diubah. Cakupan: **89 endpoint** `/api`, **14 use case**, **3
+aktor**, **24 tabel domain** dari **42 migrasi**.
 
 ## 2. Aktor dan Entitas Eksternal Sistem
 
@@ -64,7 +64,7 @@ Satu siklus bulanan; setiap langkah menunjuk endpoint nyata pada `api/routes/api
 ## 4. Pemodelan Berorientasi Objek (UML Use Case Diagram)
 
 Batas sistem mencakup seluruh fungsionalitas aplikasi operasional kos: **3
-aktor**, **14 use case** — jumlah final, diturunkan dari 86 endpoint nyata
+aktor**, **14 use case** — jumlah final, diturunkan dari 89 endpoint nyata
 yang terpetakan habis tanpa sisa dan tanpa satu pun dipakai dua use case.
 
 ### 4.1 Deskripsi 14 Use Cases Fungsional
@@ -72,7 +72,8 @@ yang terpetakan habis tanpa sisa dan tanpa satu pun dipakai dua use case.
 1. **UC-01 Registrasi & Login Akun:** Autentikasi ketiga peran: login,
    pemulihan sandi lewat surel, dan penggantian sandi wajib.
 2. **UC-02 Kelola Kamar, Fasilitas & Aturan Kos:** Mendaftarkan kamar,
-   fasilitas tiap kamar, dan aturan kos yang dibaca penghuni.
+   fasilitas tiap kamar, aturan kos, dan laporan kerusakan yang membuat kamar
+   berstatus diperbaiki.
 3. **UC-03 Kelola Data Penghuni & Kontrak Sewa:** Mendaftarkan penghuni,
    membuat kontrak atas satu kamar kosong, dan mengakhiri kontrak.
 4. **UC-04 Kelola Tarif Sewa & Komponen Biaya:** Menetapkan tarif per kamar
@@ -152,14 +153,14 @@ dari pengelola karena pengelola mengusulkan (I-6) sementara pemilik memutuskan
 
 ## 6. Entitas Data Utama
 
-23 tabel domain dikelompokkan menjadi 12 entitas logis: pembaca laporan
+24 tabel domain dikelompokkan menjadi 12 entitas logis: pembaca laporan
 mengenal "kontrak", bukan tabel penghubung.
 
 | Entitas | Atribut Data Utama & Ruang Lingkup |
 |---|---|
 | Pengguna & Peran | id, name, email, password, peran, wajib_ganti_sandi |
 | Penghuni | id, nama, email, no_hp |
-| Kamar | id, nomor, tipe, status_huni |
+| Kamar | id, nomor, tipe, status_huni, deskripsi, selesai_pada |
 | Kontrak Sewa | id, kamar_id, penghuni_id, tgl_masuk, tarif_awal, status |
 | Tarif, Komponen Biaya & Kebijakan | id, kamar_id, nilai, satuan, tipe, masa_tenggang, berlaku_dari |
 | Tagihan & Rincian | id, kontrak_id, periode, pokok, jatuh_tempo, status, tarif_terpakai, total_final |

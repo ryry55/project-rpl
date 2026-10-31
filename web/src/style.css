@@ -904,6 +904,16 @@ table.tabel {
   background: #eeeeee;
 }
 
+/* Kamar yang sedang diperbaiki (T14) bukan keadaan normal dan bukan
+   peringatan uang: ia pekerjaan yang belum selesai. Diberi garis tegas, bukan
+   warna, karena paletnya sengaja akromatik - satu-satunya warna di sini
+   adalah warna uang dan galat. */
+.lencana-status.status-perbaikan {
+  color: var(--aksen-tua);
+  background: var(--aksen-lemah);
+  box-shadow: inset 0 0 0 1px var(--kendali);
+}
+
 /* --- Target sentuh -------------------------------------------------------
  *
  * Di layar sentuh, sasaran minimal yang nyaman adalah 44x44 piksel. Tombol

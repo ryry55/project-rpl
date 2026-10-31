@@ -30,14 +30,14 @@ Berkas: `01-use-case.svg` (vektor) dan `01-use-case.png` (2x, siap tempel).
 ## 3. Daftar 14 Use Case dan Endpoint Pendukungnya
 
 Setiap use case menunjuk minimal satu endpoint nyata. Pemetaannya
-**tertutup**: 86 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
+**tertutup**: 89 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
 ada satu pun yang dipakai dua use case. `build.js` memeriksa ketiga hal itu
 dan gagal bila tidak terpenuhi.
 
 | Kode | Use Case | Endpoint (nama rute) |
 |---|---|---|
 | **UC-01** | Registrasi & Login Akun | `api.login`<br>`api.logout`<br>`api.me`<br>`api.lupa-sandi`<br>`api.periksa-token`<br>`api.atur-sandi`<br>`api.ganti-sandi` |
-| **UC-02** | Kelola Kamar, Fasilitas & Aturan Kos | `kamar.index`<br>`kamar.store`<br>`kamar.show`<br>`kamar.update`<br>`kamar.fasilitas`<br>`fasilitas.index`<br>`fasilitas.store`<br>`fasilitas.update`<br>`fasilitas.destroy`<br>`aturan.index`<br>`aturan.store`<br>`aturan.update`<br>`aturan.destroy` |
+| **UC-02** | Kelola Kamar, Fasilitas & Aturan Kos | `kamar.index`<br>`kamar.store`<br>`kamar.show`<br>`kamar.update`<br>`kamar.fasilitas`<br>`kerusakan.index`<br>`kerusakan.store`<br>`kerusakan.selesai`<br>`fasilitas.index`<br>`fasilitas.store`<br>`fasilitas.update`<br>`fasilitas.destroy`<br>`aturan.index`<br>`aturan.store`<br>`aturan.update`<br>`aturan.destroy` |
 | **UC-03** | Kelola Data Penghuni & Kontrak Sewa | `penghuni.index`<br>`penghuni.store`<br>`penghuni.show`<br>`penghuni.update`<br>`penghuni.kirim-ulang-aktivasi`<br>`kontrak.index`<br>`kontrak.store`<br>`kontrak.show`<br>`kontrak.akhiri` |
 | **UC-04** | Kelola Tarif Sewa & Komponen Biaya | `tarif.index`<br>`tarif.store`<br>`tarif.berlaku`<br>`komponen.index`<br>`komponen.store` |
 | **UC-05** | Kelola Kebijakan Kos | `kebijakan.index`<br>`kebijakan.store` |

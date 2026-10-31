@@ -117,10 +117,11 @@ const L0 = {
     'persetujuan_pdp',
     'token_akun',
     'notifications',
+    'laporan_kerusakan',
   ],
   alasan_dikecualikan:
-    'Tabel teknis dan tabel penghubung: tidak punya makna bagi pemilik kos, dan baru relevan saat model ' +
-    'diterjemahkan menjadi tabel. Semuanya muncul mulai level 2 (fisikal).',
+    'Tabel teknis, tabel penghubung, dan rincian keadaan (mis. laporan kerusakan): yang terakhir bermakna bagi ' +
+    'pemilik tetapi tidak mengubah bentuk hubungan antarentitas. Semuanya muncul mulai level 2 (fisikal).',
 };
 
 /* ============================================================ LEVEL 1 */
@@ -190,10 +191,11 @@ const L1 = {
     'persetujuan_pdp',
     'token_akun',
     'notifications',
+    'laporan_kerusakan',
   ],
   alasan_dikecualikan:
-    'Tabel teknis dan tabel rincian yang tidak mengubah bentuk hubungan antarentitas. Semuanya muncul ' +
-    'mulai level 2 (fisikal), dan seluruh kolomnya ada di LRS.',
+    'Tabel teknis, tabel rincian, dan rincian keadaan (laporan kerusakan) yang tidak mengubah bentuk hubungan ' +
+    'antarentitas. Semuanya muncul mulai level 2 (fisikal), dan seluruh kolomnya ada di LRS.',
 };
 
 /* ==================================================== LEVEL 2 dan 3 */
@@ -259,6 +261,7 @@ const MODUL = [
     nama: 'Kamar, Tarif & Kebijakan',
     tabel: [
       'kamar',
+      'laporan_kerusakan',
       'fasilitas',
       'kamar_fasilitas',
       'tarif_sewa',

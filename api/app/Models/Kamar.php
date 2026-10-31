@@ -67,6 +67,47 @@ class Kamar extends Model
     }
 
     /**
+     * @return HasMany<LaporanKerusakan, $this>
+     */
+    public function laporanKerusakan(): HasMany
+    {
+        return $this->hasMany(LaporanKerusakan::class);
+    }
+
+    /**
+     * Laporan yang belum ditutup - satu-satunya alasan kamar berstatus
+     * `perbaikan` (T14).
+     *
+     * @return HasOne<LaporanKerusakan, $this>
+     */
+    public function laporanTerbuka(): HasOne
+    {
+        return $this->hasOne(LaporanKerusakan::class)->whereNull('selesai_pada');
+    }
+
+    /**
+     * Status yang benar setelah sebuah laporan kerusakan ditutup (T14).
+     *
+     * Dihitung ulang dari kontrak, bukan dikembalikan ke nilai sebelum
+     * perbaikan: selama kamar diperbaiki, kontrak bisa saja dimulai atau
+     * diakhiri. Mengembalikan nilai lama berarti kamar yang penghuninya sudah
+     * keluar tampil `terisi` selamanya - dan daftar kamar berbohong tentang
+     * kamar yang bisa disewakan.
+     */
+    public function statusSetelahPerbaikan(): string
+    {
+        if ($this->kontrakAktif()->exists()) {
+            return 'terisi';
+        }
+
+        if ($this->kontrak()->where('status', 'dipesan')->exists()) {
+            return 'dipesan';
+        }
+
+        return 'kosong';
+    }
+
+    /**
      * Fasilitas yang dimiliki kamar ini (T18).
      *
      * Diurutkan di sini, bukan di view: urutan fasilitas adalah keputusan data

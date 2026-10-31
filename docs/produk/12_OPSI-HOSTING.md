@@ -116,7 +116,7 @@ administrator sistem.
 
 ### Opsi D — Ubah aplikasi agar jalan di MySQL — **jangan**
 
-Bukan karena mustahil, tetapi karena harganya: 41 migrasi, 108 `DB::statement`,
+Bukan karena mustahil, tetapi karena harganya: 42 migrasi, 108 `DB::statement`,
 dan **6 jaminan integritas yang hilang** dan harus diganti kode aplikasi. Itu
 pekerjaan berminggu-minggu yang **menurunkan** mutu sistem, untuk menghemat
 biaya hosting yang lebih kecil daripada waktu yang dipakai mengerjakannya.

@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\KamarController;
 use App\Http\Controllers\Api\KebijakanController;
 use App\Http\Controllers\Api\KomponenBiayaController;
 use App\Http\Controllers\Api\KontrakController;
+use App\Http\Controllers\Api\LaporanKerusakanController;
 use App\Http\Controllers\Api\NotifikasiController;
 use App\Http\Controllers\Api\PdpController;
 use App\Http\Controllers\Api\PembayaranController;
@@ -307,6 +308,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
             Route::get('/kebijakan', [KebijakanController::class, 'index'])->name('kebijakan.index');
 
+            // Laporan kerusakan kamar (T14). Dibaca semua yang mengurus kos:
+            // pengelola yang menemukan kerusakan perlu tahu apakah sudah ada
+            // yang melaporkannya, sebelum ia melaporkan hal yang sama.
+            Route::get('/laporan-kerusakan', [LaporanKerusakanController::class, 'index'])
+                ->name('kerusakan.index');
+
             // Status penyiapan kos. Menjawab "apa yang belum ada dan mana yang
             // harus lebih dulu" sebelum pemilik menabrak gerbangnya satu per
             // satu. Dibaca dari data, bukan dari penanda yang bisa lupa
@@ -370,6 +377,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::middleware(PastikanWewenang::class.':kelola_kamar')->group(function () {
             Route::apiResource('kamar', KamarController::class)->only(['store', 'update']);
+
+            // Laporan kerusakan (T14) ikut `kelola_kamar`: menandai kamar
+            // rusak dan menyatakan perbaikan selesai adalah bagian dari
+            // mengurus kamar, bukan wewenang uang maupun penghuni.
+            Route::post('/laporan-kerusakan', [LaporanKerusakanController::class, 'store'])
+                ->name('kerusakan.store');
+            Route::post('/laporan-kerusakan/{laporan}/selesai', [LaporanKerusakanController::class, 'selesai'])
+                ->name('kerusakan.selesai');
 
             // Fasilitas (T18) - tidak append-only: tidak ada angka uang yang
             // bergantung padanya.

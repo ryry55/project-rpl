@@ -1,6 +1,6 @@
 {
-  "diambil_pada": "2026-10-27T08:18:13.618Z",
-  "jumlah_tabel": 23,
+  "diambil_pada": "2026-10-30T18:26:30.635Z",
+  "jumlah_tabel": 24,
   "tabel": [
     {
       "nama": "aturan_kos",
@@ -252,7 +252,7 @@
       "check": [
         {
           "nama": "kamar_status_huni_check",
-          "definisi": "CHECK (((status_huni)::text = ANY ((ARRAY['kosong'::character varying, 'terisi'::character varying, 'dipesan'::character varying])::text[])))"
+          "definisi": "CHECK (((status_huni)::text = ANY ((ARRAY['kosong'::character varying, 'terisi'::character varying, 'dipesan'::character varying, 'perbaikan'::character varying])::text[])))"
         }
       ],
       "unik_parsial": [],
@@ -702,6 +702,115 @@
         {
           "nama": "kontrak_satu_aktif_per_kamar",
           "definisi": "CREATE UNIQUE INDEX kontrak_satu_aktif_per_kamar ON public.kontrak USING btree (kamar_id) WHERE ((status)::text = ANY ((ARRAY['aktif'::character varying, 'dipesan'::character varying])::text[]))"
+        }
+      ],
+      "trigger": []
+    },
+    {
+      "nama": "laporan_kerusakan",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('laporan_kerusakan_id_seq'::regclass)"
+        },
+        {
+          "nama": "kamar_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "deskripsi",
+          "tipe": "text",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "dilaporkan_oleh",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "selesai_pada",
+          "tipe": "timestamp with time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "ditutup_oleh",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [],
+      "asing": [
+        {
+          "kolom": "dilaporkan_oleh",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "laporan_kerusakan_dilaporkan_oleh_foreign"
+        },
+        {
+          "kolom": "ditutup_oleh",
+          "ke_tabel": "users",
+          "ke_kolom": "id",
+          "nama": "laporan_kerusakan_ditutup_oleh_foreign"
+        },
+        {
+          "kolom": "kamar_id",
+          "ke_tabel": "kamar",
+          "ke_kolom": "id",
+          "nama": "laporan_kerusakan_kamar_id_foreign"
+        }
+      ],
+      "check": [],
+      "unik_parsial": [
+        {
+          "nama": "laporan_kerusakan_satu_terbuka_per_kamar",
+          "definisi": "CREATE UNIQUE INDEX laporan_kerusakan_satu_terbuka_per_kamar ON public.laporan_kerusakan USING btree (kamar_id) WHERE (selesai_pada IS NULL)"
         }
       ],
       "trigger": []

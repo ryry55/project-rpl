@@ -54,9 +54,9 @@ const ENTITAS_DATA = [
   },
   {
     nama: 'Kamar',
-    tabel: ['kamar', 'fasilitas', 'kamar_fasilitas'],
+    tabel: ['kamar', 'fasilitas', 'kamar_fasilitas', 'laporan_kerusakan'],
     inti: true,
-    atribut: 'id, nomor, tipe, status_huni',
+    atribut: 'id, nomor, tipe, status_huni, deskripsi, selesai_pada',
     lingkup: '',
   },
   {

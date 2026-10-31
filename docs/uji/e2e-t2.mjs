@@ -426,6 +426,125 @@ async function jalan() {
       && k.kamar_id === simpanKomponen.kamar_id),
     JSON.stringify(simpanKomponen))
 
+  // --- Laporan kerusakan (T14) --------------------------------------------
+  //
+  // Kamar yang dipakai dicari dari API, bukan ditebak: skrip ini membuat enam
+  // kontrak, dan nomor kamar yang masih kosong berubah kalau urutan
+  // pembuatannya berubah. Yang diuji adalah alur layar, jadi kamarnya harus
+  // benar-benar kosong - kalau ia berpenghuni, status setelah perbaikan
+  // menjadi `terisi` dan asersinya menguji hal lain.
+  await kirim(ws, 'Page.navigate', { url: `${APP}/pemilik/kamar` })
+  await tungguSampai(ws, `document.querySelectorAll('.tabel tbody tr').length > 1`)
+
+  const kamarUji = await evaluasi(ws, `
+    (async () => {
+      const headers = {
+        Accept: 'application/json',
+        Authorization: 'Bearer ' + localStorage.getItem('kos.token'),
+      }
+      const kamar = await fetch('${API}/kamar', { headers }).then((r) => r.json())
+      const kosong = kamar.data.find((k) => k.status_huni === 'kosong')
+      return kosong ? { id: kosong.id, nomor: kosong.nomor } : null
+    })().catch((e) => ({ galat: String(e) }))
+  `)
+  lapor('ada kamar kosong untuk diuji kerusakannya', Boolean(kamarUji?.nomor),
+    JSON.stringify(kamarUji))
+  if (!kamarUji?.nomor) throw new Error('tidak ada kamar kosong; sisa langkah tidak bisa dijalankan')
+
+  const bukaPanelRusak = await evaluasi(ws, `
+    (() => {
+      const baris = [...document.querySelectorAll('.tabel tbody tr')]
+        .find((tr) => tr.textContent.includes(${JSON.stringify(kamarUji.nomor)}))
+      if (!baris) return false
+      const tombol = [...baris.querySelectorAll('button')]
+        .find((b) => /laporkan rusak/i.test(b.textContent))
+      if (!tombol) return false
+      tombol.click()
+      return true
+    })()
+  `)
+  lapor('tombol Laporkan rusak membuka panel kerusakan', bukaPanelRusak === true)
+
+  const kirimRusak = await evaluasi(ws, `
+    (() => {
+      const area = document.querySelector('#deskripsi-kerusakan')
+      if (!area) return false
+      area.value = 'Plafon kamar mandi bocor'
+      area.dispatchEvent(new Event('input', { bubbles: true }))
+      area.closest('form').dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true }))
+      return true
+    })()
+  `)
+  lapor('formulir kerusakan bisa diisi dan dikirim', kirimRusak === true)
+
+  const tampilPerbaikan = await tungguSampai(ws, `
+    (() => {
+      const baris = [...document.querySelectorAll('.tabel tbody tr')]
+        .find((tr) => tr.textContent.includes(${JSON.stringify(kamarUji.nomor)}))
+      if (!baris) return false
+      const teks = baris.innerText.replace(/\\s+/g, ' ')
+      return /perbaikan/i.test(teks) && teks.includes('Plafon kamar mandi bocor')
+    })()
+  `, 8000)
+  lapor('kamar tampil diperbaiki beserta alasannya', tampilPerbaikan)
+
+  const statusApi = await evaluasi(ws, `
+    (async () => {
+      const headers = {
+        Accept: 'application/json',
+        Authorization: 'Bearer ' + localStorage.getItem('kos.token'),
+      }
+      const kamar = await fetch('${API}/kamar', { headers }).then((r) => r.json())
+      const k = kamar.data.find((x) => x.id === ${kamarUji.id})
+      return k ? { status: k.status_huni, laporan: k.laporan_terbuka } : null
+    })().catch((e) => ({ galat: String(e) }))
+  `)
+  lapor('kamar tersimpan berstatus perbaikan dengan laporan terbuka',
+    statusApi?.status === 'perbaikan'
+      && statusApi?.laporan?.deskripsi === 'Plafon kamar mandi bocor',
+    JSON.stringify(statusApi))
+
+  const tutupPerbaikan = await evaluasi(ws, `
+    (() => {
+      const baris = [...document.querySelectorAll('.tabel tbody tr')]
+        .find((tr) => tr.textContent.includes(${JSON.stringify(kamarUji.nomor)}))
+      if (!baris) return false
+      const tombol = [...baris.querySelectorAll('button')]
+        .find((b) => /selesai diperbaiki/i.test(b.textContent))
+      if (!tombol) return false
+      tombol.click()
+      return true
+    })()
+  `)
+  lapor('tombol Selesai diperbaiki bisa ditekan', tutupPerbaikan === true)
+
+  const kembaliKosong = await tungguSampai(ws, `
+    (() => {
+      const baris = [...document.querySelectorAll('.tabel tbody tr')]
+        .find((tr) => tr.textContent.includes(${JSON.stringify(kamarUji.nomor)}))
+      if (!baris) return false
+      const teks = baris.innerText.replace(/\\s+/g, ' ')
+      return /kosong/i.test(teks) && !/perbaikan/i.test(teks)
+    })()
+  `, 8000)
+  lapor('kamar kembali kosong setelah perbaikan ditutup', kembaliKosong)
+
+  const statusAkhir = await evaluasi(ws, `
+    (async () => {
+      const headers = {
+        Accept: 'application/json',
+        Authorization: 'Bearer ' + localStorage.getItem('kos.token'),
+      }
+      const kamar = await fetch('${API}/kamar', { headers }).then((r) => r.json())
+      const k = kamar.data.find((x) => x.id === ${kamarUji.id})
+      return k ? { status: k.status_huni, laporan: k.laporan_terbuka } : null
+    })().catch((e) => ({ galat: String(e) }))
+  `)
+  lapor('perbaikan selesai dan laporan tidak lagi terbuka',
+    statusAkhir?.status === 'kosong' && statusAkhir?.laporan === null,
+    JSON.stringify(statusAkhir))
+
   // --- Tangkapan layar -----------------------------------------------------
   for (const [nama, url] of [
     ['T2-kamar', `${APP}/pemilik/kamar`],

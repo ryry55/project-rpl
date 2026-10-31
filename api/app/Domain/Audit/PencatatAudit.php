@@ -165,6 +165,13 @@ class PencatatAudit
 
     public const AKSI_KAMAR_UBAH = 'kamar.ubah';
 
+    // Laporan kerusakan (T14). Jejaknya menempel pada `kamar` karena yang
+    // berubah dan yang dibaca layar adalah status kamarnya; id laporannya
+    // ikut disertakan di `nilai_baru`.
+    public const AKSI_KERUSAKAN_LAPOR = 'kerusakan.lapor';
+
+    public const AKSI_KERUSAKAN_SELESAI = 'kerusakan.selesai';
+
     public const AKSI_PENGHUNI_TAMBAH = 'penghuni.tambah';
 
     public const AKSI_PENGHUNI_UBAH = 'penghuni.ubah';

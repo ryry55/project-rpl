@@ -12,7 +12,7 @@
 //   4.2   Pendukung
 //
 // Angka dan nama tabel di sini TIDAK dikarang: seluruhnya diambil dari
-// docs/erd/skema.json (23 tabel, 201 kolom) dan dari seeder aplikasi.
+// docs/erd/skema.json (24 tabel, 209 kolom) dan dari seeder aplikasi.
 // Yang berupa contoh data diberi keterangan "contoh" supaya tidak dikira
 // potret basis data sungguhan.
 
@@ -136,7 +136,7 @@ const NORMALISASI = [
       'dipindahkan: (a) tarif bergantung pada kamar DAN tanggal berlaku, sehingga ia ' +
       'menjadi tabel riwayat `tarif_sewa`; (b) fasilitas adalah milik banyak kamar dan ' +
       'satu kamar punya banyak fasilitas, sehingga ia tidak boleh menempel di salah ' +
-      'satunya. Hasil akhirnya adalah 23 tabel yang benar-benar dipakai aplikasi.',
+      'satunya. Hasil akhirnya adalah 24 tabel yang benar-benar dipakai aplikasi.',
     kolom: ['Relasi', 'Kunci Primer', 'Kunci Asing', 'Atribut Non-Kunci'],
     baris: [
       ['tarif_sewa', 'id', 'kamar_id', 'nilai, berlaku_dari'],
@@ -165,9 +165,9 @@ const NORMALISASI = [
   },
 ]
 
-// 23 tabel hasil normalisasi, dikelompokkan menurut perannya.
+// 24 tabel hasil normalisasi, dikelompokkan menurut perannya.
 const TABEL_AKHIR = [
-  { kelompok: 'Data master', tabel: ['users', 'penghuni', 'kamar', 'fasilitas', 'kamar_fasilitas', 'tarif_sewa', 'komponen_biaya', 'rekening'] },
+  { kelompok: 'Data master', tabel: ['users', 'penghuni', 'kamar', 'laporan_kerusakan', 'fasilitas', 'kamar_fasilitas', 'tarif_sewa', 'komponen_biaya', 'rekening'] },
   { kelompok: 'Kebijakan dan aturan', tabel: ['kebijakan_kos', 'aturan_kos'] },
   { kelompok: 'Transaksi', tabel: ['kontrak', 'tagihan', 'tagihan_rincian', 'pembayaran', 'verifikasi_pembayaran'] },
   { kelompok: 'Gerbang pembayaran', tabel: ['transaksi_gateway'] },
@@ -179,20 +179,20 @@ const TABEL_AKHIR = [
 
 // ERD memakai tingkat logikal: Chen, 12 entitas, dengan atribut kunci.
 //
-// LRS digambar dalam SATU bagan berisi SELURUH 201 kolom, dan diserahkan
-// sebagai lampiran A3 terpisah — bukan ditempel di badan laporan A4.
+// LRS digambar dalam SATU bagan berisi SELURUH 209 kolom, dan diserahkan
+// sebagai lampiran A3 terpisah - bukan ditempel di badan laporan A4.
 //
 // Ini hasil pengukuran seluruh kemungkinan (ambang baca 2,52 mm):
 //
 //   kolom | A4 tegak | A4 miring | A3 tegak | A3 miring
 //     2   |  1,09 mm |  0,77 mm  |  1,54 mm |  1,09 mm
 //     3   |  1,59 mm |  1,12 mm  |  2,24 mm |  1,59 mm
-//     4   |  2,03 mm |  1,43 mm  |  2,87 mm |  2,03 mm   <-- dipakai
+//     4   |  2,03 mm |  1,43 mm  | **2,74 mm** |  2,03 mm   <-- dipakai
 //     5   |  1,72 mm |  1,71 mm  |  2,43 mm |  2,42 mm
 //     6   |  1,42 mm |  2,01 mm  |  2,01 mm |  2,84 mm
 //
 // Seluruh varian A4 gagal; yang terbaik 2,03 mm. Pada A3 tegak dengan empat
-// kolom hasilnya 2,87 mm. Karena itu lembar ini TIDAK ditempel di badan
+// kolom hasilnya 2,74 mm. Karena itu lembar ini TIDAK ditempel di badan
 // laporan: A3 yang diskalakan ke lebar A4 kembali menjadi 2,03 mm.
 const GAMBAR = [
   {
@@ -207,7 +207,7 @@ const GAMBAR = [
     berkas: '../erd/03-L3-lrs.png',
     keterangan: 'Gambar 4.6 Logical Record Structure (LRS) — lampiran A3',
     catatan:
-      'Dua puluh tiga tabel, seluruh 201 kolom, dalam satu bagan. Kunci primer ' +
+      'Dua puluh empat tabel, seluruh 209 kolom, dalam satu bagan. Kunci primer ' +
       'digarisbawahi; kunci asing bertanda bintang dan dihubungkan panah ke tabel ' +
       'yang dituju. Arah hubungan dibawa oleh panah, bukan oleh angka 1/N — angka ' +
       'itu milik notasi Chen dan tidak dipakai pada LRS.',

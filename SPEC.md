@@ -533,7 +533,7 @@ di §6 sebagai `tanggal, jumlah, metode, bukti, dicatat_oleh`:
 ## 7. Permukaan API
 
 Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
-Daftar lengkap **86 endpoint**; rincian bentuk request/response ada di
+Daftar lengkap **89 endpoint**; rincian bentuk request/response ada di
 `docs/produk/6_TOOLS_CONTRACTS.md`.
 
 ### 7.1 Autentikasi, akun, dan PDP
@@ -559,6 +559,9 @@ Daftar lengkap **86 endpoint**; rincian bentuk request/response ada di
 | GET/PUT | `/kamar/{kamar}` | `peran:pemilik,pengelola` / `wewenang:kelola_kamar` |
 | GET | `/kamar/{kamar}/tarif-berlaku` | `peran:pemilik,pengelola` |
 | PUT | `/kamar/{kamar}/fasilitas` | `wewenang:kelola_kamar` |
+| GET | `/laporan-kerusakan` | `peran:pemilik,pengelola` |
+| POST | `/laporan-kerusakan` | `wewenang:kelola_kamar` |
+| POST | `/laporan-kerusakan/{laporan}/selesai` | `wewenang:kelola_kamar` |
 | GET/POST | `/tarif` | `peran:pemilik,pengelola` / `wewenang:ubah_tarif` |
 | GET/POST | `/komponen-biaya` | `peran:pemilik,pengelola` / `wewenang:ubah_tarif` |
 | GET/POST | `/kebijakan` | `peran:pemilik,pengelola` / `wewenang:ubah_kebijakan` |

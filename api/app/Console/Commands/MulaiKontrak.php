@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Kamar;
 use App\Models\Kontrak;
+use App\Models\LaporanKerusakan;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -92,7 +93,18 @@ class MulaiKontrak extends Command
                 }
 
                 $kontrak->update(['status' => 'aktif']);
-                Kamar::whereKey($kontrak->kamar_id)->update(['status_huni' => 'terisi']);
+
+                // Kamar yang sedang diperbaiki TETAP `perbaikan` (T14).
+                // Kontraknya tetap aktif dan tetap ditagih - perbaikan bukan
+                // alasan menghentikan sewa - tetapi kamarnya belum siap
+                // dihuni, dan status `terisi` akan menyembunyikan itu.
+                $sedangDiperbaiki = LaporanKerusakan::where('kamar_id', $kontrak->kamar_id)
+                    ->whereNull('selesai_pada')
+                    ->exists();
+
+                Kamar::whereKey($kontrak->kamar_id)->update([
+                    'status_huni' => $sedangDiperbaiki ? 'perbaikan' : 'terisi',
+                ]);
                 $jumlah++;
             }
 

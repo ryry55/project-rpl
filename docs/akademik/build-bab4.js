@@ -56,7 +56,7 @@ for (const nama of disebut) {
   }
 }
 
-// Seluruh 23 tabel harus terbagi habis ke dalam kelompok; tabel yang lupa
+// Seluruh 24 tabel harus terbagi habis ke dalam kelompok; tabel yang lupa
 // dikelompokkan akan hilang dari dokumen tanpa ada yang menyadarinya.
 const semuaDisebut = new Set();
 for (const kelompok of TABEL_AKHIR) {
@@ -151,7 +151,7 @@ const tulisGambar = (berkas, keterangan, catatan) => {
  * Gambar yang TIDAK ditempel di badan laporan A4, melainkan diserahkan sebagai
  * lampiran berukuran lain.
  *
- * Dipakai untuk LRS. Seluruh 201 kolom hanya terbaca pada A3 tegak (2,87 mm);
+ * Dipakai untuk LRS. Seluruh 209 kolom hanya terbaca pada A3 tegak (2,74 mm);
  * bila gambar A3 itu ditempel ke halaman A4, ia diperkecil dan hurufnya jatuh
  * ke 2,03 mm — di bawah ambang 2,52 mm. Menempelkannya di sini justru
  * menghasilkan gambar yang tidak terbaca, padahal lampirannya terbaca.
@@ -166,8 +166,8 @@ const tulisLampiran = (keterangan, ukuran, berkas, catatan) => {
   baris.push(
     `> **Lembar terpisah ${ukuran}.** Gambar ini diserahkan sebagai lampiran ` +
       `(\`${berkas}\`), bukan ditempel di halaman ini. ` +
-      `Alasannya diukur, bukan dipilih: seluruh 201 kolom hanya mencapai ` +
-      `2,87 mm tinggi huruf pada A3 tegak, sedangkan pada A4 yang terbaik hanya ` +
+      `Alasannya diukur, bukan dipilih: seluruh ${jumlahKolom} kolom hanya mencapai ` +
+      `2,74 mm tinggi huruf pada A3 tegak, sedangkan pada A4 yang terbaik hanya ` +
       `2,03 mm — di bawah ambang baca 2,52 mm. Bila lembar A3 diperkecil ke lebar ` +
       `A4, hasilnya persis sama dengan menggambarnya di A4 sejak awal.`,
   );
@@ -240,8 +240,9 @@ baris.push(
 );
 baris.push('');
 baris.push(
-  'LRS digambar dalam satu bagan yang memuat seluruh atribut — seluruh 201 kolom ' +
-    'dari 23 tabel, bukan hanya kolom kunci. Kunci primer digarisbawahi, kunci ' +
+  'LRS digambar dalam satu bagan yang memuat seluruh atribut — seluruh ' +
+    `${jumlahKolom} kolom dari ${SKEMA.jumlah_tabel} tabel, bukan hanya kolom kunci. ` +
+    'Kunci primer digarisbawahi, kunci ' +
     'asing bertanda bintang dan dihubungkan panah ke tabel yang dituju.',
 );
 baris.push('');

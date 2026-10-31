@@ -77,7 +77,19 @@ const galatFasilitas = ref('')
 const suksesFasilitas = ref('')
 
 const jumlahTerisi = computed(() => daftar.value.filter((k) => k.status_huni === 'terisi').length)
-const jumlahKosong = computed(() => daftar.value.length - jumlahTerisi.value)
+const jumlahKosong = computed(() => daftar.value.filter((k) => k.status_huni === 'kosong').length)
+// Kamar yang sedang diperbaiki (T14) dihitung sendiri: ia bukan "kosong" -
+// kamar itu tidak bisa disewakan sampai perbaikannya selesai.
+const jumlahPerbaikan = computed(
+  () => daftar.value.filter((k) => k.status_huni === 'perbaikan').length,
+)
+
+const kamarRusak = ref(null)
+const formRusak = ref({ deskripsi: '' })
+const menyimpanRusak = ref(false)
+const galatRusak = ref('')
+const galatRusakBidang = ref({})
+const suksesRusak = ref('')
 
 async function muat() {
   memuat.value = true
@@ -102,6 +114,62 @@ function bukaForm() {
 
 function tutupForm() {
   formTerbuka.value = false
+}
+
+// --- Laporan kerusakan (T14) ---------------------------------------------
+
+function bukaLaporan(kamar) {
+  kamarRusak.value = kamar
+  formRusak.value = { deskripsi: '' }
+  galatRusak.value = ''
+  galatRusakBidang.value = {}
+  suksesRusak.value = ''
+}
+
+function tutupLaporan() {
+  kamarRusak.value = null
+}
+
+async function simpanLaporan() {
+  menyimpanRusak.value = true
+  galatRusak.value = ''
+  galatRusakBidang.value = {}
+  try {
+    await sesi.panggil('/laporan-kerusakan', {
+      method: 'POST',
+      body: JSON.stringify({
+        kamar_id: kamarRusak.value.id,
+        deskripsi: formRusak.value.deskripsi.trim(),
+      }),
+    })
+    suksesRusak.value = `Kerusakan kamar ${kamarRusak.value.nomor} dilaporkan. Kamar ditandai diperbaiki.`
+    kamarRusak.value = null
+    await muat()
+  } catch (e) {
+    galatRusak.value = pesanGalat(e)
+    galatRusakBidang.value = galatPerBidang(e)
+  } finally {
+    menyimpanRusak.value = false
+  }
+}
+
+async function selesaikanPerbaikan(kamar) {
+  // Laporan yang ditutup diambil dari barisnya sendiri, bukan dari state
+  // terpilih: dua kamar bisa diperbaiki bersamaan, dan panel yang tertinggal
+  // terbuka akan menutup laporan kamar yang salah.
+  const id = kamar.laporan_terbuka?.id
+  if (!id) {
+    return
+  }
+
+  galatRusak.value = ''
+  try {
+    await sesi.panggil(`/laporan-kerusakan/${id}/selesai`, { method: 'POST' })
+    suksesRusak.value = `Perbaikan kamar ${kamar.nomor} selesai.`
+    await muat()
+  } catch (e) {
+    galatRusak.value = pesanGalat(e)
+  }
 }
 
 async function simpan() {
@@ -355,7 +423,9 @@ onMounted(muat)
   <div class="halaman">
     <KepalaHalaman judul="Kamar">
       <template #keterangan>
-        {{ daftar.length }} kamar · {{ jumlahTerisi }} terisi · {{ jumlahKosong }} kosong
+        {{ daftar.length }} kamar · {{ jumlahTerisi }} terisi · {{ jumlahKosong }} kosong<template
+          v-if="jumlahPerbaikan > 0"
+        > · {{ jumlahPerbaikan }} diperbaiki</template>
       </template>
       <template #aksi>
         <button v-if="!formTerbuka && sesi.boleh('kelola_kamar')" @click="bukaForm">
@@ -366,6 +436,8 @@ onMounted(muat)
 
     <PesanBaris v-if="galatMuat" jenis="galat">{{ galatMuat }}</PesanBaris>
     <PesanBaris v-if="suksesFasilitas" jenis="sukses">{{ suksesFasilitas }}</PesanBaris>
+    <PesanBaris v-if="suksesRusak" jenis="sukses">{{ suksesRusak }}</PesanBaris>
+    <PesanBaris v-if="galatRusak && !kamarRusak" jenis="galat">{{ galatRusak }}</PesanBaris>
 
     <!--
       Penanda urutan penyiapan, hanya untuk pemilik.
@@ -422,6 +494,49 @@ onMounted(muat)
             {{ menyimpan ? 'Menyimpan…' : 'Simpan kamar' }}
           </button>
           <button type="button" class="halus" @click="tutupForm">Batal</button>
+        </div>
+      </form>
+    </section>
+
+    <!--
+      Laporan kerusakan (T14). Satu panel untuk satu kamar, dan hanya satu
+      laporan boleh terbuka per kamar - server menolak yang kedua. Karena itu
+      tombolnya tidak perlu bisa membuka dua panel sekaligus.
+    -->
+    <section v-if="kamarRusak" class="kartu panel">
+      <div class="panel-kepala">
+        <div>
+          <h2>Laporkan kerusakan kamar {{ kamarRusak.nomor }}</h2>
+          <p class="lemah mungil">
+            Kamar akan ditandai <strong>diperbaiki</strong> sampai laporannya ditutup. Sewa tetap
+            berjalan; biaya perbaikan tidak masuk tagihan penghuni.
+          </p>
+        </div>
+        <button class="halus mungil" @click="tutupLaporan">Tutup</button>
+      </div>
+
+      <form class="bidang" @submit.prevent="simpanLaporan">
+        <div>
+          <label for="deskripsi-kerusakan">Apa yang rusak?</label>
+          <textarea
+            id="deskripsi-kerusakan"
+            v-model="formRusak.deskripsi"
+            rows="3"
+            placeholder="Plafon kamar mandi bocor dan merembes ke lemari"
+            :aria-invalid="Boolean(galatRusakBidang.deskripsi)"
+          />
+          <p v-if="galatRusakBidang.deskripsi" class="galat-bidang">
+            {{ galatRusakBidang.deskripsi }}
+          </p>
+        </div>
+
+        <p v-if="galatRusak" class="pesan-galat">{{ galatRusak }}</p>
+
+        <div class="aksi">
+          <button type="submit" :disabled="menyimpanRusak">
+            {{ menyimpanRusak ? 'Menyimpan…' : 'Laporkan kerusakan' }}
+          </button>
+          <button type="button" class="halus" @click="tutupLaporan">Batal</button>
         </div>
       </form>
     </section>
@@ -685,6 +800,16 @@ onMounted(muat)
               </td>
               <td>
                 <LencanaStatus :status="k.status_huni" />
+                <!-- Alasan perbaikannya ditulis di bawah lencana, bukan di
+                     kolom sendiri: tanpa ini "diperbaiki" hanya label tanpa
+                     penjelasan, dan pemilik harus membuka panel lain untuk
+                     tahu apa yang rusak. -->
+                <span v-if="k.laporan_terbuka" class="alasan-rusak mungil">
+                  {{ k.laporan_terbuka.deskripsi }}
+                  <span class="lemah" v-if="k.laporan_terbuka.pelapor">
+                    · {{ k.laporan_terbuka.pelapor }}
+                  </span>
+                </span>
               </td>
               <td>{{ k.penghuni?.nama || '—' }}</td>
               <td class="kanan">
@@ -711,6 +836,24 @@ onMounted(muat)
                   @click="bukaFasilitas(k)"
                 >
                   Fasilitas
+                </button>
+                <!-- Satu tombol untuk satu keadaan: yang terbuka ditutup, yang
+                     tidak terbuka dilaporkan. Dua tombol sekaligus akan
+                     memaksa orang memilih di antara dua hal yang tidak bisa
+                     terjadi bersamaan. -->
+                <button
+                  v-if="sesi.boleh('kelola_kamar') && !k.laporan_terbuka"
+                  class="halus mungil"
+                  @click="bukaLaporan(k)"
+                >
+                  Laporkan rusak
+                </button>
+                <button
+                  v-if="sesi.boleh('kelola_kamar') && k.laporan_terbuka"
+                  class="halus mungil"
+                  @click="selesaikanPerbaikan(k)"
+                >
+                  Selesai diperbaiki
                 </button>
                 <span
                   v-if="!sesi.boleh('ubah_tarif') && !sesi.boleh('kelola_kamar')"
@@ -794,6 +937,17 @@ onMounted(muat)
    layar sempit nominalnya terpotong di tengah angka. */
 .tarif-sejak {
   display: block;
+}
+
+/* Alasan perbaikan turun ke baris kedua di bawah lencana. Dibatasi lebarnya
+   supaya kalimat panjang tidak melebarkan kolom status dan mendorong kolom
+   tarif keluar layar. */
+.alasan-rusak {
+  display: block;
+  max-width: 220px;
+  margin-top: 4px;
+  color: var(--teks-lemah);
+  white-space: normal;
 }
 
 /* Tombol aksi ditahan satu baris: "Fasilitas" yang terlipat ke bawah "Atur

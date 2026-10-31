@@ -1,8 +1,8 @@
 {
-  "dibuat": "2026-10-27T13:16:10.297Z",
-  "tabel": 23,
-  "kolom": 201,
-  "kunci_asing": 26,
+  "dibuat": "2026-10-31T10:03:12.804Z",
+  "tabel": 24,
+  "kolom": 209,
+  "kunci_asing": 29,
   "tingkat": [
     {
       "tingkat": 0,
@@ -36,6 +36,7 @@
         "kebijakan_kos",
         "komponen_biaya",
         "kontrak",
+        "laporan_kerusakan",
         "log_audit",
         "notifications",
         "pembayaran",
@@ -68,6 +69,7 @@
         "kebijakan_kos",
         "komponen_biaya",
         "kontrak",
+        "laporan_kerusakan",
         "log_audit",
         "notifications",
         "pembayaran",

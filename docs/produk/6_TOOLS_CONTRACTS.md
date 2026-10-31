@@ -6,7 +6,7 @@
 > Sumber kebenaran tetap `api/routes/api.php` dan kelas `Resource`. Dokumen ini
 > diambil dari `php artisan route:list --json` pada aplikasi yang berjalan.
 
-Versi 1.1 · 26 Oktober 2026 · **86 endpoint**
+Versi 1.1 · 26 Oktober 2026 · **89 endpoint**
 
 ---
 
@@ -186,7 +186,7 @@ meminta, hanya waktunya belum tepat.
 
 ---
 
-## 4. Data kos (34 endpoint)
+## 4. Data kos (37 endpoint)
 
 ### 4.1 Kamar
 
@@ -198,6 +198,9 @@ meminta, hanya waktunya belum tepat.
 | `PUT` | `/api/kamar/{kamar}` | `wewenang:kelola_kamar` | sama |
 | `PUT` | `/api/kamar/{kamar}/fasilitas` | `wewenang:kelola_kamar` | `{ fasilitas: [id, …] }` |
 | `GET` | `/api/kamar/{kamar}/tarif-berlaku` | `peran:pemilik,pengelola` | `?tanggal=YYYY-MM-DD` |
+| `GET` | `/api/laporan-kerusakan` | `peran:pemilik,pengelola` | `?status=terbuka\|selesai` |
+| `POST` | `/api/laporan-kerusakan` | `wewenang:kelola_kamar` | `{ kamar_id, deskripsi }` |
+| `POST` | `/api/laporan-kerusakan/{laporan}/selesai` | `wewenang:kelola_kamar` | — |
 
 `PUT /fasilitas` **mengganti seluruh daftar** lewat `sync()`, bukan menambah.
 Kuncinya `present`: larik kosong berarti "hapus semua fasilitas", dan itu
@@ -1019,7 +1022,7 @@ tidak pernah dijalankan.
 |---|---|---|
 | Autentikasi & akun | 8 | `/login`, `/logout`, `/me`, `/ganti-sandi`, `/lupa-sandi`, `/periksa-token`, `/atur-sandi`, `/persetujuan-pdp` |
 | PDP | 2 | `/pdp/*` |
-| Kamar & fasilitas | 10 | `/kamar*`, `/fasilitas*` |
+| Kamar, fasilitas & kerusakan | 13 | `/kamar*`, `/fasilitas*`, `/laporan-kerusakan*` |
 | Tarif, komponen, kebijakan | 6 | `/tarif`, `/komponen-biaya`, `/kebijakan` |
 | Aturan | 4 | `/aturan*` |
 | Rekening | 5 | `/rekening*`, `/rekening/{id}/gambar` |
@@ -1034,7 +1037,7 @@ tidak pernah dijalankan.
 | Notifikasi | 5 | `/notifikasi*`, `/pengaturan-notifikasi` |
 | Infrastruktur | 3 | `/health` (§3.1), `/pemilik/saja`, `/penyiapan` (§5.5) |
 | Webhook gateway | 1 | `/webhook/midtrans` (§8.0.1) |
-| **Total** | **86** | |
+| **Total** | **89** | |
 
 ---
 

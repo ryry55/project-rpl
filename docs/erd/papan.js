@@ -555,6 +555,11 @@ const SISI = [
 
 /** Panjang bagian dua jalur ortogonal yang berimpit. */
 function panjangBerimpit(a, b) {
+  // Toleransi 3 px, BUKAN 0,5 px. Dua garis yang berjarak 1,2 px tercetak
+  // sebagai satu garis di kertas — dan pemeriksa (`cek-erd-lrs.js`) memakai
+  // ambang 3 px yang sama. Dengan 0,5 px di sini, perutean menganggap keduanya
+  // aman dan pemeriksa menolaknya: dua alat dengan dua definisi "berimpit".
+  const RAPAT = 3;
   let total = 0;
   for (let i = 1; i < a.length; i++) {
     const a1 = a[i - 1];
@@ -566,12 +571,12 @@ function panjangBerimpit(a, b) {
       const bHorizontal = Math.abs(b1.y - b2.y) < 0.5;
       if (aHorizontal !== bHorizontal) continue;
       if (aHorizontal) {
-        if (Math.abs(a1.y - b1.y) > 0.5) continue;
+        if (Math.abs(a1.y - b1.y) > RAPAT) continue;
         const kiri = Math.max(Math.min(a1.x, a2.x), Math.min(b1.x, b2.x));
         const kanan = Math.min(Math.max(a1.x, a2.x), Math.max(b1.x, b2.x));
         if (kanan > kiri) total += kanan - kiri;
       } else {
-        if (Math.abs(a1.x - b1.x) > 0.5) continue;
+        if (Math.abs(a1.x - b1.x) > RAPAT) continue;
         const atas = Math.max(Math.min(a1.y, a2.y), Math.min(b1.y, b2.y));
         const bawah = Math.min(Math.max(a1.y, a2.y), Math.max(b1.y, b2.y));
         if (bawah > atas) total += bawah - atas;

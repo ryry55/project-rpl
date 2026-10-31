@@ -1,7 +1,7 @@
 # Fase akhir — yang tersisa, dan hanya Anda yang bisa mengerjakannya
 
-Diperbarui 30 Oktober 2026. Semua yang bisa diperiksa mesin sudah diperiksa:
-812 tes PHP, 19 tes Vitest, 30 skrip / 871 langkah browser, `uji-aksesibilitas.mjs`
+Diperbarui 31 Oktober 2026. Semua yang bisa diperiksa mesin sudah diperiksa:
+830 tes PHP, 19 tes Vitest, 30 skrip / 871 langkah browser, `uji-aksesibilitas.mjs`
 27/27 di laptop **dan** di CI, gladi demo 39/39 pada database segar, uji beban
 lulus. Empat pagar baru dibuktikan bisa **merah** lebih dulu, bukan hanya hijau.
 
@@ -35,9 +35,11 @@ saat dijalankan sungguhan. Jangan mengucapkan versi lama:
 node docs/beban/uji-beban.mjs
 ```
 
-Lulus bila `p95` di bawah 1.000 ms dan `galat: 0`. Dua pengukuran di laptop
-pengembangan: **464 ms** dan **840 ms** — selisihnya besar karena keadaan mesin,
-jadi angka di mesin sidang harus diukur sendiri, bukan diwarisi dari sini.
+Lulus bila `p95` di bawah 1.000 ms dan `galat: 0`. Tiga pengukuran di mesin ini:
+**464 ms**, **840 ms**, dan **603 ms** (31 Oktober 2026, 103 permintaan/detik,
+0 galat) — selisihnya besar karena keadaan mesin, jadi ukur ulang sebelum sidang.
+
+- [x] Diukur 31 Oktober 2026: p95 603 ms, lulus.
 
 Bila p95 melewati ambang: tutup Chrome dan tab lain lebih dulu, lalu ulangi.
 Yang diukur adalah mesin yang sedang dipakai, bukan sifat aplikasi.
@@ -48,7 +50,7 @@ Jawab apa adanya. Sistem ini demo lokal, dan itu bukan kelemahan yang perlu
 disamarkan.
 
 - **"Sudah dipakai penghuni sungguhan?"** — Belum. Yang ada: demo lokal dengan
-  data contoh, 812 tes, dan uji browser yang menjalankan alurnya di peramban.
+  data contoh, 830 tes, dan uji browser yang menjalankan alurnya di peramban.
 - **"Kalau servernya mati, datanya hilang?"** — Basis data PostgreSQL di dalam
   Docker, dan cadangannya sudah **diuji pulih**, bukan hanya dibuat:
   `docker compose exec -T api sh /var/www/html/docker/backup.sh --uji-pulih`
@@ -89,14 +91,24 @@ yang perlu dibuat hanya `docs/akademik/*` — berkas itu dibangkitkan dari data
 yang sudah ada (`usecase-data.js`, `dfd-data.js`, hasil uji), bukan ditulis
 ulang dari nol.
 
-## Satu tiket GitHub yang tetap terbuka
+## T14 selesai — laporan kerusakan kamar
 
-**#13 (T14: laporan kerusakan properti + status kamar `perbaikan`).** Isinya
-benar-benar belum ada: tidak ada tabel, model, unggahan foto, maupun status
-`perbaikan` pada `kamar` — kamar rusak hari ini hanya bisa ditandai `kosong`, dan
-itu berarti ia tampak siap disewakan. Bila dikerjakan, tiga hal harus Anda
-putuskan lebih dulu: apakah kamar `perbaikan` tetap ditagih, siapa yang boleh
-menutup laporan, dan apakah biaya perbaikan pernah masuk ke tagihan penghuni.
+**#13 ditutup 31 Oktober 2026.** Kamar rusak kini punya tabelnya sendiri
+(`laporan_kerusakan`) dan status `perbaikan`; kamar yang sedang diperbaiki tidak
+muncul di pilihan kontrak, dan layar Kamar menjelaskan **apa** yang rusak di
+bawah lencananya.
+
+Empat keputusan pemilik yang membentuknya:
+
+| Pertanyaan | Jawaban |
+|---|---|
+| Bentuk | tabel `laporan_kerusakan` tersendiri, bukan kolom `catatan` |
+| Tagihan kamar `perbaikan` | **tetap ditagih penuh** — tidak ada rumus baru |
+| Siapa menutup laporan | pemilik **dan** pengelola, lewat `kelola_kamar` |
+| Biaya perbaikan | **tidak pernah** masuk tagihan penghuni; tabelnya tidak punya kolom nominal |
+
+Angka skema karena itu berubah: **24 tabel, 209 kolom, 29 kunci asing, 33 tabel
+`public`** (trigger tetap 8). Dokumen, ERD, LRS, dan narasi ikut dibangun ulang.
 
 Tiga tiket lain ditutup 31 Oktober 2026 setelah diperiksa, bukan dibatalkan:
 **#11** satuan sewa per kamar (mingguan/harian) ternyata sudah ada di
