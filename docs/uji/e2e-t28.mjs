@@ -300,6 +300,17 @@ jalankan(async () => {
     )
     lapor('halaman Data pribadi terbuka untuk penghuni', pdpTerbuka)
 
+    // Judul halaman dirender sebelum datanya tiba. Menunggu `h1` saja tidak
+    // cukup: di runner CI yang lebih lambat, `evaluasi` di bawah sempat berjalan
+    // selagi layar masih "Memuat…" dan melaporkan layar kosong — dua kegagalan
+    // yang terbaca seperti kebocoran data, padahal hanya balapan waktu. Tunggu
+    // penanda yang hanya muncul setelah datanya benar-benar terisi.
+    await tungguSampai(
+      ws,
+      `document.body.textContent.includes(${JSON.stringify(EMAIL_HAPUS)})`,
+      15000,
+    )
+
     const isiData = await evaluasi(
       ws,
       `
