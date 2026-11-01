@@ -206,19 +206,23 @@ const L1 = {
  * LEVEL 2 DIPECAH MENJADI TIGA LEMBAR; LEVEL 3 CUKUP SATU. Keduanya diputuskan
  * oleh pengukuran, bukan selera.
  *
- * Percobaan pertama memakai satu lembar berisi 23 tabel untuk KEDUANYA.
+ * Percobaan pertama memakai SATU lembar berisi seluruh 24 tabel untuk KEDUANYA.
  * Hasilnya ditolak oleh penjaga keterbacaan: setelah dipaskan ke satu halaman
- * A4, hurufnya hanya 0,97% lebar halaman. Itu bukan soal skala ekspor; 201
- * kolom memang tidak muat di satu halaman.
+ * A4, hurufnya hanya 1,94 mm - di bawah ambang 2,52 mm. Itu bukan soal skala
+ * ekspor; 209 kolom memang tidak muat di A4.
  *
- * Yang kemudian disadari: yang membuatnya tidak muat adalah JUMLAH KOLOM, bukan
- * jumlah tabel. LRS klasik tidak menggambar seluruh atribut — yang digambar
- * hanya kunci primer dan kunci asing, karena itulah yang membentuk struktur
- * relasional. Dengan 49 kolom (dari 201), seluruh 23 tabel muat dalam SATU
- * lembar pada huruf efektif 1,35%, di atas ambang 1,2%. Karena itu:
+ * Penyelesaiannya berbeda untuk kedua tingkat, dan keduanya dari pengukuran:
  *
- *   - level 3 (LRS)  : satu lembar, hanya kolom kunci;
- *   - level 2 (fisikal): tiga lembar, seluruh kolom dan tipenya.
+ *   - level 2 (fisikal): dipecah menjadi TIGA lembar A4, karena yang harus
+ *     terbaca adalah setiap kolom beserta tipenya - teksnya paling banyak;
+ *   - level 3 (LRS)    : tetap SATU lembar, tetapi di kertas A3 tegak. Seluruh
+ *     209 kolom terbaca di sana (2,74 mm), sedangkan A4 terbaik hanya 1,94 mm.
+ *     Lembar A3 itu diserahkan sebagai lampiran, bukan ditempel ke badan
+ *     laporan - mengecilkannya ke lebar A4 mengembalikan angkanya ke 1,94 mm.
+ *
+ * Jadi yang menentukan bukan jumlah tabel, melainkan berapa kolom yang digambar
+ * dan sebesar apa kertasnya. Tabel 24 sel (2-6 kolom x A4/A3 tegak-miring) ada
+ * di README ERD, dan diukur ulang oleh `UKUR_KERTAS=1`.
  *
  * Tingkat 2 tetap dipecah menurut ALUR DATA: tiap lembar adalah satu rantai
  * yang benar-benar saling terhubung, bukan satu topik yang kebetulan mirip.
@@ -226,8 +230,8 @@ const L1 = {
  * bisa ditarik dan tidak menjadi kunci asing lintas lembar.
  *
  *   1. Akun & tata kelola  akun, wewenang, usulan, jejak   9 tabel
- *   2. Kamar & kebijakan   kamar, tarif, komponen, aturan  7 tabel
- *   3. Uang                kontrak -> tagihan -> bayar     7 tabel
+ *   2. Kamar & kebijakan   kamar, kerusakan, tarif, aturan  9 tabel
+ *   3. Uang                kontrak -> tagihan -> bayar      6 tabel
  *
  * Jumlah kolom TIAP lembar tidak dipatok di sini: diukur oleh `pecahTerbaca`
  * di build-tingkat.js, karena bentuk lembar menentukan mana yang lebih dulu

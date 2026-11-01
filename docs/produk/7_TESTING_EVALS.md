@@ -72,10 +72,10 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
 ```
         ┌──────────────────────────────────────┐
         │  30 skrip uji                        │  paling lambat, tetapi
-        │  (26 browser + 2 balapan + 1 proxy)  │  satu-satunya yang melihat
+        │  (27 browser + 2 balapan + 1 proxy)  │  satu-satunya yang melihat
         └──────────────────────────────────────┘
       ┌──────────────────────────────────────┐
-      │  712 tes Feature                     │  ~42 dtk, jalur penuh
+      │  730 tes Feature                     │  ~31 dtk, jalur penuh
       │  (validasi, izin, isolasi, balapan)  │  lewat middleware nyata
       └──────────────────────────────────────┘
     ┌──────────────────────────────────────┐
@@ -114,7 +114,7 @@ Rata-rata 23 detik untuk seluruhnya.
 
 ### 3.3 Tes Feature
 
-712 tes Feature, dikelompokkan menurut apa yang dijaga. Tabel di bawah menyoroti
+730 tes Feature, dikelompokkan menurut apa yang dijaga. Tabel di bawah menyoroti
 berkas yang menjaga aturan, bukan seluruhnya:
 
 **Uang dan tagihan**
