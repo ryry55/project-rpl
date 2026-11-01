@@ -169,7 +169,7 @@ yang dibekukan di `transaksi_gateway` sebelum baris pembayaran dibuat.
 
 | Kode | Penyimpanan | Atribut utama | Keterangan |
 | --- | --- | --- | --- |
-| **D1** | Kamar | <code>id, nomor, tipe, status_huni</code> | Kamar beserta status huninya. Status hanya kosong atau terisi — tidak ada status perbaikan, karena perbaikan tidak pernah menghalangi penagihan. |
+| **D1** | Kamar & Laporan Kerusakan | <code>id, nomor, tipe, status_huni · laporan_kerusakan: id, kamar_id, deskripsi, selesai_pada</code> | Kamar beserta status huninya (kosong, terisi, dipesan, perbaikan) dan laporan kerusakannya. Laporan yang belum ditutup membuat kamar berstatus perbaikan, tetapi kamar tetap ditagih penuh. |
 | **D2** | Penghuni & Kontrak | <code>penghuni: id, nama, no_hp, email · kontrak: id, kamar_id, penghuni_id, tgl_masuk, tgl_keluar, tarif_awal, status</code> | Data penghuni dan kontrak sewanya. tarif_awal membekukan tarif yang berlaku ketika kontrak ditandatangani. |
 | **D3** | Tarif, Kebijakan & Komponen | <code>tarif_sewa: kamar_id, nilai, berlaku_dari · komponen_biaya: nama, nilai, satuan, kamar_id, berlaku_dari · kebijakan_kos: tipe, nilai, persen, plafon_persen, masa_tenggang, nominal, tanggal, kamar_id, berlaku_dari</code> | Tarif sewa, kebijakan kos per dimensi, dan komponen biaya. Bersifat tambah-saja: perubahan membuat baris baru dengan berlaku_dari sendiri, baris lama tidak pernah ditimpa. |
 | **D4** | Tagihan | <code>id, kontrak_id, periode, pokok, total_final, jatuh_tempo, status, tarif_terpakai, kebijakan_terpakai</code> | Tagihan bulanan beserta salinan tarif dan kebijakan yang dipakai saat terbit. Denda tidak disimpan sebagai kolom: ia dihitung ulang setiap kali dibaca, dan hanya `total_final` yang dibekukan saat tagihan lunas. |
@@ -214,7 +214,7 @@ yang dibekukan di `transaksi_gateway` sebelum baris pembayaran dibuat.
 
 | Kode | Dari | Ke | Nama aliran | Struktur data |
 | --- | --- | --- | --- | --- |
-| **10** | Proses 1.0 | Store D1 | data kamar | <code>nomor, tipe, status_huni</code> |
+| **10** | Proses 1.0 | Store D1 | data kamar | <code>nomor, tipe, status_huni, laporan_kerusakan</code> |
 | **11** | Proses 1.0 | Store D2 | kontrak sewa | <code>kontrak_id, penghuni, kamar, tgl_masuk, tarif_awal</code> |
 | **12** | Proses 2.0 | Store D3 | tarif, kebijakan & komponen | <code>tarif: kamar_id, nilai, berlaku_dari · kebijakan: tipe, nilai, angka, kamar_id, berlaku_dari</code> |
 | **13** | Proses 2.0 | Store D6 | log audit perubahan | <code>aktor, aksi, nilai_lama, nilai_baru, waktu</code> |
@@ -259,7 +259,8 @@ rute di kedua tingkat, dan hitungannya harus sama — kini **8 masuk dan 8 kelua
 
 ```
 kamar = nomor_kamar + tipe + status_huni
-status_huni = "kosong" | "terisi"
+laporan_kerusakan = kamar_id + deskripsi + dilaporkan_oleh + selesai_pada + ditutup_oleh
+status_huni = "kosong" | "terisi" | "dipesan" | "perbaikan"
 penghuni = nama + no_hp + email
 kontrak = kontrak_id + penghuni + kamar + tgl_masuk + tgl_keluar + tarif_awal + status_kontrak
 status_kontrak = "aktif" | "selesai"

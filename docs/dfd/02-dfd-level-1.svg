@@ -57,7 +57,9 @@
 <path d="M100 1280 H350 M100 1280 V1370 M100 1370 H350" fill="none" stroke="#475569" stroke-width="2"/>
 <line x1="156" y1="1280" x2="156" y2="1370" stroke="#475569" stroke-width="1.4"/>
 <text x="128" y="1325" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="700" fill="#0f172a">D1</text>
-<text x="168" y="1325" text-anchor="start" dominant-baseline="central" font-size="13" font-weight="500" fill="#0f172a">Kamar</text>
+<text x="168" y="1307.8" text-anchor="start" dominant-baseline="central" font-size="13" font-weight="500" fill="#0f172a">Kamar</text>
+<text x="168" y="1325" text-anchor="start" dominant-baseline="central" font-size="13" font-weight="500" fill="#0f172a">&amp; Laporan</text>
+<text x="168" y="1342.2" text-anchor="start" dominant-baseline="central" font-size="13" font-weight="500" fill="#0f172a">Kerusakan</text>
 <rect x="430" y="1280" width="56" height="90" fill="#e2e8f0" opacity="0.8"/>
 <rect x="490" y="1281" width="189" height="88" fill="#f8fafc"/>
 <path d="M430 1280 H680 M430 1280 V1370 M430 1370 H680" fill="none" stroke="#475569" stroke-width="2"/>

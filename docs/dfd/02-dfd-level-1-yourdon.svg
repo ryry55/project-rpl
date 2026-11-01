@@ -46,7 +46,9 @@
 <line x1="100" y1="1370" x2="350" y2="1370" stroke="#475569" stroke-width="2"/>
 <line x1="156" y1="1280" x2="156" y2="1370" stroke="#475569" stroke-width="1.4"/>
 <text x="128" y="1325" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="700" fill="#0f172a">D1</text>
-<text x="166" y="1325" text-anchor="start" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#0f172a">Kamar</text>
+<text x="166" y="1308.5" text-anchor="start" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#0f172a">Kamar</text>
+<text x="166" y="1325" text-anchor="start" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#0f172a">&amp; Laporan</text>
+<text x="166" y="1341.5" text-anchor="start" dominant-baseline="central" font-size="12.5" font-weight="500" fill="#0f172a">Kerusakan</text>
 <rect x="430" y="1281" width="250" height="88" fill="#f8fafc"/>
 <line x1="430" y1="1280" x2="680" y2="1280" stroke="#475569" stroke-width="2"/>
 <line x1="430" y1="1370" x2="680" y2="1370" stroke="#475569" stroke-width="2"/>

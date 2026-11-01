@@ -287,7 +287,7 @@ Satu hal, dan itu perintah Anda sendiri: **deploy dibatalkan 29 Oktober 2026**, 
 Render/Neon, Midtrans sandbox, pinger uptime, dan verifikasi Brevo tidak akan dikerjakan.
 Aplikasi dinilai dan didemokan dari laptop. Antrean email sudah ditutup
 (Fase 5.5: program `antrean` + `KirimPemberitahuan`). Uji E2E di CI **sudah hijau** —
-30 skrip / 871 langkah. Tidak ada yang disembunyikan.
+30 skrip / 879 langkah. Tidak ada yang disembunyikan.
 
 **"Bagaimana aksesibilitasnya dibuktikan?"**
 `docs/uji/uji-aksesibilitas.mjs` menjalankan axe-core pada 21 halaman (publik, pemilik,

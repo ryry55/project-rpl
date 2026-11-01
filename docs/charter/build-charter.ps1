@@ -58,7 +58,7 @@ Set-ParaText $doc "Tujuan proyek ini adalah untuk membangun" `
 Set-ParaText $doc "Analisis kebutuhan dan perancangan sistem informasi reservasi" `
     "Analisis kebutuhan dan perancangan sistem informasi operasional kos-kosan berbasis Web" | Out-Null
 Set-ParaText $doc "Pengembangan aplikasi Web yang terdiri dari modul-modul" `
-    ("Pengembangan aplikasi Web yang terdiri dari modul pengelolaan kamar dan penghuni, pengelolaan tarif dan komponen biaya, penerbitan tagihan bulanan, pencatatan pembayaran, serta pelaporan tunggakan") | Out-Null
+    ("Pengembangan aplikasi Web yang terdiri dari modul pengelolaan kamar dan penghuni, pengelolaan tarif dan komponen biaya, penerbitan tagihan bulanan, pencatatan pembayaran, pencatatan laporan kerusakan kamar, serta pelaporan tunggakan") | Out-Null
 Set-ParaText $doc "Pengembangan web service yang menghubungkan aplikasi Web dengan basis data sarana" `
     ("Pengembangan web service yang menghubungkan aplikasi Web dengan basis data operasional kos-kosan") | Out-Null
 Set-ParaText $doc "Pengujian dan evaluasi sistem informasi reservasi" `

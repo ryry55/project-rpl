@@ -7,8 +7,8 @@
 > sudah?"*
 >
 > **Cara dibaca:** status di bawah hasil **pembacaan statis** kode dan tes pada
-> 30 Oktober 2026, ditambah gate yang hijau hari itu (812 tes PHP / 3807 asersi,
-> 19 tes Vitest, 30 skrip / 871 langkah, 409 detik). Ia membuktikan perbaikan
+> 1 November 2026, ditambah gate yang hijau hari itu (830 tes PHP / 3883 asersi,
+> 19 tes Vitest, 30 skrip / 879 langkah, 526 detik). Ia membuktikan perbaikan
 > **ada di kode**; ia bukan bukti runtime baru. Kolom Bukti menyebut tempat
 > memeriksanya sendiri.
 
@@ -16,9 +16,9 @@
 
 | Status | Jumlah | Arti |
 |---|---|---|
-| **Selesai** | 33 | Perbaikan ada di kode dan ada tes/skrip yang menjaganya |
+| **Selesai** | 34 | Perbaikan ada di kode dan ada tes/skrip yang menjaganya |
 | **Selesai tanpa tes** | 0 | Perbaikan ada, tidak ada penjaga otomatis |
-| **Tidak berlaku** | 3 | Temuan menyebut hal yang memang tidak ada di desain |
+| **Tidak berlaku** | 2 | Temuan menyebut hal yang memang tidak ada di desain |
 | **Masih terbuka** | 0 | Perbaikan belum ada di kode |
 
 ## Tabel
@@ -33,7 +33,7 @@
 | REV-DFD-06 | Sedang | Label #7 sebut denda padahal Rp 0 | Selesai | `docs/dfd/dfd-data.js:309` |
 | REV-DFD-07 | Sedang | Pengelola tak ada di diagram konteks | Selesai | `docs/dfd/dfd-data.js:48-55` |
 | REV-DFD-08 | Sedang | Penghuni digambar memasok data | Selesai | `docs/dfd/dfd-data.js:57-67,236` |
-| REV-DFD-09 | Minor | Kamus usang; umur negatif masuk 0–30 | Selesai | `docs/dfd/dfd-data.js:179,598,601` |
+| REV-DFD-09 | Minor | Kamus usang; umur negatif masuk 0–30 | Selesai | `docs/dfd/dfd-data.js:179,599,602` |
 | REV-SEC-01 | Kritis | Email akun aktif bisa diganti | Selesai | `PenghuniController.php:112`; `AktivasiAkunTest::test_mengganti_email_penghuni_aktif_ditolak` |
 | REV-SEC-02 | Kritis | Pengelola menetapkan tarif lewat kontrak | Selesai | `KontrakController.php:78` (`tarif_perlu_pemilik`); `PengelolaTest::test_pengelola_tidak_bisa_menetapkan_tarif_pertama_lewat_formulir_kontrak`, dikunci kontrol negatif `test_pemilik_boleh_...` |
 | REV-SEC-03 | Kritis | Tautan email ke port 8081 (404) | Selesai | `PemberitahuanKos.php:54`; `AktivasiAkunTest::test_tautan_email_memakai_alamat_spa_bukan_alamat_api` |
@@ -46,7 +46,7 @@
 | REV-FIN-03 | Sedang | Pengelola periksa catatannya sendiri | Selesai | `PembayaranController.php:243`; `VerifikasiPembayaranTest::test_pengelola_tidak_boleh_memeriksa_catatannya_sendiri` |
 | REV-FIN-04 | Sedang | `today` memblokir booking masa depan | Selesai | `SimpanKontrakRequest.php:32`; `DataIndukTest::test_tgl_masuk_di_masa_depan_diterima_sebagai_dipesan` |
 | REV-FIN-05 | Sedang | Akhir kontrak tanpa rekonsiliasi deposit | Tidak berlaku | Deposit dihapus seluruhnya; `MigrasiHapusDepositTest` |
-| REV-FIN-06 | Sedang | Kontrak di kamar berstatus perbaikan | Tidak berlaku | Status `perbaikan` tidak ada di kode (`utang-teknis.md:440`) |
+| REV-FIN-06 | Sedang | Kontrak di kamar berstatus perbaikan | Selesai | T14 (31 Okt 2026): `Kamar::statusSetelahPerbaikan()`, `KontrakController.php:44-46` menolak 422; `KerusakanTest::test_kamar_yang_sedang_diperbaiki_tidak_bisa_disewakan`, `..._mengakhiri_kontrak_tidak_menghapus_status_perbaikan` |
 | REV-FIN-07 | Sedang | Denda dari pokok penuh, tanpa pemaafan | Selesai | `PenghitungDenda.php:101-130`; `PemaafanDendaTest` |
 | REV-DAT-01 | Kritis | Cascade vs trigger append-only | Selesai | migrasi `2026_11_06_090300`; `SkemaRiwayatKamarTest::test_tiga_foreign_key_riwayat_memakai_restrict` |
 | REV-DAT-02 | Kritis | Terbit massal tak kirim notifikasi | Selesai | `PenerbitanMassalTest::test_setiap_penghuni_menerima_pemberitahuan_tagihannya_sendiri` |

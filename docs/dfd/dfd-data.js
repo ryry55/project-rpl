@@ -149,12 +149,12 @@ const STORE = [
   {
     id: 'D1',
     kunci: 'D1',
-    nama: ['Kamar'],
-    ringkas: 'Kamar',
-    atribut: 'id, nomor, tipe, status_huni',
+    nama: ['Kamar', '& Laporan', 'Kerusakan'],
+    ringkas: 'Kamar & laporan kerusakan',
+    atribut: 'id, nomor, tipe, status_huni · laporan_kerusakan: id, kamar_id, deskripsi, selesai_pada',
     isi:
-      'Kamar beserta status huninya. Status hanya kosong atau terisi — tidak ' +
-      'ada status perbaikan, karena perbaikan tidak pernah menghalangi penagihan.',
+      'Kamar beserta status huninya (kosong, terisi, dipesan, perbaikan) dan laporan kerusakannya. ' +
+      'Laporan yang belum ditutup membuat kamar berstatus perbaikan, tetapi kamar tetap ditagih penuh.',
   },
   {
     id: 'D2',
@@ -351,7 +351,7 @@ const ALIRAN = [
   {
     kunci: 'A1', kode: '10', jenis: 'internal', dari: 'P1', ke: 'D1',
     label: ['data kamar'],
-    struktur: 'nomor, tipe, status_huni',
+    struktur: 'nomor, tipe, status_huni, laporan_kerusakan',
     catatan: '',
   },
   {
@@ -564,7 +564,8 @@ const ATURAN = [
  */
 const KAMUS = [
   ['kamar', 'nomor_kamar + tipe + status_huni'],
-  ['status_huni', '"kosong" | "terisi"'],
+  ['laporan_kerusakan', 'kamar_id + deskripsi + dilaporkan_oleh + selesai_pada + ditutup_oleh'],
+  ['status_huni', '"kosong" | "terisi" | "dipesan" | "perbaikan"'],
   ['penghuni', 'nama + no_hp + email'],
   ['kontrak', 'kontrak_id + penghuni + kamar + tgl_masuk + tgl_keluar + tarif_awal + status_kontrak'],
   ['status_kontrak', '"aktif" | "selesai"'],

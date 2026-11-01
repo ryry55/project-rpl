@@ -34,12 +34,12 @@ ambang baca 2,52 mm (setara 1,2% lebar A4), dengan seluruh kolom:
 |---|---|---|---|---|
 | 2 | 1,09 mm | 0,77 mm | 1,54 mm | 1,09 mm |
 | 3 | 1,59 mm | 1,12 mm | 2,24 mm | 1,59 mm |
-| **4** | 2,03 mm | 1,43 mm | **2,87 mm** | 2,03 mm |
+| **4** | 2,03 mm | 1,43 mm | **2,74 mm** | 2,03 mm |
 | 5 | 1,72 mm | 1,71 mm | 2,43 mm | 2,42 mm |
 | 6 | 1,42 mm | 2,01 mm | 2,01 mm | 2,84 mm |
 
 **Seluruh varian A4 gagal**; yang terbaik 2,03 mm. Pada A3 tegak dengan 4 kolom
-hasilnya **2,87 mm** — satu-satunya bentuk yang memuat semua atribut tanpa
+hasilnya **2,74 mm** — satu-satunya bentuk yang memuat semua atribut tanpa
 mengorbankan keterbacaan.
 
 Karena itu lembar LRS **diserahkan terpisah sebagai lampiran A3**, tidak ditempel
