@@ -99,6 +99,12 @@ powershell -ExecutionPolicy Bypass -File docs/erd/export-png.ps1   # SVG -> PNG 
 
 `ambil-skema.js` memerlukan container `db` hidup. Tiga perintah lainnya tidak.
 
+Tabel bentuk lembar di §LRS adalah hasil ukur, bukan pilihan. Bila jumlah kolom
+berubah, ukur ulang seluruh 24 sel: `$env:UKUR_KERTAS='1'` lalu
+`node docs/erd/build-tingkat.js` (sekitar 15 menit; hanya mencetak tabel, tidak
+menulis SVG). Angka yang dipakai memutuskan juga disimpan di `manifest.json`
+(`huruf_mm`, `huruf_a4_mm`) dan dibandingkan `cek-angka-dokumen.js` dengan prosa.
+
 ## Penjaga
 
 ### Di dalam build
