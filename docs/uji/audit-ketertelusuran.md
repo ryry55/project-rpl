@@ -115,6 +115,25 @@ Kriteria penerimaan T2 yang bukan turunan langsung R-01..R-07.
 | DELETE langsung ke `log_audit` ditolak **basis data** | trigger `BEFORE DELETE` | `test_delete_langsung_ke_log_audit_ditolak_basis_data` | ✅ |
 | Penolakan menyebut alasannya, bukan galat acak | pesan trigger memuat "append-only" | `test_penolakan_menyebut_append_only_bukan_galat_acak` | ✅ |
 
+## Aturan laporan kerusakan (T14)
+
+| Kontrak | Implementasi | Tes | Status |
+|---|---|---|---|
+| Melaporkan kerusakan mengubah kamar menjadi `perbaikan`, dan jejaknya menempel pada **kamar** | `LaporanKerusakanController@store` dalam satu transaksi; `AKSI_KERUSAKAN_LAPOR` | `test_pemilik_melaporkan_kerusakan_dan_kamar_menjadi_perbaikan`, `test_laporan_meninggalkan_jejak_audit_pada_kamar` | ✅ |
+| Satu kamar hanya boleh punya **satu** laporan terbuka | indeks unik parsial `laporan_kerusakan_satu_terbuka_per_kamar`; `23505` → 422 | `test_laporan_kedua_untuk_kamar_yang_sama_ditolak_422`, `test_basis_data_menolak_dua_laporan_terbuka_untuk_satu_kamar` (menembak basis data langsung, bukan HTTP) | ✅ |
+| Deskripsi wajib, 5-2000 huruf | `SimpanLaporanKerusakanRequest` | `test_deskripsi_wajib_dan_tidak_boleh_terlalu_pendek` | ✅ |
+| Kamar tidak dikenal → 422 dengan `errors.kamar_id` | `exists:kamar,id` di request, sebelum `findOrFail` | `test_kamar_tidak_dikenal_ditolak_422` | ✅ |
+| Menutup laporan mengembalikan status kamar **menurut kontraknya**, bukan ke nilai sebelumnya | `Kamar::statusSetelahPerbaikan()` | `test_menutup_laporan_mengembalikan_kamar_ke_kosong`, `..._pada_kamar_berpenghuni_mengembalikan_terisi`, `..._pada_kamar_yang_sudah_dipesan_mengembalikan_dipesan` | ✅ |
+| Menutup laporan yang sudah tertutup → 422 | `masihTerbuka()` | `test_menutup_laporan_dua_kali_ditolak_422` | ✅ |
+| Pemilik **dan** pengelola ber-`kelola_kamar` boleh melapor dan menutup; pengelola tanpa wewenang dan penghuni tidak | gerbang `peran:` + `wewenang:kelola_kamar` | `test_pengelola_dengan_kelola_kamar_boleh_melaporkan_dan_menutup`, `test_pengelola_tanpa_wewenang_kelola_kamar_ditolak`, `test_penghuni_tidak_boleh_melaporkan_kerusakan` | ✅ |
+| Kamar `perbaikan` tidak bisa disewakan | pagar di jalur kontrak baru → 422 | `test_kamar_yang_sedang_diperbaiki_tidak_bisa_disewakan` | ✅ |
+| Mengakhiri kontrak **tidak** mengosongkan kamar yang sedang diperbaiki | `akhiri` hanya menyentuh kamar berstatus `terisi` | `test_mengakhiri_kontrak_tidak_menghapus_status_perbaikan` | ✅ |
+| `status_huni` tidak bisa diubah tangan selama laporan terbuka | `KamarController@update` menolak 422 | `test_status_kamar_tidak_bisa_diubah_tangan_saat_laporan_terbuka` | ✅ |
+| Daftar kamar menyebut **apa** yang rusak, bukan hanya lencana `perbaikan` | `KamarResource` + `laporanTerbuka` | `test_daftar_kamar_menyertakan_alasan_perbaikan` | ✅ |
+| Daftar laporan bisa disaring `?status=terbuka\|selesai`; yang terbuka lebih dulu | `LaporanKerusakanController@index` | `test_daftar_laporan_bisa_disaring_terbuka_dan_selesai` | ✅ |
+| Kamar `perbaikan` **tetap ditagih penuh** | tidak ada kode tagihan yang membaca `status_huni` | tidak ada tes khusus: tidak ada jalur yang perlu diuji, karena penerbitan tidak pernah melihat status kamar | ✅ |
+| Biaya perbaikan **tidak pernah** masuk tagihan penghuni | tabelnya tidak punya kolom nominal | dijaga bentuk skema: `cek-erd-lrs.js` menagih kecocokan kolom, dan tidak ada kolom uang untuk ditambahkan tanpa ketahuan | ✅ |
+
 ## Konvensi HTTP (seam 2)
 
 Bukan aturan bisnis, tapi kontrak yang harus berlaku sejak tiket pertama.
@@ -144,13 +163,18 @@ Bukan aturan bisnis, tapi kontrak yang harus berlaku sejak tiket pertama.
 | T4 Terbit massal | #5 | 186 tes hijau (1517 asersi) - 60 tes murni tanpa DB; 15/15 langkah E2E browser; 9/9 langkah uji balapan HTTP; 1 screenshot (`T4-terbit-massal.png`) |
 | T5 Catat pembayaran | #6 | 214 tes hijau (1638 asersi); 21/21 langkah E2E browser; 11/11 langkah uji balapan HTTP; 1 screenshot (`T5-pembayaran.png`) |
 | T9 Portal penghuni + log audit | #9 | 232 tes hijau (1703 asersi); 23/23 langkah E2E browser; 2 screenshot (`T9-portal-penghuni.png`, `T9-log-audit.png`) |
+| T14 Laporan kerusakan kamar | #13 | 830 tes hijau (3883 asersi) seluruh suite; `KerusakanTest` 18 tes; 8 langkah di antaranya lewat browser di `e2e-t2` (42/42) |
+
+Angka di tabel ini adalah keadaan **saat tiket itu ditutup**, bukan keadaan
+sekarang - jumlah tes tumbuh dan tidak pernah turun. Yang berlaku hari ini ada
+di `docs/serah-terima.md` §1, dan `cek-angka-dokumen.js` menjaga angka di sana.
 
 ## Cara menjalankan ulang bukti
 
 ```bash
 docker compose up -d
-docker compose exec api php artisan test          # 232 tes
-docker compose exec api php artisan test --testsuite=Unit   # 60 tes murni, tanpa DB
+docker compose exec api php artisan test          # 830 tes, 3883 asersi
+docker compose exec api php artisan test --testsuite=Unit   # 100 tes murni, tanpa DB
 node docs/uji/e2e-t1.mjs                          # perlu Chrome --remote-debugging-port=9222
 node docs/uji/e2e-t2.mjs                          # 8 kamar + 6 penghuni + kontrak lewat UI
 node docs/uji/e2e-t3.mjs                          # terbit tagihan + rincian + prorata lewat UI
