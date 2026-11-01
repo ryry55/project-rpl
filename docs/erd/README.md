@@ -39,8 +39,8 @@ ambang baca 2,52 mm (setara 1,2% lebar A4), dengan seluruh kolom:
 | 6 | 1,41 mm | 1,87 mm | 1,99 mm | 2,65 mm |
 
 **Seluruh varian A4 gagal**; yang terbaik 1,94 mm. Pada A3 tegak dengan 4 kolom
-hasilnya **2,74 mm** — satu-satunya bentuk yang memuat semua atribut tanpa
-mengorbankan keterbacaan.
+hasilnya **2,74 mm** — huruf terbesar di antara seluruh bentuk yang lolos ambang,
+jadi bentuk itulah yang dipakai.
 
 Karena itu lembar LRS **diserahkan terpisah sebagai lampiran A3**, tidak ditempel
 ke badan laporan A4. Bila A3 yang sama diskalakan ke lebar A4, hasilnya kembali

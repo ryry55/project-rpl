@@ -259,8 +259,8 @@ baris.push(
     'pada ambang baca 2,52 mm, varian dua sampai enam kolom di A4 tegak maupun ' +
     `miring semuanya gagal, dan yang terbaik hanya ${mm(MM_LRS.huruf_a4_mm)} mm. Yang menentukan bukan ` +
     'jumlah piksel, melainkan nisbah tinggi huruf terhadap ukuran kertas. Pada A3 ' +
-    `tegak dengan empat kolom, hurufnya ${mm(MM_LRS.huruf_mm)} mm — satu-satunya bentuk yang memuat ` +
-    'semua atribut tanpa mengorbankan keterbacaan. Atribut dan tipe setiap tabel ' +
+    `tegak dengan empat kolom, hurufnya ${mm(MM_LRS.huruf_mm)} mm — yang terbesar di antara bentuk yang ` +
+    'lolos ambang, jadi bentuk itulah yang dipakai. Atribut dan tipe setiap tabel ' +
     'juga ada di Tabel 4.1 sampai Tabel 4.9.',
 );
 baris.push('');
