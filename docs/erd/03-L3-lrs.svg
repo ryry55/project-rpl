@@ -545,7 +545,7 @@
 <path d="M 380 238.9 L 401.9 228.4 L 401.9 249.3 Z" fill="#334155"/>
 <rect x="80" y="2669.8" width="1100" height="165.2" rx="9" fill="#fafafa" stroke="#94a3b8" stroke-width="1"/>
 <text x="104" y="2699.8" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">PK = kunci primer · FK = kunci asing · UQ = unik · garis = hubungan kunci asing</text>
-<text x="104" y="2732.6" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">Lembar A3 (297x420 mm). Seluruh 201 kolom digambar; panah menunjuk tabel induk. Atribut dan tipenya juga ada</text>
+<text x="104" y="2732.6" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">Lembar A3 (297x420 mm). Seluruh 209 kolom digambar; panah menunjuk tabel induk. Atribut dan tipenya juga ada</text>
 <text x="104" y="2765.4" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">di tingkat 2 dan di 03-lrs.md.</text>
 <text x="104" y="2798.2" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">kunci asing menunjuk tabelnya sendiri: users.pemilik_id · pembayaran.pembalik_id</text>
 </svg>

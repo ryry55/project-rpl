@@ -46,7 +46,7 @@ const masalah = [];
  *
  * KENAPA OTOMATIS, BUKAN DITENTUKAN TANGAN
  *
- * Luas teks total tetap: 201 kolom tidak berubah berapa pun pembagiannya.
+ * Luas teks total tetap: jumlah kolom tidak berubah berapa pun pembagiannya.
  * Akibatnya ukuran huruf efektif hampir invarian terhadap tata letak — setiap
  * percobaan tangan mendarat di 1,1-1,5% dan gagal di ambang yang sama.
  * Satu-satunya tuas yang benar-benar mengubahnya adalah JUMLAH LEMBAR.
@@ -191,7 +191,7 @@ for (const definisi of lembarL2) {
 console.log('');
 console.log('Tingkat LRS (notasi relasional, seluruh kolom, kertas A3):');
 
-// LRS: SATU LEMBAR berisi seluruh 23 tabel dan SELURUH 201 kolom.
+// LRS: SATU LEMBAR berisi seluruh 24 tabel dan SELURUH 209 kolom.
 //
 // Ini diukur, bukan diasumsikan. Dengan seluruh kolom, satu lembar hanya
 // terbaca bila dicetak di A3 tegak:
@@ -199,18 +199,19 @@ console.log('Tingkat LRS (notasi relasional, seluruh kolom, kertas A3):');
 //   kolom | A4 tegak | A4 miring | A3 tegak | A3 miring
 //     2   |  1,09 mm |  0,77 mm  |  1,54 mm |  1,09 mm
 //     3   |  1,59 mm |  1,12 mm  |  2,24 mm |  1,59 mm
-//     4   |  2,03 mm |  1,43 mm  |  2,87 mm |  2,03 mm   <-- dipakai
+//     4   |  2,03 mm |  1,43 mm  |  2,74 mm |  2,03 mm   <-- dipakai
 //     5   |  1,72 mm |  1,71 mm  |  2,43 mm |  2,42 mm
 //     6   |  1,42 mm |  2,01 mm  |  2,01 mm |  2,84 mm
 //
 // Ambang baca 2,52 mm (setara 1,2% lebar A4). Pada A4, bentuk mana pun gagal;
-// yang terbaik 2,03 mm. Pada A3 tegak dengan 4 kolom: 2,87 mm.
+// yang terbaik 2,03 mm. Pada A3 tegak dengan 4 kolom: 2,74 mm.
 //
 // Karena itu lembar ini DISERAHKAN TERPISAH sebagai lampiran A3 — bukan
 // ditempel ke badan laporan A4. Bila ditempel lalu dicetak A4, hasilnya kembali
 // 2,03 mm dan tidak terbaca; itu bukan kekurangan gambar, melainkan akibat
 // mengecilkan kertas.
 const semuaTabelLrs = MODUL.flatMap((m) => m.tabel);
+const jumlahKolomLrs = S.tabel.reduce((n, t) => n + t.kolom.length, 0);
 
 const lembarL3 = [
   {
@@ -223,7 +224,7 @@ const lembarL3 = [
     jumlahKolom: 4,
     tabel: semuaTabelLrs,
     catatan:
-      'Lembar A3 (297x420 mm). Seluruh 201 kolom digambar; panah menunjuk tabel induk. Atribut dan tipenya juga ada di tingkat 2 dan di 03-lrs.md.',
+      `Lembar A3 (297x420 mm). Seluruh ${jumlahKolomLrs} kolom digambar; panah menunjuk tabel induk. Atribut dan tipenya juga ada di tingkat 2 dan di 03-lrs.md.`,
   },
 ];
 

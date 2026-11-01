@@ -79,7 +79,7 @@ LRS adalah kelanjutan ERD: entitas dan relasinya diubah menjadi struktur tabel d
 
 LRS digambar dalam satu bagan yang memuat seluruh atribut — seluruh 209 kolom dari 24 tabel, bukan hanya kolom kunci. Kunci primer digarisbawahi, kunci asing bertanda bintang dan dihubungkan panah ke tabel yang dituju.
 
-Bagan itu diserahkan sebagai lampiran A3 terpisah. Ini keputusan yang diambil setelah mengukur seluruh kemungkinan, bukan karena gambar A4 tidak dicoba: pada ambang baca 2,52 mm, varian dua sampai enam kolom di A4 tegak maupun miring semuanya gagal, dan yang terbaik hanya 2,03 mm. Yang menentukan bukan jumlah piksel, melainkan nisbah tinggi huruf terhadap ukuran kertas. Pada A3 tegak dengan empat kolom, hurufnya 2,87 mm — satu-satunya bentuk yang memuat semua atribut tanpa mengorbankan keterbacaan. Atribut dan tipe setiap tabel juga ada di Tabel 4.1 sampai Tabel 4.9.
+Bagan itu diserahkan sebagai lampiran A3 terpisah. Ini keputusan yang diambil setelah mengukur seluruh kemungkinan, bukan karena gambar A4 tidak dicoba: pada ambang baca 2,52 mm, varian dua sampai enam kolom di A4 tegak maupun miring semuanya gagal, dan yang terbaik hanya 2,03 mm. Yang menentukan bukan jumlah piksel, melainkan nisbah tinggi huruf terhadap ukuran kertas. Pada A3 tegak dengan empat kolom, hurufnya 2,74 mm — satu-satunya bentuk yang memuat semua atribut tanpa mengorbankan keterbacaan. Atribut dan tipe setiap tabel juga ada di Tabel 4.1 sampai Tabel 4.9.
 
 *Gambar 4.6 Logical Record Structure (LRS) — lampiran A3*
 

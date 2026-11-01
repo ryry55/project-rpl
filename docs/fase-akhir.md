@@ -1,7 +1,7 @@
 # Fase akhir — yang tersisa, dan hanya Anda yang bisa mengerjakannya
 
 Diperbarui 31 Oktober 2026. Semua yang bisa diperiksa mesin sudah diperiksa:
-830 tes PHP, 19 tes Vitest, 30 skrip / 871 langkah browser, `uji-aksesibilitas.mjs`
+830 tes PHP, 19 tes Vitest, 30 skrip / 879 langkah browser, `uji-aksesibilitas.mjs`
 27/27 di laptop **dan** di CI, gladi demo 39/39 pada database segar, uji beban
 lulus. Empat pagar baru dibuktikan bisa **merah** lebih dulu, bukan hanya hijau.
 

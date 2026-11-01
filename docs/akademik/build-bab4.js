@@ -246,13 +246,16 @@ baris.push(
     'asing bertanda bintang dan dihubungkan panah ke tabel yang dituju.',
 );
 baris.push('');
+// shortcut: angka 2,74 mm adalah hasil ukur `build-tingkat.js` untuk 209 kolom,
+// diketik di sini karena build itu tidak menyimpan hasil ukurnya ke berkas.
+// Ukur ulang (jalankan build-tingkat.js) setiap kali jumlah kolom berubah.
 baris.push(
   'Bagan itu diserahkan sebagai lampiran A3 terpisah. Ini keputusan yang diambil ' +
     'setelah mengukur seluruh kemungkinan, bukan karena gambar A4 tidak dicoba: ' +
     'pada ambang baca 2,52 mm, varian dua sampai enam kolom di A4 tegak maupun ' +
     'miring semuanya gagal, dan yang terbaik hanya 2,03 mm. Yang menentukan bukan ' +
     'jumlah piksel, melainkan nisbah tinggi huruf terhadap ukuran kertas. Pada A3 ' +
-    'tegak dengan empat kolom, hurufnya 2,87 mm — satu-satunya bentuk yang memuat ' +
+    'tegak dengan empat kolom, hurufnya 2,74 mm — satu-satunya bentuk yang memuat ' +
     'semua atribut tanpa mengorbankan keterbacaan. Atribut dan tipe setiap tabel ' +
     'juga ada di Tabel 4.1 sampai Tabel 4.9.',
 );

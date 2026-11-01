@@ -5,7 +5,7 @@
 >
 > Angka diambil dari aplikasi yang berjalan: **830 tes PHP (3883 asersi)** dalam
 > 48 berkas, **19 tes Vitest** untuk fungsi murni frontend, dan **30 skrip uji**
-> (27 browser + 2 balapan HTTP + 1 jalur proxy) dengan **871 langkah**.
+> (27 browser + 2 balapan HTTP + 1 jalur proxy) dengan **879 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -179,7 +179,7 @@ berkas yang menjaga aturan, bukan seluruhnya:
 
 ---
 
-## 4. Skrip uji browser, balapan, dan jalur proxy - 30 skrip, 871 langkah
+## 4. Skrip uji browser, balapan, dan jalur proxy - 30 skrip, 879 langkah
 
 ### 4.1 Menjalankan
 
