@@ -6,9 +6,9 @@
 >
 > **Maksimal 120 baris.** Kalau lebih, isinya sudah menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: 31 Oktober 2026 (malam), sesudah **T14 (#13) selesai** —
-tabel `laporan_kerusakan`, status kamar `perbaikan`, dan seluruh dokumen
-akademik/ERD/LRS dibangun ulang dengan angka skema yang baru.
+Terakhir diperbarui: 1 November 2026, sesudah putaran audit dokumen terakhir —
+tabel bentuk LRS diukur ulang seluruhnya dan angka milimeter kini dijaga pemeriksa,
+bukan diketik.
 
 ---
 
@@ -22,7 +22,7 @@ akademik/ERD/LRS dibangun ulang dengan angka skema yang baru.
 | Migrasi / endpoint / tabel domain | **42** / **89** / **24** (total 33 di skema `public`) |
 | Skema | **209 kolom, 29 kunci asing, 8 trigger** (tidak ada trigger baru) |
 | Skrip uji | **31** `.mjs`: **30** (27 browser + 2 balapan + 1 jalur proxy) dijalankan gate + `_cdp.mjs` |
-| Langkah E2E | `e2e-t2` kini **26/26**, delapan di antaranya T14 (browser sungguhan, 31 Okt) |
+| Langkah E2E | **852** di 30 skrip; `e2e-t2` **26/26**, delapan di antaranya T14 |
 | Ticket GitHub | **#11, #12, #13, #14 tertutup.** Tidak ada issue terbuka |
 | ERD/LRS | `cek-erd-lrs.js` **LULUS**: 24 tabel / 209 kolom / 29 kunci asing; L3 terbaca 2,74 mm di A3 |
 
@@ -93,8 +93,7 @@ Tanpa uji browser: `-Cepat`. Di Linux/CI: `./periksa.sh`. Bila mengubah
 `web/src`: `npm run build`, `docker compose build web`, lalu `up -d web` — kode
 dibakar ke image. Angka §1 diubah **sesudah** gate.
 
-Membangun ulang dokumen akademik/ERD: urutan perintahnya ada di
-`docs/erd/README.md` §"Urutan membangun" dan `docs/akademik/README.md`.
+Membangun ulang dokumen: `docs/erd/README.md` §"Urutan membangun", `docs/akademik/README.md`.
 
 ## 6. Jebakan yang menggigit di sesi ini
 
@@ -103,10 +102,11 @@ Membangun ulang dokumen akademik/ERD: urutan perintahnya ada di
    pasang garis berjarak **1,2 px** — terbaca sebagai satu garis di kertas.
    Sebabnya `panjangBerimpit()` di `papan.js` memakai toleransi 0,5 px sedangkan
    pemeriksa memakai 3 px. Sudah disamakan; jangan kembalikan ke 0,5.
-2. **`bab4-data.js` punya dua angka yang diketik tangan** ("23 tabel / 201
-   kolom"), dan build tidak bisa menangkapnya karena keduanya kalimat prosa.
-   Kini memakai `${jumlahKolom}`/`${SKEMA.jumlah_tabel}`. Angka yang diketik akan
-   tertinggal lagi.
+2. **Angka yang diketik tangan akan tertinggal.** `bab4-data.js` sempat menulis
+   "23 tabel / 201 kolom"; kini memakai `${jumlahKolom}`/`${SKEMA.jumlah_tabel}`.
+   Tinggi huruf LRS (2,74 dan 1,94 mm) juga pernah diketik di empat berkas dan
+   tertinggal dari hasil ukur. Kini diukur `build-tingkat.js`, disimpan di
+   `manifest.json`, dan dibandingkan `cek-angka-dokumen.js`.
 3. **Gate memanggang kode ke image.** `php artisan test` tanpa
    `docker compose build api` menguji kode **lama** dan memberi hijau yang tidak
    menguji apa pun. Berlaku juga untuk `web`.
