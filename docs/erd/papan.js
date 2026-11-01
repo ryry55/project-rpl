@@ -173,16 +173,7 @@ function ukurKotak(nama, mode) {
 
   const fkPeta = new Map(t.asing.map((a) => [a.kolom, a]));
 
-  // Mode `lrs-kunci` menggambar bentuk LRS klasik: hanya kunci primer dan
-  // kunci asing. Bentuk inilah yang membuat 23 tabel bisa muat dalam SATU
-  // lembar dengan huruf 1,38% lebar A4 — sedangkan seluruh 201 kolom hanya
-  // mencapai 0,97% pada 4 kolom, di bawah ambang keterbacaan. Yang digambar
-  // adalah struktur relasionalnya, bukan seluruh atribut; atribut lengkapnya
-  // ada di tingkat 2 (fisikal) dan di 03-lrs.md.
-  const hanyaKunci = mode === 'lrs-kunci';
-  const kolomTampil = hanyaKunci
-    ? t.kolom.filter((k) => t.kunci_primer.includes(k.nama) || fkPeta.has(k.nama))
-    : t.kolom;
+  const kolomTampil = t.kolom;
 
   const baris = kolomTampil.map((k) => {
     const pk = t.kunci_primer.includes(k.nama);

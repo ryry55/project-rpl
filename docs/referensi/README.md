@@ -41,7 +41,7 @@ BAB IV  IMPLEMENTASI DAN PENGUJIAN
 
 | Laporan contoh | Proyek ini | Alasan |
 |---|---|---|
-| LRS satu gambar | **Sama - LRS satu gambar**, tetapi **A3 dan diserahkan terpisah** | Seluruh 209 kolom muat dalam satu bagan pada **A3 tegak, huruf 2,74 mm** - di atas ambang 2,52 mm. Seluruh varian A4 gagal (terbaik 2,03 mm), jadi lembar A3 tidak ditempel ke badan laporan A4: bila diskalakan ke lebar A4 hasilnya kembali 2,03 mm |
+| LRS satu gambar | **Sama - LRS satu gambar**, tetapi **A3 dan diserahkan terpisah** | Seluruh 209 kolom muat dalam satu bagan pada **A3 tegak, huruf 2,74 mm** - di atas ambang 2,52 mm. Seluruh varian A4 gagal (terbaik 1,94 mm), jadi lembar A3 tidak ditempel ke badan laporan A4: bila diskalakan ke lebar A4 hasilnya kembali 1,94 mm |
 | Spesifikasi Data tanpa kunci | Menyebut kunci primer dan kunci asing | Kunci asing adalah inti LRS; menghilangkannya membuat LRS dan spesifikasi tidak saling terhubung |
 | ERD semua entitas | ERD 12 entitas inti | Tabel teknis (token, jejak audit, notifikasi) tidak menambah pemahaman konsep; daftarnya tetap ada di dokumen ERD |
 | Data contoh dikarang | Data contoh konsisten dengan skema nyata | Nama kolom dan tipenya diambil dari `docs/erd/skema.json` |

@@ -16,8 +16,8 @@
  * Sumbernya:
  *     usecase-data.js       14 use case, 3 aktor, matriks, catatan kaki
  *     dokumen-data.js       entitas data utama, aturan bisnis
- *     rute-api.json         potret route:list (86 endpoint)
- *     tabel-domain.json     potret pg_tables (23 tabel domain)
+ *     rute-api.json         potret route:list (89 endpoint)
+ *     tabel-domain.json     potret pg_tables (24 tabel domain)
  *     ../dfd/dfd-data.js    entitas eksternal, aliran batas, aturan R-01..R-07
  *
  * Kenapa seluruh dokumen dibangkitkan, bukan hanya tabelnya. Dokumen akademik

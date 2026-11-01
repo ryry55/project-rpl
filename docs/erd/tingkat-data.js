@@ -12,7 +12,7 @@
  *   L2  ERD fisikal      + seluruh kolom dan tipenya
  *   L3  LRS              notasi relasional formal
  *
- * KENAPA L0 DAN L1 TIDAK MEMUAT SELURUH 23 TABEL
+ * KENAPA L0 DAN L1 TIDAK MEMUAT SELURUH 24 TABEL
  *
  * ERD konseptual menjawab "benda apa saja yang terlibat", bukan "tabel apa saja
  * yang ada". Tabel teknis seperti `token_akun`, `notifications`, dan `log_audit`
@@ -131,7 +131,7 @@ const L0 = {
  * banyak-ke-banyak kamar-fasilitas sudah diselesaikan menjadi entitas.
  *
  * Atribut yang digambar hanya kunci primer dan satu pembeda; kolom selebihnya
- * ada di level 2 dan LRS. Menggambar 201 kolom sebagai elips mustahil dibaca,
+ * ada di level 2 dan LRS. Menggambar 209 kolom sebagai elips mustahil dibaca,
  * dan itu bukan penghematan — ERD Chen yang baik memang tidak menampilkan
  * seluruh kolom.
  */

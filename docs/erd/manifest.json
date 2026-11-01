@@ -1,5 +1,5 @@
 {
-  "dibuat": "2026-11-01T04:02:14.099Z",
+  "dibuat": "2026-11-01T05:07:06.188Z",
   "tabel": 24,
   "kolom": 209,
   "kunci_asing": 29,
@@ -86,7 +86,9 @@
         "users",
         "usulan_perubahan",
         "verifikasi_pembayaran"
-      ]
+      ],
+      "huruf_mm": 2.74,
+      "huruf_a4_mm": 1.94
     }
   ]
 }

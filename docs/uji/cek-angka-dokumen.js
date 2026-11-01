@@ -61,6 +61,16 @@ const nyata = {
   'baris style.css': hitungBaris('web/src/style.css'),
 }
 
+// Tinggi huruf lembar LRS disimpan oleh `build-tingkat.js` di manifest, bukan
+// diukur ulang di sini: mengukur ulang berarti membangun seluruh LRS (24 tabel,
+// 209 kolom) pada tiap pemeriksaan dokumen.
+const manifestErd = JSON.parse(
+  fs.readFileSync(path.join(AKAR, 'docs/erd/manifest.json'), 'utf8')
+)
+const lrs = manifestErd.tingkat.find((t) => t.nama === 'lrs')
+nyata['huruf A3 (mm)'] = lrs && lrs.huruf_mm ? lrs.huruf_mm : 0
+nyata['huruf A4 (mm)'] = lrs && lrs.huruf_a4_mm ? lrs.huruf_a4_mm : 0
+
 // Angka yang diklaim, beserta berkas dan pola yang menuliskannya.
 //
 // `semua: true` memeriksa SETIAP kemunculan pola di berkas itu, bukan hanya
@@ -103,6 +113,29 @@ const KLAIM = [
   { berkas: 'docs/produk/3_ARCHITECTURE.md', pola: /(\d+) baris - seluruh design system/i, kunci: 'baris style.css' },
   { berkas: 'docs/produk/3_ARCHITECTURE.md', pola: /(\d+)\s+migrasi/i, kunci: 'migrasi' },
   { berkas: 'docs/produk/3_ARCHITECTURE.md', pola: /(\d+) model - hanya/i, kunci: 'model' },
+
+  // Tinggi huruf LRS pada kertas A3: satu-satunya sel tabel bentuk yang dipakai
+  // untuk memutuskan, jadi ia yang dijaga. Angka ini pernah tertinggal (2,87
+  // tertulis, 2,74 terukur) karena hanya diketik di prosa.
+  { berkas: 'docs/erd/README.md', pola: /hasilnya \*\*(\d+,\d+) mm\*\*/i, kunci: 'huruf A3 (mm)' },
+  { berkas: 'docs/akademik/README.md', pola: /terukur \*\*(\d+,\d+) mm\*\*/i, kunci: 'huruf A3 (mm)' },
+  { berkas: 'docs/akademik/build-bab4.js', pola: /hurufnya (\d+,\d+) mm/i, kunci: 'huruf A3 (mm)' },
+  {
+    berkas: 'docs/akademik/Bab_4_Implementasi_dan_Pengujian.md',
+    pola: /hurufnya (\d+,\d+) mm/i,
+    kunci: 'huruf A3 (mm)',
+  },
+  {
+    berkas: 'docs/erd/README.md',
+    pola: /Seluruh varian A4 gagal\*\*; yang terbaik (\d+,\d+) mm/i,
+    kunci: 'huruf A4 (mm)',
+  },
+  { berkas: 'docs/akademik/README.md', pola: /kembali\s+(\d+,\d+) mm/i, kunci: 'huruf A4 (mm)' },
+  {
+    berkas: 'docs/akademik/Bab_4_Implementasi_dan_Pengujian.md',
+    pola: /yang terbaik hanya (\d+,\d+) mm/i,
+    kunci: 'huruf A4 (mm)',
+  },
 ]
 
 let adaBeda = false
@@ -118,7 +151,7 @@ for (const k of KLAIM) {
   if (cocok.length === 0) continue
   const target = k.kunci ? nyata[k.kunci] : null
   for (const m of cocok) {
-    const klaim = Number(m[k.indeks || 1])
+    const klaim = Number(String(m[k.indeks || 1]).replace(',', '.'))
     const status = target === null ? '?' : klaim === target ? 'OK' : 'BEDA'
     if (status === 'BEDA') adaBeda = true
     baris.push({

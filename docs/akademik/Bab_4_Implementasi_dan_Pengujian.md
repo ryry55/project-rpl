@@ -79,11 +79,11 @@ LRS adalah kelanjutan ERD: entitas dan relasinya diubah menjadi struktur tabel d
 
 LRS digambar dalam satu bagan yang memuat seluruh atribut — seluruh 209 kolom dari 24 tabel, bukan hanya kolom kunci. Kunci primer digarisbawahi, kunci asing bertanda bintang dan dihubungkan panah ke tabel yang dituju.
 
-Bagan itu diserahkan sebagai lampiran A3 terpisah. Ini keputusan yang diambil setelah mengukur seluruh kemungkinan, bukan karena gambar A4 tidak dicoba: pada ambang baca 2,52 mm, varian dua sampai enam kolom di A4 tegak maupun miring semuanya gagal, dan yang terbaik hanya 2,03 mm. Yang menentukan bukan jumlah piksel, melainkan nisbah tinggi huruf terhadap ukuran kertas. Pada A3 tegak dengan empat kolom, hurufnya 2,74 mm — satu-satunya bentuk yang memuat semua atribut tanpa mengorbankan keterbacaan. Atribut dan tipe setiap tabel juga ada di Tabel 4.1 sampai Tabel 4.9.
+Bagan itu diserahkan sebagai lampiran A3 terpisah. Ini keputusan yang diambil setelah mengukur seluruh kemungkinan, bukan karena gambar A4 tidak dicoba: pada ambang baca 2,52 mm, varian dua sampai enam kolom di A4 tegak maupun miring semuanya gagal, dan yang terbaik hanya 1,94 mm. Yang menentukan bukan jumlah piksel, melainkan nisbah tinggi huruf terhadap ukuran kertas. Pada A3 tegak dengan empat kolom, hurufnya 2,74 mm — satu-satunya bentuk yang memuat semua atribut tanpa mengorbankan keterbacaan. Atribut dan tipe setiap tabel juga ada di Tabel 4.1 sampai Tabel 4.9.
 
 *Gambar 4.6 Logical Record Structure (LRS) — lampiran A3*
 
-> **Lembar terpisah A3 (297 × 420 mm).** Gambar ini diserahkan sebagai lampiran (`../erd/03-L3-lrs.png`), bukan ditempel di halaman ini. Alasannya diukur, bukan dipilih: seluruh 209 kolom hanya mencapai 2,74 mm tinggi huruf pada A3 tegak, sedangkan pada A4 yang terbaik hanya 2,03 mm — di bawah ambang baca 2,52 mm. Bila lembar A3 diperkecil ke lebar A4, hasilnya persis sama dengan menggambarnya di A4 sejak awal.
+> **Lembar terpisah A3 (297 × 420 mm).** Gambar ini diserahkan sebagai lampiran (`../erd/03-L3-lrs.png`), bukan ditempel di halaman ini. Alasannya diukur, bukan dipilih: seluruh 209 kolom hanya mencapai 2,74 mm tinggi huruf pada A3 tegak, sedangkan pada A4 yang terbaik hanya 1,94 mm — di bawah ambang baca 2,52 mm. Bila lembar A3 diperkecil ke lebar A4, hasilnya persis sama dengan menggambarnya di A4 sejak awal.
 
 > Dua puluh empat tabel, seluruh 209 kolom, dalam satu bagan. Kunci primer digarisbawahi; kunci asing bertanda bintang dan dihubungkan panah ke tabel yang dituju. Arah hubungan dibawa oleh panah, bukan oleh angka 1/N — angka itu milik notasi Chen dan tidak dipakai pada LRS.
 

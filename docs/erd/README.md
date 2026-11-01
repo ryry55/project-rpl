@@ -15,7 +15,7 @@ Delapan gambar, satu dokumen teks, satu sumber: **basis data yang berjalan**.
 
 ERD yang menggambar 24 tabel dan 209 kolom sekaligus **tidak bisa dibaca di
 A4**, dan itu bukan soal resolusi. Sudah diukur: pada satu lembar A4 berisi
-seluruh tabel, tinggi hurufnya hanya **2,03 mm** — di bawah ambang 2,52 mm.
+seluruh tabel, tinggi hurufnya hanya **1,94 mm** — di bawah ambang 2,52 mm.
 Menambah skala ekspor tidak menolong sama sekali, karena yang menentukan adalah
 nisbah huruf terhadap ukuran lembar, dan nisbah itu tidak berubah oleh jumlah
 piksel.
@@ -32,19 +32,19 @@ ambang baca 2,52 mm (setara 1,2% lebar A4), dengan seluruh kolom:
 
 | Kolom | A4 tegak | A4 miring | A3 tegak | A3 miring |
 |---|---|---|---|---|
-| 2 | 1,09 mm | 0,77 mm | 1,54 mm | 1,09 mm |
-| 3 | 1,59 mm | 1,12 mm | 2,24 mm | 1,59 mm |
-| **4** | 2,03 mm | 1,43 mm | **2,74 mm** | 2,03 mm |
-| 5 | 1,72 mm | 1,71 mm | 2,43 mm | 2,42 mm |
-| 6 | 1,42 mm | 2,01 mm | 2,01 mm | 2,84 mm |
+| 2 | 1,06 mm | 0,75 mm | 1,50 mm | 1,06 mm |
+| 3 | 1,53 mm | 1,08 mm | 2,16 mm | 1,53 mm |
+| **4** | 1,94 mm | 1,37 mm | **2,74 mm** | 1,94 mm |
+| 5 | 1,72 mm | 1,69 mm | 2,43 mm | 2,39 mm |
+| 6 | 1,41 mm | 1,87 mm | 1,99 mm | 2,65 mm |
 
-**Seluruh varian A4 gagal**; yang terbaik 2,03 mm. Pada A3 tegak dengan 4 kolom
+**Seluruh varian A4 gagal**; yang terbaik 1,94 mm. Pada A3 tegak dengan 4 kolom
 hasilnya **2,74 mm** — satu-satunya bentuk yang memuat semua atribut tanpa
 mengorbankan keterbacaan.
 
 Karena itu lembar LRS **diserahkan terpisah sebagai lampiran A3**, tidak ditempel
 ke badan laporan A4. Bila A3 yang sama diskalakan ke lebar A4, hasilnya kembali
-persis 2,03 mm — sama dengan menggambarnya di A4 sejak awal.
+persis 1,94 mm — sama dengan menggambarnya di A4 sejak awal.
 
 Satu konsekuensi: LRS **tidak memakai label kardinalitas `1`/`N`**. Angka itu
 milik notasi Chen (tingkat 0 dan 1); pada LRS hubungan dinyatakan oleh kunci

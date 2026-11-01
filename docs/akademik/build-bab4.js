@@ -31,6 +31,11 @@ const SKEMA = JSON.parse(
   fs.readFileSync(path.join(AKAR, 'docs', 'erd', 'skema.json'), 'utf8'),
 );
 const KELUARAN = path.join(__dirname, 'Bab_4_Implementasi_dan_Pengujian.md');
+const MANIFEST_ERD = JSON.parse(
+  fs.readFileSync(path.join(AKAR, 'docs', 'erd', 'manifest.json'), 'utf8'),
+);
+const MM_LRS = MANIFEST_ERD.tingkat.find((t) => t.nama === 'lrs');
+const mm = (n) => n.toFixed(2).replace('.', ',');
 
 const tabelSkema = new Set(SKEMA.tabel.map((t) => t.nama));
 const jumlahKolom = SKEMA.tabel.reduce((n, t) => n + t.kolom.length, 0);
@@ -153,7 +158,7 @@ const tulisGambar = (berkas, keterangan, catatan) => {
  *
  * Dipakai untuk LRS. Seluruh 209 kolom hanya terbaca pada A3 tegak (2,74 mm);
  * bila gambar A3 itu ditempel ke halaman A4, ia diperkecil dan hurufnya jatuh
- * ke 2,03 mm — di bawah ambang 2,52 mm. Menempelkannya di sini justru
+ * ke 1,94 mm — di bawah ambang 2,52 mm. Menempelkannya di sini justru
  * menghasilkan gambar yang tidak terbaca, padahal lampirannya terbaca.
  *
  * Karena itu yang ditulis di badan laporan adalah keterangan gambarnya beserta
@@ -167,8 +172,8 @@ const tulisLampiran = (keterangan, ukuran, berkas, catatan) => {
     `> **Lembar terpisah ${ukuran}.** Gambar ini diserahkan sebagai lampiran ` +
       `(\`${berkas}\`), bukan ditempel di halaman ini. ` +
       `Alasannya diukur, bukan dipilih: seluruh ${jumlahKolom} kolom hanya mencapai ` +
-      `2,74 mm tinggi huruf pada A3 tegak, sedangkan pada A4 yang terbaik hanya ` +
-      `2,03 mm — di bawah ambang baca 2,52 mm. Bila lembar A3 diperkecil ke lebar ` +
+      `${mm(MM_LRS.huruf_mm)} mm tinggi huruf pada A3 tegak, sedangkan pada A4 yang terbaik hanya ` +
+      `${mm(MM_LRS.huruf_a4_mm)} mm — di bawah ambang baca 2,52 mm. Bila lembar A3 diperkecil ke lebar ` +
       `A4, hasilnya persis sama dengan menggambarnya di A4 sejak awal.`,
   );
   baris.push('');
@@ -246,16 +251,15 @@ baris.push(
     'asing bertanda bintang dan dihubungkan panah ke tabel yang dituju.',
 );
 baris.push('');
-// shortcut: angka 2,74 mm adalah hasil ukur `build-tingkat.js` untuk 209 kolom,
-// diketik di sini karena build itu tidak menyimpan hasil ukurnya ke berkas.
-// Ukur ulang (jalankan build-tingkat.js) setiap kali jumlah kolom berubah.
+// Angka mm dibaca dari `docs/erd/manifest.json` (hasil ukur build-tingkat.js),
+// bukan diketik: angka yang diketik akan tertinggal saat jumlah kolom berubah.
 baris.push(
   'Bagan itu diserahkan sebagai lampiran A3 terpisah. Ini keputusan yang diambil ' +
     'setelah mengukur seluruh kemungkinan, bukan karena gambar A4 tidak dicoba: ' +
     'pada ambang baca 2,52 mm, varian dua sampai enam kolom di A4 tegak maupun ' +
-    'miring semuanya gagal, dan yang terbaik hanya 2,03 mm. Yang menentukan bukan ' +
+    `miring semuanya gagal, dan yang terbaik hanya ${mm(MM_LRS.huruf_a4_mm)} mm. Yang menentukan bukan ` +
     'jumlah piksel, melainkan nisbah tinggi huruf terhadap ukuran kertas. Pada A3 ' +
-    'tegak dengan empat kolom, hurufnya 2,74 mm — satu-satunya bentuk yang memuat ' +
+    `tegak dengan empat kolom, hurufnya ${mm(MM_LRS.huruf_mm)} mm — satu-satunya bentuk yang memuat ` +
     'semua atribut tanpa mengorbankan keterbacaan. Atribut dan tipe setiap tabel ' +
     'juga ada di Tabel 4.1 sampai Tabel 4.9.',
 );

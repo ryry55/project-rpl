@@ -197,18 +197,18 @@ console.log('Tingkat LRS (notasi relasional, seluruh kolom, kertas A3):');
 // terbaca bila dicetak di A3 tegak:
 //
 //   kolom | A4 tegak | A4 miring | A3 tegak | A3 miring
-//     2   |  1,09 mm |  0,77 mm  |  1,54 mm |  1,09 mm
-//     3   |  1,59 mm |  1,12 mm  |  2,24 mm |  1,59 mm
-//     4   |  2,03 mm |  1,43 mm  |  2,74 mm |  2,03 mm   <-- dipakai
-//     5   |  1,72 mm |  1,71 mm  |  2,43 mm |  2,42 mm
-//     6   |  1,42 mm |  2,01 mm  |  2,01 mm |  2,84 mm
+//     2   |  1,06 mm |  0,75 mm  |  1,50 mm |  1,06 mm
+//     3   |  1,53 mm |  1,08 mm  |  2,16 mm |  1,53 mm
+//     4   |  1,94 mm |  1,37 mm  |  2,74 mm |  1,94 mm   <-- dipakai
+//     5   |  1,72 mm |  1,69 mm  |  2,43 mm |  2,39 mm
+//     6   |  1,41 mm |  1,87 mm  |  1,99 mm |  2,65 mm
 //
 // Ambang baca 2,52 mm (setara 1,2% lebar A4). Pada A4, bentuk mana pun gagal;
-// yang terbaik 2,03 mm. Pada A3 tegak dengan 4 kolom: 2,74 mm.
+// yang terbaik 1,94 mm. Pada A3 tegak dengan 4 kolom: 2,74 mm.
 //
 // Karena itu lembar ini DISERAHKAN TERPISAH sebagai lampiran A3 — bukan
 // ditempel ke badan laporan A4. Bila ditempel lalu dicetak A4, hasilnya kembali
-// 2,03 mm dan tidak terbaca; itu bukan kekurangan gambar, melainkan akibat
+// 1,94 mm dan tidak terbaca; itu bukan kekurangan gambar, melainkan akibat
 // mengecilkan kertas.
 const semuaTabelLrs = MODUL.flatMap((m) => m.tabel);
 const jumlahKolomLrs = S.tabel.reduce((n, t) => n + t.kolom.length, 0);
@@ -228,9 +228,39 @@ const lembarL3 = [
   },
 ];
 
+/* ------------------------------- tabel bentuk lembar (diagnostik, manual) */
+
+// Tabel "kolom x kertas" di docs/erd/README.md adalah hasil DIUKUR, bukan
+// dipilih. Ukur ulang setelah jumlah kolom berubah:
+//   PowerShell: $env:UKUR_KERTAS='1'; node docs/erd/build-tingkat.js
+// Angka yang dipakai untuk memutuskan (LRS A3 tegak 4 kolom) juga disimpan di
+// manifest.json, dan cek-angka-dokumen.js membandingkannya dengan prosa.
+if (process.env.UKUR_KERTAS) {
+  const KERTAS_UJI = {
+    'A4 tegak': [210, 297],
+    'A4 miring': [297, 210],
+    'A3 tegak': [297, 420],
+    'A3 miring': [420, 297],
+  };
+  console.log('\nTabel bentuk lembar (tinggi huruf, mm):');
+  console.log('kolom | ' + Object.keys(KERTAS_UJI).join(' | '));
+  for (const kolom of [2, 3, 4, 5, 6]) {
+    const { kanvas } = gambarPapan({ ...lembarL3[0], jumlahKolom: kolom });
+    const sel = Object.entries(KERTAS_UJI).map(([, [w, h]]) =>
+      (HURUF_BAKU.kolom * Math.min(w / kanvas.w, h / kanvas.h)).toFixed(2).replace('.', ',')
+    );
+    console.log(`${kolom} | ${sel.join(' | ')}`);
+  }
+  process.exit(0);
+}
+
+let mmL3 = null;
+let mmA4L3 = null;
 for (const definisi of lembarL3) {
   const { svg, masalah: m, kanvas, jumlahRelasi, jumlahTabel, nisbah, hurufMm } =
     gambarPapan(definisi);
+  mmL3 = hurufMm;
+  mmA4L3 = hurufEfektif(HURUF_BAKU.kolom, kanvas) * 210;
   for (const x of m) masalah.push(`${definisi.berkas}: ${x}`);
   tulis(
     definisi.berkas,
@@ -360,6 +390,12 @@ const manifest = {
       nama: 'lrs',
       berkas: lembarL3.map((d) => d.berkas),
       tabel: lembarL3.flatMap((d) => d.tabel).sort(),
+      // Tinggi huruf pada kertas yang benar-benar dipakai lembar ini, dan pada
+      // A4 bila lembar yang sama ditempel ke badan laporan. Disimpan supaya
+      // `cek-angka-dokumen.js` dan `build-bab4.js` membaca hasil ukur, bukan
+      // angka yang diketik ulang.
+      huruf_mm: Number(mmL3.toFixed(2)),
+      huruf_a4_mm: Number(mmA4L3.toFixed(2)),
     },
   ],
 };

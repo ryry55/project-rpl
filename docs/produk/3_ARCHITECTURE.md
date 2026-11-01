@@ -429,7 +429,7 @@ web/
 
 docs/
   produk/                9 dokumen ini
-  uji/                   26 skrip E2E + perkakas
+  uji/                   30 skrip uji + perkakas
   dfd/                   4 diagram (Gane-Sarson, Yourdon)
   charter/               Project Charter
 ```

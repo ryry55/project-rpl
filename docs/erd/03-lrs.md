@@ -505,7 +505,7 @@ Notifikasi dalam aplikasi bawaan Laravel. Tidak punya kunci asing karena memakai
 
 ## 5. Relasi Antar Tabel
 
-Seluruh 26 kunci asing di basis data, dikelompokkan menurut tabel asalnya.
+Seluruh 29 kunci asing di basis data, dikelompokkan menurut tabel asalnya.
 Arah panah menunjukkan arah rujukan: kolom di kiri harus ada di tabel kanan.
 
 | # | Dari | Kolom | Ke | Wajib | Arti kardinalitas |

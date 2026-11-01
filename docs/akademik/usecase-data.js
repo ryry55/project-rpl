@@ -21,7 +21,7 @@
  *   2. Setiap use case menunjuk minimal satu endpoint yang benar-benar ada.
  *      Use case tanpa endpoint adalah karangan.
  *   3. Satu endpoint hanya boleh menjadi dasar satu use case, supaya
- *      penghitungan 86 endpoint bisa ditutup tanpa sisa dan tanpa dobel.
+ *      penghitungan 89 endpoint bisa ditutup tanpa sisa dan tanpa dobel.
  *   4. Keanggotaan aktor diturunkan dari middleware, bukan diketik bebas:
  *      hanya endpoint bergerbang (`peran:` atau `wewenang:`) yang menentukan
  *      siapa pemilik use case. Endpoint yang hanya memakai `auth:sanctum`

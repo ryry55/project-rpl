@@ -35,7 +35,7 @@ lain.** Diagram tangan tidak bisa diperbaiki saat angkanya berubah.
 | `usecase-gambar.js` | Menggambar SVG + **pemeriksa** keanggotaan aktor dari middleware |
 | `dokumen-data.js` | 12 entitas data dan 7 aturan bisnis untuk bab 6–7 |
 | `dfd-konteks-gambar.js` | Memanggil `docs/dfd/dfd-gambar.js`; tidak menggambar ulang DFD |
-| `bab4-data.js` | Sumber Bab 4: 4 tahap normalisasi, 4 gambar, 9 tabel spesifikasi, perangkat |
+| `bab4-data.js` | Sumber Bab 4: 4 tahap normalisasi, 2 gambar (ERD + LRS), 9 tabel spesifikasi, perangkat |
 | `build-normalisasi.js` | Menggambar SVG empat tahap normalisasi |
 | `build-bab4.js` | Menulis `Bab_4_Implementasi_dan_Pengujian.md`; gagal bila menyimpang dari skema |
 | `build.js` | Menulis kedua SVG; gagal bila data tidak konsisten |
@@ -83,14 +83,14 @@ pengukuran bentuk (berapa kolom per lembar), bukan isi:
 
 | Kolom | A4 tegak | A4 miring | A3 tegak | A3 miring |
 |---|---|---|---|---|
-| 2 | 1,09 mm | 0,77 mm | 1,54 mm | 1,09 mm |
-| 3 | 1,59 mm | 1,12 mm | 2,24 mm | 1,59 mm |
-| **4** | 2,03 mm | 1,43 mm | **2,74 mm** | 2,03 mm |
-| 5 | 1,72 mm | 1,71 mm | 2,43 mm | 2,42 mm |
-| 6 | 1,42 mm | 2,01 mm | 2,01 mm | 2,84 mm |
+| 2 | 1,06 mm | 0,75 mm | 1,50 mm | 1,06 mm |
+| 3 | 1,53 mm | 1,08 mm | 2,16 mm | 1,53 mm |
+| **4** | 1,94 mm | 1,37 mm | **2,74 mm** | 1,94 mm |
+| 5 | 1,72 mm | 1,69 mm | 2,43 mm | 2,39 mm |
+| 6 | 1,41 mm | 1,87 mm | 1,99 mm | 2,65 mm |
 
 Seluruh varian A4 gagal. Bila lembar A3 diskalakan ke lebar A4, hasilnya kembali
-2,03 mm — jadi menempelkannya di Bab 4 hanya akan menghasilkan gambar yang tidak
+1,94 mm — jadi menempelkannya di Bab 4 hanya akan menghasilkan gambar yang tidak
 terbaca, padahal lampirannya terbaca. Karena itu `build-bab4.js` memakai
 `tulisLampiran()`, bukan `tulisGambar()`: yang ditulis adalah keterangan gambar
 beserta ukuran lembarnya, bukan `<img>` yang diperkecil.

@@ -230,7 +230,8 @@ urutanAkhir.forEach((nama, i) => {
 /* --- 5. relasi --- */
 baris.push('## 5. Relasi Antar Tabel');
 baris.push('');
-baris.push('Seluruh 26 kunci asing di basis data, dikelompokkan menurut tabel asalnya.');
+const jumlahAsing = S.tabel.reduce((n, t) => n + t.asing.length, 0);
+baris.push(`Seluruh ${jumlahAsing} kunci asing di basis data, dikelompokkan menurut tabel asalnya.`);
 baris.push('Arah panah menunjukkan arah rujukan: kolom di kiri harus ada di tabel kanan.');
 baris.push('');
 baris.push('| # | Dari | Kolom | Ke | Wajib | Arti kardinalitas |');
