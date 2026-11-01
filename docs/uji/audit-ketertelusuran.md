@@ -127,7 +127,7 @@ Kriteria penerimaan T2 yang bukan turunan langsung R-01..R-07.
 | Menutup laporan yang sudah tertutup → 422 | `masihTerbuka()` | `test_menutup_laporan_dua_kali_ditolak_422` | ✅ |
 | Pemilik **dan** pengelola ber-`kelola_kamar` boleh melapor dan menutup; pengelola tanpa wewenang dan penghuni tidak | gerbang `peran:` + `wewenang:kelola_kamar` | `test_pengelola_dengan_kelola_kamar_boleh_melaporkan_dan_menutup`, `test_pengelola_tanpa_wewenang_kelola_kamar_ditolak`, `test_penghuni_tidak_boleh_melaporkan_kerusakan` | ✅ |
 | Kamar `perbaikan` tidak bisa disewakan | pagar di jalur kontrak baru → 422 | `test_kamar_yang_sedang_diperbaiki_tidak_bisa_disewakan` | ✅ |
-| Mengakhiri kontrak **tidak** mengosongkan kamar yang sedang diperbaiki | `akhiri` hanya menyentuh kamar berstatus `terisi` | `test_mengakhiri_kontrak_tidak_menghapus_status_perbaikan` | ✅ |
+| Mengakhiri kontrak **tidak** mengosongkan kamar yang sedang diperbaiki | `KontrakController@akhiri` memilih `perbaikan` bila laporan masih terbuka, `kosong` bila tidak | `test_mengakhiri_kontrak_tidak_menghapus_status_perbaikan` | ✅ |
 | `status_huni` tidak bisa diubah tangan selama laporan terbuka | `KamarController@update` menolak 422 | `test_status_kamar_tidak_bisa_diubah_tangan_saat_laporan_terbuka` | ✅ |
 | Daftar kamar menyebut **apa** yang rusak, bukan hanya lencana `perbaikan` | `KamarResource` + `laporanTerbuka` | `test_daftar_kamar_menyertakan_alasan_perbaikan` | ✅ |
 | Daftar laporan bisa disaring `?status=terbuka\|selesai`; yang terbuka lebih dulu | `LaporanKerusakanController@index` | `test_daftar_laporan_bisa_disaring_terbuka_dan_selesai` | ✅ |
