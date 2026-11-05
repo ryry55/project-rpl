@@ -24,6 +24,13 @@ Sistem Basis Data: normalisasi, ERD, LRS, spesifikasi data. Yang kedua
 ditambahkan setelah contoh laporan dosen ditemukan; susunannya dicatat di
 `docs/referensi/README.md`.
 
+## Rancangan antarmuka (tidak dibangkitkan)
+
+Artefak "perancangan antarmuka" yang dijanjikan charter digambar tangan, bukan
+dibangkitkan: spesifikasi tiap layar ada di `docs/desain/rancangan-antarmuka.md`,
+hasilnya di `docs/desain/*.png`. Ia tidak dibaca generator mana pun, jadi
+mengubahnya tidak menuntut build ulang.
+
 ## Sumber dan penggambar
 
 Pola yang sama dengan `docs/dfd/`: **data di satu berkas, penggambar di berkas
