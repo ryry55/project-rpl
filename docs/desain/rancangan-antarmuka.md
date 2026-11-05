@@ -110,7 +110,10 @@ Sidebar + bilah atas + isi 1100 px.
 - Tabel: **Nomor · Tipe · Fasilitas · Status · Penghuni · Tarif terakhir · Aksi**
   - `Status` memakai pil: **terisi**, **kosong**, **dipesan**, **perbaikan**
   - `Tarif terakhir` rata kanan, huruf mono
-  - `Aksi` berisi tautan teks kecil: **Atur tarif**, **Fasilitas**, **Laporkan**
+  - `Aksi` berisi tautan teks kecil, diambil dari tombol yang benar-benar ada di
+    `KamarView.vue`: **Atur tarif · Fasilitas · Laporkan rusak**, dan
+    **Selesai diperbaiki** menggantikan yang terakhir pada kamar berstatus
+    `perbaikan`
 
 ### 4.3 Kebijakan kos — `kebijakan.png`
 

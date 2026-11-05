@@ -123,9 +123,15 @@ function badge(x, y, kunci) {
   ].join('');
 }
 
+/** Perkiraan lebar teks 13px, cukup untuk merenggangkan tautan dalam satu sel.
+ *  Huruf Geist proporsional, jadi ini tebakan - bukan angka yang diukur. */
+const lebarTeks = (s) => Math.round(String(s).length * 6.9);
+
 /**
  * Tabel. `kolom` = [{ label, w, kanan, mono }], lebar kolom dijumlahkan
- * lalu sisanya dibagi rata bila totalnya kurang dari `lebar`.
+ * lalu sisanya dibagi rata bila totalnya kurang dari `lebar`. Sebuah sel boleh
+ * berupa array, dan isinya digambar sebagai beberapa tautan berjarak - dipakai
+ * kolom Aksi yang di aplikasi berisi tiga tombol.
  */
 function tabel(x, y, lebar, kolom, baris, { tinggiBaris = 44 } = {}) {
   const total = kolom.reduce((a, k) => a + k.w, 0);
@@ -153,6 +159,14 @@ function tabel(x, y, lebar, kolom, baris, { tinggiBaris = 44 } = {}) {
       const tx = k.kanan ? k.x + k.w - 10 : k.x + 10;
       if (k.badge && BADGE[nilai]) {
         keluar.push(badge(k.x + 10, ry + 11, nilai));
+      } else if (Array.isArray(nilai)) {
+        const jarak = 18;
+        const lebarIsi = nilai.reduce((a, s, n) => a + lebarTeks(s) + (n ? jarak : 0), 0);
+        let lx = k.kanan ? k.x + k.w - 10 - lebarIsi : k.x + 10;
+        nilai.forEach((s) => {
+          keluar.push(t(lx, ry + 26, s, { size: 13, fill: C.ink }));
+          lx += lebarTeks(s) + jarak;
+        });
       } else {
         keluar.push(
           t(tx, ry + 26, nilai, { size: 13, fill: C.ink, anchor: k.kanan ? 'end' : 'start', mono: k.mono }),
@@ -270,20 +284,20 @@ function layarKamar() {
   });
 
   const kolom = [
-    { label: 'Nomor', w: 90 },
-    { label: 'Tipe', w: 110 },
-    { label: 'Fasilitas', w: 160 },
-    { label: 'Status', w: 110, badge: true },
-    { label: 'Penghuni', w: 160 },
-    { label: 'Tarif terakhir', w: 130, kanan: true, mono: true },
-    { label: 'Aksi', w: 120 },
+    { label: 'Nomor', w: 70 },
+    { label: 'Tipe', w: 100 },
+    { label: 'Fasilitas', w: 150 },
+    { label: 'Status', w: 130, badge: true },
+    { label: 'Penghuni', w: 150 },
+    { label: 'Tarif terakhir', w: 140, kanan: true, mono: true },
+    { label: 'Aksi', w: 320, kanan: true },
   ];
   const baris = [
-    ['A1', 'Standar', 'AC, kasur', 'terisi', 'Siti Rahayu', 'Rp 1.500.000', 'Atur tarif'],
-    ['A2', 'Standar', 'AC', 'terisi', 'Budi Santoso', 'Rp 1.500.000', 'Atur tarif'],
-    ['A3', 'Standar', 'AC, kasur', 'perbaikan', '—', 'Rp 1.500.000', 'Atur tarif'],
-    ['B1', 'Deluxe', 'AC, kamar mandi', 'kosong', '—', 'Rp 1.900.000', 'Atur tarif'],
-    ['B2', 'Deluxe', 'AC, kamar mandi', 'dipesan', 'Rina Wati', 'Rp 1.900.000', 'Atur tarif'],
+    ['A1', 'Standar', 'AC, kasur', 'terisi', 'Siti Rahayu', 'Rp 1.500.000', ['Atur tarif', 'Fasilitas', 'Laporkan rusak']],
+    ['A2', 'Standar', 'AC', 'terisi', 'Budi Santoso', 'Rp 1.500.000', ['Atur tarif', 'Fasilitas', 'Laporkan rusak']],
+    ['A3', 'Standar', 'AC, kasur', 'perbaikan', '—', 'Rp 1.500.000', ['Atur tarif', 'Fasilitas', 'Selesai diperbaiki']],
+    ['B1', 'Deluxe', 'AC, kamar mandi', 'kosong', '—', 'Rp 1.900.000', ['Atur tarif', 'Fasilitas', 'Laporkan rusak']],
+    ['B2', 'Deluxe', 'AC, kamar mandi', 'dipesan', 'Rina Wati', 'Rp 1.900.000', ['Atur tarif', 'Fasilitas', 'Laporkan rusak']],
   ];
   s.push(kotak(x, 264, 1100, 8 + baris.length * 44 + 12, { r: 8 }));
   s.push(tabel(x + 16, 288, 1068, kolom, baris));
