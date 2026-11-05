@@ -24,12 +24,15 @@ Sistem Basis Data: normalisasi, ERD, LRS, spesifikasi data. Yang kedua
 ditambahkan setelah contoh laporan dosen ditemukan; susunannya dicatat di
 `docs/referensi/README.md`.
 
-## Rancangan antarmuka (tidak dibangkitkan)
+## Rancangan antarmuka
 
-Artefak "perancangan antarmuka" yang dijanjikan charter digambar tangan, bukan
-dibangkitkan: spesifikasi tiap layar ada di `docs/desain/rancangan-antarmuka.md`,
-hasilnya di `docs/desain/*.png`. Ia tidak dibaca generator mana pun, jadi
-mengubahnya tidak menuntut build ulang.
+Artefak "perancangan antarmuka" yang dijanjikan charter ada di `docs/desain/`:
+enam layar (`masuk`, `kamar`, `kebijakan`, `tagihan`, `portal-penghuni`,
+`laporan-kerusakan`) sebagai SVG + PNG 2×. Spesifikasi tiap layar — kanvas,
+token, dan tulisan yang harus sama dengan aplikasi — ada di
+`docs/desain/rancangan-antarmuka.md`, dan gambarnya dibangkitkan
+`docs/desain/build-mockup.js`. Ia tidak ikut build ini, jadi mengubahnya tidak
+menuntut pembangunan ulang dokumen.
 
 ## Sumber dan penggambar
 

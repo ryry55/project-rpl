@@ -1,8 +1,14 @@
 # Rancangan antarmuka — spesifikasi gambar
 
-> **Ini lembar kerja, bukan dokumen yang dibangkitkan.** Berkas ini dipakai untuk
-> menggambar keenam layar di alat desain (FigCraft atau Figma), lalu hasilnya
-> diekspor ke `docs/desain/`. Tidak ada generator yang membacanya.
+> **Gambarnya sudah ada:** `docs/desain/*.svg` dan `*.png`, dibangkitkan oleh
+> `build-mockup.js` lalu dirender `export-png.ps1`. Berkas ini mencatat **aturan
+> yang harus dipatuhi gambar itu** — kanvas, token, dan tulisan tiap layar.
+> Kalau gambarnya diperbaiki, perbaiki juga berkas ini.
+>
+> **Kenapa dibangkitkan, bukan digambar tangan.** FigCraft masih alpha dan hanya
+> merilis biner untuk macOS, jadi ia tidak bisa dipakai tanpa tangan manusia di
+> mesin Windows ini. SVG bisa dibangkitkan dan dirender ulang setiap kali label
+> berubah — dan labelnya memang dibaca dari kode, bukan dikarang.
 >
 > **Sebab ia ada:** Charter proyek menjanjikan *"Perancangan arsitektur dan
 > antarmuka aplikasi"* (`docs/charter/build-charter.ps1`, milestone 3 dan baris
@@ -155,8 +161,17 @@ Panel di halaman Kamar, bukan halaman sendiri.
 | Hal | Nilai |
 |---|---|
 | Berkas gambar | `docs/desain/<nama>.png`, skala **2×** (2880 × 1800) |
-| Berkas sumber | `docs/desain/<nama>.figcraft` (atau `.fig`) |
+| Berkas sumber | `docs/desain/<nama>.svg`, dibangkitkan `build-mockup.js` |
 | Satu frame satu berkas | ya — jangan satu kanvas berisi enam frame |
+
+```powershell
+node docs/desain/build-mockup.js
+powershell -ExecutionPolicy Bypass -File docs/desain/export-png.ps1
+```
+
+Huruf Geist disematkan ke dalam SVG sebagai `@font-face` base64 (28 KB), supaya
+hasilnya sama di mesin mana pun — bukan bergantung pada huruf yang kebetulan
+terpasang di laptop penyunting.
 
 Sebutkan di keterangan gambar bahwa ini **rancangan**, bukan tangkapan layar
 aplikasi. Tangkapan layar asli ada di `docs/uji/*.png`.
