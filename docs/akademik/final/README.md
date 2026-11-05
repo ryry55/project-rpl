@@ -26,6 +26,14 @@ Lembar LRS (`03-L3-lrs.png`) berukuran A3 tegak karena seluruh 209 kolom hanya t
 
 ## Cara Membangun Ulang
 
+**Salinan di folder ini adalah potret, bukan sumber.** Berkas aslinya ada di
+`docs/akademik/` dan `docs/erd/`. Bila dokumen dibangun ulang, salin lagi:
+
+```powershell
+Copy-Item "docs\akademik\*.pdf" "docs\akademik\final\" -Force
+Copy-Item "docs\erd\*.png" "docs\akademik\final\" -Force
+```
+
 ```powershell
 # Gambar SVG
 node docs/akademik/build.js           # use case + DFD
