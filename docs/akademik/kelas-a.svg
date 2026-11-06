@@ -1,0 +1,193 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="828" viewBox="0 0 1250 828" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
+<rect width="1250" height="828" fill="#ffffff"/>
+<title>Diagram Kelas Akun, akses &amp; kepatuhan</title>
+<text x="40" y="42" text-anchor="start" font-size="26" font-weight="700" fill="#0f172a">Diagram Kelas — Akun, akses &amp; kepatuhan</text>
+<text x="40" y="68" text-anchor="start" font-size="13" font-weight="400" fill="#475569">Siapa yang boleh masuk, apa yang boleh ia lakukan, dan persetujuan data pribadinya.</text>
+<text x="1210" y="42" text-anchor="end" font-size="13" font-weight="600" fill="#94a3b8">lembar a</text>
+<path d="M435 483.5 H422.5 V237 H420" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M420 237 l7 -4.11764705882353 M420 237 l7 4.11764705882353" fill="none" stroke="#334155" stroke-width="1.2"/>
+<text x="441" y="478.5" text-anchor="start" font-size="10" font-weight="600" fill="#475569">*</text>
+<text x="426" y="232" text-anchor="start" font-size="10" font-weight="600" fill="#475569">1</text>
+<path d="M830 594.5 H818.5 V96 H425 V296.3 H420" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M420 296.3 l7 -4.11764705882353 M420 296.3 l7 4.11764705882353" fill="none" stroke="#334155" stroke-width="1.2"/>
+<text x="836" y="589.5" text-anchor="start" font-size="10" font-weight="600" fill="#475569">*</text>
+<text x="426" y="291.3" text-anchor="start" font-size="10" font-weight="600" fill="#475569">1</text>
+<path d="M830 432.5 H822.5 V110 H427.5 V355.5 H420" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M420 355.5 l7 -4.11764705882353 M420 355.5 l7 4.11764705882353" fill="none" stroke="#334155" stroke-width="1.2"/>
+<text x="836" y="427.5" text-anchor="start" font-size="10" font-weight="600" fill="#475569">*</text>
+<text x="426" y="350.5" text-anchor="start" font-size="10" font-weight="600" fill="#475569">1</text>
+<path d="M435 270.5 H430 V414.7 H420" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M420 414.7 l7 -4.11764705882353 M420 414.7 l7 4.11764705882353" fill="none" stroke="#334155" stroke-width="1.2"/>
+<text x="441" y="265.5" text-anchor="start" font-size="10" font-weight="600" fill="#475569">*</text>
+<text x="426" y="409.7" text-anchor="start" font-size="10" font-weight="600" fill="#475569">1</text>
+<path d="M420 474 H432.5 V124 H826.5 V245 H830" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M830 245 l-7 -4.11764705882353 M830 245 l-7 4.11764705882353" fill="none" stroke="#334155" stroke-width="1.2"/>
+<text x="414" y="469" text-anchor="end" font-size="10" font-weight="600" fill="#475569">*</text>
+<text x="824" y="240" text-anchor="end" font-size="10" font-weight="600" fill="#475569">0..1</text>
+<rect x="40" y="158" width="380" height="395" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="40" y="158" width="380" height="34" rx="6" fill="#eef2ff"/>
+<rect x="40" y="186" width="380" height="6" fill="#eef2ff"/>
+<text x="52" y="180" text-anchor="start" font-size="15" font-weight="700" fill="#3730a3">User</text>
+<text x="408" y="179" text-anchor="end" font-size="9.5" font-weight="500" fill="#94a3b8">«Entity»</text>
+<text x="50" y="205" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«PK»</text>
+<text x="102" y="205" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">id</text>
+<text x="410" y="205" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="50" y="222" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="102" y="222" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">name</text>
+<text x="410" y="222" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(255)</text>
+<text x="50" y="239" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="102" y="239" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">email</text>
+<text x="410" y="239" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(255)</text>
+<text x="50" y="256" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="102" y="256" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">email_verified_at</text>
+<text x="410" y="256" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamp</text>
+<text x="50" y="273" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="102" y="273" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">password</text>
+<text x="410" y="273" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(255)</text>
+<text x="50" y="290" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="102" y="290" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">remember_token</text>
+<text x="410" y="290" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(100)</text>
+<text x="50" y="307" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="102" y="307" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">created_at</text>
+<text x="410" y="307" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamp</text>
+<text x="50" y="324" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="102" y="324" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">updated_at</text>
+<text x="410" y="324" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamp</text>
+<text x="50" y="341" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="102" y="341" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">peran</text>
+<text x="410" y="341" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(20)</text>
+<text x="50" y="358" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«FK»</text>
+<text x="102" y="358" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">penghuni_id</text>
+<text x="410" y="358" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="50" y="375" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«FK»</text>
+<text x="102" y="375" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">pemilik_id</text>
+<text x="410" y="375" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="50" y="392" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="102" y="392" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">wajib_ganti_sandi</text>
+<text x="410" y="392" text-anchor="end" font-size="11" font-weight="400" fill="#475569">boolean</text>
+<line x1="40" y1="400" x2="420" y2="400" stroke="#cbd5e1" stroke-width="1"/>
+<text x="50" y="417" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">belumAktif()</text>
+<text x="50" y="434" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">wajibGantiSandi()</text>
+<text x="50" y="451" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">sudahMenyetujuiPdp()</text>
+<text x="50" y="468" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">isPemilik()</text>
+<text x="50" y="485" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">isPengelola()</text>
+<text x="50" y="502" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">isPenghuni()</text>
+<text x="50" y="519" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">mengurusKos()</text>
+<text x="50" y="536" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">boleh()</text>
+<rect x="435" y="158" width="380" height="225" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="435" y="158" width="380" height="34" rx="6" fill="#eef2ff"/>
+<rect x="435" y="186" width="380" height="6" fill="#eef2ff"/>
+<text x="447" y="180" text-anchor="start" font-size="15" font-weight="700" fill="#3730a3">TokenAkun</text>
+<text x="803" y="179" text-anchor="end" font-size="9.5" font-weight="500" fill="#94a3b8">«Entity»</text>
+<text x="445" y="205" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«PK»</text>
+<text x="497" y="205" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">id</text>
+<text x="805" y="205" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="445" y="222" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«FK»</text>
+<text x="497" y="222" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">user_id</text>
+<text x="805" y="222" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="445" y="239" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="497" y="239" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">jenis</text>
+<text x="805" y="239" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(10)</text>
+<text x="445" y="256" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="497" y="256" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">token_hash</text>
+<text x="805" y="256" text-anchor="end" font-size="11" font-weight="400" fill="#475569">char(64)</text>
+<text x="445" y="273" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="497" y="273" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">kedaluwarsa_pada</text>
+<text x="805" y="273" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamptz</text>
+<text x="445" y="290" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="497" y="290" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">dipakai_pada</text>
+<text x="805" y="290" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamptz</text>
+<text x="445" y="307" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="497" y="307" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">dibuat_pada</text>
+<text x="805" y="307" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamptz</text>
+<line x1="435" y1="315" x2="815" y2="315" stroke="#cbd5e1" stroke-width="1"/>
+<text x="445" y="332" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">sudahKedaluwarsa()</text>
+<text x="445" y="349" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">sudahDipakai()</text>
+<text x="445" y="366" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">masihBerlakuUntuk()</text>
+<rect x="435" y="405" width="380" height="157" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="435" y="405" width="380" height="34" rx="6" fill="#eef2ff"/>
+<rect x="435" y="433" width="380" height="6" fill="#eef2ff"/>
+<text x="447" y="427" text-anchor="start" font-size="15" font-weight="700" fill="#3730a3">PengaturanNotifikasi</text>
+<text x="803" y="426" text-anchor="end" font-size="9.5" font-weight="500" fill="#94a3b8">«Entity»</text>
+<text x="445" y="452" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«PK»</text>
+<text x="497" y="452" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">id</text>
+<text x="805" y="452" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="445" y="469" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«FK»</text>
+<text x="497" y="469" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">user_id</text>
+<text x="805" y="469" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="445" y="486" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="497" y="486" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">peristiwa</text>
+<text x="805" y="486" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(40)</text>
+<text x="445" y="503" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="497" y="503" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">kanal</text>
+<text x="805" y="503" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(10)</text>
+<text x="445" y="520" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="497" y="520" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">aktif</text>
+<text x="805" y="520" text-anchor="end" font-size="11" font-weight="400" fill="#475569">boolean</text>
+<line x1="435" y1="528" x2="815" y2="528" stroke="#cbd5e1" stroke-width="1"/>
+<text x="445" y="545" text-anchor="start" font-size="11" font-weight="400" fill="#94a3b8">(tidak ada operasi)</text>
+<rect x="830" y="158" width="380" height="174" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="830" y="158" width="380" height="34" rx="6" fill="#eef2ff"/>
+<rect x="830" y="186" width="380" height="6" fill="#eef2ff"/>
+<text x="842" y="180" text-anchor="start" font-size="15" font-weight="700" fill="#3730a3">Penghuni</text>
+<text x="1198" y="179" text-anchor="end" font-size="9.5" font-weight="500" fill="#94a3b8">«Entity»</text>
+<text x="840" y="205" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«PK»</text>
+<text x="892" y="205" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">id</text>
+<text x="1200" y="205" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="840" y="222" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="892" y="222" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">nama</text>
+<text x="1200" y="222" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(120)</text>
+<text x="840" y="239" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="892" y="239" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">no_hp</text>
+<text x="1200" y="239" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(30)</text>
+<text x="840" y="256" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="892" y="256" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">created_at</text>
+<text x="1200" y="256" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamp</text>
+<text x="840" y="273" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="892" y="273" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">updated_at</text>
+<text x="1200" y="273" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamp</text>
+<text x="840" y="290" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="892" y="290" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">email</text>
+<text x="1200" y="290" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(120)</text>
+<line x1="830" y1="298" x2="1210" y2="298" stroke="#cbd5e1" stroke-width="1"/>
+<text x="840" y="315" text-anchor="start" font-size="11" font-weight="400" fill="#94a3b8">(tidak ada operasi)</text>
+<rect x="830" y="354" width="380" height="157" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="830" y="354" width="380" height="34" rx="6" fill="#eef2ff"/>
+<rect x="830" y="382" width="380" height="6" fill="#eef2ff"/>
+<text x="842" y="376" text-anchor="start" font-size="15" font-weight="700" fill="#3730a3">PersetujuanPdp</text>
+<text x="1198" y="375" text-anchor="end" font-size="9.5" font-weight="500" fill="#94a3b8">«Entity»</text>
+<text x="840" y="401" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«PK»</text>
+<text x="892" y="401" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">id</text>
+<text x="1200" y="401" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="840" y="418" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«FK»</text>
+<text x="892" y="418" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">user_id</text>
+<text x="1200" y="418" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="840" y="435" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="892" y="435" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">versi</text>
+<text x="1200" y="435" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(20)</text>
+<text x="840" y="452" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="892" y="452" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">disetujui_pada</text>
+<text x="1200" y="452" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamptz</text>
+<text x="840" y="469" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="892" y="469" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">ip</text>
+<text x="1200" y="469" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(45)</text>
+<line x1="830" y1="477" x2="1210" y2="477" stroke="#cbd5e1" stroke-width="1"/>
+<text x="840" y="494" text-anchor="start" font-size="11" font-weight="400" fill="#94a3b8">(tidak ada operasi)</text>
+<rect x="830" y="533" width="380" height="123" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="830" y="533" width="380" height="34" rx="6" fill="#eef2ff"/>
+<rect x="830" y="561" width="380" height="6" fill="#eef2ff"/>
+<text x="842" y="555" text-anchor="start" font-size="15" font-weight="700" fill="#3730a3">PengelolaKewenangan</text>
+<text x="1198" y="554" text-anchor="end" font-size="9.5" font-weight="500" fill="#94a3b8">«Entity»</text>
+<text x="840" y="580" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«PK»</text>
+<text x="892" y="580" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">id</text>
+<text x="1200" y="580" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="840" y="597" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«FK»</text>
+<text x="892" y="597" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">user_id</text>
+<text x="1200" y="597" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="840" y="614" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="892" y="614" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">wewenang</text>
+<text x="1200" y="614" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(40)</text>
+<line x1="830" y1="622" x2="1210" y2="622" stroke="#cbd5e1" stroke-width="1"/>
+<text x="840" y="639" text-anchor="start" font-size="11" font-weight="400" fill="#94a3b8">(tidak ada operasi)</text>
+<text x="40" y="794" text-anchor="start" font-size="10.5" font-weight="400" fill="#64748b">«PK» kunci primer · «FK» kunci asing · «UQ» unik · * banyak · 1 tepat satu · 0..1 boleh kosong · huruf 2.61 mm di A3 (ambang 2.52 mm)</text>
+</svg>

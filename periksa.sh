@@ -280,6 +280,15 @@ if [ "$HANYA_E2E" -eq 0 ]; then
     kode=$?
     catat 'DFD konsisten dan gambarnya tidak basi' "$([ "$kode" -eq 0 ] && echo 0 || echo 1)"
     if [ "$kode" -ne 0 ]; then printf '%s\n' "$keluaran_dfd" | grep -E '^-|BEDA|tidak' | sed 's/^/    /'; fi
+
+    # Diagram kelas dan urutan diserahkan ke dosen, dan kesalahannya tidak
+    # berbunyi: garis yang menumpuk tetap terlihat seperti garis. Pemeriksa ini
+    # membuktikan pagar tata letaknya bisa menolak, lalu membandingkan SVG/PNG
+    # yang di-commit dengan hasil penggambaran data sekarang.
+    keluaran_diagram="$(node docs/uji/cek-diagram.js 2>&1)"
+    kode=$?
+    catat 'diagram kelas dan urutan tidak basi' "$([ "$kode" -eq 0 ] && echo 0 || echo 1)"
+    if [ "$kode" -ne 0 ]; then printf '%s\n' "$keluaran_diagram" | grep -E '^  - |tidak' | sed 's/^/    /'; fi
 fi
 
 # --- 7. Profil produksi ------------------------------------------------------

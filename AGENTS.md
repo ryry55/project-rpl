@@ -215,6 +215,29 @@ akan lolos dari guardrail selamanya tanpa ada yang memberi tahu.
   crash. Semua perintah luar kini lewat fungsi `Jalankan`, yang menurunkan
   preferensi hanya selama perintah berjalan. Jangan menambah panggilan
   `& node`, `& npm`, atau `bash` langsung di skrip itu.
+- **Dua ujung garis yang berimpit terbaca sebagai satu garis, dan tidak ada yang
+  merah.** Versi pertama `docs/akademik/kelas-gambar.js` menaruh semua ujung di
+  fraksi 0,5 dan semua jalur jauh di satu lorong: tiga asosiasi lembar c
+  menumpuk sempurna, gambarnya hanya kehilangan dua hubungan tanpa satu pun
+  pesan. Sekarang ujung dibagi rata per sisi kotak, tiap jalur dapat
+  lorong/selokan sendiri, dan titik berimpit (< 2 px) menolak build. Hal yang
+  sama berlaku untuk diagram urutan. Jangan kembalikan ke fraksi tetap, dan
+  jangan percaya gambar yang "terlihat baik" tanpa pagar yang bisa menolak.
+- **`--force-device-scale-factor` Chrome tidak dapat dipercaya.** Jendela
+  1250x1270 menghasilkan PNG 2500x2540 pada satu percobaan dan **5000x5080** pada
+  percobaan lain, karena Chrome menempel ke proses yang sudah berjalan. Pada 4x
+  gambarnya mengecil di seperempat kiri atas dan tidak ada galat apa pun.
+  `docs/akademik/export-png.ps1` karena itu menyisipkan SVG ke halaman HTML
+  berukuran 2x (bukan membuka `.svg` langsung), memakai profil sendiri per
+  berkas, lalu **membandingkan ukuran PNG dengan SVG** - selisih sama dengan
+  `exit 1`. SVG dibaca `-Encoding UTF8`; `Get-Content -Raw` di PS 5.1 memakai
+  ANSI dan mengubah em dash serta panah menjadi mojibake di dalam PNG.
+- **Pagar yang salah membaca kode akan menolak yang benar.** Pencari kelas di
+  `urutan-gambar.js` memakai `^class`, sehingga `final class PengaturanKanal`
+  dianggap tidak ada dan diagram urutan yang sebenarnya benar ikut ditolak.
+  Polanya kini menerima `final`/`abstract`/`readonly`. Bila sebuah pagar
+  menolak data yang Anda yakini benar, periksa pagarnya lebih dulu - lalu
+  buktikan pagar itu masih bisa menolak dengan data yang memang salah.
 
 ### Menulis skrip uji
 

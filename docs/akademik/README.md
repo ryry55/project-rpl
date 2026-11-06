@@ -16,6 +16,8 @@ suntingan akan hilang pada build berikutnya.
 | `dfd-konteks.md` | Halaman 2: DFD Konteks Level 0 dan matriks 16 aliran |
 | `01-use-case.svg` / `.png` | Diagram use case (vektor + PNG 2x) |
 | `02-dfd-konteks.svg` / `.png` | DFD konteks (vektor + PNG 2x) |
+| `kelas-{a,b,c}.svg` / `.png` | Diagram kelas, tiga lembar (vektor + PNG 2x) |
+| `urutan-UC-01..14.svg` / `.png` | Diagram urutan, satu per use case (vektor + PNG 2x) |
 
 **Dua format laporan, keduanya diminta.** `Proses_Bisnis_Kos_Kosan.md`
 mengikuti template tujuh bab (narasi 4 halaman + dua halaman diagram).
@@ -40,6 +42,11 @@ lain.** Diagram tangan tidak bisa diperbaiki saat angkanya berubah.
 | `build-bab4.js` | Menulis `Bab_4_Implementasi_dan_Pengujian.md`; gagal bila menyimpang dari skema |
 | `build.js` | Menulis kedua SVG; gagal bila data tidak konsisten |
 | `build-dokumen.js` | Menulis ketiga `.md`; tidak menulis apa pun bila ada masalah |
+| `kelas-data.js` | Menurunkan 22 kelas + 27 asosiasi dari `docs/erd/skema.json` dan model Eloquent |
+| `kelas-gambar.js` | Menggambar tiga lembar kelas + **pemeriksa** ujung garis berimpit dan garis menembus kotak |
+| `urutan-data.js` | 14 skenario: peserta, langkah, panah balik, catatan kaki |
+| `urutan-gambar.js` | Menggambar SVG urutan + **pemeriksa** rute dan kelas yang benar-benar ada di `api/app` |
+| `build-diagram.js` | Menulis 17 SVG; menolak menulis bila data ditolak penggambar |
 | `rute-api.json` | Potret `route:list --json` - 89 endpoint |
 | `tabel-domain.json` | Potret 24 tabel domain dari `pg_attribute` |
 
@@ -47,11 +54,13 @@ lain.** Diagram tangan tidak bisa diperbaiki saat angkanya berubah.
 
 ```powershell
 node docs/akademik/build.js           # SVG
+node docs/akademik/build-diagram.js   # 17 SVG kelas + urutan
 node docs/akademik/build-dokumen.js   # tiga berkas .md
 powershell -ExecutionPolicy Bypass -File docs/akademik/export-png.ps1   # PNG 2x
 powershell -ExecutionPolicy Bypass -File docs/akademik/export-pdf.ps1        # narasi -> PDF
 powershell -ExecutionPolicy Bypass -File docs/akademik/export-diagram-pdf.ps1  # diagram -> PDF 2 hal
 node docs/akademik/uji-validator.js   # buktikan pemeriksa benar-benar menolak
+node docs/uji/cek-diagram.js          # diagram tidak basi + pagarnya bisa menolak
 ```
 
 Bab 4 dibangun terpisah, dan **urutannya penting**: gambar dulu, baru markdown,
@@ -71,6 +80,33 @@ cmd /c "docker compose exec -T api php artisan route:list --json --path=api > do
 
 Perintah itu memakai `cmd /c` dengan sengaja: pengalihan `>` milik PowerShell
 menulis UTF-16LE ber-BOM, dan `JSON.parse` menolaknya.
+
+## Diagram kelas dan diagram urutan
+
+Dua belas gambar ini diminta dosen setelah laporan selesai, jadi bentuknya
+mengikuti notasi UML seperlunya: kelas dengan atribut, tipe, dan operasi;
+asosiasi dengan multiplisitas; urutan dengan garis hidup, panah panggilan, dan
+panah balik bergaris putus.
+
+**Diagram kelas dipecah tiga lembar**, pola yang sama dengan ERD L2 a/b/c: 22
+kotak pada satu halaman menghasilkan huruf 1,1 mm. Tiga lembar memberi **2,61 mm**
+di A3, di atas ambang 2,52 mm. Isinya tidak diketik: `kelas-data.js` membaca
+`docs/erd/skema.json` (atribut, kunci, kunci asing) dan `api/app/Models/*.php`
+(operasi), lalu berhenti bila ada model yang belum masuk kelompok mana pun.
+
+**Asosiasi lintas lembar tidak digambar sebagai garis**, melainkan didaftar di
+kaki gambar sebagai `Tagihan → Kontrak (kontrak_id, * : 1)`. Garis yang keluar
+dari tepi kertas terbaca sebagai gambar yang terpotong, bukan sebagai hubungan.
+
+**Satu diagram urutan per use case**, seluruhnya 14. Setiap peserta `kendali`,
+`layanan`, dan `model` harus kelas yang benar-benar dideklarasikan di
+`api/app`, dan setiap `endpoint` harus ada di `rute-api.json` serta memang
+milik use case itu menurut `usecase-data.js`; kalau tidak, build berhenti.
+Panah balik ditandai eksplisit lewat daftar `balik`, bukan ditebak dari arah —
+`Pemberitahu → Basis Data` adalah panggilan INSERT yang memang mengarah ke kiri.
+
+Lebar kanvas dijaga maksimum 1400 px supaya label 12 px tetap 2,52 mm di A3;
+di atas itu hurufnya mengecil di bawah ambang dan build menolak.
 
 ## Lampiran A3: mengapa LRS tidak ditempel di Bab 4
 
@@ -106,6 +142,15 @@ gerbang `peran:`/`wewenang:` di `api/routes/api.php`, label melampaui elipsnya,
 garis asosiasi menembus elips lain, entitas menunjuk tabel hantu, ada tabel yang
 tidak dijelaskan entitas mana pun, atau aturan bisnis tidak sama dengan
 `docs/dfd/dfd-data.js`.
+
+Untuk kelas dan urutan, build juga gagal bila ada kelas yang menunjuk tabel
+hantu, model yang belum masuk kelompok, dua ujung garis menempel di titik yang
+sama, garis asosiasi menembus kotak, kelas atau rute karangan di diagram urutan,
+langkah yang tidak kembali ke aktornya, atau huruf di bawah 2,52 mm di A3.
+`node docs/uji/cek-diagram.js` membuktikan pagar-pagar itu benar-benar menolak
+(masing-masing diuji dengan data yang sengaja dirusak), lalu membandingkan
+ketujuh belas SVG dan PNG yang di-commit dengan hasil penggambaran data
+sekarang — termasuk memastikan setiap PNG tepat 2x SVG-nya.
 
 Angka pada dokumen dibaca dari sumbernya, bukan diketik: 89 endpoint, 24 tabel,
 42 migrasi, 16 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada

@@ -237,15 +237,17 @@ sedang berjalan. Semuanya tidak butuh E2E, dan selesai dalam hitungan detik.
 | `cek-cakupan-kontrak.js` | Setiap rute nyata muncul di **tepat satu** baris tabel `6_TOOLS_CONTRACTS.md`; tidak ada yang belum tercatat, tidak ada yang tercatat dua kali; judul `(N endpoint)` tiap bagian dan baris **Total** §9 cocok dengan isinya |
 | `cek-erd-lrs.js` | `docs/erd/skema.json` masih cocok dengan basis data; setiap tabel punya bagian di `03-lrs.md`; setiap kunci asing muncul di tabel relasi LRS dengan tujuan yang sama; jumlah tabel/kunci asing yang ditulis cocok dengan yang dihitung; `manifest.json` hasil build cocok dengan skema; setiap SVG berjenjang yang dicatat manifest ada, berisi SVG, dan tidak terpotong; **PNG pasangan setiap SVG ada dan berukuran tepat 2x atribut width/height SVG-nya**; tingkat 2 dan 3 masing-masing memuat seluruh tabel domain tanpa ganda |
 | `cek-dfd.js` | `periksaSemantik()` bersih: setiap aliran punya rute di tingkat tempat ia digambar, tidak ada rute yatim, setiap penyimpanan ditulis **dan** dibaca, setiap proses punya masukan dan keluaran, setiap entitas terhubung, dan aliran batas sistem seimbang antara level 0 dan level 1. Ditambah: keempat SVG DFD (Gane-Sarson dan Yourdon) **sama persis** dengan hasil penggambaran `dfd-data.js` sekarang, dan PNG pasangannya ada serta benar-benar PNG |
+| `cek-diagram.js` | Pagar diagram kelas dan urutan **dibuktikan bisa menolak** dengan merusak data di dalam pemeriksa: ujung garis yang ditaruh di satu titik harus dilaporkan `berimpit`, dan jalur yang memotong persegi harus dikenali `segmenTembus` (mendatar maupun tegak). Lalu 3 lembar kelas dan 14 diagram urutan harus sama persis dengan hasil penggambaran data sekarang, dan setiap PNG tepat 2x SVG-nya |
 
 ```powershell
 node docs/uji/cek-angka-dokumen.js
 node docs/uji/cek-cakupan-kontrak.js
 node docs/uji/cek-erd-lrs.js
 node docs/uji/cek-dfd.js
+node docs/uji/cek-diagram.js
 ```
 
-`cek-erd-lrs.js` adalah satu-satunya dari keempatnya yang **butuh container `db`
+`cek-erd-lrs.js` adalah satu-satunya dari kelimanya yang **butuh container `db`
 hidup**, karena ia membandingkan dokumen dengan basis data yang berjalan, bukan
 dengan berkas. Itu disengaja: dokumen ERD/LRS yang dibandingkan dengan salinan
 skema hanya membuktikan salinan itu konsisten dengan dirinya sendiri.

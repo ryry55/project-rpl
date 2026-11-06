@@ -318,6 +318,14 @@ jobs:
       - name: DFD konsisten dan gambarnya tidak basi
         run: node docs/uji/cek-dfd.js
 
+      # Diagram kelas dan urutan: pagar tata letaknya dibuktikan bisa menolak
+      # (data dirusak di dalam pemeriksa), lalu 17 SVG dan PNG yang di-commit
+      # dibandingkan dengan hasil penggambaran data sekarang. PNG juga harus
+      # tepat 2x SVG-nya - ekspor pernah menghasilkan 4x dengan gambar
+      # mengecil di pojok, tanpa satu pun pesan galat.
+      - name: Diagram kelas dan urutan tidak basi
+        run: node docs/uji/cek-diagram.js
+
       # Skrip uji berjalan di HOST (bukan di container): ia bicara ke CDP dan
       # ke API lewat localhost, keduanya sudah dipetakan compose.
       #

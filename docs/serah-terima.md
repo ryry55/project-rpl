@@ -6,9 +6,8 @@
 >
 > **Maksimal 120 baris.** Kalau lebih, isinya sudah menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: 1 November 2026, sesudah putaran audit dokumen terakhir —
-tabel bentuk LRS diukur ulang seluruhnya dan angka milimeter kini dijaga pemeriksa,
-bukan diketik.
+Terakhir diperbarui: 6 November 2026, sesudah diagram kelas dan diagram urutan
+(17 SVG + 17 PNG) selesai, masuk gerbang, dan pagarnya terbukti bisa menolak.
 
 ---
 
@@ -16,7 +15,7 @@ bukan diketik.
 
 | Hal | Nilai |
 |---|---|
-| Fase terakhir selesai | **T14 laporan kerusakan** (#13) + K-13 dijawab 31 Okt |
+| Fase terakhir selesai | **Diagram kelas & urutan** — 3 lembar kelas, 14 diagram urutan; T14 sudah di `git log` |
 | Suite PHP | **830 lulus / 3883 asersi**, **48 berkas**; pint & eslint bersih |
 | Suite Vitest | **19 tes** (2 berkas) untuk fungsi murni: format uang/tanggal, pemotong halaman |
 | Migrasi / endpoint / tabel domain | **42** / **89** / **24** (total 33 di skema `public`) |
@@ -25,6 +24,7 @@ bukan diketik.
 | Langkah E2E | **852** di 30 skrip; `e2e-t2` **26/26**, delapan di antaranya T14 |
 | Ticket GitHub | **#11, #12, #13, #14 tertutup.** Tidak ada issue terbuka |
 | ERD/LRS | `cek-erd-lrs.js` **LULUS**: 24 tabel / 209 kolom / 29 kunci asing; L3 terbaca 2,74 mm di A3 |
+| Diagram | `cek-diagram.js` **LULUS**: 3 lembar kelas (2,61 mm) + 14 urutan (2,58–4,46 mm), PNG tepat 2x |
 
 Catatan: `POST /csp-laporan` di luar `/api/`, sengaja tidak masuk hitungan 89 endpoint.
 
@@ -39,6 +39,9 @@ lewat `docker compose`; `9_DEPLOY.md`, `Dockerfile.prod`, `deploy.yml` tinggal s
 1. **Gladi demo bertiga, di layar** — tiga kali, dihitung waktunya
    (`docs/demo-sidang.md`). Ini satu-satunya pekerjaan yang tersisa.
 2. **Fase 6 (laporan) menunggu format dosen**; bila datang, hanya `docs/akademik/*` yang dibuat.
+   Diagram kelas dan urutan yang diminta dosen **sudah selesai** (6 Nov) dan tidak
+   perlu menunggu format apa pun — berkasnya `docs/akademik/kelas-*.png` dan
+   `urutan-UC-*.png`.
 
 **Tidak ada keputusan pemilik yang masih menunggu.** K-01..K-13 dijawab atau
 ditutup. Yang terakhir (31 Okt, **K-13**): tabel tersendiri, kamar `perbaikan`
@@ -56,6 +59,7 @@ latihan restore, verifikasi domain Brevo, domain `.my.id`, dan menegakkan CSP.
 | Wewenang pengelola (8) dan Model A | `SPEC.md` bagian 5 |
 | Konvensi T24-T29 | `AGENTS.md` |
 | Sumber tunggal DFD / use case | `docs/dfd/dfd-data.js`, `docs/akademik/usecase-data.js` |
+| Sumber tunggal diagram kelas / urutan | `docs/akademik/kelas-data.js`, `docs/akademik/urutan-data.js` |
 | Keputusan pemilik | `docs/keputusan-terbuka.md` (K-01..K-13) |
 | Langkah deploy manual | `docs/produk/9_DEPLOY.md` |
 
@@ -67,26 +71,26 @@ nomor urut (penandanya id pembayaran + periode); **deposit dihapus seluruhnya**.
 `.lencana-status`, `.aksi-kepala`, `.merek p`, `.kartu-kelompok`, `.kendali`
 tetap ada. **Narasi tetap 4 halaman**; **harga Charter Rp 50.000.000**.
 
-## 4. Yang dibangun di T14
+## 4. Yang dibangun: diagram kelas & urutan
+
+Rincian T14 (laporan kerusakan kamar) ada di `git log` dan `SPEC.md` §4; yang
+baru adalah dua belas gambar untuk dosen.
 
 | Hal | Hasil |
 |---|---|
-| Tabel | `laporan_kerusakan` (8 kolom): `kamar_id`, `deskripsi`, `dilaporkan_oleh`, `selesai_pada`, `ditutup_oleh`. Indeks unik **parsial** `laporan_kerusakan_satu_terbuka_per_kamar` |
-| Status kamar | CHECK `kamar.status_huni` kini menerima `perbaikan` |
-| Endpoint | `GET /api/laporan-kerusakan`, `POST /api/laporan-kerusakan`, `POST /api/laporan-kerusakan/{laporan}/selesai` |
-| Pagar di jalur lain | Kontrak baru pada kamar `perbaikan` → 422; `akhiri` kontrak **tidak** mengosongkan kamar yang diperbaiki; `MulaiKontrak` tetap `perbaikan`; ubah `status_huni` manual ditolak selama laporan terbuka |
-| Jejak audit | `kerusakan.lapor` / `kerusakan.selesai`, menempel pada entitas `kamar` |
-| Layar | `KamarView.vue`: panel "Laporkan kerusakan", tombol "Laporkan rusak" / "Selesai diperbaiki", `.status-perbaikan`, hitungan "diperbaiki" terpisah dari "kosong" |
-
-**Kontra-uji T14:** `KerusakanTest` menembak indeks unik parsial **langsung ke
-basis data** (tanpa HTTP) dan mengharapkan `QueryException` — pemeriksaan
-`exists()` di controller punya celah balapan, dan hanya indeks itu yang menutupnya.
+| Diagram kelas | **3 lembar** (akun/akses, kamar/sewa, tagihan/pembayaran); 22 kelas, 27 asosiasi, atribut dari `docs/erd/skema.json`, operasi dari `api/app/Models/*.php` |
+| Diagram urutan | **14 lembar**, satu per UC-01..UC-14, peserta nyata dari `api/app` dan endpoint dari `rute-api.json` |
+| Keterbacaan | Kelas **2,61 mm** di A3 (satu lembar akan menjadi 1,1 mm); urutan 2,58–4,46 mm |
+| Asosiasi lintas lembar | Didaftar di kaki gambar (`Tagihan → Kontrak (kontrak_id, * : 1)`), tidak digambar sebagai garis menggantung |
+| Pagar | Ujung garis berimpit, garis menembus kotak, kelas/rute karangan, langkah tak kembali ke aktor, huruf < 2,52 mm — semuanya menolak build |
+| Bukti pagar | `node docs/uji/cek-diagram.js` merusak data di dalam dirinya sendiri; bila pagar dimatikan, ia gagal (sudah dicoba) |
 
 ## 5. Cara memeriksa keadaan
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File periksa.ps1    # SEMUA LULUS
 node docs/uji/cek-angka-dokumen.js                     # SEMUA ANGKA COCOK
+node docs/uji/cek-diagram.js                           # diagram tidak basi
 ```
 
 Tanpa uji browser: `-Cepat`. Di Linux/CI: `./periksa.sh`. Bila mengubah
@@ -97,24 +101,13 @@ Membangun ulang dokumen: `docs/erd/README.md` §"Urutan membangun", `docs/akadem
 
 ## 6. Jebakan yang menggigit di sesi ini
 
-1. **Menambah tabel membuat 4 garis LRS berimpit tanpa ada yang merah.**
-   `build-tingkat.js` mencetak `LULUS`, tetapi `cek-erd-lrs.js` menemukan empat
-   pasang garis berjarak **1,2 px** — terbaca sebagai satu garis di kertas.
-   Sebabnya `panjangBerimpit()` di `papan.js` memakai toleransi 0,5 px sedangkan
-   pemeriksa memakai 3 px. Sudah disamakan; jangan kembalikan ke 0,5.
-2. **Angka yang diketik tangan akan tertinggal.** `bab4-data.js` sempat menulis
-   "23 tabel / 201 kolom"; kini memakai `${jumlahKolom}`/`${SKEMA.jumlah_tabel}`.
-   Tinggi huruf LRS (2,74 dan 1,94 mm) juga pernah diketik di empat berkas dan
-   tertinggal dari hasil ukur. Kini diukur `build-tingkat.js`, disimpan di
-   `manifest.json`, dan dibandingkan `cek-angka-dokumen.js`.
-3. **Gate memanggang kode ke image.** `php artisan test` tanpa
-   `docker compose build api` menguji kode **lama** dan memberi hijau yang tidak
-   menguji apa pun. Berlaku juga untuk `web`.
-4. **`Queue::fake()` wajib untuk menguji antrean.** Dengan `sync`, pekerjaan
-   berjalan di dalam permintaan dan `Mail::assertSent` tetap lulus.
-5. **Komentar ber-backtick memutus template literal** (termasuk di dalam
-   `evaluasi()`); `Set-Content -Encoding UTF8` (PS 5.1) menulis BOM dan mematikan
-   berkas PHP. Jalankan `node --check`, sunting PHP dengan tool `edit`.
-6. **Menutup tab terakhir mematikan Chrome**, bukan hanya tabnya — dan `fetch
-   failed` di E2E terbaca seperti aplikasi mati. Bila CDP perlu hidup lagi:
-   `chrome --headless=new --remote-debugging-port=9222 --user-data-dir=<temp>`.
+Tiga jebakan baru (ujung garis berimpit, skala Chrome, pencari kelas `final`)
+sudah naik ke `AGENTS.md` bagian "Jebakan yang sudah menggigit" — jangan
+dipindahkan balik ke sini.
+
+- **Angka yang diketik tangan akan tertinggal.** `bab4-data.js` sempat menulis
+  "23 tabel / 201 kolom"; tinggi huruf LRS juga pernah diketik di empat berkas.
+  Kini diukur `build-tingkat.js`, disimpan di `manifest.json`, dan dibandingkan
+  `cek-angka-dokumen.js`.
+- **`Queue::fake()` wajib untuk menguji antrean.** Dengan `sync`, pekerjaan
+  berjalan di dalam permintaan dan `Mail::assertSent` tetap lulus.

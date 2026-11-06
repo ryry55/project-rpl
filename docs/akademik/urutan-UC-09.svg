@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1086" height="720" viewBox="0 0 1086 720" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
+<rect width="1086" height="720" fill="#ffffff"/>
+<title>UC-09 — Verifikasi pembayaran daring</title>
+<text x="40" y="44" text-anchor="start" font-size="24" font-weight="700" fill="#0f172a">UC-09 — Verifikasi pembayaran daring</text>
+<text x="40" y="70" text-anchor="start" font-size="13" font-weight="500" fill="#475569">Aktor: Pemilik</text>
+<text x="1046" y="44" text-anchor="end" font-size="13" font-weight="600" fill="#94a3b8">Diagram Urutan</text>
+<rect x="40" y="132" width="110" height="46" rx="6" fill="#fffbeb" stroke="#b45309" stroke-width="1.3"/>
+<text x="95" y="152" text-anchor="middle" font-size="12.5" font-weight="600" fill="#b45309">Pemilik</text>
+<text x="95" y="169" text-anchor="middle" font-size="9.5" font-weight="500" fill="#94a3b8">aktor</text>
+<line x1="95" y1="178" x2="95" y2="658" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="5 5"/>
+<rect x="162" y="132" width="282.4" height="46" rx="6" fill="#eef2ff" stroke="#3730a3" stroke-width="1.3"/>
+<text x="303.2" y="152" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3730a3">API  POST /pembayaran/{id}/verifikasi</text>
+<text x="303.2" y="169" text-anchor="middle" font-size="9.5" font-weight="500" fill="#94a3b8">batas sistem</text>
+<line x1="303.2" y1="178" x2="303.2" y2="658" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="5 5"/>
+<rect x="456.4" y="132" width="165.5" height="46" rx="6" fill="#eef2ff" stroke="#3730a3" stroke-width="1.3"/>
+<text x="539.1" y="152" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3730a3">PembayaranController</text>
+<text x="539.1" y="169" text-anchor="middle" font-size="9.5" font-weight="500" fill="#94a3b8">kendali</text>
+<line x1="539.1" y1="178" x2="539.1" y2="658" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="5 5"/>
+<rect x="633.9" y="132" width="151.8" height="46" rx="6" fill="#eef2ff" stroke="#3730a3" stroke-width="1.3"/>
+<text x="709.8" y="152" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3730a3">PencatatVerifikasi</text>
+<text x="709.8" y="169" text-anchor="middle" font-size="9.5" font-weight="500" fill="#94a3b8">layanan domain</text>
+<line x1="709.8" y1="178" x2="709.8" y2="658" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="5 5"/>
+<rect x="797.6" y="132" width="118" height="46" rx="6" fill="#eef2ff" stroke="#3730a3" stroke-width="1.3"/>
+<text x="856.6" y="152" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3730a3">Pemberitahu</text>
+<text x="856.6" y="169" text-anchor="middle" font-size="9.5" font-weight="500" fill="#94a3b8">layanan domain</text>
+<line x1="856.6" y1="178" x2="856.6" y2="658" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="5 5"/>
+<rect x="927.6" y="132" width="118" height="46" rx="6" fill="#eef2ff" stroke="#3730a3" stroke-width="1.3"/>
+<text x="986.6" y="152" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3730a3">Basis Data</text>
+<text x="986.6" y="169" text-anchor="middle" font-size="9.5" font-weight="500" fill="#94a3b8">penyimpanan</text>
+<line x1="986.6" y1="178" x2="986.6" y2="658" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="5 5"/>
+<line x1="95" y1="224" x2="303.2" y2="224" stroke="#334155" stroke-width="1.4"/>
+<path d="M303.2 224 l-10 -5.5 l0 11 z" fill="#334155"/>
+<text x="199.1" y="202" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">1. keputusan</text>
+<text x="199.1" y="216" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">verifikasi</text>
+<line x1="303.2" y1="264" x2="539.1" y2="264" stroke="#334155" stroke-width="1.4"/>
+<path d="M539.1 264 l-10 -5.5 l0 11 z" fill="#334155"/>
+<text x="421.2" y="256" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">2. verifikasi(VerifikasiRequest)</text>
+<line x1="539.1" y1="304" x2="709.8" y2="304" stroke="#334155" stroke-width="1.4"/>
+<path d="M709.8 304 l-10 -5.5 l0 11 z" fill="#334155"/>
+<text x="624.4" y="282" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">3. terima(pembayaran,</text>
+<text x="624.4" y="296" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">pemeriksa)</text>
+<line x1="709.8" y1="344" x2="986.6" y2="344" stroke="#334155" stroke-width="1.4"/>
+<path d="M986.6 344 l-10 -5.5 l0 11 z" fill="#334155"/>
+<text x="848.2" y="336" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">4. INSERT verifikasi_pembayaran</text>
+<line x1="709.8" y1="384" x2="986.6" y2="384" stroke="#334155" stroke-width="1.4"/>
+<path d="M986.6 384 l-10 -5.5 l0 11 z" fill="#334155"/>
+<text x="848.2" y="376" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">5. UPDATE status pembayaran</text>
+<line x1="709.8" y1="424" x2="539.1" y2="424" stroke="#334155" stroke-width="1.4" stroke-dasharray="5 4"/>
+<path d="M539.1 424 l9 -5 M539.1 424 l9 5" fill="none" stroke="#334155" stroke-width="1.4"/>
+<text x="624.4" y="416" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">6. HasilVerifikasi</text>
+<line x1="539.1" y1="464" x2="856.6" y2="464" stroke="#334155" stroke-width="1.4"/>
+<path d="M856.6 464 l-10 -5.5 l0 11 z" fill="#334155"/>
+<text x="697.9" y="456" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">7. pembayaranDiverifikasi(pembayaran)</text>
+<line x1="856.6" y1="504" x2="986.6" y2="504" stroke="#334155" stroke-width="1.4"/>
+<path d="M986.6 504 l-10 -5.5 l0 11 z" fill="#334155"/>
+<text x="921.6" y="482" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">8. INSERT</text>
+<text x="921.6" y="496" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">notifikasi</text>
+<line x1="539.1" y1="544" x2="303.2" y2="544" stroke="#334155" stroke-width="1.4" stroke-dasharray="5 4"/>
+<path d="M303.2 544 l9 -5 M303.2 544 l9 5" fill="none" stroke="#334155" stroke-width="1.4"/>
+<text x="421.2" y="536" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">9. PembayaranResource</text>
+<line x1="303.2" y1="584" x2="95" y2="584" stroke="#334155" stroke-width="1.4" stroke-dasharray="5 4"/>
+<path d="M95 584 l9 -5 M95 584 l9 5" fill="none" stroke="#334155" stroke-width="1.4"/>
+<text x="199.1" y="562" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">10. 200 +</text>
+<text x="199.1" y="576" text-anchor="middle" font-size="12" font-weight="400" fill="#0f172a">pembayaran</text>
+<line x1="40" y1="664" x2="1046" y2="664" stroke="#cbd5e1"/>
+<text x="40" y="686" text-anchor="start" font-size="10.5" font-weight="400" fill="#475569">Pembayaran yang sudah diverifikasi tidak dihapus saat dikoreksi, melainkan dibalik dengan baris lawan (`PembalikPembayaran`), supaya jejaknya tetap terbaca di rekap.</text>
+</svg>

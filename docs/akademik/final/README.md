@@ -24,6 +24,26 @@ Lembar LRS (`03-L3-lrs.png`) berukuran A3 tegak karena seluruh 209 kolom hanya t
 
 ---
 
+## Diagram Kelas dan Diagram Urutan
+
+Diminta dosen setelah laporan selesai; **tidak disalin ke folder ini** supaya
+tidak ada dua salinan yang bisa berselisih. Berkasnya ada di `docs/akademik/`
+dan siap ditempel (SVG + PNG 2x):
+
+| Berkas | Isi | Huruf di A3 |
+|---|---|---|
+| `kelas-a.png` | Kelas: akun, akses & kepatuhan (6 kelas) | 2,61 mm |
+| `kelas-b.png` | Kelas: kamar, sewa & kebijakan (7 kelas) | 2,61 mm |
+| `kelas-c.png` | Kelas: tagihan, pembayaran & catatan (9 kelas) | 2,61 mm |
+| `urutan-UC-01..14.png` | Satu diagram urutan per use case, 14 lembar | 2,58–4,46 mm |
+
+Diagram kelas dipecah tiga lembar dengan alasan yang sama seperti ERD L2 a/b/c:
+22 kotak di satu halaman hanya terbaca **1,1 mm**. Asosiasi yang menyeberang
+lembar didaftar di kaki gambar, bukan digambar sebagai garis yang menggantung di
+tepi kertas.
+
+---
+
 ## Cara Membangun Ulang
 
 **Salinan di folder ini adalah potret, bukan sumber.** Berkas aslinya ada di

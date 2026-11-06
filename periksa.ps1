@@ -316,6 +316,18 @@ if (-not $dfdOk) {
     $keluaranDfd | Select-String -Pattern '^-|BEDA|tidak' | ForEach-Object { Write-Host ('    ' + $_.Line.Trim()) }
 }
 
+# Diagram kelas dan urutan diserahkan ke dosen, dan kesalahannya tidak berbunyi:
+# garis yang menumpuk tetap terlihat seperti garis, dan gambar dari data lama
+# tetap terlihat seperti gambar. Pemeriksa ini membuktikan pagar tata letaknya
+# bisa menolak, lalu membandingkan SVG/PNG yang di-commit dengan hasil
+# penggambaran data sekarang.
+$keluaranDiagram = Jalankan 'node' 'docs\uji\cek-diagram.js'
+$diagramOk = $LASTEXITCODE -eq 0
+Catat 'diagram kelas dan urutan tidak basi' $diagramOk
+if (-not $diagramOk) {
+    $keluaranDiagram | Select-String -Pattern '^  - |tidak' | ForEach-Object { Write-Host ('    ' + $_.Line.Trim()) }
+}
+
 # --- 7. Profil produksi -----------------------------------------------------
 # Berkas profil yang ada tetapi nilainya salah lebih berbahaya daripada yang
 # tidak ada: ia membuat orang mengira pagarnya sudah terpasang. Diperiksa di
