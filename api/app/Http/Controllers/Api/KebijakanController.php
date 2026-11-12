@@ -108,6 +108,11 @@ class KebijakanController extends Controller
                 'label_tipe' => collect(PilihanKebijakan::TIPE_TERSEDIA)
                     ->mapWithKeys(fn (string $tipe) => [$tipe => PilihanKebijakan::labelTipe($tipe)])
                     ->all(),
+                // Tipe yang hanya boleh satu untuk seluruh kos. Dikirim supaya
+                // layar tidak mengirim `kamar_id` untuk tipe ini saat pemilih
+                // kamar sedang terisi — permintaannya akan ditolak 422, dan
+                // pesannya terbaca seperti kesalahan pengguna.
+                'tipe_global' => PilihanKebijakan::tipeGlobal(),
                 // Tunjukkan apakah akun ini hanya boleh mengusulkan. Layar
                 // memakai ini untuk mengubah kalimat tombol dari "Simpan"
                 // menjadi "Ajukan perubahan" - tombol yang berbunyi sama untuk

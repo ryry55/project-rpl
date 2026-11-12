@@ -73,6 +73,25 @@ trait MenyiapkanKebijakan
     }
 
     /**
+     * Baris kebijakan tanggal terbit (K-14 Level 1).
+     *
+     * Seperti pola, tidak ikut `siapkanKebijakanDefault()`: kosong berarti
+     * tagihan terbit pada hari siklusnya mulai, dan hampir semua tes memang
+     * ingin perilaku itu.
+     */
+    protected function siapkanTanggalTerbit(
+        int $tanggal = 5,
+        string $berlakuDari = '2026-01-01',
+    ): KebijakanKos {
+        return KebijakanKos::create([
+            'tipe' => PilihanKebijakan::TIPE_TANGGAL_TERBIT,
+            'nilai' => PilihanKebijakan::TERBIT_TANGGAL_TETAP,
+            'tanggal' => $tanggal,
+            'berlaku_dari' => $berlakuDari,
+        ]);
+    }
+
+    /**
      * Baris kebijakan denda saja, untuk tes yang butuh bentuk denda tertentu.
      *
      * @param  array{nilai?: string, persen?: string, plafon_persen?: string, masa_tenggang?: int, nominal?: int}|null  $denda

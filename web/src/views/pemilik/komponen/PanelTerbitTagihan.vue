@@ -72,7 +72,7 @@ async function terbitkan() {
           id="periode"
           label="Periode"
           :galat="galatBidang.periode"
-          bantuan="Tanggal berapa pun dalam bulan itu; disimpan sebagai tanggal 1."
+          bantuan="Tanggal berapa pun dalam bulan itu. Pada pola tanggal masuk, siklusnya mengikuti tanggal masuk kontrak."
         >
           <input
             id="periode"

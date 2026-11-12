@@ -73,4 +73,30 @@ final class PolaTagihan
             ? $tanggalMasuk->copy()->startOfDay()
             : $tanggalMasuk->copy()->startOfMonth();
     }
+
+    /**
+     * Tanggal tagihan boleh mulai terbit untuk satu siklus (K-14 Level 1).
+     *
+     * **Tanggal terbit hanya boleh menunda, tidak pernah memajukan.** Kalau
+     * pemilik menyetel tanggal 5 sementara siklusnya mulai tanggal 15, tagihan
+     * tetap terbit tanggal 15 — menerbitkannya tanggal 5 berarti menagih
+     * sebelum penghuni menempati kamar, dan itu justru yang dicegah penjagaan
+     * "belum waktunya".
+     *
+     * `null` berarti belum disetel: terbit pada hari siklusnya mulai, yaitu
+     * perilaku sebelum fitur ini ada.
+     */
+    public static function tanggalTerbit(CarbonInterface $awalSiklus, ?int $tanggal): CarbonInterface
+    {
+        if ($tanggal === null) {
+            return $awalSiklus->copy()->startOfDay();
+        }
+
+        $hari = min($tanggal, $awalSiklus->daysInMonth);
+        $calon = $awalSiklus->copy()->startOfMonth()->day($hari);
+
+        return $calon->lessThan($awalSiklus)
+            ? $awalSiklus->copy()->startOfDay()
+            : $calon;
+    }
 }

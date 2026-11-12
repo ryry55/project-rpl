@@ -63,6 +63,15 @@ const props = defineProps({
    * yang akan terjadi.
    */
   menetapkan: { type: Boolean, default: true },
+  /**
+   * Tipe ini hanya berlaku untuk seluruh kos (pola, tanggal terbit).
+   *
+   * Ditampilkan sebagai keterangan karena pemilih "berlaku untuk kamar" di
+   * atas halaman tetap terlihat, sementara pilihan kamar tidak dipakai tipe
+   * ini — dan tanpa keterangan, baris riwayat yang muncul sebagai "Semua
+   * kamar" terbaca seperti pilihan yang diabaikan.
+   */
+  seluruhKos: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['simpan'])
@@ -136,15 +145,42 @@ watch(
  */
 const kolomWajib = computed(() => props.kolom?.[nilai.value]?.wajib || [])
 
+/**
+ * Aturan kolom `tanggal` untuk pilihan yang sedang aktif, dari server.
+ *
+ * Batasnya berbeda: jatuh tempo 1–31, tanggal terbit 1–28. Menyalin angka itu
+ * ke sini berarti dua aturan yang bisa berbeda, dan yang tertinggal biasanya
+ * yang di JavaScript.
+ */
+const kolomAktif = computed(() => props.kolom?.[nilai.value] || {})
+const maksTanggal = computed(() => kolomAktif.value.maks_tanggal || 31)
+
+/** Satu pilihan tidak perlu dropdown: tidak ada yang bisa dipilih. */
+const banyakPilihan = computed(() => Object.keys(props.pilihan || {}).length > 1)
+
 const medanAngka = computed(() =>
-  kolomWajib.value.map((kunci) => ({
-    kunci,
-    // `tanggal` sudah punya id mapan sejak T16 dan dipakai skrip uji, jadi
-    // id-nya dipertahankan apa adanya; kolom angka baru memakai awalan
-    // `kebijakan-` supaya tidak bertabrakan dengan id lain di halaman.
-    id: kunci === 'tanggal' ? 'tanggal-kebijakan' : `kebijakan-${kunci}`,
-    ...KETERANGAN_KOLOM[kunci],
-  })),
+  kolomWajib.value.map((kunci) => {
+    const dasar = KETERANGAN_KOLOM[kunci]
+
+    // Label dan bantuan kolom tanggal bergantung pada tipe (jatuh tempo vs
+    // tanggal terbit), jadi datang dari server bersama batasnya.
+    const dariServer = kunci === 'tanggal'
+      ? {
+          label: kolomAktif.value.label_tanggal || dasar.label,
+          bantuan: kolomAktif.value.bantuan_tanggal || dasar.bantuan,
+        }
+      : {}
+
+    return {
+      kunci,
+      // `tanggal` sudah punya id mapan sejak T16 dan dipakai skrip uji, jadi
+      // id-nya dipertahankan apa adanya; kolom angka baru memakai awalan
+      // `kebijakan-` supaya tidak bertabrakan dengan id lain di halaman.
+      id: kunci === 'tanggal' ? 'tanggal-kebijakan' : `kebijakan-${kunci}`,
+      ...dasar,
+      ...dariServer,
+    }
+  }),
 )
 
 // Saat pilihan berganti, angka yang tidak lagi dipakai dibuang. Tanpa ini,
@@ -209,11 +245,12 @@ function kirim() {
     isi[kunci] = n
   }
 
-  // Batas atas tanggal hanya berlaku untuk medan tanggal; kolom lain punya
-  // batasnya sendiri yang ditegakkan server (persen <= 100, dst.), dan
-  // memeriksanya dua kali di sini akan menjadi dua aturan yang bisa berbeda.
-  if (kolomWajib.value.includes('tanggal') && (isi.tanggal < 1 || isi.tanggal > 31)) {
-    galat.value = 'Tanggal jatuh tempo harus berupa angka 1 sampai 31.'
+  // Batas atas tanggal datang dari server: 31 untuk jatuh tempo, 28 untuk
+  // tanggal terbit. Kolom lain punya batasnya sendiri yang ditegakkan server
+  // (persen <= 100, dst.), dan memeriksanya dua kali di sini akan menjadi dua
+  // aturan yang bisa berbeda.
+  if (kolomWajib.value.includes('tanggal') && (isi.tanggal < 1 || isi.tanggal > maksTanggal.value)) {
+    galat.value = `${kolomAktif.value.label_tanggal || 'Tanggal'} harus berupa angka 1 sampai ${maksTanggal.value}.`
     return
   }
 
@@ -229,12 +266,13 @@ function kirim() {
         <strong v-if="berlaku" class="kebijakan-nilai">{{ labelBerlaku }}</strong>
         <span v-else class="kebijakan-belum">{{ labelBerlaku }}</span>
         <span v-if="berlaku"> sejak {{ formatTanggal(berlaku.berlaku_dari) }}</span>
+        <span v-if="seluruhKos" class="lemah mungil"> · berlaku untuk seluruh kos</span>
       </p>
     </template>
 
     <form v-if="bolehUbah" class="bidang" @submit.prevent="kirim">
       <div class="baris-bidang">
-        <MedanForm id="nilai-kebijakan" label="Pilihan">
+        <MedanForm v-if="banyakPilihan" id="nilai-kebijakan" label="Pilihan">
           <select id="nilai-kebijakan" v-model="nilai">
             <option v-for="(teks, kode) in pilihan" :key="kode" :value="kode">
               {{ teks }}

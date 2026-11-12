@@ -83,6 +83,11 @@ class KebijakanResource extends JsonResource
                     (int) $this->tanggal,
                 ),
 
+            $this->tipe === PilihanKebijakan::TIPE_TANGGAL_TERBIT => sprintf(
+                'Tagihan terbit tanggal %d tiap bulan',
+                (int) $this->tanggal,
+            ),
+
             default => '',
         };
     }

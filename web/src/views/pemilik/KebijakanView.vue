@@ -49,6 +49,13 @@ const labelTipe = computed(() => meta.value?.label_tipe || {})
 const kurang = computed(() => meta.value?.kurang || [])
 
 /**
+ * Tipe yang hanya berlaku untuk seluruh kos. Server yang menentukan daftarnya:
+ * kalau disalin di sini, tipe global baru akan lolos dan ditolak 422 saat
+ * pemilih kamar sedang terisi.
+ */
+const tipeGlobal = computed(() => meta.value?.tipe_global || [])
+
+/**
  * Apakah akun ini MENETAPKAN atau hanya MENGUSULKAN.
  *
  * Dibaca dari server, bukan disimpulkan dari peran di peramban. Server sudah
@@ -61,6 +68,30 @@ const bolehMenetapkan = computed(() => meta.value?.boleh_menetapkan !== false)
 function berlakuUntuk(tipe) {
   return meta.value?.berlaku?.[tipe] || null
 }
+
+/**
+ * Peringatan: tanggal terbit yang melewati jatuh tempo.
+ *
+ * Tagihan yang baru muncul setelah jatuh temponya lahir dalam keadaan sudah
+ * terlambat, dan denda mulai berjalan sebelum penghuni pernah melihat
+ * tagihannya. Hanya bisa dihitung untuk jatuh tempo "tanggal tetap"; untuk
+ * "tanggal masuk" tanggalnya berbeda per kontrak, jadi peringatannya ada di
+ * bantuan medan tanggal terbit.
+ */
+const peringatanTerbit = computed(() => {
+  const terbit = berlakuUntuk('tanggal_terbit')
+  const jatuh = berlakuUntuk('jatuh_tempo')
+
+  if (!terbit?.tanggal || jatuh?.nilai !== 'tanggal_tetap' || !jatuh?.tanggal) {
+    return ''
+  }
+
+  if (terbit.tanggal <= jatuh.tanggal) {
+    return ''
+  }
+
+  return `Tagihan baru muncul tanggal ${terbit.tanggal}, sedangkan jatuh temponya tanggal ${jatuh.tanggal}. Tagihan akan terbit dalam keadaan sudah terlambat.`
+})
 
 async function muat() {
   memuat.value = true
@@ -103,7 +134,11 @@ async function simpan(isi) {
       method: 'POST',
       body: JSON.stringify({
         ...isi,
-        kamar_id: kamarTerpilih.value ? Number(kamarTerpilih.value) : null,
+        // Tipe global menolak `kamar_id`; mengirimnya membuat formulir yang
+        // terlihat sah dijawab 422 hanya karena pemilih kamar terisi.
+        kamar_id: tipeGlobal.value.includes(isi.tipe) || !kamarTerpilih.value
+          ? null
+          : Number(kamarTerpilih.value),
       }),
     })
 
@@ -147,7 +182,9 @@ onMounted(muat)
   <div class="halaman">
     <KepalaHalaman judul="Kebijakan kos">
       <template #keterangan>
-        Cara kos ini menagih: satuan sewa dan jatuh tempo. Wajib ditetapkan sebelum tagihan bisa terbit.
+        Cara kos ini menagih: satuan sewa, jatuh tempo, pola tagihan, dan kapan
+        tagihan dibuat. Satuan sewa, jatuh tempo, dan denda wajib ditetapkan
+        sebelum tagihan bisa terbit.
       </template>
     </KepalaHalaman>
 
@@ -204,6 +241,7 @@ onMounted(muat)
 
     <PesanBaris v-if="sukses" jenis="sukses">{{ sukses }}</PesanBaris>
     <PesanBaris v-if="galatSimpan" jenis="galat">{{ galatSimpan }}</PesanBaris>
+    <PesanBaris v-if="peringatanTerbit" jenis="galat">{{ peringatanTerbit }}</PesanBaris>
 
     <p v-if="memuat" class="lemah mungil">Memuat kebijakan…</p>
 
@@ -220,6 +258,7 @@ onMounted(muat)
         :menyimpan="menyimpanTipe === tipe"
         :boleh-ubah="sesi.boleh('ubah_kebijakan')"
         :menetapkan="bolehMenetapkan"
+        :seluruh-kos="tipeGlobal.includes(tipe)"
         @simpan="simpan"
       />
 

@@ -58,6 +58,32 @@ class PolaTagihanTest extends TestCase
         );
     }
 
+    /**
+     * Tanggal terbit hanya boleh menunda, tidak pernah memajukan (K-14 A).
+     *
+     * @return array<string, array{string, int|null, string}>
+     */
+    public static function kasusTanggalTerbit(): array
+    {
+        return [
+            'tanpa setelan = hari siklus' => ['2026-01-01', null, '2026-01-01'],
+            'tanggal 5 menunda siklus tanggal 1' => ['2026-01-01', 5, '2026-01-05'],
+            'tanggal 5 tidak memajukan siklus tanggal 15' => ['2026-01-15', 5, '2026-01-15'],
+            'tanggal 20 menunda siklus tanggal 15' => ['2026-01-15', 20, '2026-01-20'],
+            'siklus 31 tidak ditarik mundur ke 28' => ['2026-01-31', 28, '2026-01-31'],
+            'siklus 28 Februari tidak ditarik mundur' => ['2026-02-28', 5, '2026-02-28'],
+        ];
+    }
+
+    #[DataProvider('kasusTanggalTerbit')]
+    public function test_tanggal_terbit(string $siklus, ?int $tanggal, string $harapan): void
+    {
+        $this->assertSame(
+            $harapan,
+            PolaTagihan::tanggalTerbit(Carbon::parse($siklus), $tanggal)->toDateString(),
+        );
+    }
+
     public function test_pola_dari_kebijakan(): void
     {
         $this->assertSame(PilihanKebijakan::POLA_TANGGAL_1, PolaTagihan::dari(null));

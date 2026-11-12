@@ -90,7 +90,7 @@ async function terbitkan() {
         <MedanForm
           id="periode-massal"
           label="Periode"
-          bantuan="Tanggal berapa pun dalam bulan itu; disimpan sebagai tanggal 1."
+          bantuan="Tanggal berapa pun dalam bulan itu. Pada pola tanggal masuk, siklusnya mengikuti tanggal masuk kontrak."
         >
           <input id="periode-massal" v-model="periode" type="date" required />
         </MedanForm>
@@ -110,7 +110,7 @@ async function terbitkan() {
          gagal = perlu diperbaiki. -->
     <div v-if="hasil" class="hasil-massal">
       <PesanBaris v-if="hasil.terbit > 0" jenis="sukses" mungil>
-        {{ hasil.terbit }} tagihan terbit untuk periode {{ tanggal(hasil.periode) }}.
+        {{ hasil.terbit }} tagihan terbit untuk periode {{ hasil.label_periode || tanggal(hasil.periode) }}.
       </PesanBaris>
       <!-- Netral, bukan merah: tidak ada yang salah di sini. Seluruh kontrak
            memang sudah tertagih, dan itu keadaan yang baik. -->

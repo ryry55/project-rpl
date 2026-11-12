@@ -91,6 +91,12 @@ class PenerbitanMassal
             $this->kebijakan->kebijakan(KebijakanKos::TIPE_POLA_TAGIHAN, $periode)
         );
 
+        // Tanggal terbit juga satu setelan untuk seluruh kos (K-14 Level 1).
+        // `null` berarti terbit pada hari siklusnya mulai.
+        $tanggalTerbit = $this->kebijakan
+            ->kebijakan(KebijakanKos::TIPE_TANGGAL_TERBIT, $periode)
+            ?->tanggal;
+
         $kontrakAktif = Kontrak::query()
             ->where('status', 'aktif')
             ->with(['kamar', 'penghuni'])
@@ -104,7 +110,7 @@ class PenerbitanMassal
         $gagal = 0;
 
         foreach ($kontrakAktif as $kontrak) {
-            $hasil = $this->terbitkanSatu($kontrak, $periode, $pola, $hariIni);
+            $hasil = $this->terbitkanSatu($kontrak, $periode, $pola, $tanggalTerbit, $hariIni);
             $rincian[] = $hasil;
 
             match ($hasil['status']) {
@@ -140,6 +146,7 @@ class PenerbitanMassal
         Kontrak $kontrak,
         CarbonInterface $periode,
         string $pola,
+        ?int $tanggalTerbit,
         ?CarbonInterface $hariIni,
     ): array {
         $dasar = [
@@ -167,16 +174,23 @@ class PenerbitanMassal
             ];
         }
 
-        // Siklus belum tiba. Tanpa penjagaan ini, penerbitan harian akan
-        // menagih siklus tanggal 15 pada tanggal 2 — dan tagihan itu lahir
-        // sebelum penghuni berutang apa pun.
-        if ($hariIni !== null && $awalPeriode->gt($hariIni->copy()->startOfDay())) {
+        // Siklus belum tiba, atau tanggal terbitnya belum tiba. Tanpa penjagaan
+        // ini, penerbitan harian akan menagih siklus tanggal 15 pada tanggal 2 —
+        // dan tagihan itu lahir sebelum penghuni berutang apa pun.
+        //
+        // `tanggalTerbit` hanya bisa menunda (lihat PolaTagihan::tanggalTerbit):
+        // siklus yang mulai setelah tanggal terbit tetap terbit pada hari
+        // siklusnya.
+        $terbitPada = PolaTagihan::tanggalTerbit($awalPeriode, $tanggalTerbit);
+
+        if ($hariIni !== null && $terbitPada->gt($hariIni->copy()->startOfDay())) {
             return $dasar + [
                 'status' => self::DILEWATI,
                 'sebab' => self::SEBAB_BELUM_WAKTUNYA,
                 'alasan' => sprintf(
-                    'Belum waktunya: siklus %s baru mulai pada tanggal itu.',
+                    'Belum waktunya: tagihan siklus %s dijadwalkan terbit %s.',
                     $awalPeriode->toDateString(),
+                    $terbitPada->toDateString(),
                 ),
             ];
         }

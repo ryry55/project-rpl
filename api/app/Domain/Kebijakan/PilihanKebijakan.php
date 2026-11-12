@@ -44,6 +44,21 @@ final class PilihanKebijakan
 
     public const POLA_ANNIVERSARY = 'anniversary';
 
+    /**
+     * Tanggal terbit otomatis (K-14 Level 1).
+     *
+     * Sama seperti pola, tipe ini **tidak wajib**: kosong berarti tagihan
+     * terbit pada hari siklusnya mulai, yaitu perilaku sebelum fitur ini ada.
+     *
+     * Nilainya selalu `tanggal_tetap`; yang dipilih pemilik hanyalah angkanya,
+     * dan angka itu disimpan di kolom `tanggal` yang sama dengan jatuh tempo.
+     * Batasnya 1–28, bukan 1–31: tanggal 29–31 tidak ada di Februari, dan
+     * tanggal terbit yang tidak ada berarti tidak pernah terbit.
+     */
+    public const TIPE_TANGGAL_TERBIT = 'tanggal_terbit';
+
+    public const TERBIT_TANGGAL_TETAP = 'tanggal_tetap';
+
     public const SATUAN_BULANAN = 'bulanan';
 
     public const SATUAN_MINGGUAN = 'mingguan';
@@ -86,6 +101,7 @@ final class PilihanKebijakan
         self::TIPE_JATUH_TEMPO,
         self::TIPE_DENDA,
         self::TIPE_POLA_TAGIHAN,
+        self::TIPE_TANGGAL_TERBIT,
     ];
 
     /**
@@ -116,6 +132,9 @@ final class PilihanKebijakan
                 self::POLA_TANGGAL_1 => 'Tanggal 1',
                 self::POLA_ANNIVERSARY => 'Tanggal masuk (anniversary)',
             ],
+            self::TIPE_TANGGAL_TERBIT => [
+                self::TERBIT_TANGGAL_TETAP => 'Tanggal tetap',
+            ],
         ];
     }
 
@@ -127,6 +146,20 @@ final class PilihanKebijakan
         return array_keys(self::menu()[$tipe] ?? []);
     }
 
+    /**
+     * Tipe yang hanya boleh satu baris untuk seluruh kos.
+     *
+     * Satu daftar, dipakai dua tempat: validasi (`kamar_id` ditolak) dan meta
+     * layar (pemilih kamar tidak dikirim untuk tipe ini). Kalau daftarnya
+     * disalin, tipe global baru akan lolos di layar lalu ditolak 422.
+     *
+     * @return list<string>
+     */
+    public static function tipeGlobal(): array
+    {
+        return [self::TIPE_POLA_TAGIHAN, self::TIPE_TANGGAL_TERBIT];
+    }
+
     public static function labelTipe(string $tipe): string
     {
         return match ($tipe) {
@@ -134,6 +167,7 @@ final class PilihanKebijakan
             self::TIPE_JATUH_TEMPO => 'Jatuh tempo',
             self::TIPE_DENDA => 'Denda',
             self::TIPE_POLA_TAGIHAN => 'Pola tagihan',
+            self::TIPE_TANGGAL_TERBIT => 'Tanggal terbit',
             default => $tipe,
         };
     }
@@ -149,11 +183,26 @@ final class PilihanKebijakan
 
     /**
      * Apakah pilihan ini membutuhkan kolom `tanggal` (1–31).
+     *
+     * Tanggal terbit memakainya juga, tetapi batas atasnya 28 — lihat
+     * {@see maksTanggal}.
      */
     public static function butuhTanggal(string $tipe, string $nilai): bool
     {
-        return $tipe === self::TIPE_JATUH_TEMPO
-            && $nilai === self::JATUH_TEMPO_TANGGAL_TETAP;
+        return ($tipe === self::TIPE_JATUH_TEMPO
+                && $nilai === self::JATUH_TEMPO_TANGGAL_TETAP)
+            || $tipe === self::TIPE_TANGGAL_TERBIT;
+    }
+
+    /**
+     * Batas atas kolom `tanggal` untuk satu tipe.
+     *
+     * Tanggal terbit dibatasi 28 karena 29–31 tidak ada di setiap bulan:
+     * tanggal terbit yang tidak ada berarti tidak pernah terbit.
+     */
+    public static function maksTanggal(string $tipe): int
+    {
+        return $tipe === self::TIPE_TANGGAL_TERBIT ? 28 : 31;
     }
 
     /**
@@ -202,6 +251,18 @@ final class PilihanKebijakan
         return [
             'wajib' => $wajib,
             'terlarang' => array_values(array_diff($semua, $wajib)),
+            // Batas dan teks kolom `tanggal` ikut dikirim: tanggal terbit
+            // dibatasi 28 dan hanya bisa menunda, sedangkan jatuh tempo boleh
+            // 31 dan dijepit ke akhir bulan. Layar tidak perlu menyalin aturan
+            // itu — salinan di JavaScript adalah salinan yang paling sering
+            // tertinggal saat batasnya berubah.
+            'maks_tanggal' => self::maksTanggal($tipe),
+            'label_tanggal' => $tipe === self::TIPE_TANGGAL_TERBIT
+                ? 'Tanggal terbit'
+                : 'Tanggal jatuh tempo',
+            'bantuan_tanggal' => $tipe === self::TIPE_TANGGAL_TERBIT
+                ? 'Tagihan tidak pernah terbit sebelum siklusnya mulai; tanggal ini hanya bisa menunda. Pilih tanggal yang tidak melewati jatuh tempo.'
+                : 'Tanggal 29—31 dijepit ke akhir bulan yang lebih pendek.',
         ];
     }
 

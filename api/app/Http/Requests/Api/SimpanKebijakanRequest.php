@@ -69,11 +69,12 @@ class SimpanKebijakanRequest extends FormRequest
                 Rule::in(PilihanKebijakan::nilaiValid($tipe)),
             ],
             // NULL = kebijakan default seluruh kos; terisi = penimpa kamar itu.
-            // Pola tagihan dikecualikan: ia satu saklar untuk seluruh kos
-            // (K-14d), dan baris per kamar akan menjadi konfigurasi yang
-            // tersimpan tetapi tidak pernah dibaca penerbitan.
+            // Pola tagihan dan tanggal terbit dikecualikan: keduanya satu
+            // saklar untuk seluruh kos (K-14d), dan baris per kamar akan
+            // menjadi konfigurasi yang tersimpan tetapi tidak pernah dibaca
+            // penerbitan.
             'kamar_id' => [
-                Rule::prohibitedIf($tipe === PilihanKebijakan::TIPE_POLA_TAGIHAN),
+                Rule::prohibitedIf(in_array($tipe, PilihanKebijakan::tipeGlobal(), true)),
                 'nullable',
                 'integer',
                 Rule::exists('kamar', 'id'),
@@ -85,15 +86,17 @@ class SimpanKebijakanRequest extends FormRequest
                     ->where('tipe', $tipe)
                     ->where('kamar_id', $kamarId),
             ],
-            // Hanya `jatuh_tempo` + `tanggal_tetap` yang memakai kolom ini.
-            // Wajib diisi di sana (tanpa tanggal, "tanggal tetap" tidak berarti
-            // apa pun), dan dilarang di tempat lain supaya tidak ada angka
-            // menganggur yang membuat baris terbaca seolah-olah dipakai.
+            // Hanya `jatuh_tempo` + `tanggal_tetap` dan `tanggal_terbit` yang
+            // memakai kolom ini. Wajib diisi di sana (tanpa tanggal, "tanggal
+            // tetap" tidak berarti apa pun), dan dilarang di tempat lain supaya
+            // tidak ada angka menganggur yang membuat baris terbaca seolah-olah
+            // dipakai. Batas atasnya dari PilihanKebijakan: 31 untuk jatuh tempo,
+            // 28 untuk tanggal terbit.
             'tanggal' => [
                 Rule::requiredIf(in_array('tanggal', $kolom['wajib'], true)),
                 Rule::prohibitedIf(in_array('tanggal', $kolom['terlarang'], true)),
                 'integer',
-                'between:1,31',
+                'between:1,'.PilihanKebijakan::maksTanggal($tipe),
             ],
 
             // Kolom angka lain mengikuti matriks yang sama. `persen` dan
@@ -153,13 +156,13 @@ class SimpanKebijakanRequest extends FormRequest
             'nilai.required' => 'Pilihan kebijakan wajib diisi.',
             'nilai.in' => 'Pilihan itu tidak berlaku untuk jenis kebijakan yang dipilih.',
             'kamar_id.exists' => 'Kamar tidak ditemukan.',
-            'kamar_id.prohibited' => 'Pola tagihan berlaku untuk seluruh kos, bukan per kamar.',
+            'kamar_id.prohibited' => 'Pola tagihan dan tanggal terbit berlaku untuk seluruh kos, bukan per kamar.',
             'berlaku_dari.required' => 'Tanggal berlaku wajib diisi.',
             'berlaku_dari.date_format' => 'Format tanggal berlaku harus YYYY-MM-DD.',
             'berlaku_dari.unique' => 'Kebijakan untuk jenis dan tanggal berlaku itu sudah ada. Pilih tanggal lain.',
-            'tanggal.required' => 'Tanggal jatuh tempo wajib diisi bila memilih "tanggal tetap".',
-            'tanggal.prohibited' => 'Tanggal hanya dipakai oleh jatuh tempo "tanggal tetap".',
-            'tanggal.between' => 'Tanggal jatuh tempo harus di antara 1 dan 31.',
+            'tanggal.required' => 'Tanggal wajib diisi untuk pilihan ini.',
+            'tanggal.prohibited' => 'Tanggal hanya dipakai oleh jatuh tempo "tanggal tetap" dan tanggal terbit.',
+            'tanggal.between' => 'Tanggal terbit harus di antara 1 dan 28; tanggal jatuh tempo di antara 1 dan 31.',
             'persen.required' => 'Tarif persen wajib diisi untuk denda persen.',
             'persen.prohibited' => 'Tarif persen hanya dipakai oleh denda persen.',
             'persen.numeric' => 'Tarif persen harus berupa angka.',

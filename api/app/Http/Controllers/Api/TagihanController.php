@@ -57,7 +57,16 @@ class TagihanController extends Controller
 
         if ($request->filled('periode')) {
             $request->validate(['periode' => ['date_format:Y-m-d']]);
-            $query->whereDate('periode', Carbon::parse($request->string('periode')->value())->startOfMonth());
+
+            // Satu bulan, bukan satu tanggal. Sejak pola anniversary, periode
+            // bisa jatuh di tanggal mana pun (15, 28, 31), jadi mencocokkan
+            // tanggal 1 persis akan menyembunyikan tagihan yang justru dicari.
+            $awalBulan = Carbon::parse($request->string('periode')->value())->startOfMonth();
+
+            $query->whereBetween('periode', [
+                $awalBulan->toDateString(),
+                $awalBulan->copy()->endOfMonth()->toDateString(),
+            ]);
         }
 
         // Diumumkan di badan respons, bukan hanya lewat header: header
@@ -452,7 +461,12 @@ class TagihanController extends Controller
         );
 
         return response()->json([
-            'data' => $hasil,
+            // Nama bulan, bukan satu tanggal: satu batch bisa berisi siklus
+            // dengan tanggal berbeda (pola anniversary), jadi menyebut satu
+            // tanggal akan menyesatkan.
+            'data' => $hasil + [
+                'label_periode' => $periode->copy()->startOfMonth()->translatedFormat('F Y'),
+            ],
             'meta' => [
                 'tanggal_acuan' => $this->waktu->hariIni()->toDateString(),
                 'simulasi' => $this->waktu->sedangSimulasi(),
