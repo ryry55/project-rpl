@@ -2,6 +2,8 @@
 
 namespace App\Domain\Billing;
 
+use App\Domain\Kebijakan\PenyelesaiKebijakan;
+use App\Models\KebijakanKos;
 use App\Models\Kontrak;
 use App\Models\Tagihan;
 use Carbon\CarbonInterface;
@@ -43,6 +45,16 @@ class PenerbitanMassal
     public const SEBAB_BELUM_MULAI = 'belum_mulai';
 
     /**
+     * Sebab dilewatinya kontrak karena siklusnya belum tiba pada jalur
+     * terjadwal (K-14).
+     *
+     * Dipisahkan dari `belum_mulai`: kontraknya sudah aktif dan sudah menempati
+     * kamar, hanya saja siklus tanggal 15 belum sampai saat penerbitan harian
+     * berjalan tanggal 2. Pemilik tidak perlu memperbaiki apa pun.
+     */
+    public const SEBAB_BELUM_WAKTUNYA = 'belum_waktunya';
+
+    /**
      * Sebab gagalnya sebuah kontrak karena kebijakan kos belum lengkap (T16).
      *
      * Dipisahkan dari gagal biasa karena tindakannya berbeda: tarif kosong
@@ -52,9 +64,17 @@ class PenerbitanMassal
      */
     public const SEBAB_KEBIJAKAN = 'kebijakan';
 
-    public function __construct(private readonly PenerbitTagihan $penerbit) {}
+    public function __construct(
+        private readonly PenerbitTagihan $penerbit,
+        private readonly PenyelesaiKebijakan $kebijakan,
+    ) {}
 
     /**
+     * @param  CarbonInterface|null  $hariIni  Bila diisi, siklus yang belum tiba
+     *                                         pada tanggal itu dilewati. Jalur
+     *                                         terjadwal mengisinya; penerbitan
+     *                                         manual tidak, supaya pemilik tetap
+     *                                         boleh menerbitkan lebih awal.
      * @return array{
      *     periode: string,
      *     terbit: int,
@@ -64,9 +84,12 @@ class PenerbitanMassal
      *     rincian: list<array<string, mixed>>
      * }
      */
-    public function jalankan(CarbonInterface $periode): array
+    public function jalankan(CarbonInterface $periode, ?CarbonInterface $hariIni = null): array
     {
-        $awalPeriode = $periode->copy()->startOfMonth();
+        // Pola global, diselesaikan sekali untuk seluruh batch (K-14d).
+        $pola = PolaTagihan::dari(
+            $this->kebijakan->kebijakan(KebijakanKos::TIPE_POLA_TAGIHAN, $periode)
+        );
 
         $kontrakAktif = Kontrak::query()
             ->where('status', 'aktif')
@@ -81,7 +104,7 @@ class PenerbitanMassal
         $gagal = 0;
 
         foreach ($kontrakAktif as $kontrak) {
-            $hasil = $this->terbitkanSatu($kontrak, $awalPeriode);
+            $hasil = $this->terbitkanSatu($kontrak, $periode, $pola, $hariIni);
             $rincian[] = $hasil;
 
             match ($hasil['status']) {
@@ -97,7 +120,7 @@ class PenerbitanMassal
         }
 
         return [
-            'periode' => $awalPeriode->toDateString(),
+            'periode' => $periode->copy()->startOfMonth()->toDateString(),
             'terbit' => $terbit,
             'dilewati' => $dilewati,
             // Dipisahkan dari `dilewati` karena artinya berbeda bagi pemilik:
@@ -113,8 +136,12 @@ class PenerbitanMassal
     /**
      * @return array<string, mixed>
      */
-    private function terbitkanSatu(Kontrak $kontrak, CarbonInterface $awalPeriode): array
-    {
+    private function terbitkanSatu(
+        Kontrak $kontrak,
+        CarbonInterface $periode,
+        string $pola,
+        ?CarbonInterface $hariIni,
+    ): array {
         $dasar = [
             'kontrak_id' => $kontrak->id,
             'penghuni_id' => $kontrak->penghuni_id,
@@ -122,11 +149,13 @@ class PenerbitanMassal
             'kamar' => $kontrak->kamar?->nomor,
         ];
 
-        // Kontrak yang baru mulai setelah periode berakhir tidak punya bulan
-        // yang bisa ditagih. Dilewati, bukan gagal: ini keadaan yang normal
-        // ketika pemilik menerbitkan untuk bulan berjalan sementara ada
-        // penghuni yang baru akan masuk bulan depan.
-        if ($kontrak->tgl_masuk->copy()->startOfMonth()->greaterThan($awalPeriode)) {
+        $awalPeriode = PolaTagihan::awalSiklus($pola, $kontrak->tgl_masuk, $periode);
+
+        // Kontrak yang siklus pertamanya belum tiba tidak punya bulan yang bisa
+        // ditagih. Dilewati, bukan gagal: ini keadaan yang normal ketika
+        // pemilik menerbitkan untuk bulan berjalan sementara ada penghuni yang
+        // baru akan masuk bulan depan.
+        if ($awalPeriode->lt(PolaTagihan::siklusPertama($pola, $kontrak->tgl_masuk))) {
             return $dasar + [
                 'status' => self::DILEWATI,
                 'sebab' => self::SEBAB_BELUM_MULAI,
@@ -138,9 +167,28 @@ class PenerbitanMassal
             ];
         }
 
+        // Siklus belum tiba. Tanpa penjagaan ini, penerbitan harian akan
+        // menagih siklus tanggal 15 pada tanggal 2 — dan tagihan itu lahir
+        // sebelum penghuni berutang apa pun.
+        if ($hariIni !== null && $awalPeriode->gt($hariIni->copy()->startOfDay())) {
+            return $dasar + [
+                'status' => self::DILEWATI,
+                'sebab' => self::SEBAB_BELUM_WAKTUNYA,
+                'alasan' => sprintf(
+                    'Belum waktunya: siklus %s baru mulai pada tanggal itu.',
+                    $awalPeriode->toDateString(),
+                ),
+            ];
+        }
+
         // Pemeriksaan duplikat di aplikasi. Ini bukan pengaman utama — unique
         // index di bawah yang mengamankan balapan — tetapi memberi alasan yang
         // terbaca, bukan pesan constraint.
+        //
+        // Diperiksa per BULAN, bukan per tanggal periode. Satu kontrak hanya
+        // boleh punya satu tagihan per bulan; tanpa syarat bulan, perpindahan
+        // pola dari tanggal 1 ke anniversary akan menerbitkan tagihan kedua di
+        // bulan yang sama — tepat "menagih mundur" yang dilarang K-14.
         //
         // `status <> dibatalkan` wajib ada di sini (REV-FIN-02): index uniknya
         // kini parsial, jadi tagihan yang dibatalkan memang tidak lagi memegang
@@ -151,7 +199,10 @@ class PenerbitanMassal
         $sudahAda = Tagihan::query()
             ->where('kontrak_id', $kontrak->id)
             ->where('status', '<>', Tagihan::STATUS_DIBATALKAN)
-            ->whereDate('periode', $awalPeriode)
+            ->whereBetween('periode', [
+                $awalPeriode->copy()->startOfMonth()->toDateString(),
+                $awalPeriode->copy()->endOfMonth()->toDateString(),
+            ])
             ->exists();
 
         if ($sudahAda) {
@@ -163,7 +214,7 @@ class PenerbitanMassal
         }
 
         try {
-            $tagihan = $this->penerbit->terbitkan($kontrak, $awalPeriode);
+            $tagihan = $this->penerbit->terbitkan($kontrak, $periode, $pola);
         } catch (QueryException $e) {
             // SQLSTATE 23505: dua permintaan berjalan bersamaan, keduanya lolos
             // pemeriksaan exists() di atas. Constraint yang menang; yang kalah

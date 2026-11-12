@@ -29,6 +29,21 @@ final class PilihanKebijakan
 
     public const TIPE_DENDA = 'denda';
 
+    /**
+     * Pola tagihan: kapan siklus sebuah kontrak dimulai.
+     *
+     * Berbeda dari tiga tipe lain, tipe ini **tidak wajib**: kosong berarti
+     * `tanggal_1`, perilaku yang sudah ada sebelum fitur ini. Itu disengaja —
+     * gerbang "kebijakan wajib diisi" di §12 tetap hanya untuk satuan sewa,
+     * jatuh tempo, dan denda, sehingga kos yang tidak pernah menyentuh layar
+     * Kebijakan tetap menagih seperti biasa.
+     */
+    public const TIPE_POLA_TAGIHAN = 'pola_tagihan';
+
+    public const POLA_TANGGAL_1 = 'tanggal_1';
+
+    public const POLA_ANNIVERSARY = 'anniversary';
+
     public const SATUAN_BULANAN = 'bulanan';
 
     public const SATUAN_MINGGUAN = 'mingguan';
@@ -70,6 +85,7 @@ final class PilihanKebijakan
         self::TIPE_SATUAN_SEWA,
         self::TIPE_JATUH_TEMPO,
         self::TIPE_DENDA,
+        self::TIPE_POLA_TAGIHAN,
     ];
 
     /**
@@ -96,6 +112,10 @@ final class PilihanKebijakan
                 self::DENDA_NOMINAL_TETAP => 'Nominal tetap',
                 self::DENDA_TANPA_DENDA => 'Tanpa denda',
             ],
+            self::TIPE_POLA_TAGIHAN => [
+                self::POLA_TANGGAL_1 => 'Tanggal 1',
+                self::POLA_ANNIVERSARY => 'Tanggal masuk (anniversary)',
+            ],
         ];
     }
 
@@ -113,6 +133,7 @@ final class PilihanKebijakan
             self::TIPE_SATUAN_SEWA => 'Satuan sewa',
             self::TIPE_JATUH_TEMPO => 'Jatuh tempo',
             self::TIPE_DENDA => 'Denda',
+            self::TIPE_POLA_TAGIHAN => 'Pola tagihan',
             default => $tipe,
         };
     }

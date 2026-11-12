@@ -69,7 +69,15 @@ class SimpanKebijakanRequest extends FormRequest
                 Rule::in(PilihanKebijakan::nilaiValid($tipe)),
             ],
             // NULL = kebijakan default seluruh kos; terisi = penimpa kamar itu.
-            'kamar_id' => ['nullable', 'integer', Rule::exists('kamar', 'id')],
+            // Pola tagihan dikecualikan: ia satu saklar untuk seluruh kos
+            // (K-14d), dan baris per kamar akan menjadi konfigurasi yang
+            // tersimpan tetapi tidak pernah dibaca penerbitan.
+            'kamar_id' => [
+                Rule::prohibitedIf($tipe === PilihanKebijakan::TIPE_POLA_TAGIHAN),
+                'nullable',
+                'integer',
+                Rule::exists('kamar', 'id'),
+            ],
             'berlaku_dari' => [
                 'required',
                 'date_format:Y-m-d',
@@ -145,6 +153,7 @@ class SimpanKebijakanRequest extends FormRequest
             'nilai.required' => 'Pilihan kebijakan wajib diisi.',
             'nilai.in' => 'Pilihan itu tidak berlaku untuk jenis kebijakan yang dipilih.',
             'kamar_id.exists' => 'Kamar tidak ditemukan.',
+            'kamar_id.prohibited' => 'Pola tagihan berlaku untuk seluruh kos, bukan per kamar.',
             'berlaku_dari.required' => 'Tanggal berlaku wajib diisi.',
             'berlaku_dari.date_format' => 'Format tanggal berlaku harus YYYY-MM-DD.',
             'berlaku_dari.unique' => 'Kebijakan untuk jenis dan tanggal berlaku itu sudah ada. Pilih tanggal lain.',

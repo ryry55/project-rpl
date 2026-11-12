@@ -44,9 +44,16 @@ class PenerbitTagihan
      *
      * @throws TagihanTidakDapatDiterbitkan
      */
-    public function terbitkan(Kontrak $kontrak, CarbonInterface $periode): Tagihan
+    public function terbitkan(Kontrak $kontrak, CarbonInterface $periode, ?string $pola = null): Tagihan
     {
-        $awalPeriode = $periode->copy()->startOfMonth();
+        // Pola global, bukan per kamar (K-14d): satu saklar untuk seluruh kos.
+        // Pemanggil massal sudah menyelesaikannya sekali untuk semua kontrak;
+        // jalur satu-kontrak menyelesaikannya di sini.
+        $pola ??= PolaTagihan::dari(
+            $this->kebijakan->kebijakan(KebijakanKos::TIPE_POLA_TAGIHAN, $periode)
+        );
+
+        $awalPeriode = PolaTagihan::awalSiklus($pola, $kontrak->tgl_masuk, $periode);
         $tanggalMasuk = $kontrak->tgl_masuk->copy();
 
         $this->pastikanPeriodeMasukAkal($kontrak, $awalPeriode, $tanggalMasuk);
@@ -165,6 +172,13 @@ class PenerbitTagihan
                 $tanggalMasuk,
                 $caraJatuhTempo->tanggal,
             );
+
+            // Jatuh tempo tidak boleh mendahului awal siklus. Pada pola
+            // anniversary, "tanggal tetap 5" untuk siklus yang mulai tanggal 15
+            // akan melahirkan tagihan yang sudah terlambat sejak detik pertama.
+            if ($jatuhTempo->lessThan($awalPeriode)) {
+                $jatuhTempo = $awalPeriode->copy()->startOfDay();
+            }
 
             $tagihan = Tagihan::create([
                 'kontrak_id' => $kontrak->id,
@@ -342,8 +356,11 @@ class PenerbitTagihan
             throw TagihanTidakDapatDiterbitkan::karenaPeriodeSebelumMasuk($awalPeriode, $tanggalMasuk);
         }
 
+        // Dibandingkan dengan tanggal keluar itu sendiri, bukan awal bulannya:
+        // pada pola anniversary, siklus 15 Juni masih berada di dalam kontrak
+        // yang berakhir 20 Juni, sedangkan perbandingan per bulan menolaknya.
         if ($kontrak->tgl_keluar !== null
-            && $awalPeriode->greaterThan($kontrak->tgl_keluar->copy()->startOfMonth())) {
+            && $awalPeriode->greaterThan($kontrak->tgl_keluar)) {
             throw TagihanTidakDapatDiterbitkan::karenaKontrakSudahSelesai($awalPeriode, $kontrak->tgl_keluar);
         }
     }

@@ -53,6 +53,26 @@ trait MenyiapkanKebijakan
     }
 
     /**
+     * Baris kebijakan pola tagihan (K-14).
+     *
+     * Tidak ikut `siapkanKebijakanDefault()`: kosong berarti `tanggal_1`, dan
+     * hampir semua tes memang ingin perilaku lama itu. Yang menguji anniversary
+     * memanggil ini secara eksplisit.
+     */
+    protected function siapkanPolaTagihan(
+        string $nilai = PilihanKebijakan::POLA_ANNIVERSARY,
+        ?int $kamarId = null,
+        string $berlakuDari = '2026-01-01',
+    ): KebijakanKos {
+        return KebijakanKos::create([
+            'kamar_id' => $kamarId,
+            'tipe' => PilihanKebijakan::TIPE_POLA_TAGIHAN,
+            'nilai' => $nilai,
+            'berlaku_dari' => $berlakuDari,
+        ]);
+    }
+
+    /**
      * Baris kebijakan denda saja, untuk tes yang butuh bentuk denda tertentu.
      *
      * @param  array{nilai?: string, persen?: string, plafon_persen?: string, masa_tenggang?: int, nominal?: int}|null  $denda

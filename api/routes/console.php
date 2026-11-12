@@ -25,27 +25,37 @@ Artisan::command('inspire', function () {
 */
 
 /*
- * Terbitkan tagihan bulanan untuk semua kontrak aktif.
+ * Terbitkan tagihan untuk semua kontrak aktif.
  *
- * Tanggal 1 pukul 00:10 WIB, bukan 00:00: pada tengah malam tepat, zona waktu
- * dan pergantian bulan masih bisa berbeda di antara server. Sepuluh menit
- * sesudahnya, "bulan ini" sudah tidak ambigu.
+ * Sejak K-14 dijalankan **harian**, bukan hanya tanggal 1: pola anniversary
+ * memulai siklus pada tanggal masuk kontrak, yang bisa tanggal berapa pun.
+ * Perintahnya menyaring sendiri siklus yang belum tiba lewat `--hari-ini`, jadi
+ * menjalankannya setiap hari tidak menagih lebih awal.
+ *
+ * Pukul 00:10 WIB, bukan 00:00: pada tengah malam tepat, zona waktu dan
+ * pergantian bulan masih bisa berbeda di antara server. Sepuluh menit
+ * sesudahnya, "hari ini" sudah tidak ambigu. Urutannya juga penting: `kontrak:
+ * mulai` berjalan 00:05, sehingga kontrak yang mulai hari ini sudah berstatus
+ * aktif sebelum tagihannya diterbitkan.
  *
  * Perintah `tagihan:terbitkan` WAJIB diberi periode, jadi yang dijadwalkan
  * adalah perintah shell kecil yang menyusun tanggalnya dari "hari ini" di
  * zona waktu Jakarta. Tanpa itu, jadwal tidak bisa memanggil perintahnya
  * sama sekali - dan kegagalan itu baru terlihat pada tanggal 1.
  *
- * Perintahnya idempoten: tagihan yang sudah ada untuk periode itu dilewati,
+ * Perintahnya idempoten: tagihan yang sudah ada untuk bulan itu dilewati,
  * jadi menjalankannya dua kali tidak menggandakan tagihan.
  */
 Schedule::call(function () {
-    $periode = now('Asia/Jakarta')->startOfMonth()->toDateString();
+    $hariIni = now('Asia/Jakarta');
 
-    Artisan::call('tagihan:terbitkan', ['periode' => $periode]);
+    Artisan::call('tagihan:terbitkan', [
+        'periode' => $hariIni->toDateString(),
+        '--hari-ini' => $hariIni->toDateString(),
+    ]);
 })
-    ->name('terbitkan-tagihan-bulanan')
-    ->monthlyOn(1, '00:10')
+    ->name('terbitkan-tagihan-harian')
+    ->dailyAt('00:10')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping()
     ->onOneServer()
