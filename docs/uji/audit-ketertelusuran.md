@@ -5,7 +5,7 @@ selesai, dan diaudit formal sekali di akhir. Lihat `SPEC.md` §10.
 
 Status: ✅ selesai · ⚠ sebagian · ⏳ belum · ⏸ ditunda
 
-## R-01..R-07
+## R-01..R-08
 
 | Aturan | Implementasi | Tes | Status |
 |---|---|---|---|
@@ -18,6 +18,7 @@ Status: ✅ selesai · ⚠ sebagian · ⏳ belum · ⏸ ditunda
 | **R-06** tarif tidak berlaku surut — **lapis 1** (riwayat) | `tarif_sewa`, `komponen_biaya`, `kebijakan_kos` append-only + trigger `BEFORE UPDATE OR DELETE`; `App\Domain\Tarif\PencariTarif` memilih baris dengan `berlaku_dari` terbesar ≤ awal periode | `RiwayatTarifTest` (16 tes): `test_mengubah_tarif_menambah_baris_dan_baris_lama_tetap`, `test_tarif_efektif_adalah_baris_terakhir_…`, `test_update_langsung_ke_tarif_sewa_ditolak_database`, `test_delete_langsung_ke_tarif_sewa_ditolak_database`, `test_update_langsung_ke_kebijakan_kos_ditolak_database`, `test_update_langsung_ke_komponen_biaya_ditolak_database` | ✅ lapis 1 |
 | **R-06** tarif tidak berlaku surut — **lapis 2** (snapshot di tagihan) | `tagihan.pokok` dibekukan + `tagihan.tarif_terpakai` (JSON: tarif, komponen, parameter denda) + kolom `tarif_denda_persen`/`plafon_persen`/`masa_tenggang` | `test_tagihan_menyimpan_snapshot_tarif_dan_komponen`, `test_menaikkan_tarif_tidak_mengubah_tagihan_yang_sudah_terbit`, `test_menaikkan_tarif_berlaku_untuk_tagihan_berikutnya`, `test_kebijakan_denda_dibekukan_di_tagihan` | ✅ lapis 2 |
 | **R-07** isolasi penghuni + log audit | **Isolasi**: scope `Tagihan::terlihatOleh` — pemilik melihat semua, penghuni hanya lewat `whereHas('kontrak', penghuni_id)`, dan `show`/`denda` mengambil ulang barisnya lewat scope yang sama meski route model binding sudah menyediakannya. **Audit**: tabel `log_audit` + trigger `BEFORE UPDATE OR DELETE`, `PencatatAudit` menulis di dalam transaksi yang sama dengan perubahannya, diisi untuk penerbitan tagihan, pencatatan pembayaran, penambahan tarif, dan penambahan kebijakan denda — sejak R4 (REV-DAT-05) ditambah seluruh data induk: `kamar.tambah`/`.ubah`, `penghuni.tambah`/`.ubah`, `kontrak.tambah`/`.akhir`, `fasilitas.tambah`/`.ubah`/`.hapus`, `aturan.tambah`/`.ubah`/`.hapus`, masing-masing dengan `nilai_lama`/`nilai_baru` berisi hanya kolom yang berubah. Endpoint baca `GET /audit-log` hanya punya `index` — tidak ada jalur tulis | `IsolasiDanAuditTest` (18 tes): `test_penghuni_hanya_melihat_tagihannya_sendiri`, `test_penghuni_mengakses_tagihan_orang_lain_mendapat_404_bukan_403`, `test_penghuni_mengakses_denda_tagihan_orang_lain_mendapat_404`, `test_penghuni_bisa_melihat_denda_tagihannya_sendiri`, `test_penghuni_memanggil_endpoint_pemilik_ditolak_403`, `test_penghuni_tidak_bisa_mengubah_apa_pun`, `test_penghuni_tanpa_data_penghuni_melihat_daftar_kosong`, `test_pemilik_melihat_semua_tagihan`, `test_pemilik_membaca_log_audit`, `test_log_audit_bisa_disaring_per_entitas`, `test_log_audit_urut_terbaru_dulu`, `test_batas_jumlah_baris_diumumkan`, `test_tidak_ada_endpoint_untuk_mengubah_atau_menghapus_log_audit`, `test_update_langsung_ke_log_audit_ditolak_basis_data`, `test_delete_langsung_ke_log_audit_ditolak_basis_data`; ditambah `test_setiap_pembayaran_tercatat_di_log_audit`, `test_perubahan_tarif_tercatat_di_log_audit`, `test_perubahan_kebijakan_denda_tercatat_di_log_audit`, `test_pembayaran_menolak_perubahan_dan_penghapusan`; `docs/uji/e2e-t9.mjs` (26/26) | ✅ |
+| **R-08** pola tagihan + tanggal terbit | `App\Domain\Billing\PolaTagihan` (murni): `dari()` membaca kebijakan global, `awalSiklus()` menjepit tanggal ke akhir bulan, `siklusPertama()`, `tanggalTerbit()` = `max(awal siklus, tanggal X)`. `PenerbitanMassal` dua mode + penjagaan `belum_waktunya` memakai tanggal terbit; `PenerbitTagihan` sadar pola dan menjepit jatuh tempo ke awal siklus. Kebijakan `pola_tagihan`/`tanggal_terbit` global (`kamar_id` ditolak 422) dan tidak wajib | `PolaTagihanTest` (15 feature): `test_anniversary_memakai_tanggal_masuk_sebagai_awal_siklus`, `test_anniversary_tanggal_31_dijepit_ke_akhir_bulan`, `test_anniversary_tidak_menerbitkan_sebelum_hari_siklus`, `test_ganti_pola_tidak_menagih_mundur`; `Unit\PolaTagihanTest` (6 unit) termasuk `test_tanggal_terbit` 6 set data; `TanggalTerbitTest` (11): `test_terjadwal_tidak_menerbitkan_sebelum_tanggal_terbit`, `test_tanggal_terbit_tidak_memajukan_siklus_anniversary`, `test_tanggal_terbit_menolak_tanggal_29`, `test_check_constraint_menolak_tanggal_terbit_29`, `test_filter_bulan_menyertakan_tagihan_anniversary`; `docs/uji/e2e-anniversary.mjs` | ✅ |
 
 ## Aturan data induk (T2)
 
@@ -163,7 +164,7 @@ Bukan aturan bisnis, tapi kontrak yang harus berlaku sejak tiket pertama.
 | T4 Terbit massal | #5 | 186 tes hijau (1517 asersi) - 60 tes murni tanpa DB; 15/15 langkah E2E browser; 9/9 langkah uji balapan HTTP; 1 screenshot (`T4-terbit-massal.png`) |
 | T5 Catat pembayaran | #6 | 214 tes hijau (1638 asersi); 21/21 langkah E2E browser; 11/11 langkah uji balapan HTTP; 1 screenshot (`T5-pembayaran.png`) |
 | T9 Portal penghuni + log audit | #9 | 232 tes hijau (1703 asersi); 23/23 langkah E2E browser; 2 screenshot (`T9-portal-penghuni.png`, `T9-log-audit.png`) |
-| T14 Laporan kerusakan kamar | #13 | 830 tes hijau (3883 asersi) seluruh suite; `KerusakanTest` 18 tes; 8 langkah di antaranya lewat browser di `e2e-t2` (42/42) |
+| T14 Laporan kerusakan kamar | #13 | 872 tes hijau (3987 asersi) seluruh suite; `KerusakanTest` 18 tes; 8 langkah di antaranya lewat browser di `e2e-t2` (42/42) |
 
 Angka di tabel ini adalah keadaan **saat tiket itu ditutup**, bukan keadaan
 sekarang - jumlah tes tumbuh dan tidak pernah turun. Yang berlaku hari ini ada
@@ -173,7 +174,7 @@ di `docs/serah-terima.md` §1, dan `cek-angka-dokumen.js` menjaga angka di sana.
 
 ```bash
 docker compose up -d
-docker compose exec api php artisan test          # 830 tes, 3883 asersi
+docker compose exec api php artisan test          # 872 tes, 3987 asersi
 docker compose exec api php artisan test --testsuite=Unit   # 100 tes murni, tanpa DB
 node docs/uji/e2e-t1.mjs                          # perlu Chrome --remote-debugging-port=9222
 node docs/uji/e2e-t2.mjs                          # 8 kamar + 6 penghuni + kontrak lewat UI

@@ -247,6 +247,50 @@ dengan kesepakatan. Kalau log bisa diedit, log tidak membuktikan apa pun.
 Yang dicatat: pembuatan tagihan, perubahan status tagihan, pencatatan pembayaran, dan perubahan
 parameter/tarif. Isi: aktor, aksi, entitas, id entitas, waktu, nilai lama, nilai baru (JSON).
 
+### R-08 — Siklus tagihan mengikuti pola kos *(amandemen 13 November 2026)*
+
+> Siklus tagihan ditentukan **satu setelan global** untuk seluruh kos: `tanggal_1` (bawaan bila
+> kosong) atau `anniversary`. Pada `anniversary`, siklus dimulai pada tanggal masuk kontrak,
+> dijepit ke akhir bulan. Tanggal terbit otomatis (1–28) hanya boleh **menunda** penerbitan,
+> tidak pernah memajukannya.
+
+Aturan ini **tidak** menggantikan R-01..R-07; ia menambah satu dimensi yang sebelumnya dipaku di
+kode: dulu `periode` selalu tanggal 1 dan jatuh tempo selalu mengikuti tanggal masuk. Kos yang
+menagih tiap tanggal 15 karena penghuninya memang masuk tanggal 15 tidak bisa dinyatakan tanpa
+mengubah kode — dan itulah yang ditutup R-08.
+
+**Pola adalah satu saklar, bukan setelan per kontrak** (K-14d). Baris `pola_tagihan` dengan
+`kamar_id` terisi ditolak 422, karena penerbitan membacanya sekali untuk seluruh batch; baris per
+kamar akan tersimpan tetapi tidak pernah dibaca.
+
+| Hal | Nilai |
+|---|---|
+| `tanggal_1` (bawaan) | Siklus pertama = tanggal 1 bulan masuk; tagihan bulan masuk diprorata dari `tgl_masuk` (R-01) |
+| `anniversary` | Siklus pertama = `tgl_masuk`; tagihan bulan masuk diprorata dari `tgl_masuk` |
+| Awal siklus berikutnya | Tanggal yang sama di bulan berikutnya, **dijepit** ke akhir bulan (31 Jan → 28/29 Feb) |
+| Jatuh tempo | Tidak pernah mendahului awal siklus; kebijakan `tanggal_tetap` yang lebih awal dinaikkan ke awal siklus |
+| Ganti pola | **Tidak pernah menagih mundur.** Siklus yang sudah lewat tidak diterbitkan ulang; duplikat dicek per **bulan**, bukan per tanggal persis |
+| Tanggal terbit | `max(awal siklus, tanggal X di bulan siklus)`. Kosong = terbit pada hari siklus mulai (perilaku sebelum fitur ini) |
+| Batas tanggal terbit | **1–28**. Tanggal 29–31 tidak ada di Februari, dan tanggal terbit yang tidak ada berarti tagihan yang tidak pernah terbit |
+
+**Tanggal terbit hanya menunda** (K-14 A, dikunci pemilik). Siklus yang mulai tanggal 15 tetap
+terbit tanggal 15 walau tanggal terbit disetel 5. Menerbitkannya tanggal 5 berarti menagih sebelum
+penghuni menempati kamar — persis yang dicegah penjagaan `belum_waktunya`. Penjagaan itu tetap
+ada; yang berubah hanya tanggal pembandingnya.
+
+**Penerbitan manual boleh lebih awal; penerbitan terjadwal tidak.** Perintah harian
+(`tagihan:terbitkan` pukul 00.10) melewati siklus yang tanggal terbitnya belum tiba dan mencatat
+sebabnya (`belum_waktunya`) beserta tanggal yang dijadwalkan. Pemilik yang menekan tombol sendiri
+tetap boleh menerbitkan lebih awal — ia yang menanggung keputusan itu.
+
+**Filter bulan memakai rentang, bukan tanggal 1 persis.** Sejak periode bisa jatuh di tanggal mana
+pun, `GET /tagihan?periode=2026-03-01` mencari seluruh bulan Maret. Mencocokkan tanggal 1 persis
+akan menyembunyikan tagihan yang justru dicari.
+
+Titik uji: kontrak masuk 15 Maret pada pola `anniversary` → tagihan bertanggal 15 Maret; tanggal
+terbit 20 tidak menggeser periode; tanggal terbit 5 tidak memajukan siklus 15; tanggal 29 ditolak
+validasi **dan** CHECK constraint; ganti pola di tengah bulan tidak menerbitkan tagihan kedua.
+
 ---
 
 ## 5. Keputusan teknis (mengikat)
@@ -255,8 +299,10 @@ parameter/tarif. Isi: aktor, aksi, entitas, id entitas, waktu, nilai lama, nilai
 |---|---|---|
 | Uang | `numeric(14,0)` / rupiah bulat / `bcmath`. **Tidak ada float** | Selisih Rp 1 pada plafon 30% |
 | Waktu | `app.timezone = 'Asia/Jakarta'`; `jatuh_tempo` bertipe `date` | `hari_terlambat` meleset sehari |
-| Periode | kolom `periode` bertipe `date`, diisi **tanggal 1** bulan tersebut | Urutan dan unique index jadi rumit |
-| Jatuh tempo | tanggal hari masuk penghuni, **dijepit ke akhir bulan** | Bug yang muncul 4× setahun |
+| Periode | kolom `periode` bertipe `date`, diisi **awal siklus** (tanggal 1 pada pola `tanggal_1`, `tgl_masuk` pada `anniversary`) | Urutan dan unique index jadi rumit |
+| Pola tagihan | satu baris kebijakan global `pola_tagihan`; kosong = `tanggal_1` | Setelan per kontrak tersimpan tetapi tidak pernah dibaca |
+| Tanggal terbit | satu baris kebijakan global `tanggal_terbit` (1–28); kosong = hari siklus mulai | Tanggal 29–31 tidak ada di Februari → tagihan tidak pernah terbit |
+| Jatuh tempo | tanggal hari masuk penghuni, **dijepit ke akhir bulan**; tidak pernah mendahului awal siklus | Bug yang muncul 4× setahun |
 | Denda | dihitung saat dibaca (derived), tidak disimpan | Nilai basi; harus ada job penyegar |
 | Parameter denda | dibekukan (snapshot) di tagihan saat terbit | Tagihan lama berubah saat parameter diubah |
 | R-02 | unique index + tangkap `23505` → 409 | Duplikat lolos saat request bersamaan |
@@ -448,9 +494,13 @@ kebijakan_kos    id, tipe, nilai (varchar 30), kamar_id (bigint|null),
                  -- bergantung pada `tipe`, sisanya NULL. Denda tidak lagi punya
                  -- tabel parameter sendiri: ia salah satu `tipe` di sini, supaya
                  -- snapshot tagihan hanya perlu menyalin satu tabel.
+                 -- Sejak R-08 ada dua tipe tambahan: `pola_tagihan`
+                 -- (tanggal_1|anniversary) dan `tanggal_terbit` (1-28, angka di
+                 -- kolom `tanggal`). Keduanya WAJIB `kamar_id` NULL: satu saklar
+                 -- untuk seluruh kos, bukan setelan per kamar.
                  -- kamar_id ON DELETE RESTRICT sejak R4 (REV-DAT-01).
 
-tagihan          id, kontrak_id, periode (date, tanggal 1), pokok (numeric 14,0),
+tagihan          id, kontrak_id, periode (date, awal siklus), pokok (numeric 14,0),
                  total_final (numeric 14,0|null), jatuh_tempo (date),
                  status (belum_bayar|sebagian|lunas|dibatalkan),
                  tarif_terpakai (json), kebijakan_terpakai (jsonb),
@@ -797,6 +847,26 @@ jadi id yang kebetulan tidak ada menghasilkan 404 lebih dulu — tes lulus sendi
 saat dijalankan bersama. (b) Satu asersi memakai `/15\\.000/`, yang di JavaScript biasa berarti
 "backslash literal", bukan titik — pola yang sama sudah tercatat di T5 dan T6.
 
+### US-9 — Menagih mengikuti pola kos (R-08)
+
+Sebagai pemilik, saya ingin menentukan siklus tagihan mengikuti tanggal masuk penghuni dan kapan
+tagihan terbit, supaya kos yang menagih tiap tanggal 15 tidak perlu mengubah kode.
+
+- [ ] Tanpa setelan pola, perilaku tetap seperti sebelumnya: periode tanggal 1
+- [ ] Pola `anniversary`, kontrak masuk 15 Maret → tagihan bertanggal **15 Maret**
+- [ ] Siklus tanggal 31 dijepit ke akhir bulan yang lebih pendek
+- [ ] Tanggal terbit 20 **menunda** penerbitan sampai tanggal 20
+- [ ] Tanggal terbit 5 **tidak memajukan** siklus tanggal 15
+- [ ] Tanggal terbit 29 ditolak 422 **dan** CHECK constraint
+- [ ] Pola dan tanggal terbit menolak `kamar_id` (satu saklar untuk seluruh kos)
+- [ ] Ganti pola di tengah bulan tidak menerbitkan tagihan kedua untuk bulan itu
+- [ ] `GET /tagihan?periode=YYYY-MM-01` menemukan tagihan bertanggal selain 1
+
+**Selesai di Fase 1–2 (13 November 2026).** `PolaTagihan` (murni) + `PenerbitanMassal` dua mode +
+`PenerbitTagihan` sadar pola; `PolaTagihanTest` (15 tes feature + 6 unit) dan `TanggalTerbitTest`
+(11 tes); `docs/uji/e2e-anniversary.mjs` membuktikannya lewat layar. Kontrol negatif dijalankan:
+`PolaTagihan::tanggalTerbit` dimatikan sementara → dua tes merah, lalu hijau lagi.
+
 ---
 
 ## 9. Dua seam pengujian
@@ -838,6 +908,7 @@ Lokasi: `docs/uji/audit-ketertelusuran.md`.
 | Batas sistem: deposit | tidak ada di sistem (dihapus di fase terakhir) — **bukan** aturan R-* | `MigrasiHapusDepositTest` (5 tes), `KebijakanKosTest::test_tipe_deposit_ditolak_validasi_maupun_constraint` | ✅ |
 | R-06 tarif tidak surut | `tarif_sewa` append-only + snapshot `tarif_terpakai` | `test_tagihan_lama_tidak_berubah` | ✅ |
 | R-07 isolasi + audit | scope `Tagihan::terlihatOleh` + `log_audit` append-only (trigger basis data) | `IsolasiDanAuditTest` (18 tes): `test_penghuni_hanya_melihat_tagihannya_sendiri`, `test_penghuni_mengakses_tagihan_orang_lain_mendapat_404_bukan_403`, `test_penghuni_mengakses_denda_tagihan_orang_lain_mendapat_404`, `test_penghuni_memanggil_endpoint_pemilik_ditolak_403`, `test_update_langsung_ke_log_audit_ditolak_basis_data`, `test_delete_langsung_ke_log_audit_ditolak_basis_data`; `docs/uji/e2e-t9.mjs` (26/26) | ✅ |
+| R-08 pola tagihan + tanggal terbit | `PolaTagihan` (murni) + `PenerbitanMassal` dua mode + `PenerbitTagihan` sadar pola | `PolaTagihanTest` (15 feature + 6 unit), `TanggalTerbitTest` (11), `docs/uji/e2e-anniversary.mjs` | ✅ |
 
 Status: ⏳ belum, ✅ selesai, ⚠ sebagian, ⏸ ditunda.
 
@@ -857,6 +928,7 @@ Ditunda dengan sadar, bukan terlupa.
 | Koreksi pembayaran | **Sudah dikerjakan di R2** (REV-FIN-01): baris pembalik bertanda lewat `POST /pembayaran/{id}/pembalik` | Endpoint teruji; tombol layar menyusul |
 | Notifikasi WhatsApp | Di luar kendali anggaran; R3 hanya menyediakan tautan `wa.me` yang dibuka pemilik sendiri | — |
 | Multi-kos / multi-pemilik | Satu kos, satu pemilik | — |
+| Pola tagihan per kontrak | Satu saklar untuk seluruh kos (K-14d); pola per kontrak akan tersimpan tetapi tidak pernah dibaca penerbitan | Tidak ada rencana |
 | Impor data historis | Kos baru, tidak ada data lama | — |
 | Sub-metering listrik/air | Sewa all-in | — |
 

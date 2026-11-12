@@ -153,6 +153,6 @@ ketujuh belas SVG dan PNG yang di-commit dengan hasil penggambaran data
 sekarang — termasuk memastikan setiap PNG tepat 2x SVG-nya.
 
 Angka pada dokumen dibaca dari sumbernya, bukan diketik: 89 endpoint, 24 tabel,
-42 migrasi, 16 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
+44 migrasi, 16 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
 angka yang boleh dikarang — lihat `docs/serah-terima.md` §5 untuk cara
 memeriksanya.

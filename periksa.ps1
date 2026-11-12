@@ -421,6 +421,11 @@ if (-not $Cepat) {
             # R3: pembatalan tagihan, pemaafan denda, bagikan WhatsApp,
             # rekening tujuan pembayaran.
             'e2e-r3.mjs',
+            # K-14: pola tagihan anniversary + tanggal terbit. Satu-satunya
+            # skrip yang memeriksa tagihan bertanggal selain tanggal 1, dan
+            # karena itu satu-satunya yang bisa menangkap filter bulan yang
+            # kembali mencocokkan tanggal 1 persis.
+            'e2e-anniversary.mjs',
             # Fase terakhir: tombol pembalik pembayaran (REV-FIN-01).
             # Endpoint-nya sudah ada sejak R2, tetapi tombolnya baru dipasang
             # sekarang - tanpa skrip ini, satu-satunya cara memakainya adalah

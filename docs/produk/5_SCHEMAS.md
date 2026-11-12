@@ -849,7 +849,7 @@ uang dari JSON berarti parsing di jalur yang menghitung uang.
 
 ## 6. Migrasi
 
-**42 migrasi**, dijalankan berurutan. Tiga yang paling perlu dipahami:
+**44 migrasi**, dijalankan berurutan. Tiga yang paling perlu dipahami:
 
 | Migrasi | Isi |
 |---|---|

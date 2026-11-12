@@ -6,8 +6,8 @@
 >
 > **Maksimal 120 baris.** Kalau lebih, isinya sudah menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: 6 November 2026, sesudah diagram kelas dan diagram urutan
-(17 SVG + 17 PNG) selesai, masuk gerbang, dan pagarnya terbukti bisa menolak.
+Terakhir diperbarui: 13 November 2026, sesudah Fase 3 (E2E anniversary, amandemen
+SPEC R-08, dan penyegaran angka dokumen).
 
 ---
 
@@ -15,99 +15,92 @@ Terakhir diperbarui: 6 November 2026, sesudah diagram kelas dan diagram urutan
 
 | Hal | Nilai |
 |---|---|
-| Fase terakhir selesai | **Diagram kelas & urutan** — 3 lembar kelas, 14 diagram urutan; T14 sudah di `git log` |
-| Suite PHP | **830 lulus / 3883 asersi**, **48 berkas**; pint & eslint bersih |
+| Fase terakhir selesai | **Fase 3** — E2E anniversary + amandemen SPEC R-08 + dokumen |
+| Suite PHP | **872 lulus / 3987 asersi**, **51 berkas**; pint & eslint bersih |
 | Suite Vitest | **19 tes** (2 berkas) untuk fungsi murni: format uang/tanggal, pemotong halaman |
-| Migrasi / endpoint / tabel domain | **42** / **89** / **24** (total 33 di skema `public`) |
-| Skema | **209 kolom, 29 kunci asing, 8 trigger** (tidak ada trigger baru) |
-| Skrip uji | **31** `.mjs`: **30** (27 browser + 2 balapan + 1 jalur proxy) dijalankan gate + `_cdp.mjs` |
-| Langkah E2E | **852** di 30 skrip; `e2e-t2` **26/26**, delapan di antaranya T14 |
+| Migrasi / endpoint / tabel domain | **44** / **89** / **24** (total 33 di skema `public`) |
+| Skrip uji | **32** `.mjs`: **31** (28 browser + 2 balapan + 1 jalur proxy) dijalankan gate + `_cdp.mjs` |
+| Langkah E2E | **895** di 31 skrip; `e2e-anniversary.mjs` **16/16** |
+| Keputusan pemilik | K-14 (pola + tanggal terbit), K-15 (laporan kerusakan), K-16 (akses perangkat) dijawab |
 | Ticket GitHub | **#11, #12, #13, #14 tertutup.** Tidak ada issue terbuka |
-| ERD/LRS | `cek-erd-lrs.js` **LULUS**: 24 tabel / 209 kolom / 29 kunci asing; L3 terbaca 2,74 mm di A3 |
-| Diagram | `cek-diagram.js` **LULUS**: 3 lembar kelas (2,61 mm) + 14 urutan (2,58–4,46 mm), PNG tepat 2x |
 
 Catatan: `POST /csp-laporan` di luar `/api/`, sengaja tidak masuk hitungan 89 endpoint.
 
-## 2. Dua aksi berikutnya
+## 2. Tiga aksi berikutnya
 
-**Tidak ada pekerjaan deploy.** Pemilik membatalkan deploy 29 Oktober 2026: demo dari laptop
-lewat `docker compose`; `9_DEPLOY.md`, `Dockerfile.prod`, `deploy.yml` tinggal sebagai bukti.
+1. **Fase 4 — nama kos + pratinjau denda.** Kebijakan `nama_kos` (dipakai kuitansi,
+   notifikasi, dan layar masuk) dan endpoint pratinjau denda yang memakai
+   `Kalkulator` yang sama dengan tagihan sungguhan. Jangan menyalin rumus ke
+   JavaScript.
+2. **Fase 5 — laporan kerusakan + foto (K-15).** Tabel anak `lampiran_kerusakan`,
+   penyimpanan privat + tautan bertanda tangan, formulir di `DashboardPenghuni.vue`,
+   foto di `KamarView.vue`. ERD/DFD ikut diperbarui saat fitur mendarat.
+3. **Fase 6 — akses perangkat (K-16).** Dua tabel, `PenyediaPerangkat` + 4 adaptor,
+   `perangkat:uji`, `/kartu/{id}`, ±11 endpoint. Fase 7 (revisi desain) sesudahnya.
 
-**Rinciannya, beserta tiga pertanyaan yang akan ditanya penguji dan urutan H-1:
-`docs/fase-akhir.md`.**
-
-1. **Gladi demo bertiga, di layar** — tiga kali, dihitung waktunya
-   (`docs/demo-sidang.md`). Ini satu-satunya pekerjaan yang tersisa.
-2. **Fase 6 (laporan) menunggu format dosen**; bila datang, hanya `docs/akademik/*` yang dibuat.
-   Diagram kelas dan urutan yang diminta dosen **sudah selesai** (6 Nov) dan tidak
-   perlu menunggu format apa pun — berkasnya `docs/akademik/kelas-*.png` dan
-   `urutan-UC-*.png`.
-
-**Tidak ada keputusan pemilik yang masih menunggu.** K-01..K-13 dijawab atau
-ditutup. Yang terakhir (31 Okt, **K-13**): tabel tersendiri, kamar `perbaikan`
-tetap ditagih penuh, pemilik **dan** pengelola boleh menutup laporan, dan biaya
-perbaikan tidak pernah masuk tagihan penghuni.
-
-Tidak dikerjakan dan tidak akan ditawarkan lagi: Render/Neon, Midtrans sungguhan, pinger uptime,
-latihan restore, verifikasi domain Brevo, domain `.my.id`, dan menegakkan CSP.
+**Satu pertanyaan pemilik yang belum dijawab:** tanggal terbit yang melewati jatuh
+tempo saat ini hanya **diperingatkan** di layar, tidak ditolak server. Kalau pemilik
+ingin 422, itu perubahan perilaku dan harus ditanyakan lebih dulu.
 
 ## 3. Yang tidak boleh diubah
 
 | Hal | Di mana |
 |---|---|
-| Aturan bisnis R-01..R-07 | `SPEC.md` bagian 4 |
+| Aturan bisnis R-01..R-08 | `SPEC.md` bagian 4 |
 | Wewenang pengelola (8) dan Model A | `SPEC.md` bagian 5 |
 | Konvensi T24-T29 | `AGENTS.md` |
 | Sumber tunggal DFD / use case | `docs/dfd/dfd-data.js`, `docs/akademik/usecase-data.js` |
 | Sumber tunggal diagram kelas / urutan | `docs/akademik/kelas-data.js`, `docs/akademik/urutan-data.js` |
-| Keputusan pemilik | `docs/keputusan-terbuka.md` (K-01..K-13) |
+| Keputusan pemilik | `docs/keputusan-terbuka.md` (K-01..K-16) |
 | Langkah deploy manual | `docs/produk/9_DEPLOY.md` |
 
 **Keputusan lama tetap berlaku:** `occupancy_rate` = hari-kamar; kuitansi tanpa
-nomor urut (penandanya id pembayaran + periode); **deposit dihapus seluruhnya**.
+nomor urut; **deposit dihapus seluruhnya**; biaya perbaikan kerusakan **tidak pernah**
+masuk tagihan penghuni.
 
-**Bahasa visual: "buku besar tanpa warna".** Arah "kartu indeks katalog"
-**ditolak pemilik**. Satu tombol hampir hitam per layar; `nav a`, `.tabel`,
-`.lencana-status`, `.aksi-kepala`, `.merek p`, `.kartu-kelompok`, `.kendali`
-tetap ada. **Narasi tetap 4 halaman**; **harga Charter Rp 50.000.000**.
+**K-14 yang dikunci:** pola tagihan adalah **satu saklar global** (`tanggal_1` bawaan,
+`anniversary` pilihan), bukan per kontrak. Tanggal terbit **1–28** dan **hanya menunda**,
+tidak pernah memajukan (arti A). Ganti pola **tidak menagih mundur**; duplikat dicek
+per **bulan**, bukan per tanggal persis.
 
-## 4. Yang dibangun: diagram kelas & urutan
+**Yang sengaja tidak diubah:** `PenyelesaiKebijakan`/`PencariTarif` tetap menyelesaikan
+kebijakan terhadap `startOfMonth(periode)` — dikunci
+`KebijakanKosTest::test_kebijakan_bertanggal_tengah_bulan_belum_berlaku_untuk_bulan_itu`.
 
-Rincian T14 (laporan kerusakan kamar) ada di `git log` dan `SPEC.md` §4; yang
-baru adalah dua belas gambar untuk dosen.
+## 4. Jebakan yang menggigit di fase ini
 
-| Hal | Hasil |
-|---|---|
-| Diagram kelas | **3 lembar** (akun/akses, kamar/sewa, tagihan/pembayaran); 22 kelas, 27 asosiasi, atribut dari `docs/erd/skema.json`, operasi dari `api/app/Models/*.php` |
-| Diagram urutan | **14 lembar**, satu per UC-01..UC-14, peserta nyata dari `api/app` dan endpoint dari `rute-api.json` |
-| Keterbacaan | Kelas **2,61 mm** di A3 (satu lembar akan menjadi 1,1 mm); urutan 2,58–4,46 mm |
-| Asosiasi lintas lembar | Didaftar di kaki gambar (`Tagihan → Kontrak (kontrak_id, * : 1)`), tidak digambar sebagai garis menggantung |
-| Pagar | Ujung garis berimpit, garis menembus kotak, kelas/rute karangan, langkah tak kembali ke aktor, huruf < 2,52 mm — semuanya menolak build |
-| Bukti pagar | `node docs/uji/cek-diagram.js` merusak data di dalam dirinya sendiri; bila pagar dimatikan, ia gagal (sudah dicoba) |
+- **Image `web` juga dibakar.** `npm run build` saja tidak cukup: E2E membaca SPA dari
+  container. Dua asersi baru (peringatan tanggal terbit, penanda "seluruh kos") gagal
+  sampai `docker compose build web` dijalankan. Bangun **kedua** image sebelum E2E.
+- **Chrome mati saat `docker compose build`.** Build dua image menghabiskan memori dan
+  Chrome dengan `--remote-debugging-port` ikut terbunuh; gejalanya **semua** skrip
+  browser gagal dengan `fetch failed`, bukan satu asersi. Jalankan gate dengan
+  `-TanpaBuild` bila image sudah dibangun, atau nyalakan Chrome sesudah build.
+- **`api-web` menyimpan IP lama `api`.** Sesudah `docker compose up -d api`, restart
+  `api-web` bila login tiba-tiba gagal. Gejalanya menyesatkan: health API hijau.
+- **Urutan migrasi menentukan.** `pola_tagihan` (23 Nov) dan `tanggal_terbit` (24 Nov)
+  memasang ulang CHECK yang sama; migrasi yang lebih awal akan ditimpa yang lebih akhir.
+  Jangan memberi tanggal di antara keduanya.
+- **`KebijakanKos::TIPE_*` adalah alias.** Tipe baru harus ditambahkan di
+  `PilihanKebijakan` **dan** dialiaskan di model, atau 17 tes gagal dengan
+  `Undefined constant`.
+- **Tipe global harus lewat `PilihanKebijakan::tipeGlobal()`.** Daftar itu dipakai
+  validasi (`kamar_id` ditolak) dan meta layar. Menyalinnya di Vue membuat formulir
+  yang terlihat sah dijawab 422.
+- **`label_periode` ada karena satu batch bisa berisi tanggal berbeda.** Jangan
+  kembalikan notifikasi massal ke satu tanggal.
 
 ## 5. Cara memeriksa keadaan
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File periksa.ps1    # SEMUA LULUS
-node docs/uji/cek-angka-dokumen.js                     # SEMUA ANGKA COCOK
-node docs/uji/cek-diagram.js                           # diagram tidak basi
+powershell -ExecutionPolicy Bypass -File periksa.ps1              # SEMUA LULUS
+powershell -ExecutionPolicy Bypass -File periksa.ps1 -TanpaBuild  # bila image sudah dibangun
+node docs/uji/cek-angka-dokumen.js                                # SEMUA ANGKA COCOK
+node docs/uji/cek-diagram.js                                      # diagram tidak basi
 ```
 
-Tanpa uji browser: `-Cepat`. Di Linux/CI: `./periksa.sh`. Bila mengubah
-`web/src`: `npm run build`, `docker compose build web`, lalu `up -d web` — kode
-dibakar ke image. Angka §1 diubah **sesudah** gate.
+Tanpa uji browser: `-Cepat`. Di Linux/CI: `./periksa.sh`. Bila mengubah `web/src`:
+`npm run build`, `docker compose build web`, lalu `up -d web`. Angka §1 diubah
+**sesudah** gate.
 
 Membangun ulang dokumen: `docs/erd/README.md` §"Urutan membangun", `docs/akademik/README.md`.
-
-## 6. Jebakan yang menggigit di sesi ini
-
-Tiga jebakan baru (ujung garis berimpit, skala Chrome, pencari kelas `final`)
-sudah naik ke `AGENTS.md` bagian "Jebakan yang sudah menggigit" — jangan
-dipindahkan balik ke sini.
-
-- **Angka yang diketik tangan akan tertinggal.** `bab4-data.js` sempat menulis
-  "23 tabel / 201 kolom"; tinggi huruf LRS juga pernah diketik di empat berkas.
-  Kini diukur `build-tingkat.js`, disimpan di `manifest.json`, dan dibandingkan
-  `cek-angka-dokumen.js`.
-- **`Queue::fake()` wajib untuk menguji antrean.** Dengan `sync`, pekerjaan
-  berjalan di dalam permintaan dan `Mail::assertSent` tetap lulus.

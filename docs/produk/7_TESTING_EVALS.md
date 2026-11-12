@@ -3,9 +3,9 @@
 > Dokumen ini menjawab: **apa yang dibuktikan tes, bagaimana menjalankannya, dan
 > bagaimana menambah tes yang benar-benar menahan.**
 >
-> Angka diambil dari aplikasi yang berjalan: **830 tes PHP (3883 asersi)** dalam
-> 48 berkas, **19 tes Vitest** untuk fungsi murni frontend, dan **30 skrip uji**
-> (27 browser + 2 balapan HTTP + 1 jalur proxy) dengan **879 langkah**.
+> Angka diambil dari aplikasi yang berjalan: **872 tes PHP (3987 asersi)** dalam
+> 51 berkas, **19 tes Vitest** untuk fungsi murni frontend, dan **31 skrip uji**
+> (28 browser + 2 balapan HTTP + 1 jalur proxy) dengan **895 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
 
@@ -71,8 +71,8 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
 
 ```
         ┌──────────────────────────────────────┐
-        │  30 skrip uji                        │  paling lambat, tetapi
-        │  (27 browser + 2 balapan + 1 proxy)  │  satu-satunya yang melihat
+        │  31 skrip uji                        │  paling lambat, tetapi
+        │  (28 browser + 2 balapan + 1 proxy)  │  satu-satunya yang melihat
         └──────────────────────────────────────┘
       ┌──────────────────────────────────────┐
       │  730 tes Feature                     │  ~31 dtk, jalur penuh
@@ -91,7 +91,7 @@ tes komponen yang merender akan menguji implementasi, bukan perilaku.
 
 ---
 
-## 3. Tes PHP - 830 tes, 3883 asersi
+## 3. Tes PHP - 872 tes, 3987 asersi
 
 ### 3.1 Menjalankan
 
@@ -179,7 +179,7 @@ berkas yang menjaga aturan, bukan seluruhnya:
 
 ---
 
-## 4. Skrip uji browser, balapan, dan jalur proxy - 30 skrip, 879 langkah
+## 4. Skrip uji browser, balapan, dan jalur proxy - 31 skrip, 895 langkah
 
 ### 4.1 Menjalankan
 
@@ -307,7 +307,7 @@ Dari `1_PRD.md` §6, dan bagaimana masing-masing dibuktikan.
 | U-6 | Halaman meluber di 360px | 0 | `uji-tata-letak.mjs` | Lulus 104/104 |
 | U-7 | Tabel tak terbaca di 360px | 0 | `uji-kartu-tabel.mjs` | Lulus 65/65 |
 | U-8 | Kepala pemilik sebelum konten | < 220px | Terukur | 203px |
-| U-9 | Cakupan tes PHP | 830 tes | CI | Lulus 3883 asersi |
+| U-9 | Cakupan tes PHP | 872 tes | CI | Lulus 3987 asersi |
 | U-10 | Pemuatan gagal menyamar sebagai data kosong | 0 layar | `uji-galat-muat.mjs` — **dibuktikan bisa gagal** | Lulus 30/30 |
 
 ---
@@ -325,7 +325,7 @@ seberapa besar kepercayaan pada hijau.
 | ~~Orientasi lanskap ponsel~~ | **Sudah diukur 29 Okt 2026** | `uji-tata-letak.mjs` menguji 640×360 pada Tagihan, Rekening, dan Pengelola; kontra-uji dengan div 2000px membuat tiga asersi merah |
 | ~~Uji luring sungguhan~~ | **Sudah dibuktikan 29 Okt 2026** | `uji-pwa.mjs` mematikan jaringan pada target service worker (bukan hanya halaman) dan menghapus Cache Storage sebagai kontrol negatif. Batasnya: hanya di Chrome desktop, bukan ponsel sungguhan |
 | Email sungguhan (Brevo) | Hanya Mailpit | Batas kirim Brevo dan reputasi domain belum diuji |
-| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Kini 30 skrip / 871 langkah lulus |
+| E2E di CI | ~~Menggantung 17+ menit~~ | **Sudah hijau.** Dugaan "menggantung" keliru: yang gagal adalah paritas daftar skrip, 34-41 dtk. Seluruh skrip kini lulus di CI |
 | Tes komponen Vue | Tidak ada yang merender markup | Regresi tampilan hanya tertangkap E2E; fungsi murni sudah dijaga Vitest |
 
 > **Sejak 29 Oktober 2026 deploy produksi dibatalkan pemilik.** Baris yang

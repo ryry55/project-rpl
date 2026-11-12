@@ -18,7 +18,7 @@ yang berhak melakukan apa**: **pemilik** memutuskan, **pengelola** berwenang
 terbatas mengusulkan, **penghuni** hanya membaca. Pengelola ber-wewenang
 `ubah_tarif` pun tidak menetapkan tarif. Uang dicatat sebagai peristiwa yang
 tidak bisa diubah. Cakupan: **89 endpoint** `/api`, **14 use case**, **3
-aktor**, **24 tabel domain** dari **42 migrasi**.
+aktor**, **24 tabel domain** dari **44 migrasi**.
 
 ## 2. Aktor dan Entitas Eksternal Sistem
 

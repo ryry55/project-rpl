@@ -346,6 +346,11 @@ if [ "$CEPAT" -eq 0 ]; then
             # R3: pembatalan tagihan, pemaafan denda, bagikan WhatsApp,
             # rekening tujuan pembayaran.
             e2e-r3.mjs
+            # K-14: pola tagihan anniversary + tanggal terbit. Satu-satunya
+            # skrip yang memeriksa tagihan bertanggal selain tanggal 1, dan
+            # karena itu satu-satunya yang bisa menangkap filter bulan yang
+            # kembali mencocokkan tanggal 1 persis.
+            e2e-anniversary.mjs
             # Fase terakhir: tombol pembalik pembayaran (REV-FIN-01) dan gambar
             # QRIS pada rekening. Keduanya sempat HANYA ada di periksa.ps1,
             # sehingga gate Linux - dan karena itu CI - tidak pernah
