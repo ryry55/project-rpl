@@ -353,11 +353,11 @@ pemilik saja. Pilihan itu tidak dipakai.
 
 ---
 
-## K-14 — Siklus tagihan anniversary & tingkat saklar pola — menunggu (hanya d)
+## K-14 — Siklus tagihan anniversary & tingkat saklar pola — dijawab
 
 **Fase:** fitur pasca-R7 · **Tanggal:** 13 November 2026
 
-**Jawaban sebagian (13 November 2026).**
+**Jawaban (13 November 2026).**
 
 - **a. Anniversary dipilih (Level 2).** Pola tagihan `anniversary`: awal siklus =
   tanggal masuk kontrak dijepit ke akhir bulan (masuk 31 Jan → 28 Feb), jatuh
@@ -368,6 +368,10 @@ pemilik saja. Pilihan itu tidak dipakai.
   di kepala layar dan pratinjau denda ikut di fase yang sama.
 - **c. `SPEC.md` dan `docs/revisi.md` boleh disunting** — sebagai amandemen
   bertanggal (R-08 + Putaran 4 di `revisi.md`), bukan penulisan ulang riwayat.
+- **d. Global satu saklar (pilihan A).** Pola tagihan adalah satu kebijakan kos
+  (`pola_tagihan`), bukan setelan per kontrak. Kos yang ingin pola berbeda
+  mengganti kebijakan sebelum kontrak berjalan; perpindahan tidak menagih mundur,
+  dan tagihan yang sudah terbit tidak tersentuh.
 
 **Pertanyaan (d).** Saklar pola tagihan dipasang di tingkat apa: satu kebijakan
 global untuk kos, atau per kontrak (kamar A anniversary, kamar B tanggal 1)?
