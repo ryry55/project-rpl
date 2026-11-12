@@ -17,7 +17,8 @@
  */
 import { computed, onMounted, ref } from 'vue'
 import { sesi } from '../../sesi.js'
-import { pesanGalat, galatPerBidang, tanggal as formatTanggal } from '../../format.js'
+import { namaKos } from '../../identitas.js'
+import { pesanGalat, galatPerBidang, rupiah, tanggal as formatTanggal } from '../../format.js'
 import KepalaHalaman from '../../komponen/ui/KepalaHalaman.vue'
 import PanelKartu from '../../komponen/ui/PanelKartu.vue'
 import PesanBaris from '../../komponen/ui/PesanBaris.vue'
@@ -54,6 +55,46 @@ const kurang = computed(() => meta.value?.kurang || [])
  * pemilih kamar sedang terisi.
  */
 const tipeGlobal = computed(() => meta.value?.tipe_global || [])
+
+/**
+ * Tipe yang nilainya teks bebas (nama kos), dan batas panjangnya.
+ *
+ * Keduanya dari server: menyalin daftar ini di Vue berarti tipe teks baru akan
+ * tampil sebagai dropdown kosong, dan formulirnya mengirim nilai yang ditolak.
+ */
+const tipeTeks = computed(() => meta.value?.tipe_teks || [])
+const maksTeks = computed(() => meta.value?.maks_teks || {})
+
+/**
+ * Pratinjau denda (K-17).
+ *
+ * Angkanya datang dari server, yang memakai `Kalkulator` yang sama dengan
+ * tagihan sungguhan. Menghitungnya di sini berarti rumus denda punya salinan
+ * kedua di JavaScript — dan salinan itu akan berbeda satu rupiah pada pokok
+ * besar, tepat pada angka yang paling dipertanyakan penghuni.
+ *
+ * Contohnya tetap: Rp 1.500.000 telat 10 hari. Angka yang bisa diubah pemilik
+ * adalah kebijakannya, bukan contohnya.
+ */
+const POKOK_CONTOH = 1500000
+const HARI_CONTOH = 10
+const pratinjau = ref(null)
+const pratinjauGalat = ref('')
+
+async function muatPratinjau() {
+  pratinjau.value = null
+  pratinjauGalat.value = ''
+  try {
+    const hasil = await sesi.panggil(
+      `/kebijakan/pratinjau-denda?pokok=${POKOK_CONTOH}&hari_terlambat=${HARI_CONTOH}`,
+    )
+    pratinjau.value = hasil.data
+  } catch (e) {
+    // Pratinjau adalah penjelasan, bukan data yang dibutuhkan layar. Kegagalan
+    // memuatnya tidak boleh menutupi kartu kebijakan yang tetap bisa dipakai.
+    pratinjauGalat.value = pesanGalat(e)
+  }
+}
 
 /**
  * Apakah akun ini MENETAPKAN atau hanya MENGUSULKAN.
@@ -108,6 +149,9 @@ async function muat() {
     daftar.value = hasil.data
     meta.value = hasil.meta
     kamar.value = hasilKamar.data
+    // Pratinjau dimuat sesudah meta: ia membaca kebijakan denda yang berlaku,
+    // dan kebijakan itu bisa berubah setiap kali layar ini disimpan.
+    muatPratinjau()
   } catch (e) {
     galatMuat.value = pesanGalat(e)
   } finally {
@@ -152,6 +196,14 @@ async function simpan(isi) {
     }
 
     await muat()
+
+    // Nama kos dipakai bilah dan judul tab, yang sudah dirender sebelum layar
+    // ini dibuka. Tanpa pembaruan langsung, pemilik menyimpan namanya lalu
+    // melihat nama lama di atas layar — terbaca seperti simpan yang gagal.
+    if (isi.tipe === 'nama_kos') {
+      namaKos.value = isi.nilai
+      document.title = `${isi.nilai} - Sistem Informasi Operasional`
+    }
 
     // Tersimpan belum tentu berlaku. Kebijakan diselesaikan terhadap awal
     // periode, jadi baris bertanggal setelah awal bulan ini baru terpakai bulan
@@ -259,8 +311,34 @@ onMounted(muat)
         :boleh-ubah="sesi.boleh('ubah_kebijakan')"
         :menetapkan="bolehMenetapkan"
         :seluruh-kos="tipeGlobal.includes(tipe)"
+        :teks="tipeTeks.includes(tipe)"
+        :maks-teks="maksTeks[tipe] || 60"
         @simpan="simpan"
       />
+
+      <PanelKartu v-if="pratinjau" judul="Pratinjau denda">
+        <template #keterangan>
+          <p class="lemah mungil">
+            Contoh: tagihan {{ rupiah(POKOK_CONTOH) }} yang telat {{ HARI_CONTOH }} hari.
+            Angka ini dihitung server dengan rumus yang sama seperti tagihan sungguhan.
+          </p>
+        </template>
+
+        <p v-if="pratinjau.bentuk === 'tanpa'">
+          Kos ini tidak menerapkan denda keterlambatan.
+        </p>
+        <p v-else>
+          Denda <strong>{{ rupiah(pratinjau.denda) }}</strong>
+          <span v-if="pratinjau.plafon !== null" class="lemah">
+            dari maksimum {{ rupiah(pratinjau.plafon) }}
+          </span>.
+          <span v-if="pratinjau.hari_denda !== HARI_CONTOH" class="lemah mungil">
+            ({{ pratinjau.hari_denda }} hari setelah masa tenggang)
+          </span>
+        </p>
+      </PanelKartu>
+
+      <PesanBaris v-if="pratinjauGalat" jenis="netral">{{ pratinjauGalat }}</PesanBaris>
 
       <p v-if="galatBidang.berlaku_dari" class="pesan-galat mungil">
         {{ galatBidang.berlaku_dari }}

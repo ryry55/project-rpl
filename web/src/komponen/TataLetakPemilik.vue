@@ -2,11 +2,27 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter, useRoute, RouterLink, RouterView } from 'vue-router'
 import { sesi } from '../sesi.js'
+import { namaKos } from '../identitas.js'
 import LoncengNotifikasi from './LoncengNotifikasi.vue'
 import IkonMenu from './ui/IkonMenu.vue'
 
 const router = useRouter()
 const route = useRoute()
+
+/**
+ * Inisial lencana dari nama kos.
+ *
+ * Dulu lencananya selalu "KK" karena namanya selalu "Kos-Kosan". Nama yang bisa
+ * diganti membuat dua huruf tetap itu terbaca seperti sisa aplikasi lain.
+ */
+const inisialKos = computed(() =>
+  namaKos.value
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((kata) => kata[0].toUpperCase())
+    .join('') || 'K',
+)
 
 /**
  * Menu sidebar.
@@ -247,7 +263,7 @@ async function keluar() {
          sebagai `h1` di dalamnya, jadi bilah ini menyebut produk - kalau ia
          menyebut halaman juga, nama yang sama muncul dua kali bertumpuk. -->
     <header class="bilah-atas">
-      <span class="judul-bilah">Kos-Kosan</span>
+      <span class="judul-bilah">{{ namaKos }}</span>
       <div class="bilah-aksi">
         <LoncengNotifikasi v-if="layarSempit" />
         <button
@@ -267,9 +283,9 @@ async function keluar() {
 
     <aside id="menu-utama" class="sisi" :class="{ terbuka: menuTerbuka }">
       <div class="merek">
-        <span class="lencana">KK</span>
+        <span class="lencana">{{ inisialKos }}</span>
         <div class="merek-teks">
-          <strong>Kos-Kosan</strong>
+          <strong>{{ namaKos }}</strong>
           <p class="mungil lemah">{{ sebutanPeran }}</p>
         </div>
         <button

@@ -291,6 +291,37 @@ Titik uji: kontrak masuk 15 Maret pada pola `anniversary` → tagihan bertanggal
 terbit 20 tidak menggeser periode; tanggal terbit 5 tidak memajukan siklus 15; tanggal 29 ditolak
 validasi **dan** CHECK constraint; ganti pola di tengah bulan tidak menerbitkan tagihan kedua.
 
+#### Identitas kos *(amandemen 13 November 2026)*
+
+> Nama kos adalah **kebijakan global berteks bebas** (1–60 karakter). Kosong berarti
+> "Kos-Kosan" — perilaku sebelum fitur ini. Nama itu dipakai di layar masuk, bilah pemilik,
+> judul tab, subjek email, dan kuitansi.
+
+Sebelum ini nama kos tertulis di kode di empat tempat, semuanya berbunyi "Kos-Kosan" — nama
+contoh, bukan nama kos siapa pun. Karena itu tipe `nama_kos` **tidak wajib**: kos yang tidak
+pernah menyentuh layar Kebijakan tetap menagih dan tetap punya judul.
+
+Bentuknya teks bebas, bukan menu pilihan seperti tipe lain, karena tidak ada daftar nama yang
+bisa disusun di muka. Kolom `nilai` karena itu dilebarkan 30 → 60 karakter; tipe lain tetap
+pendek dan tidak terpengaruh.
+
+**Layar masuk membacanya lewat endpoint publik** (`GET /identitas-kos`). Halaman itu dibuka
+sebelum ada token, dan nama kos tertulis di papan depan kos — ia bukan rahasia. Yang tidak boleh
+bocor lewat endpoint publik adalah data penghuni, tagihan, dan kredensial; tidak satu pun ada di
+sana.
+
+**Pratinjau denda memakai `Kalkulator` yang sama dengan tagihan sungguhan**
+(`GET /kebijakan/pratinjau-denda`). Denda punya empat bentuk, pembulatan half-up, plafon, dan
+tenggang; salinan rumus di JavaScript akan berbeda satu rupiah pada pokok besar — tepat pada
+angka yang paling dipertanyakan penghuni. Pratinjau memakai kebijakan yang **berlaku**, bukan
+nilai yang sedang diketik: pratinjau yang memakai nilai yang belum disimpan menjanjikan angka
+yang tidak pernah dipakai tagihan.
+
+Titik uji: tanpa kebijakan → "Kos-Kosan"; nama tersimpan terbaca tanpa token; `kamar_id` ditolak
+422; nama kosong dan 61 karakter ditolak validasi **dan** CHECK constraint; subjek email memakai
+nama; pratinjau 1%/hari plafon 30% tenggang 7 pada pokok Rp 1.500.000 telat 10 hari = Rp 45.000
+dari maksimum Rp 450.000.
+
 ---
 
 ## 5. Keputusan teknis (mengikat)
@@ -302,6 +333,8 @@ validasi **dan** CHECK constraint; ganti pola di tengah bulan tidak menerbitkan 
 | Periode | kolom `periode` bertipe `date`, diisi **awal siklus** (tanggal 1 pada pola `tanggal_1`, `tgl_masuk` pada `anniversary`) | Urutan dan unique index jadi rumit |
 | Pola tagihan | satu baris kebijakan global `pola_tagihan`; kosong = `tanggal_1` | Setelan per kontrak tersimpan tetapi tidak pernah dibaca |
 | Tanggal terbit | satu baris kebijakan global `tanggal_terbit` (1–28); kosong = hari siklus mulai | Tanggal 29–31 tidak ada di Februari → tagihan tidak pernah terbit |
+| Nama kos | satu baris kebijakan global `nama_kos` (teks 1–60); kosong = "Kos-Kosan" | Nama contoh tertulis di layar kos orang lain |
+| Pratinjau denda | dihitung server lewat `Kalkulator`, bukan rumus salinan di peramban | Pratinjau berbeda satu rupiah dari tagihan sungguhan |
 | Jatuh tempo | tanggal hari masuk penghuni, **dijepit ke akhir bulan**; tidak pernah mendahului awal siklus | Bug yang muncul 4× setahun |
 | Denda | dihitung saat dibaca (derived), tidak disimpan | Nilai basi; harus ada job penyegar |
 | Parameter denda | dibekukan (snapshot) di tagihan saat terbit | Tagihan lama berubah saat parameter diubah |
@@ -498,6 +531,8 @@ kebijakan_kos    id, tipe, nilai (varchar 30), kamar_id (bigint|null),
                  -- (tanggal_1|anniversary) dan `tanggal_terbit` (1-28, angka di
                  -- kolom `tanggal`). Keduanya WAJIB `kamar_id` NULL: satu saklar
                  -- untuk seluruh kos, bukan setelan per kamar.
+                 -- Sejak K-17 ada `nama_kos`: satu-satunya tipe berteks bebas,
+                 -- 1-60 karakter di kolom `nilai` (dilebarkan dari 30).
                  -- kamar_id ON DELETE RESTRICT sejak R4 (REV-DAT-01).
 
 tagihan          id, kontrak_id, periode (date, awal siklus), pokok (numeric 14,0),
@@ -583,7 +618,7 @@ di §6 sebagai `tanggal, jumlah, metode, bukti, dicatat_oleh`:
 ## 7. Permukaan API
 
 Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
-Daftar lengkap **89 endpoint**; rincian bentuk request/response ada di
+Daftar lengkap **91 endpoint**; rincian bentuk request/response ada di
 `docs/produk/6_TOOLS_CONTRACTS.md`.
 
 ### 7.1 Autentikasi, akun, dan PDP
@@ -909,6 +944,7 @@ Lokasi: `docs/uji/audit-ketertelusuran.md`.
 | R-06 tarif tidak surut | `tarif_sewa` append-only + snapshot `tarif_terpakai` | `test_tagihan_lama_tidak_berubah` | ✅ |
 | R-07 isolasi + audit | scope `Tagihan::terlihatOleh` + `log_audit` append-only (trigger basis data) | `IsolasiDanAuditTest` (18 tes): `test_penghuni_hanya_melihat_tagihannya_sendiri`, `test_penghuni_mengakses_tagihan_orang_lain_mendapat_404_bukan_403`, `test_penghuni_mengakses_denda_tagihan_orang_lain_mendapat_404`, `test_penghuni_memanggil_endpoint_pemilik_ditolak_403`, `test_update_langsung_ke_log_audit_ditolak_basis_data`, `test_delete_langsung_ke_log_audit_ditolak_basis_data`; `docs/uji/e2e-t9.mjs` (26/26) | ✅ |
 | R-08 pola tagihan + tanggal terbit | `PolaTagihan` (murni) + `PenerbitanMassal` dua mode + `PenerbitTagihan` sadar pola | `PolaTagihanTest` (15 feature + 6 unit), `TanggalTerbitTest` (11), `docs/uji/e2e-anniversary.mjs` | ✅ |
+| Identitas kos + pratinjau denda (K-17) | `IdentitasKos` + kebijakan `nama_kos` global + `GET /identitas-kos` (publik) + `GET /kebijakan/pratinjau-denda` lewat `Kalkulator` | `NamaKosTest` (14 tes), `docs/uji/e2e-nama-kos.mjs` | ✅ |
 
 Status: ⏳ belum, ✅ selesai, ⚠ sebagian, ⏸ ditunda.
 

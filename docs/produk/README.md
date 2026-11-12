@@ -34,8 +34,8 @@ menjelaskan bagaimana delapan sisanya menjadi satu.
 Dokumen yang saling bertentangan lebih buruk daripada tidak ada dokumen. Karena
 itu:
 
-1. **Angka diambil dari sistem yang berjalan**, bukan dari ingatan. 89 endpoint
-   dari `route:list --json`; 24 tabel domain dari `pg_attribute`; 872 tes dari
+1. **Angka diambil dari sistem yang berjalan**, bukan dari ingatan. 91 endpoint
+   dari `route:list --json`; 24 tabel domain dari `pg_attribute`; 886 tes dari
    `artisan test`.
 2. **Setiap keputusan besar mencatat alternatif yang ditolak.** Keputusan tanpa
    alasannya akan diusulkan ulang, dan tanpa catatan tidak ada yang bisa

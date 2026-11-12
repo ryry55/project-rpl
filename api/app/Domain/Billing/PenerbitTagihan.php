@@ -278,29 +278,13 @@ class PenerbitTagihan
      */
     private function bentukDenda(KebijakanKos $kebijakan): DendaTerpilih
     {
-        return match ($kebijakan->nilai) {
-            PilihanKebijakan::DENDA_TANPA_DENDA => DendaTerpilih::tanpaDenda(),
-
-            PilihanKebijakan::DENDA_NOMINAL_TETAP => DendaTerpilih::nominalTetap(
-                (int) $kebijakan->nominal,
-            ),
-
-            PilihanKebijakan::DENDA_PERSEN_BULANAN => DendaTerpilih::persenBulanan(
-                (string) $kebijakan->persen,
-                (string) $kebijakan->plafon_persen,
-                (int) ($kebijakan->masa_tenggang ?? 0),
-            ),
-
-            PilihanKebijakan::DENDA_PERSEN_HARIAN => DendaTerpilih::persenHarian(
-                (string) $kebijakan->persen,
-                (string) $kebijakan->plafon_persen,
-                (int) ($kebijakan->masa_tenggang ?? 0),
-            ),
-
-            default => throw new \UnexpectedValueException(
-                "Nilai kebijakan denda \"{$kebijakan->nilai}\" tidak dikenal."
-            ),
-        };
+        return DendaTerpilih::dariNilai(
+            $kebijakan->nilai,
+            (string) $kebijakan->persen,
+            (string) $kebijakan->plafon_persen,
+            (int) ($kebijakan->masa_tenggang ?? 0),
+            (int) $kebijakan->nominal,
+        );
     }
 
     /**

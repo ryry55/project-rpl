@@ -36,6 +36,8 @@ class KebijakanKos extends Model
 
     public const TIPE_TANGGAL_TERBIT = PilihanKebijakan::TIPE_TANGGAL_TERBIT;
 
+    public const TIPE_NAMA_KOS = PilihanKebijakan::TIPE_NAMA_KOS;
+
     public const SATUAN_BULANAN = PilihanKebijakan::SATUAN_BULANAN;
 
     public const SATUAN_MINGGUAN = PilihanKebijakan::SATUAN_MINGGUAN;

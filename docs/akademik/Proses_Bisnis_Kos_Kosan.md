@@ -1,7 +1,7 @@
 # Proses Bisnis & Spesifikasi Pemodelan Sistem Informasi Operasional Kos-Kosan
 
 > **Dibangkitkan, jangan disunting tangan** — `node docs/akademik/build-dokumen.js`.
-> Angka dibaca dari `rute-api.json` (89 endpoint), `tabel-domain.json` (24 tabel),
+> Angka dibaca dari `rute-api.json` (91 endpoint), `tabel-domain.json` (24 tabel),
 > `usecase-data.js` (14 use case), `api/composer.lock` (Laravel 12.70.1),
 > dan `docs/dfd/dfd-data.js` (16 aliran batas).
 
@@ -17,8 +17,8 @@ Pembedanya dari pencatatan manual bukan kelengkapan fitur, melainkan **siapa
 yang berhak melakukan apa**: **pemilik** memutuskan, **pengelola** berwenang
 terbatas mengusulkan, **penghuni** hanya membaca. Pengelola ber-wewenang
 `ubah_tarif` pun tidak menetapkan tarif. Uang dicatat sebagai peristiwa yang
-tidak bisa diubah. Cakupan: **89 endpoint** `/api`, **14 use case**, **3
-aktor**, **24 tabel domain** dari **44 migrasi**.
+tidak bisa diubah. Cakupan: **91 endpoint** `/api`, **14 use case**, **3
+aktor**, **24 tabel domain** dari **45 migrasi**.
 
 ## 2. Aktor dan Entitas Eksternal Sistem
 
@@ -64,7 +64,7 @@ Satu siklus bulanan; setiap langkah menunjuk endpoint nyata pada `api/routes/api
 ## 4. Pemodelan Berorientasi Objek (UML Use Case Diagram)
 
 Batas sistem mencakup seluruh fungsionalitas aplikasi operasional kos: **3
-aktor**, **14 use case** — jumlah final, diturunkan dari 89 endpoint nyata
+aktor**, **14 use case** — jumlah final, diturunkan dari 91 endpoint nyata
 yang terpetakan habis tanpa sisa dan tanpa satu pun dipakai dua use case.
 
 ### 4.1 Deskripsi 14 Use Cases Fungsional

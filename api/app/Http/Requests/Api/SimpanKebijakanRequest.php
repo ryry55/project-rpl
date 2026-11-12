@@ -58,16 +58,22 @@ class SimpanKebijakanRequest extends FormRequest
         // sering tertinggal adalah salinan yang paling jarang dibaca.
         $kolom = PilihanKebijakan::kolomAngka($tipe, $nilai);
 
+        // Tipe teks bebas (nama kos) tidak punya daftar nilai yang sah, jadi
+        // `Rule::in` akan menolak semuanya. Batasnya panjang, bukan pilihan.
+        $teks = in_array($tipe, PilihanKebijakan::tipeTeks(), true);
+
         return [
             'tipe' => ['required', 'string', Rule::in(PilihanKebijakan::TIPE_TERSEDIA)],
-            'nilai' => [
-                'required',
-                'string',
-                // Tanpa `tipe` yang sah, daftar pilihannya kosong dan `in`
-                // menolak semua nilai. Itu perilaku yang benar: baris dengan
-                // tipe tak dikenal memang tidak boleh tersimpan.
-                Rule::in(PilihanKebijakan::nilaiValid($tipe)),
-            ],
+            'nilai' => $teks
+                ? ['required', 'string', 'max:'.PilihanKebijakan::maksTeks($tipe)]
+                : [
+                    'required',
+                    'string',
+                    // Tanpa `tipe` yang sah, daftar pilihannya kosong dan `in`
+                    // menolak semua nilai. Itu perilaku yang benar: baris dengan
+                    // tipe tak dikenal memang tidak boleh tersimpan.
+                    Rule::in(PilihanKebijakan::nilaiValid($tipe)),
+                ],
             // NULL = kebijakan default seluruh kos; terisi = penimpa kamar itu.
             // Pola tagihan dan tanggal terbit dikecualikan: keduanya satu
             // saklar untuk seluruh kos (K-14d), dan baris per kamar akan
@@ -155,8 +161,9 @@ class SimpanKebijakanRequest extends FormRequest
             'tipe.in' => 'Jenis kebijakan tidak dikenal.',
             'nilai.required' => 'Pilihan kebijakan wajib diisi.',
             'nilai.in' => 'Pilihan itu tidak berlaku untuk jenis kebijakan yang dipilih.',
+            'nilai.max' => 'Nama kos maksimal 60 karakter.',
             'kamar_id.exists' => 'Kamar tidak ditemukan.',
-            'kamar_id.prohibited' => 'Pola tagihan dan tanggal terbit berlaku untuk seluruh kos, bukan per kamar.',
+            'kamar_id.prohibited' => 'Pola tagihan, tanggal terbit, dan nama kos berlaku untuk seluruh kos, bukan per kamar.',
             'berlaku_dari.required' => 'Tanggal berlaku wajib diisi.',
             'berlaku_dari.date_format' => 'Format tanggal berlaku harus YYYY-MM-DD.',
             'berlaku_dari.unique' => 'Kebijakan untuk jenis dan tanggal berlaku itu sudah ada. Pilih tanggal lain.',

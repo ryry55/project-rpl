@@ -1,4 +1,5 @@
 import { rupiah, tanggal } from './format.js'
+import { namaKos } from './identitas.js'
 
 /**
  * Kuitansi pembayaran yang dicetak lewat peramban (O-5).
@@ -58,6 +59,7 @@ function aman(teks) {
  * @param {object} k
  * @param {number} k.id            id pembayaran, penanda kuitansi
  * @param {string} k.periode       periode tagihan (ISO)
+ * @param {string} k.namaKos       nama kos, dari kebijakan (K-17)
  * @param {string} k.nama          nama penghuni
  * @param {string} k.kamar         nomor kamar
  * @param {string} k.tanggal       tanggal pembayaran (ISO)
@@ -98,9 +100,9 @@ export function htmlKuitansi(k) {
 </style>
 </head>
 <body>
-  <h1>Kuitansi pembayaran</h1>
+  <h1>${aman(k.namaKos)}</h1>
   <p class="lemah mungil">
-    Pembayaran #${aman(k.id)} · tagihan periode ${aman(k.periode)}
+    Kuitansi pembayaran #${aman(k.id)} · tagihan periode ${aman(k.periode)}
   </p>
 
   <table>
@@ -121,7 +123,7 @@ export function htmlKuitansi(k) {
   </table>
 
   <footer class="lemah mungil">
-    Dicetak ${aman(dicetak)} dari Sistem Informasi Operasional Kos-Kosan.
+    Dicetak ${aman(dicetak)} dari ${aman(k.namaKos)}.
     Koreksi pembayaran diterbitkan sebagai baris pembalik, bukan sebagai
     perubahan kuitansi ini.
   </footer>
@@ -140,6 +142,7 @@ export function isianKuitansi(p, t) {
   return {
     id: p.id,
     periode: t.periode ? tanggal(t.periode) : '—',
+    namaKos: namaKos.value,
     nama: t.kontrak?.penghuni?.nama || '—',
     kamar: t.kontrak?.kamar?.nomor || '—',
     tanggal: p.tanggal_pembayaran ? tanggal(p.tanggal_pembayaran) : '—',

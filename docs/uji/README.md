@@ -127,6 +127,7 @@ halaman baru dimuat, jadi harus dipasang ulang setelah `Page.navigate`.
 | `e2e-t28.mjs` | UU PDP: gerbang persetujuan bisa ditolak, halaman Data pribadi menampilkan apa yang tercatat, penghapusan ditahan selama kontrak aktif **maupun selama masih ada tagihan belum lunas**, konfirmasi tertulis wajib, dan sesudah dilepas **tagihannya tetap utuh sedangkan namanya hilang** - termasuk dari jejak audit pemilik | Chrome, seed, Mailpit |
 | `e2e-r3.mjs` | R3: tagihan yang salah terbit bisa **dibatalkan tanpa dihapus** dan periodenya diterbitkan ulang, pemaafan denda membekukan denda tanpa menghapus jejaknya, tombol WhatsApp menyusun tautan `wa.me` dengan teks dari server, dan rekening tujuan pembayaran hanya bisa ditulis pemilik | Chrome, seed |
 | `e2e-anniversary.mjs` | K-14: kontrak yang masuk tanggal 15 menghasilkan tagihan **bertanggal 15**, filter bulan menemukannya (bukan hanya tanggal 1), tanggal terbit 20 **tidak menggeser** periode, layar Kebijakan menampilkan kedua setelan sebagai kalimat dan memperingatkan bila tanggal terbit melewati jatuh tempo | Chrome, seed |
+| `e2e-nama-kos.mjs` | K-17: nama kos menggantikan "Kos-Kosan" di bilah pemilik, judul tab, dan **layar masuk tanpa token**; pratinjau denda menampilkan angka dari server (Rp 45.000 dari maksimum Rp 450.000 untuk 1%/hari, tenggang 7, telat 10 hari) | Chrome, seed |
 | `uji-pembalik.mjs` | Tombol **Tarik kembali** menulis baris **negatif** yang menunjuk baris aslinya; alasan kosong ditolak 422 dan formulirnya tetap terbuka; baris pembalik tampil sebagai angka negatif bertanda "ditarik kembali", bukan disembunyikan; sesudah ditarik tagihan kembali menunggak dan **tagihan yang tadinya buntu karena uangnya menempel kini bisa dibatalkan** | Chrome, seed |
 | `uji-qris.mjs` | Medan unggah gambar hanya muncul untuk jenis QRIS; pratinjau tampil **sebelum** disimpan; sesudah tersimpan daftar menyebut gambarnya ada; penghuni melihat gambarnya **benar-benar termuat** (`naturalWidth` > 0, disajikan sebagai blob, bukan URL bertoken); gambar pada rekening transfer ditolak 422 dengan pesan yang bisa dibaca; penghuni tidak bisa membuka gambar rekening nonaktif (404) | Chrome, seed |
 | `e2e-fase35.mjs` | Penanda penyiapan benar-benar dirender untuk pemilik; ekspor benar-benar terunduh sebagai berkas (diperiksa dari peristiwa unduhan CDP, bukan kode status); pengelola tidak melihat tombol ekspor rekap yang pasti ditolak server; halaman bantuan terbuka untuk kedua peran | Chrome, seed |
@@ -316,7 +317,7 @@ docker compose exec -T api sh /tmp/u.sh
 **Kenapa dijalankan manual, bukan di gate.** Skrip ini mengubah berkas kode di
 dalam container. Menjalankannya otomatis berarti gate sesekali menguji kode yang
 sedang disuntik - dan bila salah satu skrip mati di tengah jalan, cacatnya
-tertinggal. Yang otomatis adalah **tesnya** (872 tes PHP, 31 skrip browser);
+tertinggal. Yang otomatis adalah **tesnya** (886 tes PHP, 32 skrip browser);
 yang manual adalah **bukti bahwa tesnya bisa gagal**, dijalankan setiap kali
 sebuah pagar baru ditambahkan.
 

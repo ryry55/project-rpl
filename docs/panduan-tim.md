@@ -294,11 +294,11 @@ powershell -ExecutionPolicy Bypass -File periksa.ps1   # Windows
 bash periksa.sh                                        # Linux/macOS/CI
 ```
 
-Itu menjalankan **seluruh** pagar: pint, eslint, vitest, 872 tes PHP, empat pemeriksa
-kesesuaian dokumen, dan **31 skrip uji** (28 browser, 2 balapan, 1 jalur proxy).
+Itu menjalankan **seluruh** pagar: pint, eslint, vitest, 886 tes PHP, empat pemeriksa
+kesesuaian dokumen, dan **32 skrip uji** (28 browser, 2 balapan, 1 jalur proxy).
 Ada 31 berkas `.mjs` di `docs/uji/`; satu di antaranya, `_cdp.mjs`, adalah
 pembantu yang tidak dijalankan sendiri. Butuh sekitar **sepuluh menit** - 568
-detik pada mesin pengembangan proyek ini, untuk 895 langkah.
+detik pada mesin pengembangan proyek ini, untuk 905 langkah.
 
 Jangan menjalankan tes satu per satu — urutannya menentukan hasil, dan salah
 urutan menghasilkan hijau yang menyesatkan.

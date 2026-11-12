@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { sesi } from '../sesi.js'
+import { namaKos } from '../identitas.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -71,7 +72,7 @@ async function kirim() {
       <header class="kepala-masuk">
         <div class="lencana-masuk">KOS</div>
         <h1>Masuk</h1>
-        <p class="lemah mungil">Sistem Informasi Operasional Kos-Kosan</p>
+        <p class="lemah mungil">{{ namaKos }}</p>
       </header>
 
       <form @submit.prevent="kirim">

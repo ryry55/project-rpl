@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Audit\PencatatAudit;
+use App\Domain\Billing\DendaTerpilih;
+use App\Domain\Billing\Kalkulator;
 use App\Domain\Kebijakan\PenyelesaiKebijakan;
 use App\Domain\Kebijakan\PilihanKebijakan;
 use App\Domain\Notifikasi\Pemberitahu;
@@ -42,6 +44,7 @@ class KebijakanController extends Controller
         private readonly PengajuUsulan $pengaju,
         private readonly PenerapPerubahan $penerap,
         private readonly Pemberitahu $pemberitahu,
+        private readonly Kalkulator $kalkulator,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -113,11 +116,77 @@ class KebijakanController extends Controller
                 // kamar sedang terisi — permintaannya akan ditolak 422, dan
                 // pesannya terbaca seperti kesalahan pengguna.
                 'tipe_global' => PilihanKebijakan::tipeGlobal(),
+                // Tipe yang nilainya teks bebas (nama kos). Layar memakai ini
+                // untuk menampilkan medan teks, bukan dropdown — dan batas
+                // panjangnya ikut dikirim supaya tidak disalin ke Vue.
+                'tipe_teks' => PilihanKebijakan::tipeTeks(),
+                'maks_teks' => collect(PilihanKebijakan::tipeTeks())
+                    ->mapWithKeys(fn (string $tipe) => [$tipe => PilihanKebijakan::maksTeks($tipe)])
+                    ->all(),
                 // Tunjukkan apakah akun ini hanya boleh mengusulkan. Layar
                 // memakai ini untuk mengubah kalimat tombol dari "Simpan"
                 // menjadi "Ajukan perubahan" - tombol yang berbunyi sama untuk
                 // dua akibat berbeda adalah tombol yang menipu.
                 'boleh_menetapkan' => $request->user()->isPemilik(),
+            ],
+        ]);
+    }
+
+    /**
+     * Pratinjau denda untuk satu pokok dan satu keterlambatan (K-17).
+     *
+     * Angkanya dihitung `Kalkulator` yang sama dengan tagihan sungguhan, bukan
+     * rumus salinan di JavaScript. Itu bukan kerapian: denda punya empat bentuk,
+     * pembulatan half-up, plafon, dan tenggang, dan salinan di peramban akan
+     * berbeda satu rupiah pada pokok besar — perbedaan yang tidak bisa
+     * dijelaskan kepada penghuni.
+     *
+     * Kebijakan yang dipakai adalah yang **berlaku**, bukan yang sedang
+     * diketik. Pratinjau yang memakai nilai yang belum disimpan akan menjanjikan
+     * angka yang tidak pernah dipakai tagihan.
+     */
+    public function pratinjauDenda(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'pokok' => ['required', 'integer', 'min:0', 'max:1000000000000'],
+            'hari_terlambat' => ['required', 'integer', 'min:0', 'max:3650'],
+            'berlaku_pada' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+
+        $periode = $request->filled('berlaku_pada')
+            ? Carbon::parse($request->string('berlaku_pada')->value())
+            : Carbon::parse($this->waktu->hariIni()->toDateString());
+
+        $baris = $this->penyelesai->kebijakan(PilihanKebijakan::TIPE_DENDA, $periode);
+
+        if ($baris === null) {
+            return response()->json([
+                'data' => null,
+                'meta' => ['alasan' => 'Kebijakan denda belum ditetapkan.'],
+            ]);
+        }
+
+        $denda = DendaTerpilih::dariNilai(
+            $baris->nilai,
+            (string) $baris->persen,
+            (string) $baris->plafon_persen,
+            (int) ($baris->masa_tenggang ?? 0),
+            (int) $baris->nominal,
+        );
+
+        $pokok = (int) $data['pokok'];
+        $hariTerlambat = (int) $data['hari_terlambat'];
+
+        return response()->json([
+            'data' => [
+                'denda' => $this->kalkulator->hitungDendaMenurut($denda, $pokok, $hariTerlambat),
+                // `null` berarti bentuk ini tidak berplafon — bukan "plafonnya
+                // nol". Layar yang menampilkan "dari maksimum Rp 0" akan
+                // menakut-nakuti penghuni tanpa alasan.
+                'plafon' => $this->kalkulator->plafonDendaMenurut($denda, $pokok),
+                'hari_denda' => $this->kalkulator->hariDenda($hariTerlambat, $denda->masaTenggang),
+                'bentuk' => $denda->bentuk(),
+                'nilai' => $baris->nilai,
             ],
         ]);
     }

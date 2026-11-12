@@ -30,7 +30,7 @@ Berkas: `01-use-case.svg` (vektor) dan `01-use-case.png` (2x, siap tempel).
 ## 3. Daftar 14 Use Case dan Endpoint Pendukungnya
 
 Setiap use case menunjuk minimal satu endpoint nyata. Pemetaannya
-**tertutup**: 89 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
+**tertutup**: 91 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
 ada satu pun yang dipakai dua use case. `build.js` memeriksa ketiga hal itu
 dan gagal bila tidak terpenuhi.
 

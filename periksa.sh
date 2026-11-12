@@ -351,6 +351,10 @@ if [ "$CEPAT" -eq 0 ]; then
             # karena itu satu-satunya yang bisa menangkap filter bulan yang
             # kembali mencocokkan tanggal 1 persis.
             e2e-anniversary.mjs
+            # K-17: nama kos + pratinjau denda. Satu-satunya skrip yang membuka
+            # layar masuk TANPA token, jadi satu-satunya yang bisa menangkap
+            # endpoint identitas yang lupa didaftarkan di luar `auth:sanctum`.
+            e2e-nama-kos.mjs
             # Fase terakhir: tombol pembalik pembayaran (REV-FIN-01) dan gambar
             # QRIS pada rekening. Keduanya sempat HANYA ada di periksa.ps1,
             # sehingga gate Linux - dan karena itu CI - tidak pernah

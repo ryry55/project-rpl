@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\DendaController;
 use App\Http\Controllers\Api\EksporController;
 use App\Http\Controllers\Api\FasilitasController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\IdentitasKosController;
 use App\Http\Controllers\Api\KamarController;
 use App\Http\Controllers\Api\KebijakanController;
 use App\Http\Controllers\Api\KomponenBiayaController;
@@ -71,6 +72,10 @@ Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 // Health check publik (T29). Tanpa auth karena pemantau uptime tidak punya akun;
 // isinya sengaja hanya status, tanpa nama tabel, versi, atau pesan galat.
 Route::get('/health', HealthController::class)->name('api.health');
+
+// Nama kos untuk layar masuk (K-17). Tanpa auth karena layar masuk dibuka
+// sebelum ada token; isinya hanya nama, yang tertulis di papan depan kos.
+Route::get('/identitas-kos', IdentitasKosController::class)->name('api.identitas-kos');
 
 // Pemulihan akses (T27). Tanpa `auth:sanctum`: seluruh gunanya adalah untuk
 // orang yang tidak bisa masuk. Ketiganya dibatasi `PembatasMasuk` di dalam
@@ -307,6 +312,13 @@ Route::middleware('auth:sanctum')->group(function () {
                 ->name('komponen.index');
 
             Route::get('/kebijakan', [KebijakanController::class, 'index'])->name('kebijakan.index');
+
+            // Pratinjau denda (K-17). Dibaca siapa pun yang boleh membuka layar
+            // Kebijakan, termasuk pengelola yang hanya membaca: pertanyaan
+            // "1%/hari itu berapa rupiah?" berguna justru sebelum ia mengusulkan
+            // perubahan.
+            Route::get('/kebijakan/pratinjau-denda', [KebijakanController::class, 'pratinjauDenda'])
+                ->name('kebijakan.pratinjau-denda');
 
             // Laporan kerusakan kamar (T14). Dibaca semua yang mengurus kos:
             // pengelola yang menemukan kerusakan perlu tahu apakah sudah ada

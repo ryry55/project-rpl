@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router.js'
 import kartuTabel from './direktif/kartu-tabel.js'
+import { muatIdentitasKos } from './identitas.js'
 import './style.css'
 
 const app = createApp(App).use(router)
@@ -12,6 +13,11 @@ const app = createApp(App).use(router)
 app.directive('kartu-tabel', kartuTabel)
 
 app.mount('#app')
+
+// Nama kos dimuat sekali di sini, bukan di layar masuk: bilah pemilik dan
+// kuitansi memakainya juga, dan menunggu layar pertama selesai berarti judul
+// sempat berubah di depan mata.
+muatIdentitasKos()
 
 /**
  * Mendaftarkan service worker, kalau lingkungannya mendukung.

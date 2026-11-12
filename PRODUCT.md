@@ -80,7 +80,7 @@ pendapatan, tiga ekspor CSV, jejak audit append-only, wewenang pengelola,
 persetujuan pemilik, persetujuan PDP, dan portal penghuni.
 
 Laravel 12 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah Docker Compose.
-89 endpoint, 24 tabel, 872 tes PHP, 31 skrip uji.
+91 endpoint, 24 tabel, 886 tes PHP, 32 skrip uji.
 
 Yang **sengaja tidak** dikerjakan: multi-kos untuk satu pemilik, pembukuan
 akuntansi, inventaris aset, chat di dalam aplikasi, prediksi/analitik.
@@ -127,7 +127,7 @@ merek lain di luar lencana teks tersebut.
 
 - `docs/produk/` — PRD, naskah wawancara pemilik kos, arsitektur, skema,
   kontrak endpoint, rencana uji, SOP operasi, catatan deploy.
-- `docs/uji/` — 31 skrip uji (28 di antaranya lewat browser sungguhan), dan tangkapan
+- `docs/uji/` — 32 skrip uji (29 di antaranya lewat browser sungguhan), dan tangkapan
   layar bukti untuk T2–T28, QR, r3, PB.
 - `docs/erd/` — ERD berjenjang dan LRS, dibangkitkan dari basis data hidup.
 - `docs/akademik/` — laporan akademik yang sudah diserahkan.

@@ -72,6 +72,17 @@ const props = defineProps({
    * kamar" terbaca seperti pilihan yang diabaikan.
    */
   seluruhKos: { type: Boolean, default: false },
+  /**
+   * Tipe ini nilainya teks bebas (nama kos), bukan pilihan dari menu.
+   *
+   * Dikirim server lewat `meta.tipe_teks`, bukan disimpulkan dari `pilihan`
+   * yang kosong: tipe yang menunya belum termuat juga punya `pilihan` kosong,
+   * dan menampilkan medan teks untuk tipe itu akan mengirim nilai yang ditolak
+   * server.
+   */
+  teks: { type: Boolean, default: false },
+  /** Batas panjang medan teks, dari server. */
+  maksTeks: { type: Number, default: 60 },
 })
 
 const emit = defineEmits(['simpan'])
@@ -210,8 +221,16 @@ function kirim() {
 
   const isi = {
     tipe: props.tipe,
-    nilai: nilai.value,
+    nilai: props.teks ? String(nilai.value ?? '').trim() : nilai.value,
     berlaku_dari: berlakuDari.value,
+  }
+
+  // Tipe teks bebas tidak punya pilihan yang bisa kosong: nama kos yang kosong
+  // akan tersimpan sebagai baris tanpa arti, dan layar akan menampilkan
+  // "Belum ditetapkan" padahal barisnya ada.
+  if (props.teks && isi.nilai === '') {
+    galat.value = `${props.label} wajib diisi.`
+    return
   }
 
   for (const kunci of kolomWajib.value) {
@@ -272,7 +291,18 @@ function kirim() {
 
     <form v-if="bolehUbah" class="bidang" @submit.prevent="kirim">
       <div class="baris-bidang">
-        <MedanForm v-if="banyakPilihan" id="nilai-kebijakan" label="Pilihan">
+        <MedanForm v-if="teks" id="nilai-kebijakan" :label="label" :bantuan="`Maksimal ${maksTeks} karakter. Nama ini dipakai di layar masuk, bilah, email, dan kuitansi.`">
+          <input
+            id="nilai-kebijakan"
+            v-model="nilai"
+            type="text"
+            :maxlength="maksTeks"
+            autocomplete="off"
+            :placeholder="berlaku?.label_nilai || 'Nama kos Anda'"
+          />
+        </MedanForm>
+
+        <MedanForm v-else-if="banyakPilihan" id="nilai-kebijakan" label="Pilihan">
           <select id="nilai-kebijakan" v-model="nilai">
             <option v-for="(teks, kode) in pilihan" :key="kode" :value="kode">
               {{ teks }}

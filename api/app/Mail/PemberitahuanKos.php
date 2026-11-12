@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Domain\Kebijakan\IdentitasKos;
 use App\Domain\Notifikasi\Peristiwa;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -35,7 +36,10 @@ class PemberitahuanKos extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '[Kos-Kosan] '.$this->judul,
+            // Nama kos dibaca saat surat dikirim, bukan disimpan di properti:
+            // mailable ini diantrekan, dan nama yang dibekukan saat antre akan
+            // salah bila pemilik mengganti nama kos sebelum antreannya jalan.
+            subject: '['.app(IdentitasKos::class)->nama().'] '.$this->judul,
         );
     }
 

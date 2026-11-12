@@ -6,7 +6,7 @@
 > Sumber kebenaran tetap `api/routes/api.php` dan kelas `Resource`. Dokumen ini
 > diambil dari `php artisan route:list --json` pada aplikasi yang berjalan.
 
-Versi 1.1 · 26 Oktober 2026 · **89 endpoint**
+Versi 1.1 · 26 Oktober 2026 · **91 endpoint**
 
 ---
 
@@ -105,7 +105,7 @@ menerapkan. Lihat §6.
 
 ---
 
-## 3. Autentikasi, akun, dan kesehatan (12 endpoint)
+## 3. Autentikasi, akun, dan kesehatan (13 endpoint)
 
 ### 3.1 Publik
 
@@ -116,6 +116,7 @@ menerapkan. Lihat §6.
 | `POST` | `/api/periksa-token` | `{ token, jenis? }` → `{ data: { berlaku, nama, email } }`; `429` bila terlalu sering |
 | `POST` | `/api/atur-sandi` | `{ token, jenis, password, password_confirmation }` |
 | `GET` | `/api/health` | `200 { data: { status: "ok", database, zona_waktu, waktu } }` atau `503` dengan `status: "down"` |
+| `GET` | `/api/identitas-kos` | `{ data: { nama } }` — nama kos untuk layar masuk; `"Kos-Kosan"` bila belum ditetapkan |
 | `GET` | `/api/pemilik/saja` | Pemeriksa middleware `peran:pemilik`; `403` untuk peran lain |
 
 `/lupa-sandi` selalu `200` meski email tidak terdaftar. Membalas `404` untuk
@@ -186,7 +187,7 @@ meminta, hanya waktunya belum tepat.
 
 ---
 
-## 4. Data kos (37 endpoint)
+## 4. Data kos (38 endpoint)
 
 ### 4.1 Kamar
 
@@ -249,7 +250,14 @@ ditolak (lihat §6).
 | Metode | Path | Middleware |
 |---|---|---|
 | `GET` | `/api/kebijakan` | `peran:pemilik,pengelola` |
+| `GET` | `/api/kebijakan/pratinjau-denda` | `peran:pemilik,pengelola` |
 | `POST` | `/api/kebijakan` | `wewenang:ubah_kebijakan` |
+
+`GET /kebijakan/pratinjau-denda?pokok=&hari_terlambat=&berlaku_pada?` →
+`{ data: { denda, plafon, hari_denda, bentuk, nilai } }`, atau `data: null` bila
+kebijakan denda belum ditetapkan. Angkanya dihitung `Kalkulator` yang sama dengan
+tagihan sungguhan; `plafon` bernilai `null` untuk bentuk yang tidak berplafon
+(nominal tetap), bukan `0`.
 
 `POST` — `{ tipe, nilai, kamar_id?, berlaku_dari, persen?, plafon_persen?, masa_tenggang?, nominal?, tanggal? }`
 
@@ -1023,7 +1031,7 @@ tidak pernah dijalankan.
 | Autentikasi & akun | 8 | `/login`, `/logout`, `/me`, `/ganti-sandi`, `/lupa-sandi`, `/periksa-token`, `/atur-sandi`, `/persetujuan-pdp` |
 | PDP | 2 | `/pdp/*` |
 | Kamar, fasilitas & kerusakan | 13 | `/kamar*`, `/fasilitas*`, `/laporan-kerusakan*` |
-| Tarif, komponen, kebijakan | 6 | `/tarif`, `/komponen-biaya`, `/kebijakan` |
+| Tarif, komponen, kebijakan | 7 | `/tarif`, `/komponen-biaya`, `/kebijakan`, `/kebijakan/pratinjau-denda` |
 | Aturan | 4 | `/aturan*` |
 | Rekening | 5 | `/rekening*`, `/rekening/{id}/gambar` |
 | Penghuni & kontrak | 9 | `/penghuni*`, `/kontrak*` |
@@ -1035,9 +1043,9 @@ tidak pernah dijalankan.
 | Pengelola | 6 | `/pengelola*` |
 | Portal penghuni | 5 | `/penghuni/tagihan`, `/penghuni/aturan`, `/penghuni/rekening`, `/penghuni/kontrak`, `/tagihan/{id}/bayar-daring` |
 | Notifikasi | 5 | `/notifikasi*`, `/pengaturan-notifikasi` |
-| Infrastruktur | 3 | `/health` (§3.1), `/pemilik/saja`, `/penyiapan` (§5.5) |
+| Infrastruktur | 4 | `/health` (§3.1), `/identitas-kos` (§3.1), `/pemilik/saja`, `/penyiapan` (§5.5) |
 | Webhook gateway | 1 | `/webhook/midtrans` (§8.0.1) |
-| **Total** | **89** | |
+| **Total** | **91** | |
 
 ---
 

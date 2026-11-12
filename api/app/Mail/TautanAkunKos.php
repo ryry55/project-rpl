@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Domain\Kebijakan\IdentitasKos;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -37,10 +38,13 @@ class TautanAkunKos extends Mailable
 
     public function envelope(): Envelope
     {
+        // Nama kos dibaca saat surat dikirim, sama seperti `PemberitahuanKos`.
+        $namaKos = app(IdentitasKos::class)->nama();
+
         return new Envelope(
             subject: $this->jenis === 'aktivasi'
-                ? '[Kos-Kosan] Aktifkan akun Anda'
-                : '[Kos-Kosan] Atur ulang kata sandi',
+                ? '['.$namaKos.'] Aktifkan akun Anda'
+                : '['.$namaKos.'] Atur ulang kata sandi',
         );
     }
 

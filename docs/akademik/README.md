@@ -47,7 +47,7 @@ lain.** Diagram tangan tidak bisa diperbaiki saat angkanya berubah.
 | `urutan-data.js` | 14 skenario: peserta, langkah, panah balik, catatan kaki |
 | `urutan-gambar.js` | Menggambar SVG urutan + **pemeriksa** rute dan kelas yang benar-benar ada di `api/app` |
 | `build-diagram.js` | Menulis 17 SVG; menolak menulis bila data ditolak penggambar |
-| `rute-api.json` | Potret `route:list --json` - 89 endpoint |
+| `rute-api.json` | Potret `route:list --json` - 91 endpoint |
 | `tabel-domain.json` | Potret 24 tabel domain dari `pg_attribute` |
 
 ## Membangun ulang
@@ -152,7 +152,7 @@ langkah yang tidak kembali ke aktornya, atau huruf di bawah 2,52 mm di A3.
 ketujuh belas SVG dan PNG yang di-commit dengan hasil penggambaran data
 sekarang — termasuk memastikan setiap PNG tepat 2x SVG-nya.
 
-Angka pada dokumen dibaca dari sumbernya, bukan diketik: 89 endpoint, 24 tabel,
-44 migrasi, 16 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
+Angka pada dokumen dibaca dari sumbernya, bukan diketik: 91 endpoint, 24 tabel,
+45 migrasi, 16 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
 angka yang boleh dikarang — lihat `docs/serah-terima.md` §5 untuk cara
 memeriksanya.

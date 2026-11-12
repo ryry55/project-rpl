@@ -83,6 +83,48 @@ final class DendaTerpilih
     }
 
     /**
+     * Terjemahkan satu baris kebijakan `denda` menjadi bentuk yang bisa dihitung.
+     *
+     * Menerima primitif, bukan model, supaya kelas ini tetap tanpa Eloquent dan
+     * `Kalkulator` tetap bisa diuji tanpa basis data. Dua pemanggil memakainya:
+     * `PenerbitTagihan` saat menerbitkan, dan pratinjau denda di layar Kebijakan.
+     * Tanpa satu tempat ini, keduanya menyalin `match` yang sama — dan salinan
+     * yang tertinggal berarti pratinjau menampilkan angka yang berbeda dari
+     * tagihan sungguhan.
+     *
+     * @throws \UnexpectedValueException
+     */
+    public static function dariNilai(
+        string $nilai,
+        string $persen,
+        string $plafonPersen,
+        int $masaTenggang,
+        int $nominal,
+    ): self {
+        return match ($nilai) {
+            PilihanKebijakan::DENDA_TANPA_DENDA => self::tanpaDenda(),
+
+            PilihanKebijakan::DENDA_NOMINAL_TETAP => self::nominalTetap($nominal),
+
+            PilihanKebijakan::DENDA_PERSEN_BULANAN => self::persenBulanan(
+                $persen,
+                $plafonPersen,
+                $masaTenggang,
+            ),
+
+            PilihanKebijakan::DENDA_PERSEN_HARIAN => self::persenHarian(
+                $persen,
+                $plafonPersen,
+                $masaTenggang,
+            ),
+
+            default => throw new \UnexpectedValueException(
+                "Nilai kebijakan denda \"{$nilai}\" tidak dikenal."
+            ),
+        };
+    }
+
+    /**
      * Kelompok bentuk denda dari kode tipe saja.
      *
      * `berjalan()` saja tidak cukup untuk memilih kalimat di layar: ia menjawab

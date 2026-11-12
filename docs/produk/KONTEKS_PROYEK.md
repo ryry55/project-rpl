@@ -15,7 +15,7 @@ Versi 1.0 · 26 Oktober 2026 · Status: diserahkan
 Aplikasi web untuk pemilik kos kecil (5-30 kamar) mengelola kamar, penghuni,
 tagihan, dan pembayaran. Dibangun sebagai tugas besar mata kuliah Rekayasa
 Perangkat Lunak: Laravel 12.70.1 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah
-Docker Compose untuk menjalankan, 872 tes PHP dan 31 skrip uji untuk
+Docker Compose untuk menjalankan, 886 tes PHP dan 32 skrip uji untuk
 menjaganya. Yang membedakannya dari aplikasi sejenis: **setiap kos boleh punya
 cara kerja sendiri** — satuan sewa, jatuh tempo, dan bentuk dendanya dipilih dari
 menu, bukan dipaksa mengikuti satu pola.
@@ -88,16 +88,16 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 
 | Hal | Angka |
 |---|---|
-| Endpoint API | **89** |
+| Endpoint API | **91** |
 | Tabel (di luar infrastruktur Laravel) | **24** (33 di skema `public`) |
-| Migrasi | **44** |
+| Migrasi | **45** |
 | Model Eloquent | **22** |
 | Kelas domain | **53** (13 folder) |
 | Pengendali | **28** |
 | Middleware | **6** |
 | Trigger basis data | **8** (7 append-only + 1 penjaga pembalik) |
-| Tes PHP | **872** (3987 asersi) di **51** berkas |
-| Skrip browser | **32** `.mjs` (31 terdaftar di gate; `uji-proxy.mjs` terpisah) |
+| Tes PHP | **886** (4024 asersi) di **52** berkas |
+| Skrip browser | **33** `.mjs` (32 terdaftar di gate; `uji-proxy.mjs` terpisah) |
 | Halaman SPA | **27** komponen view · **31** rute bernama |
 | Wewenang pengelola | **8** |
 | Peristiwa notifikasi | **9** |
@@ -107,7 +107,7 @@ Seluruh rangkaian browser: **SEMUA LULUS (576 detik)** di laptop.
 > **Angka-angka ini punya cara diperiksa, dan cara itu ada di repo.** Sebelum
 > fase terakhir, tabel ini tertinggal jauh (71 endpoint, 22 tabel, 36 migrasi,
 > 748 tes) karena diketik tangan. Yang benar sekarang dibaca dari sumbernya:
-> `node docs/akademik/build-dokumen.js` mencetak `89 endpoint · 24 tabel`, dan
+> `node docs/akademik/build-dokumen.js` mencetak `91 endpoint · 24 tabel`, dan
 > `php artisan test` mencetak jumlah tesnya. Jangan mengetik ulang angkanya -
 > angka yang diketik akan tertinggal lagi.
 
@@ -246,8 +246,8 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 ├── 3_ARCHITECTURE.md     Lapisan, 9 keputusan besar + alternatif yang ditolak
 ├── 4_AGENTS.md           Cara mengubah kode tanpa merusak apa pun
 ├── 5_SCHEMAS.md          24 tabel, CHECK, indeks, trigger (dari DB nyata)
-├── 6_TOOLS_CONTRACTS.md  89 endpoint, middleware, bentuk request/response
-├── 7_TESTING_EVALS.md    872 tes, 31 skrip, prinsip "buktikan bisa gagal"
+├── 6_TOOLS_CONTRACTS.md  91 endpoint, middleware, bentuk request/response
+├── 7_TESTING_EVALS.md    886 tes, 32 skrip, prinsip "buktikan bisa gagal"
 └── 8_OPERATIONS_SOP.md   Deploy, backup, pemulihan, insiden, batas gratis
 ```
 
@@ -258,7 +258,7 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 | `AGENTS.md` | Pintu masuk singkat untuk agen; menunjuk ke `4_AGENTS.md` |
 | `SPEC.md` | Spesifikasi 42 KB; sumber kebenaran aturan bisnis |
 | `docs/utang-teknis.md` | Register utang teknis — **baca ini sebelum mengeluh** |
-| `docs/uji/README.md` | Katalog 31 skrip uji dan jebakannya |
+| `docs/uji/README.md` | Katalog 32 skrip uji dan jebakannya |
 | `docs/ci-cd.md` | Tiga workflow, rinci |
 | `docs/dfd/` | Diagram alir data dan kamus data |
 | `docs/charter/` | Project Charter (docx + pdf) |

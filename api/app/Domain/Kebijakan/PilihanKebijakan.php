@@ -59,6 +59,21 @@ final class PilihanKebijakan
 
     public const TERBIT_TANGGAL_TETAP = 'tanggal_tetap';
 
+    /**
+     * Nama kos (K-17).
+     *
+     * Satu-satunya tipe **teks bebas**: tidak ada daftar nama yang bisa disusun
+     * di muka, jadi `menu()` sengaja tidak punya entri untuknya dan validasinya
+     * memakai batas panjang, bukan `in`. Nilainya dipakai di judul bilah,
+     * subjudul layar masuk, subjek email, dan kuitansi.
+     *
+     * Tidak wajib: kosong berarti "Kos-Kosan", perilaku sebelum fitur ini.
+     */
+    public const TIPE_NAMA_KOS = 'nama_kos';
+
+    /** Batas panjang nama kos, sama dengan lebar kolom `nilai`. */
+    public const MAKS_NAMA_KOS = 60;
+
     public const SATUAN_BULANAN = 'bulanan';
 
     public const SATUAN_MINGGUAN = 'mingguan';
@@ -102,6 +117,7 @@ final class PilihanKebijakan
         self::TIPE_DENDA,
         self::TIPE_POLA_TAGIHAN,
         self::TIPE_TANGGAL_TERBIT,
+        self::TIPE_NAMA_KOS,
     ];
 
     /**
@@ -157,7 +173,30 @@ final class PilihanKebijakan
      */
     public static function tipeGlobal(): array
     {
-        return [self::TIPE_POLA_TAGIHAN, self::TIPE_TANGGAL_TERBIT];
+        return [self::TIPE_POLA_TAGIHAN, self::TIPE_TANGGAL_TERBIT, self::TIPE_NAMA_KOS];
+    }
+
+    /**
+     * Tipe yang nilainya teks bebas, bukan pilihan dari menu.
+     *
+     * Dipakai validasi (batas panjang, bukan `in`) dan layar (medan teks, bukan
+     * dropdown). Satu daftar, karena salinan di Vue akan tertinggal saat tipe
+     * teks berikutnya ditambahkan — dan gejalanya adalah formulir yang mengirim
+     * nilai yang ditolak server.
+     *
+     * @return list<string>
+     */
+    public static function tipeTeks(): array
+    {
+        return [self::TIPE_NAMA_KOS];
+    }
+
+    /**
+     * Batas panjang nilai untuk tipe teks bebas.
+     */
+    public static function maksTeks(string $tipe): int
+    {
+        return $tipe === self::TIPE_NAMA_KOS ? self::MAKS_NAMA_KOS : 0;
     }
 
     public static function labelTipe(string $tipe): string
@@ -168,6 +207,7 @@ final class PilihanKebijakan
             self::TIPE_DENDA => 'Denda',
             self::TIPE_POLA_TAGIHAN => 'Pola tagihan',
             self::TIPE_TANGGAL_TERBIT => 'Tanggal terbit',
+            self::TIPE_NAMA_KOS => 'Nama kos',
             default => $tipe,
         };
     }

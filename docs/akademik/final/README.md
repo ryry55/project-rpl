@@ -96,10 +96,10 @@ Generator membaca dari sumber-sumber itu; bila angka berubah (kolom bertambah, e
 ## Angka yang Dijaga
 
 Build memastikan tidak ada angka yang diketik tangan:
-- **89 endpoint** (`api/routes/api.php`)
+- **91 endpoint** (`api/routes/api.php`)
 - **24 tabel**, **209 kolom**, **29 kunci asing**
 - **14 use case**, **16 aliran batas**
-- Tes: **872 PHP**, **19 Vitest**, **31 skrip uji** (568 detik untuk 895 langkah)
+- Tes: **886 PHP**, **19 Vitest**, **32 skrip uji** (568 detik untuk 905 langkah)
 - Ukuran huruf LRS: **2,74 mm** (A3 tegak), **1,94 mm** (A4 terbaik)
 
 Angka-angka ini dijaga oleh pemeriksa yang tertanam di generator. Lihat `docs/serah-terima.md` §5 untuk cara memeriksanya sendiri.
@@ -110,8 +110,8 @@ Angka-angka ini dijaga oleh pemeriksa yang tertanam di generator. Lihat `docs/se
 
 CI hijau pada commit **f0f503c** (run `41276981323`). Hasil gate penuh:
 - Format/lint: pint, eslint, vitest bersih
-- Tes: 872 PHP / 3987 asersi, 19 Vitest / 235 asersi
-- Browser: 31 skrip / 895 langkah
+- Tes: 886 PHP / 4024 asersi, 19 Vitest / 235 asersi
+- Browser: 32 skrip / 905 langkah
 - Pemeriksa dokumen: konsistensi ERD/LRS, DFD, cakupan kontrak, angka dokumenn
 
 ---
