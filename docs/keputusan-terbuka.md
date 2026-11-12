@@ -351,3 +351,101 @@ angka skema yang sudah dikunci di `SPEC.md` §4-§7.
 tidak mengubah angka skema), dengan tagihan tetap penuh dan penutupan oleh
 pemilik saja. Pilihan itu tidak dipakai.
 
+---
+
+## K-14 — Siklus tagihan anniversary & tingkat saklar pola — menunggu (hanya d)
+
+**Fase:** fitur pasca-R7 · **Tanggal:** 13 November 2026
+
+**Jawaban sebagian (13 November 2026).**
+
+- **a. Anniversary dipilih (Level 2).** Pola tagihan `anniversary`: awal siklus =
+  tanggal masuk kontrak dijepit ke akhir bulan (masuk 31 Jan → 28 Feb), jatuh
+  tempo mengikuti desain SPEC §5 yang sudah ada. Bawaan tetap `tanggal_1`, dan
+  kebijakan kosong = `tanggal_1` — filosofi §12 (kebijakan kosong = gerbang yang
+  terlihat) tidak berubah untuk satuan/jatuh tempo/denda.
+- **b. Level 1 ikut.** Pemilik dapat menetapkan tanggal terbit otomatis; nama kos
+  di kepala layar dan pratinjau denda ikut di fase yang sama.
+- **c. `SPEC.md` dan `docs/revisi.md` boleh disunting** — sebagai amandemen
+  bertanggal (R-08 + Putaran 4 di `revisi.md`), bukan penulisan ulang riwayat.
+
+**Pertanyaan (d).** Saklar pola tagihan dipasang di tingkat apa: satu kebijakan
+global untuk kos, atau per kontrak (kamar A anniversary, kamar B tanggal 1)?
+
+**Pilihan.**
+
+- **A. Global satu saklar (rekomendasi sesi).** Cukup untuk cerita sidang; satu
+  layar Kebijakan; pola berbeda antar kontrak dilakukan dengan mengganti pola
+  sebelum kontrak berjalan (tidak menagih mundur).
+- **B. Per kontrak.** Lebih lebar, tetapi scheduler harus menyaring per kontrak,
+  UI kedua, ±10 tes tambahan, dan risiko salah uang di inti penerbitan naik.
+  Tidak ada kos nyata dengan pola campur dalam satu periode.
+
+**Karena.** Menyentuh uang (ritme penerbitan tagihan) dan bentuk konfigurasi yang
+dilihat pemilik — dua hal di tabel "wajib bertanya" `AGENTS.md`.
+
+**Kalau tidak dijawab.** Fase 1 tidak dimulai; sesi mengerjakan bagian yang tidak
+bergantung pada keputusan ini (Fase 5 kerusakan) lebih dulu.
+
+---
+
+## K-15 — Laporan kerusakan dari sisi penghuni, dengan foto lampiran — dijawab
+
+**Fase:** fitur pasca-R7 · **Tanggal:** 13 November 2026
+
+**Jawaban (13 November 2026).**
+
+1. **Penghuni boleh melaporkan kerusakan** dari portal untuk kamar kontraknya
+   sendiri; `kamar_id` diambil server dari kontrak aktif, bukan dari request.
+2. **Penghuni melihat status laporannya sendiri** (baru → dikerjakan → selesai).
+   Alur T14 selama ini hanya setengah: pencatatan dan penyelesaian ada, pelapor
+   aslinya tidak bisa melapor.
+3. **Foto lampiran: ya** ("jadi lengkap" — keputusan pemilik). Batas teknis:
+   jpg/png/webp, maks 5 MB, maks 3 foto per laporan.
+4. **Akses foto: pelapor + pengelola/pemilik saja.** Penyimpanan privat + tautan
+   bertanda tangan berbatas waktu; tidak boleh ada foto kamar yang bisa dibuka
+   orang luar.
+
+**Batas yang tidak berubah dari K-13:** biaya perbaikan tetap tidak masuk tagihan
+penghuni; penutupan laporan tetap wewenang `kelola_kamar`; kamar `perbaikan`
+tetap ditagih penuh. Tabel baru `lampiran_kerusakan` menambah angka skema — angka
+di SPEC §6 diperbarui saat fase itu mendarat, bukan ditebak di sini.
+
+**Pertanyaan.** T14 (K-13) memodelkan pencatatan dan penyelesaian, bukan pelapor
+aslinya: hanya pemilik/pengelola ber-wewenang `kelola_kamar` yang bisa membuat
+laporan. Apakah penghuni boleh melapor sendiri, melihat status, dan melampirkan
+foto?
+
+**Karena.** Menyentuh perilaku yang dilihat pengguna (layar baru di portal),
+cakupan (endpoint + tabel baru), dan data pribadi (foto kamar) — tabel "wajib
+bertanya" `AGENTS.md`.
+
+**Kalau tidak dijawab.** Tidak dipakai — keputusan sudah diambil.
+
+---
+
+## K-16 — Pengelolaan akses perangkat & visibilitas sandi WiFi — dijawab
+
+**Fase:** fitur pasca-R7 (perangkat) · **Tanggal:** 13 November 2026
+
+**Jawaban (13 November 2026).**
+
+- **b. Akses perangkat dikelola pemilik dan pengelola.** Keduanya aktor yang
+  berwenang; bentuk wewenangnya (memakai `kelola_kamar` atau wewenang baru
+  `kelola_perangkat`) diputuskan saat desain fase itu dan dicatat di SPEC §7.
+- **c. Penghuni boleh melihat sandi WiFi** di portalnya — hanya kredensial
+  berjenis `wifi` untuk kos yang ia tinggali, bukan kredensial perangkat lain
+  (CCTV/RFID).
+- **Konsekuensi keamanan:** sandi WiFi disimpan terenkripsi di basis data, hanya
+  ditampilkan setelah login, dan dikirim server saat diminta — tidak dibakar ke
+  bundle JavaScript.
+
+**Pertanyaan.** Dua pertanyaan desain yang tersisa dari rencana fitur perangkat:
+siapa yang mengelola akses (pemilik saja, atau pengelola juga), dan apakah
+penghuni boleh melihat sandi WiFi di aplikasi.
+
+**Karena.** Menyentuh perilaku yang dilihat pengguna, siapa-boleh-melihat-apa
+(data kredensial), dan cakupan.
+
+**Kalau tidak dijawab.** Tidak dipakai — keputusan sudah diambil.
+
