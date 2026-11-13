@@ -40,6 +40,7 @@ Lulus bila `p95` di bawah 1.000 ms dan `galat: 0`. Tiga pengukuran di mesin ini:
 0 galat) — selisihnya besar karena keadaan mesin, jadi ukur ulang sebelum sidang.
 
 - [x] Diukur 31 Oktober 2026: p95 603 ms, lulus.
+- [x] Diukur 13 November 2026: p95 610 ms, 129 permintaan/detik, 0 galat.
 
 Bila p95 melewati ambang: tutup Chrome dan tab lain lebih dulu, lalu ulangi.
 Yang diukur adalah mesin yang sedang dipakai, bukan sifat aplikasi.

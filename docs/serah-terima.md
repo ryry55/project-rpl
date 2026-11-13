@@ -18,7 +18,7 @@ Terakhir diperbarui: 13 November 2026, sesudah Fase 7 (revisi desain).
 | Migrasi / endpoint / tabel domain | **47** / **100** / **26** (total 35 di skema `public`) |
 | Skrip uji | **35** `.mjs`: **34** (31 browser + 2 balapan + 1 jalur proxy) dijalankan gate + `_cdp.mjs` |
 | Langkah E2E | **942** di 34 skrip, **546 detik** gate penuh; `asap-semua-halaman.mjs` **25/25** |
-| Keputusan pemilik | K-14, K-15, K-16, K-17 dijawab |
+| Keputusan pemilik | K-14..K-18 dijawab |
 | Ticket GitHub | **#11, #12, #13, #14 tertutup.** Tidak ada issue terbuka |
 
 Catatan: `POST /csp-laporan` di luar `/api/`, sengaja tidak masuk hitungan 100 endpoint.
@@ -63,7 +63,7 @@ baru sebelumnya tidak disapu), dan angka basi di 12 dokumen disegarkan:
 | Konvensi T24-T29 | `AGENTS.md` |
 | Sumber tunggal DFD / use case | `docs/dfd/dfd-data.js`, `docs/akademik/usecase-data.js` |
 | Sumber tunggal diagram kelas / urutan | `docs/akademik/kelas-data.js`, `docs/akademik/urutan-data.js` |
-| Keputusan pemilik | `docs/keputusan-terbuka.md` (K-01..K-17) |
+| Keputusan pemilik | `docs/keputusan-terbuka.md` (K-01..K-18) |
 | Langkah deploy manual | `docs/produk/9_DEPLOY.md` |
 
 **Desain dikunci pada arah "buku besar tanpa warna"** (`2_DESIGN_SYSTEM.md`).
