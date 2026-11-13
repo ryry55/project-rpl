@@ -176,11 +176,14 @@ const STORE = [
     atribut:
       'tarif_sewa: kamar_id, nilai, berlaku_dari · ' +
       'komponen_biaya: nama, nilai, satuan, kamar_id, berlaku_dari · ' +
-      'kebijakan_kos: tipe, nilai, persen, plafon_persen, masa_tenggang, nominal, tanggal, kamar_id, berlaku_dari',
+      'kebijakan_kos: tipe, nilai, persen, plafon_persen, masa_tenggang, nominal, tanggal, kamar_id, berlaku_dari · ' +
+      'perangkat: jenis, nama, lokasi, nama_pengguna, sandi, aktif',
     isi:
-      'Tarif sewa, kebijakan kos per dimensi, dan komponen biaya. Bersifat ' +
-      'tambah-saja: perubahan membuat baris baru dengan berlaku_dari sendiri, ' +
-      'baris lama tidak pernah ditimpa.',
+      'Tarif sewa, kebijakan kos per dimensi, komponen biaya, dan kredensial ' +
+      'perangkat (WiFi, CCTV, RFID). Tarif dan kebijakan bersifat tambah-saja: ' +
+      'perubahan membuat baris baru dengan berlaku_dari sendiri, baris lama ' +
+      'tidak pernah ditimpa. Sandi perangkat dienkripsi dan hanya dikirim saat ' +
+      'diminta.',
   },
   {
     id: 'D4',
@@ -363,7 +366,7 @@ const ALIRAN = [
   {
     kunci: 'A3', kode: '12', jenis: 'internal', dari: 'P2', ke: 'D3',
     label: ['tarif, kebijakan', '& komponen'],
-    struktur: 'tarif: kamar_id, nilai, berlaku_dari · kebijakan: tipe, nilai, angka, kamar_id, berlaku_dari',
+    struktur: 'tarif: kamar_id, nilai, berlaku_dari · kebijakan: tipe, nilai, angka, kamar_id, berlaku_dari · perangkat: jenis, nama, sandi',
     catatan: '',
   },
   {

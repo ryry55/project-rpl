@@ -1,7 +1,7 @@
 # Proses Bisnis & Spesifikasi Pemodelan Sistem Informasi Operasional Kos-Kosan
 
 > **Dibangkitkan, jangan disunting tangan** — `node docs/akademik/build-dokumen.js`.
-> Angka dibaca dari `rute-api.json` (94 endpoint), `tabel-domain.json` (25 tabel),
+> Angka dibaca dari `rute-api.json` (100 endpoint), `tabel-domain.json` (26 tabel),
 > `usecase-data.js` (14 use case), `api/composer.lock` (Laravel 12.70.1),
 > dan `docs/dfd/dfd-data.js` (16 aliran batas).
 
@@ -17,8 +17,8 @@ Pembedanya dari pencatatan manual bukan kelengkapan fitur, melainkan **siapa
 yang berhak melakukan apa**: **pemilik** memutuskan, **pengelola** berwenang
 terbatas mengusulkan, **penghuni** hanya membaca. Pengelola ber-wewenang
 `ubah_tarif` pun tidak menetapkan tarif. Uang dicatat sebagai peristiwa yang
-tidak bisa diubah. Cakupan: **94 endpoint** `/api`, **14 use case**, **3
-aktor**, **25 tabel domain** dari **46 migrasi**.
+tidak bisa diubah. Cakupan: **100 endpoint** `/api`, **14 use case**, **3
+aktor**, **26 tabel domain** dari **47 migrasi**.
 
 ## 2. Aktor dan Entitas Eksternal Sistem
 
@@ -64,7 +64,7 @@ Satu siklus bulanan; setiap langkah menunjuk endpoint nyata pada `api/routes/api
 ## 4. Pemodelan Berorientasi Objek (UML Use Case Diagram)
 
 Batas sistem mencakup seluruh fungsionalitas aplikasi operasional kos: **3
-aktor**, **14 use case** — jumlah final, diturunkan dari 94 endpoint nyata
+aktor**, **14 use case** — jumlah final, diturunkan dari 100 endpoint nyata
 yang terpetakan habis tanpa sisa dan tanpa satu pun dipakai dua use case.
 
 ### 4.1 Deskripsi 14 Use Cases Fungsional
@@ -153,7 +153,7 @@ dari pengelola karena pengelola mengusulkan (I-6) sementara pemilik memutuskan
 
 ## 6. Entitas Data Utama
 
-25 tabel domain dikelompokkan menjadi 12 entitas logis: pembaca laporan
+26 tabel domain dikelompokkan menjadi 13 entitas logis: pembaca laporan
 mengenal "kontrak", bukan tabel penghubung.
 
 | Entitas | Atribut Data Utama & Ruang Lingkup |
@@ -170,6 +170,7 @@ mengenal "kontrak", bukan tabel penghubung.
 | Persetujuan PDP & Preferensi Notifikasi | user_id, versi, disetujui_pada, peristiwa, kanal, aktif |
 | Rekening Tujuan Pembayaran | id, jenis, nama, nomor, atas_nama, aktif, urutan |
 | Aturan Kos | id, judul, isi, kategori, sanksi, aktif |
+| Perangkat Kos | id, jenis, nama, lokasi, nama_pengguna, sandi, aktif |
 
 ## 7. Aturan Bisnis Pokok Sistem
 

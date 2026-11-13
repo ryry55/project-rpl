@@ -798,6 +798,35 @@ dibaca `PenerbitanMassal` atau `Kalkulator`.
 
 ---
 
+### 2.24 `perangkat` (K-16)
+
+Kredensial perangkat kos: WiFi, CCTV, kartu RFID.
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `id` | `bigserial` | PK |
+| `jenis` | `varchar(20)` NOT NULL | CHECK: `wifi`, `cctv`, `rfid`, `lainnya` |
+| `nama` | `varchar(60)` NOT NULL | nama yang dikenali penghuni |
+| `lokasi` | `varchar(80)` NULL | mis. "dekat tangga" |
+| `nama_pengguna` | `varchar(80)` NULL | SSID WiFi atau nama pengguna perangkat |
+| `sandi` | `text` NULL | **terenkripsi** lewat cast `encrypted` |
+| `catatan` | `varchar(200)` NULL | petunjuk pemakaian |
+| `aktif` | `boolean` NOT NULL | tampil atau tidak di portal penghuni |
+| `urutan` | `smallint` NOT NULL | urutan tampil |
+| `created_at`, `updated_at` | `timestamptz` | |
+
+**Indeks:** `perangkat_aktif_urutan_index`.
+
+**Kenapa satu tabel, bukan tabel per jenis.** Bentuk keempat jenis sama; empat
+tabel berarti empat kolom yang sama dan empat endpoint yang isinya sama.
+
+**Kenapa `sandi` dienkripsi dan tidak ikut di daftar.** Sandi hanya keluar lewat
+`GET /perangkat/{id}/sandi`, dan hanya untuk penghuni lewat
+`GET /penghuni/perangkat` yang menyaring jenis `wifi`. Log audit tidak pernah
+memuatnya - hanya `ada_sandi` dan penanda `sandi_diganti`.
+
+---
+
 ## 3. Trigger append-only
 
 Delapan trigger: tujuh pasang `append_only` (UPDATE dan DELETE) ditambah satu

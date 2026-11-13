@@ -6,7 +6,7 @@
 
 #### 4.1.1. Basis Data
 
-Berikut adalah perancangan basis data menggunakan metode Normalisasi. Hasil akhirnya adalah 25 tabel, 217 kolom, dan 30 kunci asing, yang seluruhnya dipakai aplikasi — bukan rancangan di atas kertas.
+Berikut adalah perancangan basis data menggunakan metode Normalisasi. Hasil akhirnya adalah 26 tabel, 228 kolom, dan 30 kunci asing, yang seluruhnya dipakai aplikasi — bukan rancangan di atas kertas.
 
 1. Unnormalized Form (NF0)
 
@@ -77,22 +77,22 @@ ERD menggambarkan entitas beserta relasinya memakai notasi Chen: persegi panjang
 
 LRS adalah kelanjutan ERD: entitas dan relasinya diubah menjadi struktur tabel dengan kolom, kunci primer, dan kunci asing. Kunci primer digarisbawahi dan kunci asing bertanda bintang.
 
-LRS digambar dalam satu bagan yang memuat seluruh atribut — seluruh 217 kolom dari 25 tabel, bukan hanya kolom kunci. Kunci primer digarisbawahi, kunci asing bertanda bintang dan dihubungkan panah ke tabel yang dituju.
+LRS digambar dalam satu bagan yang memuat seluruh atribut — seluruh 228 kolom dari 26 tabel, bukan hanya kolom kunci. Kunci primer digarisbawahi, kunci asing bertanda bintang dan dihubungkan panah ke tabel yang dituju.
 
-Bagan itu diserahkan sebagai lampiran A3 terpisah. Ini keputusan yang diambil setelah mengukur seluruh kemungkinan, bukan karena gambar A4 tidak dicoba: pada ambang baca 2,52 mm, varian dua sampai enam kolom di A4 tegak maupun miring semuanya gagal, dan yang terbaik hanya 1,86 mm. Yang menentukan bukan jumlah piksel, melainkan nisbah tinggi huruf terhadap ukuran kertas. Pada A3 tegak dengan empat kolom, hurufnya 2,62 mm — yang terbesar di antara bentuk yang lolos ambang, jadi bentuk itulah yang dipakai. Atribut dan tipe setiap tabel juga ada di Tabel 4.1 sampai Tabel 4.9.
+Bagan itu diserahkan sebagai lampiran A3 terpisah. Ini keputusan yang diambil setelah mengukur seluruh kemungkinan, bukan karena gambar A4 tidak dicoba: pada ambang baca 2,52 mm, varian dua sampai enam kolom di A4 tegak maupun miring semuanya gagal, dan yang terbaik hanya 1,80 mm. Yang menentukan bukan jumlah piksel, melainkan nisbah tinggi huruf terhadap ukuran kertas. Pada A3 tegak dengan empat kolom, hurufnya 2,54 mm — yang terbesar di antara bentuk yang lolos ambang, jadi bentuk itulah yang dipakai. Atribut dan tipe setiap tabel juga ada di Tabel 4.1 sampai Tabel 4.9.
 
 *Gambar 4.6 Logical Record Structure (LRS) — lampiran A3*
 
-> **Lembar terpisah A3 (297 × 420 mm).** Gambar ini diserahkan sebagai lampiran (`../erd/03-L3-lrs.png`), bukan ditempel di halaman ini. Alasannya diukur, bukan dipilih: seluruh 217 kolom hanya mencapai 2,62 mm tinggi huruf pada A3 tegak, sedangkan pada A4 yang terbaik hanya 1,86 mm — di bawah ambang baca 2,52 mm. Bila lembar A3 diperkecil ke lebar A4, hasilnya persis sama dengan menggambarnya di A4 sejak awal.
+> **Lembar terpisah A3 (297 × 420 mm).** Gambar ini diserahkan sebagai lampiran (`../erd/03-L3-lrs.png`), bukan ditempel di halaman ini. Alasannya diukur, bukan dipilih: seluruh 228 kolom hanya mencapai 2,54 mm tinggi huruf pada A3 tegak, sedangkan pada A4 yang terbaik hanya 1,80 mm — di bawah ambang baca 2,52 mm. Bila lembar A3 diperkecil ke lebar A4, hasilnya persis sama dengan menggambarnya di A4 sejak awal.
 
-> Dua puluh lima tabel, seluruh 217 kolom, dalam satu bagan. Kunci primer digarisbawahi; kunci asing bertanda bintang dan dihubungkan panah ke tabel yang dituju. Arah hubungan dibawa oleh panah, bukan oleh angka 1/N — angka itu milik notasi Chen dan tidak dipakai pada LRS.
+> Dua puluh enam tabel, seluruh 228 kolom, dalam satu bagan. Kunci primer digarisbawahi; kunci asing bertanda bintang dan dihubungkan panah ke tabel yang dituju. Arah hubungan dibawa oleh panah, bukan oleh angka 1/N — angka itu milik notasi Chen dan tidak dipakai pada LRS.
 
-Seluruh 25 tabel hasil normalisasi:
+Seluruh 26 tabel hasil normalisasi:
 
 | Kelompok | Tabel |
 |---|---|
 | Data master | `users`, `penghuni`, `kamar`, `laporan_kerusakan`, `lampiran_kerusakan`, `fasilitas`, `kamar_fasilitas`, `tarif_sewa`, `komponen_biaya`, `rekening` |
-| Kebijakan dan aturan | `kebijakan_kos`, `aturan_kos` |
+| Kebijakan dan aturan | `kebijakan_kos`, `aturan_kos`, `perangkat` |
 | Transaksi | `kontrak`, `tagihan`, `tagihan_rincian`, `pembayaran`, `verifikasi_pembayaran` |
 | Gerbang pembayaran | `transaksi_gateway` |
 | Tata kelola dan jejak | `pengelola_kewenangan`, `usulan_perubahan`, `log_audit`, `persetujuan_pdp` |

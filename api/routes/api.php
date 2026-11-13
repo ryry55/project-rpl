@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\PengaturanNotifikasiController;
 use App\Http\Controllers\Api\PengelolaController;
 use App\Http\Controllers\Api\PenghuniController;
 use App\Http\Controllers\Api\PenyiapanController;
+use App\Http\Controllers\Api\PerangkatController;
 use App\Http\Controllers\Api\PortalPenghuniController;
 use App\Http\Controllers\Api\RekeningController;
 use App\Http\Controllers\Api\TagihanController;
@@ -196,6 +197,12 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/penghuni/kontrak', [PortalPenghuniController::class, 'kontrak'])
                 ->name('penghuni.kontrak');
 
+            // Perangkat kos dari sisi penghuni (K-16). Hanya WiFi yang aktif,
+            // dan hanya bila kontraknya masih berjalan - lihat
+            // `PerangkatController::indexPenghuni`.
+            Route::get('/penghuni/perangkat', [PerangkatController::class, 'indexPenghuni'])
+                ->name('penghuni.perangkat');
+
             // Laporan kerusakan dari sisi penghuni (K-15). Sebelum ini
             // penghuni hanya bisa mengirim WhatsApp, dan fotonya hilang.
             // `kamar_id` diambil server dari kontrak aktif - lihat
@@ -322,6 +329,14 @@ Route::middleware('auth:sanctum')->group(function () {
                 ->parameters(['fasilitas' => 'fasilitas']);
             Route::apiResource('aturan', AturanController::class)->only(['index']);
 
+            // Perangkat kos (K-16). Dibaca semua yang mengurus kos: pengelola
+            // yang menjawab pertanyaan "sandi WiFi-nya apa" perlu melihat
+            // daftarnya, dan sandinya hanya dikirim saat diminta lewat
+            // `/perangkat/{id}/sandi`.
+            Route::apiResource('perangkat', PerangkatController::class)->only(['index']);
+            Route::get('/perangkat/{perangkat}/sandi', [PerangkatController::class, 'sandi'])
+                ->name('perangkat.sandi');
+
             // Rekening tujuan pembayaran (REV-UI-05). Dibaca semua yang
             // mengurus kos: pengelola yang menagih perlu tahu ke mana penghuni
             // harus mentransfer, dan itu pertanyaan yang sama dengan yang
@@ -444,6 +459,14 @@ Route::middleware('auth:sanctum')->group(function () {
             // tentang kos, bukan angka uang, dan orang yang mengurus kamar memang
             // yang tahu aturannya.
             Route::apiResource('aturan', AturanController::class)
+                ->only(['store', 'update', 'destroy']);
+
+            // Perangkat kos (K-16) ikut wewenang yang sama, dengan alasan yang
+            // sama: kredensial WiFi/CCTV/RFID adalah bagian dari mengurus kos,
+            // bukan angka uang. K-16 menyerahkan bentuk wewenangnya ke desain
+            // fase ini; wewenang pengelola berjumlah delapan dan terkunci di
+            // SPEC §5, jadi tidak ada yang kesembilan.
+            Route::apiResource('perangkat', PerangkatController::class)
                 ->only(['store', 'update', 'destroy']);
         });
 

@@ -193,6 +193,20 @@ class PencatatAudit
     public const AKSI_ATURAN_HAPUS = 'aturan.hapus';
 
     /**
+     * Kredensial perangkat kos (K-16): WiFi, CCTV, RFID.
+     *
+     * Sandinya **tidak pernah** masuk `nilai_lama`/`nilai_baru`. Log audit
+     * dibaca manusia dan disimpan lama; sandi di dalamnya membatalkan seluruh
+     * gunanya enkripsi di tabel `perangkat`. Yang dicatat hanya `ada_sandi`
+     * dan, saat berganti, penanda `sandi_diganti`.
+     */
+    public const AKSI_PERANGKAT_TAMBAH = 'perangkat.tambah';
+
+    public const AKSI_PERANGKAT_UBAH = 'perangkat.ubah';
+
+    public const AKSI_PERANGKAT_HAPUS = 'perangkat.hapus';
+
+    /**
      * Email notifikasi gagal dikirim (B3).
      *
      * Entitasnya `email` dengan `entitas_id` kosong: yang gagal adalah

@@ -55,6 +55,8 @@ const KETERANGAN_TABEL = {
     'Rekening tujuan pembayaran milik kos, termasuk gambar QRIS yang disimpan sebagai biner.',
   aturan_kos:
     'Teks aturan dan sanksi yang ditampilkan kepada penghuni.',
+  perangkat:
+    'Kredensial perangkat kos: WiFi, CCTV, kartu RFID. Sandinya terenkripsi dan hanya dikirim saat diminta.',
   log_audit:
     'Jejak setiap tindakan yang mengubah data, beserta pelaku dan waktunya.',
   usulan_perubahan:
@@ -91,6 +93,9 @@ const KETERANGAN_KOLOM = {
   'lampiran_kerusakan.mime': 'jenis yang diperiksa dari isi berkas, bukan dari nama atau Content-Type kiriman',
   'lampiran_kerusakan.ukuran': 'ukuran isi dalam byte, disimpan terpisah supaya daftar tidak perlu menarik gambarnya',
   'lampiran_kerusakan.isi': 'byte gambar; hanya dibaca lewat tautan bertanda tangan berbatas waktu',
+  'perangkat.jenis': 'wifi | cctv | rfid | lainnya; hanya wifi yang boleh dilihat penghuni',
+  'perangkat.sandi': 'terenkripsi; tidak pernah ikut di daftar, hanya lewat endpoint tersendiri',
+  'perangkat.aktif': 'kosong dari portal penghuni bila false, tanpa menghapus barisnya',
   'tarif_sewa.nilai': 'rupiah bulat per satuan sewa yang berlaku',
   'tarif_sewa.berlaku_dari': 'tanggal mulai berlakunya tarif; tarif lama tidak dihapus',
   'komponen_biaya.nama': 'mis. Listrik, Air, Kebersihan',
@@ -161,6 +166,7 @@ const URUTAN_TABEL = [
   'transaksi_gateway',
   'rekening',
   'aturan_kos',
+  'perangkat',
   'pengelola_kewenangan',
   'usulan_perubahan',
   'log_audit',

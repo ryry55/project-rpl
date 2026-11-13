@@ -156,9 +156,9 @@ const tulisGambar = (berkas, keterangan, catatan) => {
  * Gambar yang TIDAK ditempel di badan laporan A4, melainkan diserahkan sebagai
  * lampiran berukuran lain.
  *
- * Dipakai untuk LRS. Seluruh 217 kolom hanya terbaca pada A3 tegak (2,62 mm);
+ * Dipakai untuk LRS. Seluruh 228 kolom hanya terbaca pada A3 tegak (2,54 mm);
  * bila gambar A3 itu ditempel ke halaman A4, ia diperkecil dan hurufnya jatuh
- * ke 1,86 mm - di bawah ambang 2,52 mm. Menempelkannya di sini justru
+ * ke 1,80 mm - di bawah ambang 2,52 mm. Menempelkannya di sini justru
  * menghasilkan gambar yang tidak terbaca, padahal lampirannya terbaca.
  *
  * Karena itu yang ditulis di badan laporan adalah keterangan gambarnya beserta

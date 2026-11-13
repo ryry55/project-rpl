@@ -410,16 +410,16 @@ penutupan. Daftar yang tidak dicatat akan terlupakan.
 ```
 api/
   app/Domain/            55 kelas, 13 folder - semua aturan
-  app/Http/Controllers/  29 pengendali — hanya menerjemahkan
+  app/Http/Controllers/  30 pengendali — hanya menerjemahkan
   app/Http/Middleware/   6 middleware
   app/Http/Requests/     validasi
   app/Http/Resources/    15 resource — bentuk JSON
   app/Models/            23 model — hanya bentuk data
-  database/migrations/   46 migrasi
-  tests/                 53 berkas tes, 898 tes
+  database/migrations/   47 migrasi
+  tests/                 54 berkas tes, 912 tes
 
 web/
-  src/views/             27 view (7 publik + 20 pemilik dan panelnya)
+  src/views/             28 view (7 publik + 21 pemilik dan panelnya)
   src/komponen/          7 komponen ui + 5 komponen bersama
   src/direktif/          kartu-tabel.js
   src/style.css          964 baris — seluruh design system

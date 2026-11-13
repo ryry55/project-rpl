@@ -1,7 +1,7 @@
 {
-  "dibuat": "2026-11-13T07:53:26.242Z",
-  "tabel": 25,
-  "kolom": 217,
+  "dibuat": "2026-11-13T10:41:37.490Z",
+  "tabel": 26,
+  "kolom": 228,
   "kunci_asing": 30,
   "tingkat": [
     {
@@ -45,6 +45,7 @@
         "pengaturan_notifikasi",
         "pengelola_kewenangan",
         "penghuni",
+        "perangkat",
         "persetujuan_pdp",
         "rekening",
         "tagihan",
@@ -79,6 +80,7 @@
         "pengaturan_notifikasi",
         "pengelola_kewenangan",
         "penghuni",
+        "perangkat",
         "persetujuan_pdp",
         "rekening",
         "tagihan",
@@ -90,8 +92,8 @@
         "usulan_perubahan",
         "verifikasi_pembayaran"
       ],
-      "huruf_mm": 2.62,
-      "huruf_a4_mm": 1.86
+      "huruf_mm": 2.54,
+      "huruf_a4_mm": 1.8
     }
   ]
 }

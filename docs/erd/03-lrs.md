@@ -9,7 +9,7 @@
 > dokumen ini berbeda dengan migrasi, migrasi yang benar — dan dokumen ini
 > yang harus dibangun ulang dengan `node docs/erd/build-lrs.js`.
 
-Versi 1.0 · 25 tabel · 217 kolom · PostgreSQL 16
+Versi 1.0 · 26 tabel · 228 kolom · PostgreSQL 16
 
 ## 1. Hubungan dengan ERD
 
@@ -64,6 +64,7 @@ verifikasi_pembayaran = (<u>id</u>, pembayaran_id*, diverifikasi_oleh*, keputusa
 transaksi_gateway = (<u>id</u>, tagihan_id*, order_id, jumlah, status, redirect_url, token, transaction_id, transaction_status, fraud_status, kedaluwarsa_pada, dibayar_pada, created_at, updated_at)
 rekening = (<u>id</u>, jenis, nama, nomor, atas_nama, catatan, aktif, urutan, created_at, updated_at, gambar, gambar_mime, gambar_ukuran)
 aturan_kos = (<u>id</u>, judul, isi, kategori, sanksi, aktif, urutan, created_at, updated_at)
+perangkat = (<u>id</u>, jenis, nama, lokasi, nama_pengguna, sandi, catatan, aktif, urutan, created_at, updated_at)
 pengelola_kewenangan = (<u>id</u>, user_id*, wewenang)
 usulan_perubahan = (<u>id</u>, tipe, payload, ringkasan, status, diajukan_oleh*, diputuskan_oleh*, alasan, dibuat_pada, diputuskan_pada, kedaluwarsa_pada)
 log_audit = (<u>id</u>, aktor_id, aktor_nama, aksi, entitas, entitas_id, nilai_lama, nilai_baru, dibuat_pada)
@@ -410,7 +411,25 @@ Teks aturan dan sanksi yang ditampilkan kepada penghuni.
 | `created_at` | timestamp | boleh | — |  |
 | `updated_at` | timestamp | boleh | — |  |
 
-### 4.19 pengelola_kewenangan
+### 4.19 perangkat
+
+Kredensial perangkat kos: WiFi, CCTV, kartu RFID. Sandinya terenkripsi dan hanya dikirim saat diminta.
+
+| Kolom | Tipe | Null | Kunci | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint | wajib | PK |  |
+| `jenis` | varchar(20) | wajib | — | wifi \| cctv \| rfid \| lainnya; hanya wifi yang boleh dilihat penghuni |
+| `nama` | varchar(60) | wajib | — |  |
+| `lokasi` | varchar(80) | boleh | — |  |
+| `nama_pengguna` | varchar(80) | boleh | — |  |
+| `sandi` | text | boleh | — | terenkripsi; tidak pernah ikut di daftar, hanya lewat endpoint tersendiri |
+| `catatan` | varchar(200) | boleh | — |  |
+| `aktif` | boolean | wajib | — | kosong dari portal penghuni bila false, tanpa menghapus barisnya |
+| `urutan` | smallint | wajib | — |  |
+| `created_at` | timestamp | boleh | — |  |
+| `updated_at` | timestamp | boleh | — |  |
+
+### 4.20 pengelola_kewenangan
 
 Wewenang terperinci yang diberikan pemilik kepada seorang pengelola.
 
@@ -424,7 +443,7 @@ Kunci unik gabungan:
 
 - (`user_id`, `wewenang`) — kombinasi ini tidak boleh berulang
 
-### 4.20 usulan_perubahan
+### 4.21 usulan_perubahan
 
 Usulan perubahan tarif atau kebijakan oleh pengelola yang menunggu keputusan pemilik. Kedaluwarsa setelah 7 hari.
 
@@ -442,7 +461,7 @@ Usulan perubahan tarif atau kebijakan oleh pengelola yang menunggu keputusan pem
 | `diputuskan_pada` | timestamp | boleh | — |  |
 | `kedaluwarsa_pada` | timestamp | wajib | — | usulan yang tidak diputuskan dalam 7 hari menjadi kedaluwarsa |
 
-### 4.21 log_audit
+### 4.22 log_audit
 
 Jejak setiap tindakan yang mengubah data, beserta pelaku dan waktunya.
 
@@ -458,7 +477,7 @@ Jejak setiap tindakan yang mengubah data, beserta pelaku dan waktunya.
 | `nilai_baru` | jsonb | boleh | — |  |
 | `dibuat_pada` | timestamptz | wajib | — |  |
 
-### 4.22 pengaturan_notifikasi
+### 4.23 pengaturan_notifikasi
 
 Preferensi kanal notifikasi per pengguna per peristiwa.
 
@@ -474,7 +493,7 @@ Kunci unik gabungan:
 
 - (`user_id`, `peristiwa`, `kanal`) — kombinasi ini tidak boleh berulang
 
-### 4.23 persetujuan_pdp
+### 4.24 persetujuan_pdp
 
 Rekaman persetujuan pemrosesan data pribadi, beserta versi pernyataan yang disetujui.
 
@@ -490,7 +509,7 @@ Kunci unik gabungan:
 
 - (`user_id`, `versi`) — kombinasi ini tidak boleh berulang
 
-### 4.24 token_akun
+### 4.25 token_akun
 
 Token sekali pakai untuk aktivasi akun dan atur ulang sandi. Disimpan sebagai hash, bukan teks asli.
 
@@ -504,7 +523,7 @@ Token sekali pakai untuk aktivasi akun dan atur ulang sandi. Disimpan sebagai ha
 | `dipakai_pada` | timestamptz | boleh | — |  |
 | `dibuat_pada` | timestamptz | wajib | — |  |
 
-### 4.25 notifications
+### 4.26 notifications
 
 Notifikasi dalam aplikasi bawaan Laravel. Tidak punya kunci asing karena memakai relasi polimorfik.
 
@@ -567,6 +586,7 @@ kelalaian: isinya memang tidak terikat pada baris tabel lain.
 - `aturan_kos` — Teks aturan dan sanksi yang ditampilkan kepada penghuni.
 - `log_audit` — Jejak setiap tindakan yang mengubah data, beserta pelaku dan waktunya.
 - `notifications` — Notifikasi dalam aplikasi bawaan Laravel. Tidak punya kunci asing karena memakai relasi polimorfik.
+- `perangkat` — Kredensial perangkat kos: WiFi, CCTV, kartu RFID. Sandinya terenkripsi dan hanya dikirim saat diminta.
 - `rekening` — Rekening tujuan pembayaran milik kos, termasuk gambar QRIS yang disimpan sebagai biner.
 
 ## 7. Aturan yang Tidak Terlihat dari Daftar Kolom

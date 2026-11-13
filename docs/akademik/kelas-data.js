@@ -62,7 +62,7 @@ const KELOMPOK = [
 /** Kelas → kelompok. Setiap model wajib ada di sini; yang terlewat gagal build. */
 const ANGGOTA = {
   a: ['User', 'Penghuni', 'PengelolaKewenangan', 'PersetujuanPdp', 'PengaturanNotifikasi', 'TokenAkun'],
-  b: ['Kamar', 'Fasilitas', 'TarifSewa', 'KomponenBiaya', 'Kontrak', 'KebijakanKos', 'AturanKos'],
+  b: ['Kamar', 'Fasilitas', 'TarifSewa', 'KomponenBiaya', 'Kontrak', 'KebijakanKos', 'AturanKos', 'Perangkat'],
   c: [
     'Tagihan',
     'TagihanRincian',

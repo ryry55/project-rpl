@@ -359,6 +359,48 @@ tanpa kontrak 422; laporan ganda 422; foto tersimpan utuh (ukuran tercatat = uku
 ditolak; PDF ditolak; PNG > 5 MB ditolak; tautan tanpa tanda tangan 403; tautan kedaluwarsa 403;
 penghuni lain tidak melihat laporan itu; pemilik melihat fotonya di layar Kamar.
 
+#### Kredensial perangkat kos *(amandemen 13 November 2026)*
+
+> Kredensial perangkat (WiFi, CCTV, kartu RFID) punya tempat: **dikelola pemilik dan pengelola**,
+> disimpan **terenkripsi**, dan **penghuni hanya melihat sandi WiFi** kosnya — lewat server, setelah
+> login, tidak pernah dibakar ke bundle JavaScript.
+
+Sebelum ini kredensial hanya hidup di percakapan WhatsApp: sandi WiFi dikirim ulang setiap ada
+penghuni baru, dan sandi CCTV hanya diingat pemilik. Pertanyaan "sandi WiFi-nya apa" adalah
+pertanyaan yang paling sering diulang di kos, dan jawabannya tidak boleh bergantung pada siapa yang
+masih menyimpan chat lama.
+
+**Satu tabel `perangkat`, bukan tabel per jenis.** Bentuk keempat jenis sama: nama, letak, identitas,
+sandi, catatan. Memisahkannya menjadi empat tabel berarti empat kolom yang sama dan empat endpoint
+yang isinya sama; menambah jenis kelima kelak berarti satu tabel dan satu endpoint lagi. Jenisnya
+satu kolom ber-CHECK (`wifi`, `cctv`, `rfid`, `lainnya`).
+
+**Wewenangnya `kelola_kamar`, bukan wewenang baru.** K-16 menyerahkan bentuk wewenangnya ke desain
+fase ini. Wewenang pengelola berjumlah delapan dan daftarnya terkunci di §5; menambah yang kesembilan
+berarti mengubah keputusan yang sudah disetujui pemilik. Perangkat kos adalah bagian dari mengurus
+kamar — sama seperti aturan kos, yang juga memakai `kelola_kamar`.
+
+**Sandi dienkripsi lewat cast model (`encrypted`), bukan lewat pemanggil.** Setiap jalur baca dan
+tulis melewati kriptografi tanpa satu pun pemanggil perlu ingat. Konsekuensinya: `APP_KEY` yang
+berganti membuat sandi lama tidak terbaca — di produksi kunci itu datang dari environment dan tidak
+pernah dibuat ulang otomatis.
+
+**Sandi tidak ikut di daftar.** `GET /perangkat` mengirim `ada_sandi`, bukan sandinya; yang
+mengirimkannya hanya `GET /perangkat/{id}/sandi`, saat tombolnya ditekan. Daftar dibuka setiap kali
+halaman diragukan isinya, dan sandi CCTV yang melintas di sana terbaca siapa pun yang melihat
+layarnya. Log audit juga tidak pernah memuat sandi — hanya `ada_sandi` dan penanda `sandi_diganti`.
+
+**Penghuni hanya melihat WiFi yang aktif, dan hanya bila kontraknya masih berjalan.** CCTV dan RFID
+adalah kredensial pengurus kos: nomor kartu yang bocor bisa dipakai orang lain untuk masuk, dan sandi
+CCTV membuka rekaman yang bukan untuk penghuni. Akun yang kontraknya sudah berakhir bukan lagi
+penghuni kos ini, jadi sandi WiFi yang masih berlaku bukan untuknya.
+
+Titik uji: sandi tersimpan terenkripsi (isi kolom ≠ teks biasa, tetap bisa didekripsi); daftar tidak
+memuat sandi; sandi hanya keluar lewat endpoint tersendiri; mengubah tanpa sandi tidak menghapus
+sandi; log audit tidak memuat sandi; penghuni hanya menerima WiFi aktif; penghuni tanpa kontrak
+menerima daftar kosong; penghuni ditolak 403 saat meminta sandi CCTV; pengelola tanpa `kelola_kamar`
+ditolak 403.
+
 ---
 
 ## 5. Keputusan teknis (mengikat)
@@ -377,6 +419,7 @@ penghuni lain tidak melihat laporan itu; pemilik melihat fotonya di layar Kamar.
 | Parameter denda | dibekukan (snapshot) di tagihan saat terbit | Tagihan lama berubah saat parameter diubah |
 | R-02 | unique index + tangkap `23505` → 409 | Duplikat lolos saat request bersamaan |
 | Foto kerusakan | kolom `bytea` di `lampiran_kerusakan`; disajikan lewat rute `signed:relative` berumur 30 menit | Foto hilang saat container dibangun ulang, atau terbuka untuk siapa pun yang menebak id |
+| Kredensial perangkat | satu tabel `perangkat`; sandi lewat cast `encrypted`; daftar hanya mengirim `ada_sandi` | Sandi terbaca dari cadangan basis data, atau melintas di setiap pembukaan halaman |
 | Auth | Laravel Sanctum, token bearer, dua peran | — |
 
 **Jepit jatuh tempo.** `jatuh_tempo(tagihan) = clamp(hari(tgl_masuk), jumlah_hari_bulan(periode))`.
@@ -635,6 +678,12 @@ log_audit        id, aktor_id, aktor_nama, aksi, entitas, entitas_id, dibuat_pad
                  nilai_lama (json), nilai_baru (json)
                  -- append-only lewat trigger BEFORE UPDATE OR DELETE
                  -- aktor_id sengaja tanpa foreign key; aktor_nama disalin, bukan join
+
+perangkat        id, jenis (wifi|cctv|rfid|lainnya), nama, lokasi (nullable),
+                 nama_pengguna (nullable), sandi (text, terenkripsi), catatan (nullable),
+                 aktif, urutan
+                 -- sandi dienkripsi cast model; tidak pernah ikut di daftar
+                 -- penghuni hanya menerima jenis `wifi` yang aktif
 ```
 
 `tagihan.denda` dan `tagihan.sisa` **tidak ada sebagai kolom** — keduanya turunan, dihitung dari
@@ -656,7 +705,7 @@ di §6 sebagai `tanggal, jumlah, metode, bukti, dicatat_oleh`:
 ## 7. Permukaan API
 
 Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
-Daftar lengkap **94 endpoint**; rincian bentuk request/response ada di
+Daftar lengkap **100 endpoint**; rincian bentuk request/response ada di
 `docs/produk/6_TOOLS_CONTRACTS.md`.
 
 ### 7.1 Autentikasi, akun, dan PDP
@@ -744,7 +793,12 @@ Daftar lengkap **94 endpoint**; rincian bentuk request/response ada di
 | GET | `/penghuni/aturan` | `peran:penghuni` |
 | GET | `/penghuni/rekening` | `peran:penghuni` |
 | GET | `/penghuni/kontrak` | `peran:penghuni` |
-| GET/POST | `/penghuni/laporan-kerusakan` | `peran:penghuni` |
+| GET | `/penghuni/laporan-kerusakan` | `peran:penghuni` |
+| POST | `/penghuni/laporan-kerusakan` | `peran:penghuni` |
+| GET | `/penghuni/perangkat` | `peran:penghuni` (hanya WiFi aktif) |
+| GET/POST | `/perangkat` | `peran:pemilik,pengelola` / `wewenang:kelola_kamar` |
+| PUT/DELETE | `/perangkat/{perangkat}` | `wewenang:kelola_kamar` |
+| GET | `/perangkat/{perangkat}/sandi` | `peran:pemilik,pengelola` |
 | POST | `/tagihan/{tagihan}/bayar-daring` | `peran:penghuni` |
 | GET | `/penyiapan` | `peran:pemilik,pengelola` |
 | POST | `/webhook/midtrans` | publik (tanda tangan SHA512) |
@@ -987,6 +1041,7 @@ Lokasi: `docs/uji/audit-ketertelusuran.md`.
 | R-08 pola tagihan + tanggal terbit | `PolaTagihan` (murni) + `PenerbitanMassal` dua mode + `PenerbitTagihan` sadar pola | `PolaTagihanTest` (15 feature + 6 unit), `TanggalTerbitTest` (11), `docs/uji/e2e-anniversary.mjs` | ✅ |
 | Identitas kos + pratinjau denda (K-17) | `IdentitasKos` + kebijakan `nama_kos` global + `GET /identitas-kos` (publik) + `GET /kebijakan/pratinjau-denda` lewat `Kalkulator` | `NamaKosTest` (14 tes), `docs/uji/e2e-nama-kos.mjs` | ✅ |
 | Laporan kerusakan dari portal (K-15) | `LaporanKerusakanController::storePenghuni` (kamar dari kontrak aktif) + `lampiran_kerusakan` (`bytea`) + `PenyimpanLampiran` + rute `signed:relative` | `LampiranKerusakanTest` (12 tes), `docs/uji/e2e-kerusakan.mjs` | ✅ |
+| Kredensial perangkat (K-16) | `PerangkatController` + tabel `perangkat` (sandi cast `encrypted`) + `GET /perangkat/{id}/sandi` + `GET /penghuni/perangkat` (hanya WiFi aktif, wajib kontrak aktif) | `PerangkatTest` (14 tes), `docs/uji/e2e-perangkat.mjs` | ✅ |
 
 Status: ⏳ belum, ✅ selesai, ⚠ sebagian, ⏸ ditunda.
 
@@ -1011,6 +1066,8 @@ Ditunda dengan sadar, bukan terlupa.
 | Sub-metering listrik/air | Sewa all-in | — |
 | Status "sedang dikerjakan" pada laporan kerusakan | Laporan hanya punya dua keadaan (terbuka/selesai), dan dua kolom status selalu bisa bertentangan. Penghuni melihat "Menunggu perbaikan" lalu "Selesai" | Bisa ditambah sebagai kolom tersendiri bila pemilik memintanya |
 | Foto pada laporan yang dibuat pemilik/pengelola | Endpoint-nya menerima foto, tetapi formulir di layar Kamar belum punya medan unggah. K-15 memintanya untuk penghuni | Satu medan unggah di `KamarView.vue` bila dibutuhkan |
+| Integrasi perangkat keras (router, NVR, pembaca kartu) | K-16 meminta **tempat kredensialnya**, bukan kendali perangkat. Menyambung ke API router atau NVR menuntut kredensial admin per merek, dan tidak ada satu pun yang bisa diuji tanpa perangkatnya | Bisa ditambah sebagai adaptor per merek bila pemilik memintanya |
+| Kartu akses per penghuni | K-16 hanya memutuskan siapa yang boleh melihat kredensial, bukan penerbitan kartu per orang. Nomor kartu tetap dicatat sebagai satu baris `perangkat` berjenis `rfid` | Tabel `kartu_akses` bila pemilik mulai menerbitkan kartu per penghuni |
 
 ---
 

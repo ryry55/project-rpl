@@ -13,6 +13,7 @@ import KebijakanView from './views/pemilik/KebijakanView.vue'
 import RekeningView from './views/pemilik/RekeningView.vue'
 import FasilitasView from './views/pemilik/FasilitasView.vue'
 import AturanView from './views/pemilik/AturanView.vue'
+import PerangkatView from './views/pemilik/PerangkatView.vue'
 import PersetujuanView from './views/pemilik/PersetujuanView.vue'
 import PengaturanNotifikasiView from './views/pemilik/PengaturanNotifikasiView.vue'
 import PengelolaView from './views/pemilik/PengelolaView.vue'
@@ -131,6 +132,10 @@ const routes = [
       },
       { path: 'fasilitas', name: 'pemilik-fasilitas', component: FasilitasView },
       { path: 'aturan', name: 'pemilik-aturan', component: AturanView },
+      // Perangkat diletakkan setelah Aturan: keduanya keterangan tentang kos
+      // yang dibaca penghuni, dan sandi WiFi adalah pertanyaan lanjutan yang
+      // paling sering muncul setelah aturan.
+      { path: 'perangkat', name: 'pemilik-perangkat', component: PerangkatView },
       { path: 'audit', name: 'pemilik-audit', component: AuditLogView },
       {
         path: 'persetujuan',

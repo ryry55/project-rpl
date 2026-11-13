@@ -15,7 +15,7 @@ Versi 1.0 · 26 Oktober 2026 · Status: diserahkan
 Aplikasi web untuk pemilik kos kecil (5-30 kamar) mengelola kamar, penghuni,
 tagihan, dan pembayaran. Dibangun sebagai tugas besar mata kuliah Rekayasa
 Perangkat Lunak: Laravel 12.70.1 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah
-Docker Compose untuk menjalankan, 898 tes PHP dan 33 skrip uji untuk
+Docker Compose untuk menjalankan, 912 tes PHP dan 34 skrip uji untuk
 menjaganya. Yang membedakannya dari aplikasi sejenis: **setiap kos boleh punya
 cara kerja sendiri** — satuan sewa, jatuh tempo, dan bentuk dendanya dipilih dari
 menu, bukan dipaksa mengikuti satu pola.
@@ -88,17 +88,17 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 
 | Hal | Angka |
 |---|---|
-| Endpoint API | **94** |
-| Tabel (di luar infrastruktur Laravel) | **25** (34 di skema `public`) |
-| Migrasi | **46** |
-| Model Eloquent | **23** |
+| Endpoint API | **100** |
+| Tabel (di luar infrastruktur Laravel) | **26** (35 di skema `public`) |
+| Migrasi | **47** |
+| Model Eloquent | **24** |
 | Kelas domain | **53** (13 folder) |
-| Pengendali | **28** |
+| Pengendali | **30** |
 | Middleware | **6** |
 | Trigger basis data | **8** (7 append-only + 1 penjaga pembalik) |
-| Tes PHP | **898** (4072 asersi) di **53** berkas |
-| Skrip browser | **34** `.mjs` (33 terdaftar di gate; `uji-proxy.mjs` terpisah) |
-| Halaman SPA | **27** komponen view · **31** rute bernama |
+| Tes PHP | **912** (4114 asersi) di **54** berkas |
+| Skrip browser | **35** `.mjs` (34 terdaftar di gate; `uji-proxy.mjs` terpisah) |
+| Halaman SPA | **28** komponen view · **32** rute bernama |
 | Wewenang pengelola | **8** |
 | Peristiwa notifikasi | **9** |
 
@@ -247,7 +247,7 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 ├── 4_AGENTS.md           Cara mengubah kode tanpa merusak apa pun
 ├── 5_SCHEMAS.md          25 tabel, CHECK, indeks, trigger (dari DB nyata)
 ├── 6_TOOLS_CONTRACTS.md  94 endpoint, middleware, bentuk request/response
-├── 7_TESTING_EVALS.md    898 tes, 33 skrip, prinsip "buktikan bisa gagal"
+├── 7_TESTING_EVALS.md    912 tes, 34 skrip, prinsip "buktikan bisa gagal"
 └── 8_OPERATIONS_SOP.md   Deploy, backup, pemulihan, insiden, batas gratis
 ```
 
@@ -258,7 +258,7 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 | `AGENTS.md` | Pintu masuk singkat untuk agen; menunjuk ke `4_AGENTS.md` |
 | `SPEC.md` | Spesifikasi 42 KB; sumber kebenaran aturan bisnis |
 | `docs/utang-teknis.md` | Register utang teknis — **baca ini sebelum mengeluh** |
-| `docs/uji/README.md` | Katalog 33 skrip uji dan jebakannya |
+| `docs/uji/README.md` | Katalog 34 skrip uji dan jebakannya |
 | `docs/ci-cd.md` | Tiga workflow, rinci |
 | `docs/dfd/` | Diagram alir data dan kamus data |
 | `docs/charter/` | Project Charter (docx + pdf) |

@@ -4,7 +4,7 @@
 > bagaimana menambah tes yang benar-benar menahan.**
 >
 > Angka diambil dari aplikasi yang berjalan: **898 tes PHP (4072 asersi)** dalam
-> 53 berkas, **19 tes Vitest** untuk fungsi murni frontend, dan **33 skrip uji**
+> 54 berkas, **19 tes Vitest** untuk fungsi murni frontend, dan **34 skrip uji**
 > (30 browser + 2 balapan HTTP + 1 jalur proxy) dengan **919 langkah**.
 
 Versi 1.0 · 26 Oktober 2026
@@ -71,7 +71,7 @@ desktop, dan asersi "tidak meluber" lulus tanpa mengukur apa pun.
 
 ```
         ┌──────────────────────────────────────┐
-        │  33 skrip uji                        │  paling lambat, tetapi
+        │  34 skrip uji                        │  paling lambat, tetapi
         │  (30 browser + 2 balapan + 1 proxy)  │  satu-satunya yang melihat
         └──────────────────────────────────────┘
       ┌──────────────────────────────────────┐
@@ -179,7 +179,7 @@ berkas yang menjaga aturan, bukan seluruhnya:
 
 ---
 
-## 4. Skrip uji browser, balapan, dan jalur proxy - 33 skrip, 919 langkah
+## 4. Skrip uji browser, balapan, dan jalur proxy - 34 skrip, 941 langkah
 
 ### 4.1 Menjalankan
 

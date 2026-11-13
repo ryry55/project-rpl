@@ -63,6 +63,9 @@ const semuaMenu = [
   { nama: 'kebijakan', label: 'Kebijakan', ket: 'Satuan sewa dan jatuh tempo kos ini', grup: 'Kos', wewenang: 'ubah_kebijakan' },
   { nama: 'fasilitas', label: 'Fasilitas', ket: 'Apa saja yang dimiliki tiap kamar', grup: 'Kos', wewenang: 'kelola_kamar' },
   { nama: 'aturan', label: 'Aturan kos', ket: 'Yang dibaca penghuni di portalnya', grup: 'Kos', wewenang: 'kelola_kamar' },
+  // Kredensial perangkat (K-16). Di sebelah Aturan karena keduanya keterangan
+  // tentang kos, dan sandi WiFi adalah pertanyaan yang paling sering diulang.
+  { nama: 'perangkat', label: 'Perangkat & akses', ket: 'Sandi WiFi, CCTV, dan kartu RFID', grup: 'Kos', wewenang: 'kelola_kamar' },
   // Kelompok Akses: siapa membantu, apa yang menunggu keputusan, dan apa yang
   // sudah terjadi.
   { nama: 'pengelola', label: 'Pengelola', ket: 'Siapa membantu dan boleh apa', grup: 'Akses', hanyaPemilik: true },

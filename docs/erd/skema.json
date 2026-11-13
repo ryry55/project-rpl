@@ -1,6 +1,6 @@
 {
-  "diambil_pada": "2026-11-13T05:59:29.875Z",
-  "jumlah_tabel": 25,
+  "diambil_pada": "2026-11-13T10:33:53.899Z",
+  "jumlah_tabel": 26,
   "tabel": [
     {
       "nama": "aturan_kos",
@@ -1493,6 +1493,123 @@
       ],
       "asing": [],
       "check": [],
+      "unik_parsial": [],
+      "trigger": []
+    },
+    {
+      "nama": "perangkat",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('perangkat_id_seq'::regclass)"
+        },
+        {
+          "nama": "jenis",
+          "tipe": "character varying",
+          "panjang": 20,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "'wifi'::character varying"
+        },
+        {
+          "nama": "nama",
+          "tipe": "character varying",
+          "panjang": 60,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "lokasi",
+          "tipe": "character varying",
+          "panjang": 80,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "nama_pengguna",
+          "tipe": "character varying",
+          "panjang": 80,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "sandi",
+          "tipe": "text",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "catatan",
+          "tipe": "character varying",
+          "panjang": 200,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "aktif",
+          "tipe": "boolean",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": "true"
+        },
+        {
+          "nama": "urutan",
+          "tipe": "smallint",
+          "panjang": null,
+          "presisi": 16,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "'0'::smallint"
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [],
+      "asing": [],
+      "check": [
+        {
+          "nama": "perangkat_jenis_check",
+          "definisi": "CHECK (((jenis)::text = ANY ((ARRAY['wifi'::character varying, 'cctv'::character varying, 'rfid'::character varying, 'lainnya'::character varying])::text[])))"
+        }
+      ],
       "unik_parsial": [],
       "trigger": []
     },

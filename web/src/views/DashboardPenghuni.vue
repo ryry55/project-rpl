@@ -55,6 +55,16 @@ const tersalinId = ref(null)
 const kontrak = ref(null)
 const galatKontrak = ref('')
 
+// Perangkat kos (K-16). Server hanya mengirim WiFi yang aktif, dan hanya bila
+// kontraknya masih berjalan. Sandi ikut di respons - itulah gunanya - tetapi
+// baru ditampilkan setelah tombolnya ditekan, supaya tidak terbaca orang yang
+// kebetulan melihat layar.
+const perangkat = ref([])
+const memuatPerangkat = ref(false)
+const galatPerangkat = ref('')
+const sandiTerbuka = ref([])
+const tersalinPerangkat = ref(null)
+
 const ringkasan = computed(() => {
   const belum = daftar.value.filter((t) => t.status !== 'lunas' && t.status !== 'dibatalkan')
   return {
@@ -236,6 +246,45 @@ async function muatKontrak() {
   }
 }
 
+// --- Perangkat kos (K-16) -------------------------------------------------
+
+/**
+ * Sandi WiFi kos.
+ *
+ * Dimuat terpisah, sama seperti aturan dan rekening: kegagalan memuatnya tidak
+ * boleh menutupi tagihan. Server sudah menyaring jenis dan statusnya, jadi
+ * layar tidak perlu menyaring apa pun - dan tidak boleh, sebab penyaringan di
+ * layar berarti datanya tetap terkirim.
+ */
+async function muatPerangkat() {
+  memuatPerangkat.value = true
+  galatPerangkat.value = ''
+  try {
+    const hasil = await sesi.panggil('/penghuni/perangkat')
+    perangkat.value = hasil.data || []
+  } catch (e) {
+    galatPerangkat.value = pesanGalat(e)
+  } finally {
+    memuatPerangkat.value = false
+  }
+}
+
+function balikSandi(p) {
+  sandiTerbuka.value = sandiTerbuka.value.includes(p.id)
+    ? sandiTerbuka.value.filter((id) => id !== p.id)
+    : [...sandiTerbuka.value, p.id]
+}
+
+async function salinSandi(p) {
+  const berhasil = await salinTeks(p.sandi || '')
+  if (berhasil) {
+    tersalinPerangkat.value = p.id
+    setTimeout(() => {
+      tersalinPerangkat.value = null
+    }, 2000)
+  }
+}
+
 // --- Laporan kerusakan (K-15) --------------------------------------------
 
 /**
@@ -353,6 +402,7 @@ onMounted(muat)
 onMounted(muatAturan)
 onMounted(muatRekening)
 onMounted(muatKontrak)
+onMounted(muatPerangkat)
 onMounted(muatLaporan)
 </script>
 
@@ -757,6 +807,47 @@ onMounted(muatLaporan)
       akan dijawab seolah tagihan itu tidak ada.
     </p>
 
+    <!-- Kredensial perangkat (K-16). Hanya WiFi: CCTV dan kartu RFID tidak
+         pernah sampai ke portal penghuni. Sandinya sudah ada di respons, tetapi
+         baru ditampilkan setelah tombolnya ditekan - supaya tidak terbaca orang
+         yang kebetulan melihat layar. -->
+    <section v-if="perangkat.length > 0" class="kartu panel" aria-labelledby="judul-wifi">
+      <h2 id="judul-wifi">WiFi kos</h2>
+      <p class="lemah mungil">
+        Jaringan yang bisa Anda pakai. Jangan bagikan sandinya ke tamu.
+      </p>
+
+      <ul class="daftar-wifi">
+        <li v-for="p in perangkat" :key="p.id" class="satu-wifi">
+          <div>
+            <strong>{{ p.nama }}</strong>
+            <p v-if="p.lokasi" class="mungil lemah">{{ p.lokasi }}</p>
+            <p v-if="p.nama_pengguna" class="mungil">
+              Jaringan: <strong>{{ p.nama_pengguna }}</strong>
+            </p>
+            <p v-if="p.catatan" class="mungil lemah">{{ p.catatan }}</p>
+          </div>
+          <div class="sandi-wifi">
+            <code v-if="p.sandi && sandiTerbuka.includes(p.id)">{{ p.sandi }}</code>
+            <code v-else-if="p.sandi">••••••••</code>
+            <span v-else class="lemah mungil">Tanpa sandi</span>
+            <template v-if="p.sandi">
+              <button type="button" class="halus mungil" @click="balikSandi(p)">
+                {{ sandiTerbuka.includes(p.id) ? 'Sembunyikan' : 'Tampilkan' }}
+              </button>
+              <button type="button" class="halus mungil" @click="salinSandi(p)">
+                {{ tersalinPerangkat === p.id ? 'Tersalin' : 'Salin' }}
+              </button>
+            </template>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <p v-if="galatPerangkat" class="lemah mungil">
+      Sandi WiFi tidak dapat dimuat saat ini. Tanyakan langsung ke pemilik kos.
+    </p>
+
     <!-- Aturan kos (T19). Ditempatkan setelah tagihan, bukan sebelumnya:
          penghuni membuka portal ini untuk melihat tagihan, dan aturan adalah
          bacaan yang dibaca sekali di awal. Menaruhnya di atas akan mendorong
@@ -1049,6 +1140,52 @@ onMounted(muatLaporan)
   border: 1px solid var(--garis);
   border-radius: var(--radius);
   background: var(--aktif);
+}
+
+/* --- Perangkat kos (K-16) ------------------------------------------------ */
+
+.daftar-wifi {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Satu perangkat per baris: nama dan letak di kiri, sandi di kanan. Garis
+   kiri, sama seperti aturan dan laporan - butir di dalam kartu tidak boleh
+   terlihat sama pentingnya dengan kartunya sendiri. */
+.satu-wifi {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-left: 12px;
+  border-left: 2px solid var(--garis);
+}
+
+.satu-wifi p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sandi-wifi {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Monospace supaya "l" dan "1" bisa dibedakan saat sandinya dibacakan lewat
+   telepon. */
+.sandi-wifi code {
+  padding: 2px 8px;
+  font-size: 13px;
+  background: var(--aktif);
+  border-radius: 4px;
+  word-break: break-all;
 }
 
 /* --- Rekening tujuan pembayaran (REV-UI-05) ----------------------------- */

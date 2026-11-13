@@ -187,7 +187,7 @@ meminta, hanya waktunya belum tepat.
 
 ---
 
-## 4. Data kos (39 endpoint)
+## 4. Data kos (44 endpoint)
 
 ### 4.1 Kamar
 
@@ -425,6 +425,31 @@ tarif lainnya.
 
 Satu kamar hanya boleh punya satu kontrak aktif (indeks parsial). Melanggar →
 `409`.
+
+### 4.7 Perangkat kos (K-16)
+
+| Metode | Path | Middleware |
+|---|---|---|
+| `GET` | `/api/perangkat` | `peran:pemilik,pengelola` |
+| `POST` | `/api/perangkat` | `wewenang:kelola_kamar` |
+| `PUT` | `/api/perangkat/{perangkat}` | `wewenang:kelola_kamar` |
+| `DELETE` | `/api/perangkat/{perangkat}` | `wewenang:kelola_kamar` |
+| `GET` | `/api/perangkat/{perangkat}/sandi` | `peran:pemilik,pengelola` |
+
+`POST`/`PUT` — `{ jenis?, nama, lokasi?, nama_pengguna?, sandi?, catatan?, aktif?, urutan? }`.
+`jenis` ∈ `wifi` | `cctv` | `rfid` | `lainnya`.
+
+**Sandi tidak ikut di daftar.** `GET /perangkat` mengirim `ada_sandi`, bukan
+sandinya; yang mengirimkannya hanya `GET /perangkat/{id}/sandi`, saat tombolnya
+ditekan. Daftar dibuka setiap kali halaman diragukan isinya, dan sandi CCTV yang
+melintas di sana terbaca siapa pun yang melihat layarnya.
+
+**`sandi` kosong saat `PUT` berarti "jangan ganti".** Tanpa aturan ini,
+memperbaiki letak perangkat akan menghapus sandinya, dan penghuni yang meminta
+sandi WiFi sesudahnya tidak mendapat apa pun.
+
+**Log audit tidak pernah memuat sandi** — hanya `ada_sandi` dan penanda
+`sandi_diganti`.
 
 ---
 
@@ -906,9 +931,9 @@ perlu meninggalkan nama orang itu di catatan sejarah selamanya.
 
 ---
 
-## 8. Portal penghuni, pembayaran daring, dan notifikasi (13 endpoint)
+## 8. Portal penghuni, pembayaran daring, dan notifikasi (14 endpoint)
 
-> Dua belas endpoint berbentuk baris tabel; yang ketiga belas,
+> Tiga belas endpoint berbentuk baris tabel; yang keempat belas,
 > `POST /api/webhook/midtrans`, ditulis di §8.0.1 karena ia bukan endpoint yang
 > dipanggil pengguna — pemanggilnya gateway, dan gerbangnya tanda tangan
 > SHA512, bukan token.
@@ -919,6 +944,7 @@ perlu meninggalkan nama orang itu di catatan sejarah selamanya.
 | `GET` | `/api/penghuni/aturan` | `peran:penghuni` |
 | `GET` | `/api/penghuni/rekening` | `peran:penghuni` |
 | `GET` | `/api/penghuni/kontrak` | `peran:penghuni` |
+| `GET` | `/api/penghuni/perangkat` | `peran:penghuni` (hanya WiFi aktif) |
 | `GET` | `/api/penghuni/laporan-kerusakan` | `peran:penghuni` |
 | `POST` | `/api/penghuni/laporan-kerusakan` | `peran:penghuni` |
 | `POST` | `/api/tagihan/{tagihan}/bayar-daring` | `peran:penghuni` |
@@ -928,6 +954,11 @@ perlu meninggalkan nama orang itu di catatan sejarah selamanya.
 diperlakukan sebagai id — route model binding mencari `penghuni.id = 'tagihan'`
 dan PostgreSQL menolaknya dengan `22P02`. Kelas kesalahan yang sama dengan
 `/tagihan/terbitkan`.
+
+`GET /penghuni/perangkat` — hanya `jenis = wifi` yang aktif, dan hanya bila
+akun itu punya kontrak aktif. CCTV dan kartu RFID tidak pernah ikut: nomor kartu
+yang bocor bisa dipakai orang lain untuk masuk, dan sandi CCTV membuka rekaman
+yang bukan untuk penghuni.
 
 `POST /penghuni/laporan-kerusakan` — `{ deskripsi, foto[]? }`. **`kamar_id` tidak
 dibaca dari badan permintaan**: server mengambilnya dari kontrak aktif penghuni,
@@ -1051,6 +1082,7 @@ tidak pernah dijalankan.
 | Kamar, fasilitas & kerusakan | 14 | `/kamar*`, `/fasilitas*`, `/laporan-kerusakan*`, `/lampiran-kerusakan/{id}` |
 | Tarif, komponen, kebijakan | 7 | `/tarif`, `/komponen-biaya`, `/kebijakan`, `/kebijakan/pratinjau-denda` |
 | Aturan | 4 | `/aturan*` |
+| Perangkat | 5 | `/perangkat*`, `/perangkat/{id}/sandi` |
 | Rekening | 5 | `/rekening*`, `/rekening/{id}/gambar` |
 | Penghuni & kontrak | 9 | `/penghuni*`, `/kontrak*` |
 | Tagihan | 8 | `/tagihan*` |
@@ -1059,11 +1091,11 @@ tidak pernah dijalankan.
 | Ekspor | 3 | `/ekspor/*` |
 | Usulan | 3 | `/usulan*` |
 | Pengelola | 6 | `/pengelola*` |
-| Portal penghuni | 7 | `/penghuni/tagihan`, `/penghuni/aturan`, `/penghuni/rekening`, `/penghuni/kontrak`, `/penghuni/laporan-kerusakan`, `/tagihan/{id}/bayar-daring` |
+| Portal penghuni | 8 | `/penghuni/tagihan`, `/penghuni/aturan`, `/penghuni/rekening`, `/penghuni/kontrak`, `/penghuni/perangkat`, `/penghuni/laporan-kerusakan`, `/tagihan/{id}/bayar-daring` |
 | Notifikasi | 5 | `/notifikasi*`, `/pengaturan-notifikasi` |
 | Infrastruktur | 4 | `/health` (§3.1), `/identitas-kos` (§3.1), `/pemilik/saja`, `/penyiapan` (§5.5) |
 | Webhook gateway | 1 | `/webhook/midtrans` (§8.0.1) |
-| **Total** | **94** | |
+| **Total** | **100** | |
 
 ---
 

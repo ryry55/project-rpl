@@ -119,9 +119,10 @@ const L0 = {
     'notifications',
     'laporan_kerusakan',
     'lampiran_kerusakan',
+    'perangkat',
   ],
   alasan_dikecualikan:
-    'Tabel teknis, tabel penghubung, dan rincian keadaan (mis. laporan kerusakan dan fotonya): yang terakhir ' +
+    'Tabel teknis, tabel penghubung, dan rincian keadaan (mis. laporan kerusakan dan fotonya, kredensial perangkat): yang terakhir ' +
     'bermakna bagi pemilik tetapi tidak mengubah bentuk hubungan antarentitas. Semuanya muncul mulai level 2 (fisikal).',
 };
 
@@ -194,9 +195,10 @@ const L1 = {
     'notifications',
     'laporan_kerusakan',
     'lampiran_kerusakan',
+    'perangkat',
   ],
   alasan_dikecualikan:
-    'Tabel teknis, tabel rincian, dan rincian keadaan (laporan kerusakan beserta fotonya) yang tidak mengubah ' +
+    'Tabel teknis, tabel rincian, dan rincian keadaan (laporan kerusakan beserta fotonya, kredensial perangkat) yang tidak mengubah ' +
     'bentuk hubungan antarentitas. Semuanya muncul mulai level 2 (fisikal), dan seluruh kolomnya ada di LRS.',
 };
 
@@ -276,6 +278,7 @@ const MODUL = [
       'komponen_biaya',
       'kebijakan_kos',
       'aturan_kos',
+      'perangkat',
       'rekening',
     ],
   },

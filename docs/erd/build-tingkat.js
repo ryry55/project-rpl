@@ -197,14 +197,14 @@ console.log('Tingkat LRS (notasi relasional, seluruh kolom, kertas A3):');
 // terbaca bila dicetak di A3 tegak:
 //
 //   kolom | A4 tegak | A4 miring | A3 tegak | A3 miring
-//     2   |  1,01 mm |  0,72 mm  |  1,43 mm |  1,01 mm
-//     3   |  1,45 mm |  1,03 mm  |  2,05 mm |  1,45 mm
-//     4   |  1,86 mm |  1,31 mm  |  2,62 mm |  1,86 mm   <-- dipakai
-//     5   |  1,67 mm |  1,58 mm  |  2,36 mm |  2,24 mm
-//     6   |  1,41 mm |  1,81 mm  |  2,00 mm |  2,57 mm
+//     2   |  0,98 mm |  0,69 mm  |  1,38 mm |  0,98 mm
+//     3   |  1,41 mm |  0,99 mm  |  1,99 mm |  1,41 mm
+//     4   |  1,80 mm |  1,27 mm  |  2,54 mm |  1,80 mm   <-- dipakai
+//     5   |  1,67 mm |  1,52 mm  |  2,36 mm |  2,15 mm
+//     6   |  1,39 mm |  1,74 mm  |  1,97 mm |  2,46 mm
 //
 // Ambang baca 2,52 mm (setara 1,2% lebar A4). Pada A4, bentuk mana pun gagal;
-// yang terbaik 1,86 mm. Pada A3 tegak dengan 4 kolom: 2,62 mm.
+// yang terbaik 1,80 mm. Pada A3 tegak dengan 4 kolom: 2,54 mm.
 //
 // Karena itu lembar ini DISERAHKAN TERPISAH sebagai lampiran A3 — bukan
 // ditempel ke badan laporan A4. Bila ditempel lalu dicetak A4, hasilnya kembali

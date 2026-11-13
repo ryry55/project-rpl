@@ -154,8 +154,15 @@ const USE_CASE = [
       'aturan.store',
       'aturan.update',
       'aturan.destroy',
+      // Kredensial perangkat (K-16). Wewenangnya sama dengan aturan:
+      // `kelola_kamar`, bukan wewenang kesembilan.
+      'perangkat.index',
+      'perangkat.store',
+      'perangkat.update',
+      'perangkat.destroy',
+      'perangkat.sandi',
     ],
-    gerbang: 'Menulis kamar, fasilitas, aturan, dan laporan kerusakan menuntut wewenang `kelola_kamar`.',
+    gerbang: 'Menulis kamar, fasilitas, aturan, perangkat, dan laporan kerusakan menuntut wewenang `kelola_kamar`.',
   },
   {
     kode: 'UC-03',
@@ -361,6 +368,9 @@ const USE_CASE = [
       'penghuni.aturan',
       'penghuni.rekening',
       'penghuni.kontrak',
+      // Sandi WiFi kos (K-16). Hanya WiFi aktif, dan hanya bila kontraknya
+      // masih berjalan.
+      'penghuni.perangkat',
       // Laporan kerusakan dari sisi pelapor (K-15). `kamar_id` diambil server
       // dari kontrak aktif, bukan dari badan permintaan.
       'penghuni.kerusakan.index',
@@ -370,7 +380,7 @@ const USE_CASE = [
       'tagihan.bayar-daring',
     ],
     gerbang:
-      'Tujuh endpoint `/penghuni/*` dan `bayar-daring` bergerbang ' +
+      'Delapan endpoint `/penghuni/*` dan `bayar-daring` bergerbang ' +
       '`peran:penghuni`, dan itulah yang menentukan keanggotaan aktor: hanya ' +
       'penghuni. Dua endpoint baca di dalamnya hanya memakai `auth:sanctum` ' +
       'dan dipakai bersama ketiga peran lewat scope `Tagihan::terlihatOleh` ' +

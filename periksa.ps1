@@ -436,6 +436,11 @@ if (-not $Cepat) {
             # tautan bertanda tangan yang salah origin tetap menghasilkan
             # elemen gambar, hanya lebarnya 0.
             'e2e-kerusakan.mjs',
+            # K-16: kredensial perangkat. Satu-satunya skrip yang menghitung
+            # permintaan `/sandi` - "tombol bekerja" tidak bisa dibedakan dari
+            # "sandi sudah ada di halaman" tanpa itu - dan satu-satunya yang
+            # membuktikan CCTV tidak pernah sampai ke portal penghuni.
+            'e2e-perangkat.mjs',
             # Fase terakhir: tombol pembalik pembayaran (REV-FIN-01).
             # Endpoint-nya sudah ada sejak R2, tetapi tombolnya baru dipasang
             # sekarang - tanpa skrip ini, satu-satunya cara memakainya adalah
