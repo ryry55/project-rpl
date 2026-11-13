@@ -49,9 +49,8 @@ baru sebelumnya tidak disapu), dan angka basi di 12 dokumen disegarkan:
 
 1. **Sebelum sidang:** latihan demo 3x, uji beban di laptop demo
    (`node docs/beban/uji-beban.mjs`, tidak ikut gate).
-2. **Pertanyaan pemilik yang belum dijawab:** tanggal terbit yang melewati jatuh
-   tempo kini hanya **diperingatkan** di layar, tidak ditolak server. Kalau
-   pemilik ingin 422, itu perubahan perilaku dan harus ditanyakan lebih dulu.
+2. **K-18 dijawab 13 November:** tanggal terbit yang melewati jatuh tempo tetap
+   **peringatan saja**, bukan 422. Tidak ada perubahan kode.
 3. **Opsional:** tempel `perangkat.png` / `akses-saya.png` ke slide bila sidang
    memerlukannya; gambar sumbernya bukan milik repo.
 

@@ -453,3 +453,23 @@ penghuni boleh melihat sandi WiFi di aplikasi.
 
 **Kalau tidak dijawab.** Tidak dipakai — keputusan sudah diambil.
 
+---
+
+## K-18 — Tanggal terbit melewati jatuh tempo: peringatan atau 422? — dijawab
+
+**Fase:** Fase 7 (revisi desain) · **Tanggal:** 13 November 2026
+
+**Jawaban (13 November 2026).** Tetap **peringatan saja**. Server menerima
+tanggal terbit yang lebih besar dari tanggal jatuh tempo; layar kebijakan
+menampilkan peringatan, bukan galat. Menagih tunggakan lama kadang memang butuh
+jatuh tempo yang sudah lewat, dan menolaknya memaksa pemilik memilih tanggal
+yang salah.
+
+**Pertanyaan.** Bila pemilik mengisi tanggal terbit 20 dan jatuh tempo 15,
+apakah server menolak dengan 422 atau hanya memperingatkan?
+
+**Karena.** Menyentuh perilaku yang dilihat pengguna (peringatan vs galat) dan
+uang (kapan tagihan dianggap terlambat).
+
+**Kalau tidak dijawab.** Tidak dipakai — keputusan sudah diambil.
+
