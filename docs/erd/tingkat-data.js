@@ -118,10 +118,11 @@ const L0 = {
     'token_akun',
     'notifications',
     'laporan_kerusakan',
+    'lampiran_kerusakan',
   ],
   alasan_dikecualikan:
-    'Tabel teknis, tabel penghubung, dan rincian keadaan (mis. laporan kerusakan): yang terakhir bermakna bagi ' +
-    'pemilik tetapi tidak mengubah bentuk hubungan antarentitas. Semuanya muncul mulai level 2 (fisikal).',
+    'Tabel teknis, tabel penghubung, dan rincian keadaan (mis. laporan kerusakan dan fotonya): yang terakhir ' +
+    'bermakna bagi pemilik tetapi tidak mengubah bentuk hubungan antarentitas. Semuanya muncul mulai level 2 (fisikal).',
 };
 
 /* ============================================================ LEVEL 1 */
@@ -192,10 +193,11 @@ const L1 = {
     'token_akun',
     'notifications',
     'laporan_kerusakan',
+    'lampiran_kerusakan',
   ],
   alasan_dikecualikan:
-    'Tabel teknis, tabel rincian, dan rincian keadaan (laporan kerusakan) yang tidak mengubah bentuk hubungan ' +
-    'antarentitas. Semuanya muncul mulai level 2 (fisikal), dan seluruh kolomnya ada di LRS.',
+    'Tabel teknis, tabel rincian, dan rincian keadaan (laporan kerusakan beserta fotonya) yang tidak mengubah ' +
+    'bentuk hubungan antarentitas. Semuanya muncul mulai level 2 (fisikal), dan seluruh kolomnya ada di LRS.',
 };
 
 /* ==================================================== LEVEL 2 dan 3 */
@@ -206,19 +208,20 @@ const L1 = {
  * LEVEL 2 DIPECAH MENJADI TIGA LEMBAR; LEVEL 3 CUKUP SATU. Keduanya diputuskan
  * oleh pengukuran, bukan selera.
  *
- * Percobaan pertama memakai SATU lembar berisi seluruh 24 tabel untuk KEDUANYA.
+ * Percobaan pertama memakai SATU lembar berisi seluruh tabel untuk KEDUANYA.
  * Hasilnya ditolak oleh penjaga keterbacaan: setelah dipaskan ke satu halaman
- * A4, hurufnya hanya 1,94 mm - di bawah ambang 2,52 mm. Itu bukan soal skala
- * ekspor; 209 kolom memang tidak muat di A4.
+ * A4, hurufnya hanya 1,86 mm - di bawah ambang 2,52 mm. Itu bukan soal skala
+ * ekspor; 217 kolom memang tidak muat di A4.
  *
  * Penyelesaiannya berbeda untuk kedua tingkat, dan keduanya dari pengukuran:
  *
- *   - level 2 (fisikal): dipecah menjadi TIGA lembar A4, karena yang harus
- *     terbaca adalah setiap kolom beserta tipenya - teksnya paling banyak;
+ *   - level 2 (fisikal): dipecah menjadi EMPAT lembar A4 (a, b1, b2, c), karena
+ *     yang harus terbaca adalah setiap kolom beserta tipenya - teksnya paling
+ *     banyak;
  *   - level 3 (LRS)    : tetap SATU lembar, tetapi di kertas A3 tegak. Seluruh
- *     209 kolom terbaca di sana (2,74 mm), sedangkan A4 terbaik hanya 1,94 mm.
+ *     217 kolom terbaca di sana (2,62 mm), sedangkan A4 terbaik hanya 1,86 mm.
  *     Lembar A3 itu diserahkan sebagai lampiran, bukan ditempel ke badan
- *     laporan - mengecilkannya ke lebar A4 mengembalikan angkanya ke 1,94 mm.
+ *     laporan - mengecilkannya ke lebar A4 mengembalikan angkanya ke 1,86 mm.
  *
  * Jadi yang menentukan bukan jumlah tabel, melainkan berapa kolom yang digambar
  * dan sebesar apa kertasnya. Tabel 24 sel (2-6 kolom x A4/A3 tegak-miring) ada
@@ -266,6 +269,7 @@ const MODUL = [
     tabel: [
       'kamar',
       'laporan_kerusakan',
+      'lampiran_kerusakan',
       'fasilitas',
       'kamar_fasilitas',
       'tarif_sewa',

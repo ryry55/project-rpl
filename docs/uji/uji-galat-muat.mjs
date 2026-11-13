@@ -32,7 +32,13 @@ import { APP, kirim, evaluasi, tungguSampai, masukSebagai, mulaiUji, jalankan } 
 // Pola URL mengikuti endpoint yang benar-benar dipanggil tiap layar. Salah pola
 // berarti tidak ada yang diblokade, dan asersi galat lulus secara palsu.
 const KASUS = [
-  { nama: 'DashboardPenghuni', jalur: '/penghuni', pola: '*/api/penghuni/tagihan*', akun: 'penghuni@kos.test' },
+  // Portal penghuni memuat beberapa bagian sendiri-sendiri (tagihan, aturan,
+  // rekening, kontrak, laporan kerusakan). Blokade dipasang untuk SELURUH
+  // `/penghuni/*`, bukan hanya `/penghuni/tagihan`: kasus ini menguji "halaman
+  // gagal memuat datanya", dan bagian yang tetap berhasil akan menampilkan
+  // "Belum ada ..." yang benar untuk dirinya sendiri tetapi terbaca sebagai
+  // klaim kosong untuk halaman yang gagal.
+  { nama: 'DashboardPenghuni', jalur: '/penghuni', pola: '*/api/penghuni/*', akun: 'penghuni@kos.test' },
   { nama: 'AturanView', jalur: '/pemilik/aturan', pola: '*/api/aturan*', akun: 'pemilik@kos.test' },
   { nama: 'KamarView', jalur: '/pemilik/kamar', pola: '*/api/kamar*', akun: 'pemilik@kos.test' },
   { nama: 'PenghuniView', jalur: '/pemilik/penghuni', pola: '*/api/penghuni*', akun: 'pemilik@kos.test' },

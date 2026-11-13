@@ -1,6 +1,6 @@
 {
-  "diambil_pada": "2026-10-30T18:26:30.635Z",
-  "jumlah_tabel": 24,
+  "diambil_pada": "2026-11-13T05:59:29.875Z",
+  "jumlah_tabel": 25,
   "tabel": [
     {
       "nama": "aturan_kos",
@@ -370,7 +370,7 @@
         {
           "nama": "nilai",
           "tipe": "character varying",
-          "panjang": 30,
+          "panjang": 60,
           "presisi": null,
           "skala": null,
           "boleh_null": false,
@@ -464,15 +464,15 @@
       "check": [
         {
           "nama": "kebijakan_kos_kolom_sesuai_tipe",
-          "definisi": "CHECK (\nCASE tipe\n    WHEN 'satuan_sewa'::text THEN ((persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL) AND (nominal IS NULL) AND (tanggal IS NULL))\n    WHEN 'jatuh_tempo'::text THEN ((persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL) AND (nominal IS NULL) AND\n    CASE\n        WHEN ((nilai)::text = 'tanggal_tetap'::text) THEN ((tanggal IS NOT NULL) AND ((tanggal >= 1) AND (tanggal <= 31)))\n        ELSE (tanggal IS NULL)\n    END)\n    WHEN 'denda'::text THEN ((tanggal IS NULL) AND\n    CASE\n        WHEN ((nilai)::text = ANY ((ARRAY['persen_harian'::character varying, 'persen_bulanan'::character varying])::text[])) THEN ((persen IS NOT NULL) AND (persen > (0)::numeric) AND (plafon_persen IS NOT NULL) AND (plafon_persen > (0)::numeric) AND (nominal IS NULL) AND (masa_tenggang IS NOT NULL) AND (masa_tenggang >= 0))\n        WHEN ((nilai)::text = 'nominal_tetap'::text) THEN ((nominal IS NOT NULL) AND (nominal >= (0)::numeric) AND (persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL))\n        ELSE ((persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL) AND (nominal IS NULL))\n    END)\n    ELSE NULL::boolean\nEND)"
+          "definisi": "CHECK (\nCASE tipe\n    WHEN 'satuan_sewa'::text THEN ((persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL) AND (nominal IS NULL) AND (tanggal IS NULL))\n    WHEN 'jatuh_tempo'::text THEN ((persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL) AND (nominal IS NULL) AND\n    CASE\n        WHEN ((nilai)::text = 'tanggal_tetap'::text) THEN ((tanggal IS NOT NULL) AND ((tanggal >= 1) AND (tanggal <= 31)))\n        ELSE (tanggal IS NULL)\n    END)\n    WHEN 'denda'::text THEN ((tanggal IS NULL) AND\n    CASE\n        WHEN ((nilai)::text = ANY ((ARRAY['persen_harian'::character varying, 'persen_bulanan'::character varying])::text[])) THEN ((persen IS NOT NULL) AND (persen > (0)::numeric) AND (plafon_persen IS NOT NULL) AND (plafon_persen > (0)::numeric) AND (nominal IS NULL) AND (masa_tenggang IS NOT NULL) AND (masa_tenggang >= 0))\n        WHEN ((nilai)::text = 'nominal_tetap'::text) THEN ((nominal IS NOT NULL) AND (nominal >= (0)::numeric) AND (persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL))\n        ELSE ((persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL) AND (nominal IS NULL))\n    END)\n    WHEN 'pola_tagihan'::text THEN ((persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL) AND (nominal IS NULL) AND (tanggal IS NULL))\n    WHEN 'tanggal_terbit'::text THEN ((persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL) AND (nominal IS NULL) AND (tanggal IS NOT NULL) AND ((tanggal >= 1) AND (tanggal <= 28)))\n    WHEN 'nama_kos'::text THEN ((persen IS NULL) AND (plafon_persen IS NULL) AND (masa_tenggang IS NULL) AND (nominal IS NULL) AND (tanggal IS NULL))\n    ELSE NULL::boolean\nEND)"
         },
         {
           "nama": "kebijakan_kos_nilai_valid",
-          "definisi": "CHECK (((((tipe)::text = 'satuan_sewa'::text) AND ((nilai)::text = ANY ((ARRAY['bulanan'::character varying, 'mingguan'::character varying, 'harian'::character varying])::text[]))) OR (((tipe)::text = 'jatuh_tempo'::text) AND ((nilai)::text = ANY ((ARRAY['tanggal_masuk'::character varying, 'tanggal_tetap'::character varying, 'akhir_bulan'::character varying])::text[]))) OR (((tipe)::text = 'denda'::text) AND ((nilai)::text = ANY ((ARRAY['persen_harian'::character varying, 'persen_bulanan'::character varying, 'nominal_tetap'::character varying, 'tanpa_denda'::character varying])::text[])))))"
+          "definisi": "CHECK (((((tipe)::text = 'satuan_sewa'::text) AND ((nilai)::text = ANY ((ARRAY['bulanan'::character varying, 'mingguan'::character varying, 'harian'::character varying])::text[]))) OR (((tipe)::text = 'jatuh_tempo'::text) AND ((nilai)::text = ANY ((ARRAY['tanggal_masuk'::character varying, 'tanggal_tetap'::character varying, 'akhir_bulan'::character varying])::text[]))) OR (((tipe)::text = 'denda'::text) AND ((nilai)::text = ANY ((ARRAY['persen_harian'::character varying, 'persen_bulanan'::character varying, 'nominal_tetap'::character varying, 'tanpa_denda'::character varying])::text[]))) OR (((tipe)::text = 'pola_tagihan'::text) AND ((nilai)::text = ANY ((ARRAY['tanggal_1'::character varying, 'anniversary'::character varying])::text[]))) OR (((tipe)::text = 'tanggal_terbit'::text) AND ((nilai)::text = 'tanggal_tetap'::text)) OR (((tipe)::text = 'nama_kos'::text) AND ((length(btrim((nilai)::text)) >= 1) AND (length(btrim((nilai)::text)) <= 60)))))"
         },
         {
           "nama": "kebijakan_kos_tipe_valid",
-          "definisi": "CHECK (((tipe)::text = ANY ((ARRAY['satuan_sewa'::character varying, 'jatuh_tempo'::character varying, 'denda'::character varying])::text[])))"
+          "definisi": "CHECK (((tipe)::text = ANY ((ARRAY['satuan_sewa'::character varying, 'jatuh_tempo'::character varying, 'denda'::character varying, 'pola_tagihan'::character varying, 'tanggal_terbit'::character varying, 'nama_kos'::character varying])::text[])))"
         }
       ],
       "unik_parsial": [],
@@ -704,6 +704,98 @@
           "definisi": "CREATE UNIQUE INDEX kontrak_satu_aktif_per_kamar ON public.kontrak USING btree (kamar_id) WHERE ((status)::text = ANY ((ARRAY['aktif'::character varying, 'dipesan'::character varying])::text[]))"
         }
       ],
+      "trigger": []
+    },
+    {
+      "nama": "lampiran_kerusakan",
+      "kolom": [
+        {
+          "nama": "id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": "nextval('lampiran_kerusakan_id_seq'::regclass)"
+        },
+        {
+          "nama": "laporan_kerusakan_id",
+          "tipe": "bigint",
+          "panjang": null,
+          "presisi": 64,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "nama_asli",
+          "tipe": "character varying",
+          "panjang": 160,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "mime",
+          "tipe": "character varying",
+          "panjang": 60,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "ukuran",
+          "tipe": "integer",
+          "panjang": null,
+          "presisi": 32,
+          "skala": 0,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "isi",
+          "tipe": "bytea",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": false,
+          "bawaan": null
+        },
+        {
+          "nama": "created_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "updated_at",
+          "tipe": "timestamp without time zone",
+          "panjang": null,
+          "presisi": null,
+          "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        }
+      ],
+      "kunci_primer": [
+        "id"
+      ],
+      "unik": [],
+      "asing": [
+        {
+          "kolom": "laporan_kerusakan_id",
+          "ke_tabel": "laporan_kerusakan",
+          "ke_kolom": "id",
+          "nama": "lampiran_kerusakan_laporan_kerusakan_id_foreign"
+        }
+      ],
+      "check": [],
+      "unik_parsial": [],
       "trigger": []
     },
     {

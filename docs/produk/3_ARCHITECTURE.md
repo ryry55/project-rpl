@@ -33,7 +33,7 @@ Versi 1.0 · 26 Oktober 2026
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
 │  PostgreSQL 16                                               │
-│  24 tabel · 8 trigger (7 append-only) · CHECK sebagai pagar  │
+│  25 tabel · 8 trigger (7 append-only) · CHECK sebagai pagar  │
 └──────────────────────────────────────────────────────────────┘
 
   di luar jalur utama:
@@ -73,7 +73,7 @@ return (new TagihanResource($hasil->tagihan))->response()->setStatusCode(201);
 
 ### 2.2 Domain — tempat semua aturan tinggal
 
-54 kelas di `app/Domain/`, dikelompokkan per masalah, bukan per tabel:
+55 kelas di `app/Domain/`, dikelompokkan per masalah, bukan per tabel:
 
 | Folder | Isi | Contoh |
 |---|---|---|
@@ -409,14 +409,14 @@ penutupan. Daftar yang tidak dicatat akan terlupakan.
 
 ```
 api/
-  app/Domain/            54 kelas, 13 folder - semua aturan
+  app/Domain/            55 kelas, 13 folder - semua aturan
   app/Http/Controllers/  29 pengendali — hanya menerjemahkan
   app/Http/Middleware/   6 middleware
   app/Http/Requests/     validasi
   app/Http/Resources/    15 resource — bentuk JSON
-  app/Models/            22 model — hanya bentuk data
-  database/migrations/   45 migrasi
-  tests/                 52 berkas tes, 886 tes
+  app/Models/            23 model — hanya bentuk data
+  database/migrations/   46 migrasi
+  tests/                 53 berkas tes, 898 tes
 
 web/
   src/views/             27 view (7 publik + 20 pemilik dan panelnya)
@@ -429,7 +429,7 @@ web/
 
 docs/
   produk/                9 dokumen ini
-  uji/                   32 skrip uji + perkakas
+  uji/                   33 skrip uji + perkakas
   dfd/                   4 diagram (Gane-Sarson, Yourdon)
   charter/               Project Charter
 ```

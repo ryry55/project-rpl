@@ -37,7 +37,7 @@ const DIR_MODEL = path.join(AKAR, 'api', 'app', 'Models');
 /* ------------------------------------------------------------ kelompok */
 
 /**
- * Pengelompokan lembar. Diagram kelas 22 kotak tidak terbaca dalam satu
+ * Pengelompokan lembar. Diagram kelas 23 kotak tidak terbaca dalam satu
  * halaman, jadi ia dipecah tiga menurut pekerjaannya — pola yang sama dengan
  * ERD L2 a/b/c. `kunci` dipakai sebagai nama berkas.
  */
@@ -72,6 +72,7 @@ const ANGGOTA = {
     'Rekening',
     'UsulanPerubahan',
     'LaporanKerusakan',
+    'LampiranKerusakan',
     'LogAudit',
   ],
 };

@@ -14,7 +14,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { sesi } from '../sesi.js'
-import { rupiah, tanggal, pesanGalat } from '../format.js'
+import { rupiah, tanggal, pesanGalat, galatPerBidang } from '../format.js'
 import { cetakKuitansi, isianKuitansi } from '../kuitansi.js'
 import { salinTeks } from '../bagikan.js'
 import { simulasiTanggal } from '../simulasi.js'
@@ -236,14 +236,102 @@ async function muatKontrak() {
   }
 }
 
+// --- Laporan kerusakan (K-15) --------------------------------------------
+
+/**
+ * Laporan kerusakan milik penghuni ini.
+ *
+ * Dimuat terpisah, sama seperti aturan dan rekening: kegagalan memuatnya tidak
+ * boleh menutupi tagihan. Yang berbeda, daftar ini juga memuat laporan yang
+ * sudah selesai - penghuni perlu tahu perbaikannya sudah ditutup, bukan hanya
+ * bahwa ia pernah melapor.
+ */
+const laporan = ref([])
+const memuatLaporan = ref(false)
+const galatLaporan = ref('')
+
+const formRusak = ref({ deskripsi: '' })
+const berkasRusak = ref([])
+const menyimpanRusak = ref(false)
+const galatRusak = ref('')
+const galatRusakBidang = ref({})
+const suksesRusak = ref('')
+
+// Sama dengan `LampiranKerusakan::MAKS_PER_LAPORAN` dan `BATAS_UKURAN` di
+// server. Diperiksa di sini juga supaya pesannya muncul sebelum 15 MB terkirim;
+// server tetap memeriksa ulang, karena pemeriksaan di peramban bisa dilewati.
+const BATAS_FOTO = 3
+const BATAS_UKURAN_FOTO = 5 * 1024 * 1024
+
+async function muatLaporan() {
+  memuatLaporan.value = true
+  galatLaporan.value = ''
+  try {
+    const hasil = await sesi.panggil('/penghuni/laporan-kerusakan')
+    laporan.value = hasil.data || []
+  } catch (e) {
+    galatLaporan.value = pesanGalat(e)
+  } finally {
+    memuatLaporan.value = false
+  }
+}
+
+function pilihFoto(peristiwa) {
+  galatRusak.value = ''
+  const dipilih = [...(peristiwa.target.files || [])]
+
+  if (dipilih.length > BATAS_FOTO) {
+    galatRusak.value = `Maksimal ${BATAS_FOTO} foto per laporan.`
+  }
+
+  const terlaluBesar = dipilih.find((b) => b.size > BATAS_UKURAN_FOTO)
+  if (terlaluBesar) {
+    galatRusak.value = `Foto "${terlaluBesar.name}" lebih dari 5 MB.`
+  }
+
+  berkasRusak.value = dipilih.slice(0, BATAS_FOTO)
+}
+
+async function kirimLaporan() {
+  menyimpanRusak.value = true
+  galatRusak.value = ''
+  galatRusakBidang.value = {}
+  suksesRusak.value = ''
+
+  try {
+    const isi = new FormData()
+    isi.append('deskripsi', formRusak.value.deskripsi.trim())
+    for (const berkas of berkasRusak.value) {
+      isi.append('foto[]', berkas)
+    }
+
+    // `tanpaTipeIsi`: peramban harus memasang sendiri `Content-Type` beserta
+    // `boundary`-nya. Menyetelnya manual membuat seluruh badan tidak terbaca.
+    await sesi.panggil('/penghuni/laporan-kerusakan', {
+      method: 'POST',
+      body: isi,
+      tanpaTipeIsi: true,
+    })
+
+    suksesRusak.value = 'Laporan terkirim. Pemilik atau pengelola akan memeriksanya.'
+    formRusak.value = { deskripsi: '' }
+    berkasRusak.value = []
+    await muatLaporan()
+  } catch (e) {
+    galatRusak.value = pesanGalat(e)
+    galatRusakBidang.value = galatPerBidang(e)
+  } finally {
+    menyimpanRusak.value = false
+  }
+}
+
 /**
  * Salin satu nomor rekening.
  *
  * Yang disalin hanya nomornya, bukan seluruh baris: penghuni menempelkannya ke
  * aplikasi bank, dan "BCA · 1234567890 · a.n. Budi" di kolom nomor rekening
  * akan ditolak aplikasi itu.
- */
-async function salinNomor(r) {
+ */async function salinNomor(r) {
   const berhasil = await salinTeks(r.nomor)
 
   if (!berhasil) {
@@ -265,6 +353,7 @@ onMounted(muat)
 onMounted(muatAturan)
 onMounted(muatRekening)
 onMounted(muatKontrak)
+onMounted(muatLaporan)
 </script>
 
 <template>
@@ -563,6 +652,106 @@ onMounted(muatKontrak)
       Tujuan pembayaran tidak dapat dimuat saat ini. Tanyakan langsung ke pemilik kos.
     </p>
 
+    <!-- Laporan kerusakan (K-15). Sebelum ini satu-satunya jalan adalah
+         WhatsApp ke pemilik, dan fotonya hilang ditelan percakapan. Ditempatkan
+         setelah cara membayar: penghuni yang menemukan kerusakan biasanya baru
+         selesai membaca tagihannya. -->
+    <section class="kartu panel" aria-labelledby="judul-kerusakan">
+      <h2 id="judul-kerusakan">Laporkan kerusakan</h2>
+      <p class="lemah mungil">
+        Kamar akan ditandai <strong>diperbaiki</strong> sampai laporannya ditutup. Sewa tetap
+        berjalan; biaya perbaikan tidak masuk tagihan Anda.
+      </p>
+
+      <form v-if="kontrak" class="bidang" @submit.prevent="kirimLaporan">
+        <div>
+          <label for="deskripsi-rusak">Apa yang rusak?</label>
+          <textarea
+            id="deskripsi-rusak"
+            v-model="formRusak.deskripsi"
+            rows="3"
+            placeholder="Keran kamar mandi bocor dan airnya merembes ke lantai"
+            :aria-invalid="Boolean(galatRusakBidang.deskripsi)"
+          />
+          <p v-if="galatRusakBidang.deskripsi" class="galat-bidang">
+            {{ galatRusakBidang.deskripsi }}
+          </p>
+        </div>
+
+        <div>
+          <label for="foto-rusak">
+            Foto <span class="lemah">(opsional, maksimal {{ BATAS_FOTO }})</span>
+          </label>
+          <input
+            id="foto-rusak"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            @change="pilihFoto"
+          />
+          <p class="lemah mungil">JPG, PNG, atau WEBP, maksimal 5 MB per foto.</p>
+          <p v-if="berkasRusak.length" class="mungil">
+            {{ berkasRusak.length }} foto dipilih: {{ berkasRusak.map((b) => b.name).join(', ') }}
+          </p>
+        </div>
+
+        <p v-if="galatRusak" class="pesan-galat">{{ galatRusak }}</p>
+        <p v-if="suksesRusak" class="pesan-netral">{{ suksesRusak }}</p>
+
+        <div class="aksi">
+          <button type="submit" :disabled="menyimpanRusak">
+            {{ menyimpanRusak ? 'Mengirim…' : 'Kirim laporan' }}
+          </button>
+        </div>
+      </form>
+
+      <p v-else class="lemah mungil">
+        Laporan kerusakan bisa dibuat setelah Anda punya kontrak sewa yang aktif.
+      </p>
+
+      <p v-if="galatLaporan" class="lemah mungil">
+        Riwayat laporan tidak dapat dimuat saat ini. {{ galatLaporan }}
+      </p>
+
+      <ul v-if="laporan.length > 0" class="daftar-laporan">
+        <li v-for="l in laporan" :key="l.id" class="satu-laporan">
+          <div class="kepala-laporan">
+            <strong>Kamar {{ l.kamar?.nomor || '—' }}</strong>
+            <LencanaStatus
+              :status="l.selesai_pada ? 'selesai' : 'menunggu'"
+              :label="l.selesai_pada ? 'Selesai' : 'Menunggu perbaikan'"
+            />
+          </div>
+          <p class="mungil lemah">
+            Dilaporkan {{ tanggal(l.dilaporkan_pada) }}
+            <template v-if="l.selesai_pada"> · selesai {{ tanggal(l.selesai_pada) }}</template>
+          </p>
+          <p>{{ l.deskripsi }}</p>
+
+          <!-- Tautannya bertanda tangan dan berbatas waktu, jadi bisa dipakai
+               langsung di `src` - tag gambar tidak bisa mengirim Bearer. -->
+          <div v-if="l.foto && l.foto.length > 0" class="foto-laporan">
+            <a
+              v-for="f in l.foto"
+              :key="f.id"
+              :href="f.url"
+              target="_blank"
+              rel="noopener"
+            >
+              <img :src="f.url" :alt="`Foto kerusakan kamar ${l.kamar?.nomor || ''}`" loading="lazy" />
+            </a>
+          </div>
+        </li>
+      </ul>
+      <!-- `!galatLaporan` wajib ada (REV-UI-04): tanpa itu, kegagalan memuat
+           tampil sebagai "Belum ada laporan" - dua keadaan yang sangat berbeda
+           bagi penghuni. Yang gagal dimuat bisa saja berisi laporan yang sudah
+           diterima pemilik. -->
+      <p v-else-if="!memuatLaporan && !galatLaporan" class="lemah mungil">
+        Belum ada laporan kerusakan dari Anda.
+      </p>
+    </section>
+
     <p class="lemah mungil kaki">
       Anda hanya dapat melihat tagihan milik Anda sendiri. Membuka tagihan penghuni lain
       akan dijawab seolah tagihan itu tidak ada.
@@ -810,6 +999,56 @@ onMounted(muatKontrak)
   font-size: 13px;
   line-height: 1.5;
   color: var(--teks-lemah);
+}
+
+/* --- Laporan kerusakan (K-15) ------------------------------------------- */
+
+.daftar-laporan {
+  display: grid;
+  gap: 14px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Garis kiri, sama seperti aturan: butir di dalam kartu tidak boleh terlihat
+   sama pentingnya dengan kartunya sendiri. */
+.satu-laporan {
+  padding-left: 12px;
+  border-left: 2px solid var(--garis);
+}
+
+.kepala-laporan {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.satu-laporan p {
+  margin: 3px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.foto-laporan {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Ukuran tetap supaya tiga foto tidak mendorong isi laporan lain ke bawah
+   lipatan; `object-fit: cover` menjaga bentuknya tanpa memotong bagian tengah
+   yang biasanya justru kerusakannya. */
+.foto-laporan img {
+  display: block;
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border: 1px solid var(--garis);
+  border-radius: var(--radius);
+  background: var(--aktif);
 }
 
 /* --- Rekening tujuan pembayaran (REV-UI-05) ----------------------------- */

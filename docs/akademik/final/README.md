@@ -20,7 +20,7 @@ Diagram tingkat lainnya juga terpisah (bukan digabung ke PDF):
 - `02-L2-fisikal-b.png` (modul 2: Kamar & kebijakan)
 - `02-L2-fisikal-c.png` (modul 3: Uang)
 
-Lembar LRS (`03-L3-lrs.png`) berukuran A3 tegak karena seluruh 209 kolom hanya terbaca di sana (**2,74 mm**). Di A4 terbaik hanya **1,94 mm**, di bawah ambang baca 2,52 mm.
+Lembar LRS (`03-L3-lrs.png`) berukuran A3 tegak karena seluruh 217 kolom hanya terbaca di sana (**2,62 mm**). Di A4 terbaik hanya **1,94 mm**, di bawah ambang baca 2,52 mm.
 
 ---
 
@@ -37,8 +37,8 @@ dan siap ditempel (SVG + PNG 2x):
 | `kelas-c.png` | Kelas: tagihan, pembayaran & catatan (9 kelas) | 2,61 mm |
 | `urutan-UC-01..14.png` | Satu diagram urutan per use case, 14 lembar | 2,58–4,46 mm |
 
-Diagram kelas dipecah tiga lembar dengan alasan yang sama seperti ERD L2 a/b/c:
-22 kotak di satu halaman hanya terbaca **1,1 mm**. Asosiasi yang menyeberang
+Diagram kelas dipecah tiga lembar dengan alasan yang sama seperti ERD L2 a/b1/b2/c:
+23 kotak di satu halaman hanya terbaca **1,1 mm**. Asosiasi yang menyeberang
 lembar didaftar di kaki gambar, bukan digambar sebagai garis yang menggantung di
 tepi kertas.
 
@@ -96,11 +96,11 @@ Generator membaca dari sumber-sumber itu; bila angka berubah (kolom bertambah, e
 ## Angka yang Dijaga
 
 Build memastikan tidak ada angka yang diketik tangan:
-- **91 endpoint** (`api/routes/api.php`)
-- **24 tabel**, **209 kolom**, **29 kunci asing**
+- **94 endpoint** (`api/routes/api.php`)
+- **25 tabel**, **217 kolom**, **30 kunci asing**
 - **14 use case**, **16 aliran batas**
-- Tes: **886 PHP**, **19 Vitest**, **32 skrip uji** (568 detik untuk 905 langkah)
-- Ukuran huruf LRS: **2,74 mm** (A3 tegak), **1,94 mm** (A4 terbaik)
+- Tes: **898 PHP**, **19 Vitest**, **33 skrip uji** (568 detik untuk 919 langkah)
+- Ukuran huruf LRS: **2,62 mm** (A3 tegak), **1,86 mm** (A4 terbaik)
 
 Angka-angka ini dijaga oleh pemeriksa yang tertanam di generator. Lihat `docs/serah-terima.md` §5 untuk cara memeriksanya sendiri.
 
@@ -110,8 +110,8 @@ Angka-angka ini dijaga oleh pemeriksa yang tertanam di generator. Lihat `docs/se
 
 CI hijau pada commit **f0f503c** (run `41276981323`). Hasil gate penuh:
 - Format/lint: pint, eslint, vitest bersih
-- Tes: 886 PHP / 4024 asersi, 19 Vitest / 235 asersi
-- Browser: 32 skrip / 905 langkah
+- Tes: 898 PHP / 4072 asersi, 19 Vitest / 235 asersi
+- Browser: 33 skrip / 919 langkah
 - Pemeriksa dokumen: konsistensi ERD/LRS, DFD, cakupan kontrak, angka dokumenn
 
 ---

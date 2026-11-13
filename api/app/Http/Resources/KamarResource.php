@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Kamar;
+use App\Models\LampiranKerusakan;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -53,6 +54,14 @@ class KamarResource extends JsonResource
                     'deskripsi' => $this->laporanTerbuka->deskripsi,
                     'dilaporkan_pada' => $this->laporanTerbuka->created_at?->toIso8601String(),
                     'pelapor' => $this->laporanTerbuka->pelapor?->name,
+                    // Foto dari penghuni (K-15). Tanpa ini, pemilik melihat
+                    // deskripsi "ada yang bocor" tanpa bisa membedakan tetesan
+                    // dari kebocoran besar, dan ia tetap harus menelepon.
+                    'foto' => $this->laporanTerbuka->relationLoaded('lampiran')
+                        ? $this->laporanTerbuka->lampiran
+                            ->map(fn (LampiranKerusakan $l) => $l->ringkas())
+                            ->values()
+                        : [],
                 ]
                 : null),
         ];

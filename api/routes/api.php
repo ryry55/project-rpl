@@ -77,6 +77,21 @@ Route::get('/health', HealthController::class)->name('api.health');
 // sebelum ada token; isinya hanya nama, yang tertulis di papan depan kos.
 Route::get('/identitas-kos', IdentitasKosController::class)->name('api.identitas-kos');
 
+// Foto lampiran kerusakan (K-15). Tanpa `auth:sanctum` dengan sengaja: tag
+// `<img>` tidak bisa mengirim header `Authorization`, dan memaksakannya
+// menghasilkan ikon rusak tanpa pesan. Yang menjaga bukan token melainkan
+// tanda tangan berbatas waktu yang hanya dibuat untuk pelapor dan pengurus kos
+// (`LampiranKerusakan::ringkas`). Tanpa tanda tangan yang sah, rute ini
+// menjawab 403 - bukan 404 - supaya penebak tidak bisa memetakan id.
+//
+// `signed:relative`, bukan `signed`: tautannya relatif supaya melewati origin
+// SPA (CSP produksi hanya mengizinkan `img-src 'self'`), dan tanda tangan
+// relatif tidak membandingkan host.
+Route::get('/lampiran-kerusakan/{id}', [LaporanKerusakanController::class, 'lampiran'])
+    ->whereNumber('id')
+    ->middleware('signed:relative')
+    ->name('lampiran-kerusakan.tampil');
+
 // Pemulihan akses (T27). Tanpa `auth:sanctum`: seluruh gunanya adalah untuk
 // orang yang tidak bisa masuk. Ketiganya dibatasi `PembatasMasuk` di dalam
 // controller, dan endpoint permintaan tautan dibatasi lebih ketat lagi karena
@@ -180,6 +195,15 @@ Route::middleware('auth:sanctum')->group(function () {
             // tidak pernah menyebut kapan ia masuk atau berapa tarifnya.
             Route::get('/penghuni/kontrak', [PortalPenghuniController::class, 'kontrak'])
                 ->name('penghuni.kontrak');
+
+            // Laporan kerusakan dari sisi penghuni (K-15). Sebelum ini
+            // penghuni hanya bisa mengirim WhatsApp, dan fotonya hilang.
+            // `kamar_id` diambil server dari kontrak aktif - lihat
+            // `LaporanKerusakanController::storePenghuni`.
+            Route::get('/penghuni/laporan-kerusakan', [LaporanKerusakanController::class, 'indexPenghuni'])
+                ->name('penghuni.kerusakan.index');
+            Route::post('/penghuni/laporan-kerusakan', [LaporanKerusakanController::class, 'storePenghuni'])
+                ->name('penghuni.kerusakan.store');
 
             // Pembayaran daring (T22). Penghuni memulai pembayaran untuk
             // tagihannya sendiri. Diletakkan di sini, bukan di grup

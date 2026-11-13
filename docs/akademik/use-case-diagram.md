@@ -30,17 +30,17 @@ Berkas: `01-use-case.svg` (vektor) dan `01-use-case.png` (2x, siap tempel).
 ## 3. Daftar 14 Use Case dan Endpoint Pendukungnya
 
 Setiap use case menunjuk minimal satu endpoint nyata. Pemetaannya
-**tertutup**: 91 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
+**tertutup**: 94 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
 ada satu pun yang dipakai dua use case. `build.js` memeriksa ketiga hal itu
 dan gagal bila tidak terpenuhi.
 
 | Kode | Use Case | Endpoint (nama rute) |
 |---|---|---|
-| **UC-01** | Registrasi & Login Akun | `api.login`<br>`api.logout`<br>`api.me`<br>`api.lupa-sandi`<br>`api.periksa-token`<br>`api.atur-sandi`<br>`api.ganti-sandi` |
-| **UC-02** | Kelola Kamar, Fasilitas & Aturan Kos | `kamar.index`<br>`kamar.store`<br>`kamar.show`<br>`kamar.update`<br>`kamar.fasilitas`<br>`kerusakan.index`<br>`kerusakan.store`<br>`kerusakan.selesai`<br>`fasilitas.index`<br>`fasilitas.store`<br>`fasilitas.update`<br>`fasilitas.destroy`<br>`aturan.index`<br>`aturan.store`<br>`aturan.update`<br>`aturan.destroy` |
+| **UC-01** | Registrasi & Login Akun | `api.login`<br>`api.logout`<br>`api.me`<br>`api.lupa-sandi`<br>`api.periksa-token`<br>`api.atur-sandi`<br>`api.ganti-sandi`<br>`api.identitas-kos` |
+| **UC-02** | Kelola Kamar, Fasilitas & Aturan Kos | `kamar.index`<br>`kamar.store`<br>`kamar.show`<br>`kamar.update`<br>`kamar.fasilitas`<br>`kerusakan.index`<br>`kerusakan.store`<br>`kerusakan.selesai`<br>`lampiran-kerusakan.tampil`<br>`fasilitas.index`<br>`fasilitas.store`<br>`fasilitas.update`<br>`fasilitas.destroy`<br>`aturan.index`<br>`aturan.store`<br>`aturan.update`<br>`aturan.destroy` |
 | **UC-03** | Kelola Data Penghuni & Kontrak Sewa | `penghuni.index`<br>`penghuni.store`<br>`penghuni.show`<br>`penghuni.update`<br>`penghuni.kirim-ulang-aktivasi`<br>`kontrak.index`<br>`kontrak.store`<br>`kontrak.show`<br>`kontrak.akhiri` |
 | **UC-04** | Kelola Tarif Sewa & Komponen Biaya | `tarif.index`<br>`tarif.store`<br>`tarif.berlaku`<br>`komponen.index`<br>`komponen.store` |
-| **UC-05** | Kelola Kebijakan Kos | `kebijakan.index`<br>`kebijakan.store` |
+| **UC-05** | Kelola Kebijakan Kos | `kebijakan.index`<br>`kebijakan.store`<br>`kebijakan.pratinjau-denda` |
 | **UC-06** | Persetujuan Usulan Perubahan Tarif & Kebijakan | `usulan.index`<br>`usulan.setujui`<br>`usulan.tolak` |
 | **UC-07** | Terbitkan & Kelola Tagihan Bulanan | `tagihan.index`<br>`tagihan.store`<br>`tagihan.terbitkan`<br>`tagihan.batal`<br>`tagihan.maaf-denda` |
 | **UC-08** | Catat Pembayaran Sewa | `tagihan.bayar`<br>`pembayaran.index`<br>`pembayaran.penerima`<br>`pembayaran.tunai-saya`<br>`api.webhook.midtrans` |
@@ -48,7 +48,7 @@ dan gagal bila tidak terpenuhi.
 | **UC-10** | Laporan Rekap Pendapatan, Tunggakan & Jejak Audit | `rekap.index`<br>`tunggakan.index`<br>`audit-log.index`<br>`ekspor.rekap`<br>`ekspor.tunggakan`<br>`ekspor.pembayaran` |
 | **UC-11** | Kelola Preferensi Akun, Notifikasi & Hak Data Pribadi | `notifikasi.index`<br>`notifikasi.baca-semua`<br>`notifikasi.baca`<br>`pengaturan-notifikasi.show`<br>`pengaturan-notifikasi.update`<br>`api.persetujuan-pdp`<br>`pdp.data-saya`<br>`pdp.hapus-saya` |
 | **UC-12** | Kelola Akun Pengelola & Wewenang | `pengelola.index`<br>`pengelola.store`<br>`pengelola.show`<br>`pengelola.update`<br>`pengelola.destroy`<br>`pengelola.kirim-ulang-aktivasi` |
-| **UC-13** | Portal Penghuni | `penghuni.tagihan`<br>`penghuni.aturan`<br>`penghuni.rekening`<br>`penghuni.kontrak`<br>`tagihan.show`<br>`tagihan.denda`<br>`tagihan.bayar-daring` |
+| **UC-13** | Portal Penghuni | `penghuni.tagihan`<br>`penghuni.aturan`<br>`penghuni.rekening`<br>`penghuni.kontrak`<br>`penghuni.kerusakan.index`<br>`penghuni.kerusakan.store`<br>`tagihan.show`<br>`tagihan.denda`<br>`tagihan.bayar-daring` |
 | **UC-14** | Kelola Rekening Tujuan Pembayaran, Status Penyiapan & Diagnostik Sistem | `rekening.index`<br>`rekening.store`<br>`rekening.update`<br>`rekening.destroy`<br>`rekening.gambar`<br>`penyiapan.index`<br>`api.health`<br>`api.pemilik-saja` |
 
 ## 4. Matriks Hak Akses Aktor

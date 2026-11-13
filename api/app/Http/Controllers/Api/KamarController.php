@@ -40,6 +40,10 @@ class KamarController extends Controller
             // daftar kamar supaya layar bisa menjelaskan MENGAPA sebuah kamar
             // berstatus `perbaikan` tanpa permintaan kedua per kamar.
             'laporanTerbuka.pelapor',
+            // Fotonya ikut, karena tanpa foto pemilik hanya membaca "ada yang
+            // bocor" dan tetap harus menelepon. Terpisah dari `.pelapor`
+            // supaya permintaan ini tetap dua kueri, bukan satu per kamar.
+            'laporanTerbuka.lampiran',
         ]);
 
         if ($request->filled('status_huni')) {
@@ -75,7 +79,7 @@ class KamarController extends Controller
 
     public function show(Kamar $kamar): JsonResponse
     {
-        $kamar->load(['kontrakAktif.penghuni', 'tarif', 'tarifTerakhir', 'fasilitas', 'laporanTerbuka.pelapor']);
+        $kamar->load(['kontrakAktif.penghuni', 'tarif', 'tarifTerakhir', 'fasilitas', 'laporanTerbuka.pelapor', 'laporanTerbuka.lampiran']);
 
         return response()->json(['data' => new KamarResource($kamar)]);
     }

@@ -6,7 +6,7 @@
 > Sumber kebenaran tetap `api/routes/api.php` dan kelas `Resource`. Dokumen ini
 > diambil dari `php artisan route:list --json` pada aplikasi yang berjalan.
 
-Versi 1.1 · 26 Oktober 2026 · **91 endpoint**
+Versi 1.1 · 26 Oktober 2026 · **94 endpoint**
 
 ---
 
@@ -187,7 +187,7 @@ meminta, hanya waktunya belum tepat.
 
 ---
 
-## 4. Data kos (38 endpoint)
+## 4. Data kos (39 endpoint)
 
 ### 4.1 Kamar
 
@@ -200,8 +200,16 @@ meminta, hanya waktunya belum tepat.
 | `PUT` | `/api/kamar/{kamar}/fasilitas` | `wewenang:kelola_kamar` | `{ fasilitas: [id, …] }` |
 | `GET` | `/api/kamar/{kamar}/tarif-berlaku` | `peran:pemilik,pengelola` | `?tanggal=YYYY-MM-DD` |
 | `GET` | `/api/laporan-kerusakan` | `peran:pemilik,pengelola` | `?status=terbuka\|selesai` |
-| `POST` | `/api/laporan-kerusakan` | `wewenang:kelola_kamar` | `{ kamar_id, deskripsi }` |
+| `POST` | `/api/laporan-kerusakan` | `wewenang:kelola_kamar` | `{ kamar_id, deskripsi, foto[]? }` |
 | `POST` | `/api/laporan-kerusakan/{laporan}/selesai` | `wewenang:kelola_kamar` | — |
+| `GET` | `/api/lampiran-kerusakan/{id}` | publik + `signed:relative` | byte gambar; tautan berumur 30 menit |
+
+`POST /laporan-kerusakan` menerima sampai tiga foto (`foto[]`, JPG/PNG/WEBP, ≤ 5 MB
+masing-masing). Foto disimpan di kolom `bytea` dan **tidak** bisa dibuka lewat
+`/lampiran-kerusakan/{id}` tanpa tanda tangan yang sah: rute itu di luar
+`auth:sanctum` karena tag `<img>` tidak bisa mengirim Bearer, dan yang menjaga
+adalah tanda tangannya. Tautan yang dikirim resource **relatif** (`signed:relative`)
+supaya melewati origin SPA — CSP produksi hanya mengizinkan `img-src 'self'`.
 
 `PUT /fasilitas` **mengganti seluruh daftar** lewat `sync()`, bukan menambah.
 Kuncinya `present`: larik kosong berarti "hapus semua fasilitas", dan itu
@@ -898,9 +906,9 @@ perlu meninggalkan nama orang itu di catatan sejarah selamanya.
 
 ---
 
-## 8. Portal penghuni, pembayaran daring, dan notifikasi (11 endpoint)
+## 8. Portal penghuni, pembayaran daring, dan notifikasi (13 endpoint)
 
-> Sepuluh endpoint berbentuk baris tabel; yang kesebelas,
+> Dua belas endpoint berbentuk baris tabel; yang ketiga belas,
 > `POST /api/webhook/midtrans`, ditulis di §8.0.1 karena ia bukan endpoint yang
 > dipanggil pengguna — pemanggilnya gateway, dan gerbangnya tanda tangan
 > SHA512, bukan token.
@@ -911,13 +919,23 @@ perlu meninggalkan nama orang itu di catatan sejarah selamanya.
 | `GET` | `/api/penghuni/aturan` | `peran:penghuni` |
 | `GET` | `/api/penghuni/rekening` | `peran:penghuni` |
 | `GET` | `/api/penghuni/kontrak` | `peran:penghuni` |
+| `GET` | `/api/penghuni/laporan-kerusakan` | `peran:penghuni` |
+| `POST` | `/api/penghuni/laporan-kerusakan` | `peran:penghuni` |
 | `POST` | `/api/tagihan/{tagihan}/bayar-daring` | `peran:penghuni` |
 
-**Keempatnya harus didaftarkan sebelum `apiResource('penghuni')`.** Kalau tidak,
+**Kelimanya harus didaftarkan sebelum `apiResource('penghuni')`.** Kalau tidak,
 `GET /penghuni/tagihan` ditangkap `GET /penghuni/{penghuni}` dan "tagihan"
 diperlakukan sebagai id — route model binding mencari `penghuni.id = 'tagihan'`
 dan PostgreSQL menolaknya dengan `22P02`. Kelas kesalahan yang sama dengan
 `/tagihan/terbitkan`.
+
+`POST /penghuni/laporan-kerusakan` — `{ deskripsi, foto[]? }`. **`kamar_id` tidak
+dibaca dari badan permintaan**: server mengambilnya dari kontrak aktif penghuni,
+supaya penghuni tidak bisa menandai kamar orang lain sebagai `perbaikan`. Akun
+tanpa kontrak aktif dijawab `422` dengan penjelasan, bukan `403` — datanya belum
+lengkap, bukan alamatnya yang salah. `GET` mengembalikan laporan yang
+`dilaporkan_oleh` akun itu sendiri, bukan semua laporan kamarnya: foto kamar
+adalah data pribadi orang yang memotretnya.
 
 ### 8.0 Pembayaran daring (T22)
 
@@ -1030,7 +1048,7 @@ tidak pernah dijalankan.
 |---|---|---|
 | Autentikasi & akun | 8 | `/login`, `/logout`, `/me`, `/ganti-sandi`, `/lupa-sandi`, `/periksa-token`, `/atur-sandi`, `/persetujuan-pdp` |
 | PDP | 2 | `/pdp/*` |
-| Kamar, fasilitas & kerusakan | 13 | `/kamar*`, `/fasilitas*`, `/laporan-kerusakan*` |
+| Kamar, fasilitas & kerusakan | 14 | `/kamar*`, `/fasilitas*`, `/laporan-kerusakan*`, `/lampiran-kerusakan/{id}` |
 | Tarif, komponen, kebijakan | 7 | `/tarif`, `/komponen-biaya`, `/kebijakan`, `/kebijakan/pratinjau-denda` |
 | Aturan | 4 | `/aturan*` |
 | Rekening | 5 | `/rekening*`, `/rekening/{id}/gambar` |
@@ -1041,11 +1059,11 @@ tidak pernah dijalankan.
 | Ekspor | 3 | `/ekspor/*` |
 | Usulan | 3 | `/usulan*` |
 | Pengelola | 6 | `/pengelola*` |
-| Portal penghuni | 5 | `/penghuni/tagihan`, `/penghuni/aturan`, `/penghuni/rekening`, `/penghuni/kontrak`, `/tagihan/{id}/bayar-daring` |
+| Portal penghuni | 7 | `/penghuni/tagihan`, `/penghuni/aturan`, `/penghuni/rekening`, `/penghuni/kontrak`, `/penghuni/laporan-kerusakan`, `/tagihan/{id}/bayar-daring` |
 | Notifikasi | 5 | `/notifikasi*`, `/pengaturan-notifikasi` |
 | Infrastruktur | 4 | `/health` (§3.1), `/identitas-kos` (§3.1), `/pemilik/saja`, `/penyiapan` (§5.5) |
 | Webhook gateway | 1 | `/webhook/midtrans` (§8.0.1) |
-| **Total** | **91** | |
+| **Total** | **94** | |
 
 ---
 

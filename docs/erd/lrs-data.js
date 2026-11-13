@@ -17,7 +17,7 @@
  * build gagal.
  */
 
-/** Penjelasan satu baris per tabel. Wajib ada untuk seluruh 24 tabel. */
+/** Penjelasan satu baris per tabel. Wajib ada untuk seluruh 25 tabel. */
 const KETERANGAN_TABEL = {
   users:
     'Akun untuk masuk aplikasi. Kolom `peran` menentukan hak akses: pemilik, pengelola, atau penghuni.',
@@ -27,6 +27,8 @@ const KETERANGAN_TABEL = {
     'Unit kamar yang disewakan, beserta status huninya.',
   laporan_kerusakan:
     'Catatan kerusakan satu kamar, sejak dilaporkan sampai diperbaiki. Laporan yang belum ditutup membuat kamar berstatus `perbaikan`.',
+  lampiran_kerusakan:
+    'Foto bukti kerusakan, sampai tiga per laporan. Isinya disimpan di basis data dan hanya bisa dibuka lewat tautan bertanda tangan berbatas waktu.',
   fasilitas:
     'Daftar fasilitas yang bisa dimiliki kamar, mis. kasur, AC, kamar mandi dalam.',
   kamar_fasilitas:
@@ -85,6 +87,10 @@ const KETERANGAN_KOLOM = {
   'laporan_kerusakan.dilaporkan_oleh': 'akun yang melaporkan; kosong bila akunnya kemudian dihapus',
   'laporan_kerusakan.selesai_pada': 'kosong berarti laporan masih terbuka dan kamar masih diperbaiki',
   'laporan_kerusakan.ditutup_oleh': 'akun yang menyatakan perbaikan selesai',
+  'lampiran_kerusakan.laporan_kerusakan_id': 'laporan yang fotonya ini; foto tidak pernah berdiri sendiri',
+  'lampiran_kerusakan.mime': 'jenis yang diperiksa dari isi berkas, bukan dari nama atau Content-Type kiriman',
+  'lampiran_kerusakan.ukuran': 'ukuran isi dalam byte, disimpan terpisah supaya daftar tidak perlu menarik gambarnya',
+  'lampiran_kerusakan.isi': 'byte gambar; hanya dibaca lewat tautan bertanda tangan berbatas waktu',
   'tarif_sewa.nilai': 'rupiah bulat per satuan sewa yang berlaku',
   'tarif_sewa.berlaku_dari': 'tanggal mulai berlakunya tarif; tarif lama tidak dihapus',
   'komponen_biaya.nama': 'mis. Listrik, Air, Kebersihan',
@@ -141,6 +147,7 @@ const URUTAN_TABEL = [
   'penghuni',
   'kamar',
   'laporan_kerusakan',
+  'lampiran_kerusakan',
   'fasilitas',
   'kamar_fasilitas',
   'tarif_sewa',

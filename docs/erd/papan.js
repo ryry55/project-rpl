@@ -690,24 +690,61 @@ function hubungkan(
   // bernilai sama untuk semua kandidat dan tidak mengubah pilihan apa pun.
   // Dengan beberapa tawaran di sepanjang sisi, jalur bisa memilih titik yang
   // masih longgar — dan penyebarannya muncul dari keputusan perutean sendiri.
+  //
+  // Jarak antartawaran adalah `JARAK_LABUH` penuh, bukan pecahannya. Dulu
+  // `0,55 x JARAK_LABUH` (15 px), dan itu lebih rapat daripada jarak minimum
+  // yang diperiksa validator (22 px): perutean boleh memilih dua titik yang
+  // sah menurutnya tetapi ditolak pagar. Gejalanya muncul saat
+  // `lampiran_kerusakan` ditambahkan — dua panah ke `users` berlabuh 15 px
+  // terpisah. Tawaran yang lebih rapat tidak menambah pilihan yang berguna; ia
+  // hanya menambah pilihan yang tidak boleh dipakai.
   const tawaran = (si) => {
     const daftar = [];
     for (const geser of [0, -1, 1, -2, 2, -3, 3]) {
       if (si.ny === 0) {
-        const y = si.y(induk) + Math.max(-batasY, Math.min(batasY, dInduk + geser * JARAK_LABUH * 0.55));
-        if (Math.abs(y - si.y(induk)) <= batasY) daftar.push({ x: si.x(induk), y });
+        // `dInduk` (baris kolom yang dirujuk) sengaja TIDAK dipakai di sini.
+        // Dulu ia dipakai supaya garis masuk sejajar barisnya, dan akibatnya
+        // dua kunci asing dari tabel yang sama ke induk yang sama berlabuh
+        // hanya satu baris terpisah - di bawah jarak minimum kepala panah.
+        // Penyebaran yang merata sepanjang sisi lebih penting daripada
+        // kesejajaran dengan baris, yang tidak terbaca oleh siapa pun.
+        const y = si.y(induk) + Math.max(-batasY, Math.min(batasY, geser * JARAK_LABUH));
+        daftar.push({ x: si.x(induk), y });
       } else {
-        const x = si.x(induk) + Math.max(-batasX, Math.min(batasX, geser * JARAK_LABUH * 0.55));
-        if (Math.abs(x - si.x(induk)) <= batasX) daftar.push({ x, y: si.y(induk) });
+        const x = si.x(induk) + Math.max(-batasX, Math.min(batasX, geser * JARAK_LABUH));
+        daftar.push({ x, y: si.y(induk) });
       }
     }
-    return daftar;
+
+    // Penjepitan bisa memetakan dua geseran ke koordinat yang sama pada sisi
+    // yang pendek. Titik kembar tidak menambah pilihan.
+    return daftar.filter((t, i) => daftar.findIndex((u) => u.x === t.x && u.y === t.y) === i);
   };
 
   for (const sa of SISI) {
     for (const si of SISI) {
+      const a0 = { x: sa.x(anak), y: sa.y(anak) };
+      if (sa.ny === 0 && dAnak) a0.y += dAnak;
+
+      // Titik pangkal yang sudah dipakai jalur lain dihukum berat, bukan
+      // digeser paksa.
+      //
+      // Dua kunci asing dari tabel yang sama ke induk yang sama (mis.
+      // `laporan_kerusakan.dilaporkan_oleh` dan `ditutup_oleh`) berangkat dari
+      // baris yang berdekatan. Bila keduanya memilih sisi yang sama, puluhan
+      // piksel pertama garisnya berimpit dan hubungannya terbaca sebagai satu.
+      // Menggeser titik pangkal secara paksa sempat dicoba dan membuat dua
+      // jalur menempati satu koridor panjang (65 px berimpit, ditolak pagar).
+      // Hukuman membuat perutean memilih sisi lain dengan sendirinya.
       const a = { x: sa.x(anak), y: sa.y(anak) };
       if (sa.ny === 0 && dAnak) a.y += dAnak;
+
+      const pangkalTerpakai = sudah.filter(
+        (p) =>
+          p.length &&
+          Math.abs(p[0].x - a.x) < JARAK_LABUH &&
+          Math.abs(p[0].y - a.y) < JARAK_LABUH
+      ).length;
 
       for (const b of tawaran(si)) {
         pastikanDiKisi(b.x, b.y);
@@ -733,6 +770,13 @@ function hubungkan(
         }
         // Hukuman kecil untuk jalur berbelok banyak.
         panjang += titik.length * 10;
+
+        // Hukuman titik pangkal yang sudah dipakai jalur lain pada kotak anak
+        // yang sama. Tanpa ini, dua kunci asing dari satu tabel berangkat dari
+        // baris yang berdekatan, dan puluhan piksel pertama garisnya berimpit.
+        if (pangkalTerpakai > 0) {
+          panjang += pangkalTerpakai * 600;
+        }
 
         // Hukuman untuk berimpit dengan jalur lain. Angkanya jauh lebih besar
         // daripada panjang wajar mana pun, supaya jalur dipindahkan walau harus

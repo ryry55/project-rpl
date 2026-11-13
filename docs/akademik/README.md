@@ -42,13 +42,13 @@ lain.** Diagram tangan tidak bisa diperbaiki saat angkanya berubah.
 | `build-bab4.js` | Menulis `Bab_4_Implementasi_dan_Pengujian.md`; gagal bila menyimpang dari skema |
 | `build.js` | Menulis kedua SVG; gagal bila data tidak konsisten |
 | `build-dokumen.js` | Menulis ketiga `.md`; tidak menulis apa pun bila ada masalah |
-| `kelas-data.js` | Menurunkan 22 kelas + 27 asosiasi dari `docs/erd/skema.json` dan model Eloquent |
+| `kelas-data.js` | Menurunkan 23 kelas + 28 asosiasi dari `docs/erd/skema.json` dan model Eloquent |
 | `kelas-gambar.js` | Menggambar tiga lembar kelas + **pemeriksa** ujung garis berimpit dan garis menembus kotak |
 | `urutan-data.js` | 14 skenario: peserta, langkah, panah balik, catatan kaki |
 | `urutan-gambar.js` | Menggambar SVG urutan + **pemeriksa** rute dan kelas yang benar-benar ada di `api/app` |
 | `build-diagram.js` | Menulis 17 SVG; menolak menulis bila data ditolak penggambar |
-| `rute-api.json` | Potret `route:list --json` - 91 endpoint |
-| `tabel-domain.json` | Potret 24 tabel domain dari `pg_attribute` |
+| `rute-api.json` | Potret `route:list --json` - 94 endpoint |
+| `tabel-domain.json` | Potret 25 tabel domain dari `pg_attribute` |
 
 ## Membangun ulang
 
@@ -113,20 +113,20 @@ di atas itu hurufnya mengecil di bawah ambang dan build menolak.
 `Gambar 4.6` (LRS) **tidak** ditanam ke badan laporan A4, melainkan diserahkan
 sebagai lampiran `docs/erd/03-L3-lrs.png` berukuran **A3 tegak**.
 
-Sebabnya diukur, bukan dipilih. Dengan seluruh 209 kolom, lembar A3 tegak
-terukur **2,74 mm** — masih di atas ambang baca 2,52 mm. Tabel di bawah adalah
+Sebabnya diukur, bukan dipilih. Dengan seluruh 217 kolom, lembar A3 tegak
+terukur **2,62 mm** — masih di atas ambang baca 2,52 mm. Tabel di bawah adalah
 pengukuran bentuk (berapa kolom per lembar), bukan isi:
 
 | Kolom | A4 tegak | A4 miring | A3 tegak | A3 miring |
 |---|---|---|---|---|
-| 2 | 1,06 mm | 0,75 mm | 1,50 mm | 1,06 mm |
-| 3 | 1,53 mm | 1,08 mm | 2,16 mm | 1,53 mm |
-| **4** | 1,94 mm | 1,37 mm | **2,74 mm** | 1,94 mm |
-| 5 | 1,72 mm | 1,69 mm | 2,43 mm | 2,39 mm |
-| 6 | 1,41 mm | 1,87 mm | 1,99 mm | 2,65 mm |
+| 2 | 1,01 mm | 0,72 mm | 1,43 mm | 1,01 mm |
+| 3 | 1,45 mm | 1,03 mm | 2,05 mm | 1,45 mm |
+| **4** | 1,86 mm | 1,31 mm | **2,62 mm** | 1,86 mm |
+| 5 | 1,67 mm | 1,58 mm | 2,36 mm | 2,24 mm |
+| 6 | 1,41 mm | 1,81 mm | 2,00 mm | 2,57 mm |
 
 Seluruh varian A4 gagal. Bila lembar A3 diskalakan ke lebar A4, hasilnya kembali
-1,94 mm — jadi menempelkannya di Bab 4 hanya akan menghasilkan gambar yang tidak
+1,86 mm — jadi menempelkannya di Bab 4 hanya akan menghasilkan gambar yang tidak
 terbaca, padahal lampirannya terbaca. Karena itu `build-bab4.js` memakai
 `tulisLampiran()`, bukan `tulisGambar()`: yang ditulis adalah keterangan gambar
 beserta ukuran lembarnya, bukan `<img>` yang diperkecil.
@@ -152,7 +152,7 @@ langkah yang tidak kembali ke aktornya, atau huruf di bawah 2,52 mm di A3.
 ketujuh belas SVG dan PNG yang di-commit dengan hasil penggambaran data
 sekarang — termasuk memastikan setiap PNG tepat 2x SVG-nya.
 
-Angka pada dokumen dibaca dari sumbernya, bukan diketik: 91 endpoint, 24 tabel,
-45 migrasi, 16 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
+Angka pada dokumen dibaca dari sumbernya, bukan diketik: 94 endpoint, 25 tabel,
+46 migrasi, 16 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
 angka yang boleh dikarang — lihat `docs/serah-terima.md` §5 untuk cara
 memeriksanya.

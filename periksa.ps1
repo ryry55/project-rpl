@@ -430,6 +430,12 @@ if (-not $Cepat) {
             # layar masuk TANPA token, jadi satu-satunya yang bisa menangkap
             # endpoint identitas yang lupa didaftarkan di luar `auth:sanctum`.
             'e2e-nama-kos.mjs',
+            # K-15: laporan kerusakan dari portal penghuni, dengan foto. Satu-
+            # satunya skrip yang mengunggah berkas lewat CDP, dan satu-satunya
+            # yang memeriksa gambar benar-benar TERMUAT (`naturalWidth`) -
+            # tautan bertanda tangan yang salah origin tetap menghasilkan
+            # elemen gambar, hanya lebarnya 0.
+            'e2e-kerusakan.mjs',
             # Fase terakhir: tombol pembalik pembayaran (REV-FIN-01).
             # Endpoint-nya sudah ada sejak R2, tetapi tombolnya baru dipasang
             # sekarang - tanpa skrip ini, satu-satunya cara memakainya adalah

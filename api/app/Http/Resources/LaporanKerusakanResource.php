@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\LampiranKerusakan;
 use App\Models\LaporanKerusakan;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -30,6 +31,11 @@ class LaporanKerusakanResource extends JsonResource
             'dilaporkan_pada' => $this->created_at?->toIso8601String(),
             'selesai_pada' => $this->selesai_pada?->toIso8601String(),
             'penutup' => $this->whenLoaded('penutup', fn () => $this->penutup?->name),
+            // Foto lampiran (K-15). Tautannya bertanda tangan dan berbatas
+            // waktu; `url` bisa dipakai langsung di `src` gambar.
+            'foto' => $this->whenLoaded('lampiran', fn () => $this->lampiran
+                ->map(fn (LampiranKerusakan $l) => $l->ringkas())
+                ->values()),
         ];
     }
 }

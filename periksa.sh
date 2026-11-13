@@ -355,6 +355,12 @@ if [ "$CEPAT" -eq 0 ]; then
             # layar masuk TANPA token, jadi satu-satunya yang bisa menangkap
             # endpoint identitas yang lupa didaftarkan di luar `auth:sanctum`.
             e2e-nama-kos.mjs
+            # K-15: laporan kerusakan dari portal penghuni, dengan foto. Satu-
+            # satunya skrip yang mengunggah berkas lewat CDP, dan satu-satunya
+            # yang memeriksa gambar benar-benar TERMUAT (`naturalWidth`) -
+            # tautan bertanda tangan yang salah origin tetap menghasilkan
+            # elemen gambar, hanya lebarnya 0.
+            e2e-kerusakan.mjs
             # Fase terakhir: tombol pembalik pembayaran (REV-FIN-01) dan gambar
             # QRIS pada rekening. Keduanya sempat HANYA ada di periksa.ps1,
             # sehingga gate Linux - dan karena itu CI - tidak pernah

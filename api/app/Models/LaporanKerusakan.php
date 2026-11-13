@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Laporan kerusakan satu kamar (T14).
@@ -55,6 +56,17 @@ class LaporanKerusakan extends Model
     public function penutup(): BelongsTo
     {
         return $this->belongsTo(User::class, 'ditutup_oleh');
+    }
+
+    /**
+     * Foto lampiran (K-15).
+     *
+     * Diurutkan menurut id supaya urutan foto di layar sama dengan urutan
+     * pengunggahannya - dan sama setiap kali halaman dibuka.
+     */
+    public function lampiran(): HasMany
+    {
+        return $this->hasMany(LampiranKerusakan::class)->orderBy('id');
     }
 
     public function masihTerbuka(): bool

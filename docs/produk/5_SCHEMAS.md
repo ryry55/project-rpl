@@ -14,7 +14,7 @@ Versi 1.0 · 26 Oktober 2026 · PostgreSQL 16
 
 ## 1. Gambaran
 
-**24 tabel** (di luar tabel infrastruktur Laravel: `cache`, `cache_locks`,
+**25 tabel** (di luar tabel infrastruktur Laravel: `cache`, `cache_locks`,
 `jobs`, `job_batches`, `failed_jobs`, `migrations`, `password_reset_tokens`,
 `personal_access_tokens`, `sessions`). Dua puluh tiga di antaranya adalah tabel
 domain yang diuraikan di §2; yang kedua puluh empat adalah `notifications` milik
@@ -767,6 +767,37 @@ bocor ke `tagihan`.
 
 ---
 
+### 2.23 `lampiran_kerusakan` (K-15)
+
+Foto bukti kerusakan, sampai tiga per laporan.
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `id` | `bigserial` | PK |
+| `laporan_kerusakan_id` | `bigint` NOT NULL | FK → `laporan_kerusakan`, ON DELETE CASCADE |
+| `nama_asli` | `varchar(160)` NULL | keterangan di layar; tidak pernah dipakai sebagai jalur berkas |
+| `mime` | `varchar(60)` NOT NULL | diperiksa dari **isi** berkas, bukan nama/`Content-Type` |
+| `ukuran` | `integer` NOT NULL | ukuran isi dalam byte |
+| `isi` | `bytea` NOT NULL | byte gambar |
+| `created_at`, `updated_at` | `timestamptz` | |
+
+**Indeks:** `lampiran_kerusakan_laporan_kerusakan_id_index`.
+
+**Kenapa tabel anak, bukan kolom di `laporan_kerusakan`.** Satu laporan membawa
+sampai tiga foto. Tiga kolom `bytea` akan selalu separuh kosong, sedangkan satu
+kolom JSON membuat ukuran dan jenis tiap foto tidak bisa diperiksa basis data.
+
+**Kenapa `bytea`, bukan berkas di `storage/`.** Sama seperti gambar QRIS:
+`storage/` tidak dipasang sebagai volume, jadi berkas di sana hilang saat
+container dibangun ulang. Foto kerusakan yang hilang adalah bukti yang hilang.
+
+**Tidak ada jalur baca langsung.** `isi` dibaca hanya oleh
+`PenyimpanLampiran::isi()`, dan disajikan `GET /lampiran-kerusakan/{id}` dengan
+middleware `signed:relative` berumur 30 menit. Tidak ada kolom di sini yang
+dibaca `PenerbitanMassal` atau `Kalkulator`.
+
+---
+
 ## 3. Trigger append-only
 
 Delapan trigger: tujuh pasang `append_only` (UPDATE dan DELETE) ditambah satu
@@ -849,7 +880,7 @@ uang dari JSON berarti parsing di jalur yang menghitung uang.
 
 ## 6. Migrasi
 
-**45 migrasi**, dijalankan berurutan. Tiga yang paling perlu dipahami:
+**46 migrasi**, dijalankan berurutan. Tiga yang paling perlu dipahami:
 
 | Migrasi | Isi |
 |---|---|

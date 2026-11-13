@@ -810,6 +810,21 @@ onMounted(muat)
                     · {{ k.laporan_terbuka.pelapor }}
                   </span>
                 </span>
+                <!-- Foto dari pelapor (K-15). Tanpa ini pemilik hanya membaca
+                     "ada yang bocor" dan tetap harus menelepon untuk tahu
+                     separah apa. Tautannya bertanda tangan, jadi bisa dipakai
+                     langsung di `src`. -->
+                <span v-if="k.laporan_terbuka?.foto?.length" class="foto-rusak">
+                  <a
+                    v-for="f in k.laporan_terbuka.foto"
+                    :key="f.id"
+                    :href="f.url"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    <img :src="f.url" :alt="`Foto kerusakan kamar ${k.nomor}`" loading="lazy" />
+                  </a>
+                </span>
               </td>
               <td>{{ k.penghuni?.nama || '—' }}</td>
               <td class="kanan">
@@ -948,6 +963,26 @@ onMounted(muat)
   margin-top: 4px;
   color: var(--teks-lemah);
   white-space: normal;
+}
+
+/* Foto kerusakan (K-15). Kecil dan berjajar: kolom ini juga memuat lencana
+   status dan alasan, dan foto seukuran aslinya akan membuat satu baris tabel
+   setinggi layar. */
+.foto-rusak {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.foto-rusak img {
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border: 1px solid var(--garis);
+  border-radius: 4px;
+  background: var(--aktif);
 }
 
 /* Tombol aksi ditahan satu baris: "Fasilitas" yang terlipat ke bawah "Atur

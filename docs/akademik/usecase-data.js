@@ -113,6 +113,9 @@ const USE_CASE = [
       'api.periksa-token',
       'api.atur-sandi',
       'api.ganti-sandi',
+      // Nama kos untuk layar masuk (K-17). Publik karena layar masuk dibuka
+      // sebelum ada token; isinya hanya nama, bukan data penghuni.
+      'api.identitas-kos',
     ],
     gerbang: '',
     tanpaGerbang:
@@ -139,6 +142,10 @@ const USE_CASE = [
       'kerusakan.index',
       'kerusakan.store',
       'kerusakan.selesai',
+      // Foto laporan kerusakan (K-15). Rutenya di luar `auth:sanctum` karena
+      // tag gambar tidak bisa mengirim Bearer; gerbangnya tanda tangan
+      // berbatas waktu, bukan peran.
+      'lampiran-kerusakan.tampil',
       'fasilitas.index',
       'fasilitas.store',
       'fasilitas.update',
@@ -188,8 +195,15 @@ const USE_CASE = [
     kode: 'UC-05',
     nama: 'Kelola Kebijakan Kos',
     ringkas: 'Kelola Kebijakan Kos',
-    deskripsi: 'Menetapkan tiga dimensi kebijakan kos — satuan sewa, jatuh tempo, denda.',
-    endpoint: ['kebijakan.index', 'kebijakan.store'],
+    deskripsi: 'Menetapkan dimensi kebijakan kos: satuan sewa, jatuh tempo, denda, pola tagihan, tanggal terbit, dan nama kos.',
+    endpoint: [
+      'kebijakan.index',
+      'kebijakan.store',
+      // Pratinjau denda (K-17). Dibaca siapa pun yang boleh membuka layar
+      // Kebijakan: pertanyaan "1%/hari itu berapa rupiah?" berguna justru
+      // sebelum pengelola mengusulkan perubahan.
+      'kebijakan.pratinjau-denda',
+    ],
     gerbang:
       'Pemilik menetapkan langsung; pengelola dengan `ubah_kebijakan` hanya ' +
       'mengajukan usulan (HTTP 202).',
@@ -341,18 +355,22 @@ const USE_CASE = [
     kode: 'UC-13',
     nama: 'Portal Penghuni',
     ringkas: 'Portal Penghuni',
-    deskripsi: 'Menyajikan kontrak sewa, tagihan, denda, aturan, dan rekening tujuan transfer milik penghuni sendiri, serta membuka tautan bayar daring.',
+    deskripsi: 'Menyajikan kontrak sewa, tagihan, denda, aturan, dan rekening tujuan transfer milik penghuni sendiri, membuka tautan bayar daring, serta menerima laporan kerusakan beserta fotonya.',
     endpoint: [
       'penghuni.tagihan',
       'penghuni.aturan',
       'penghuni.rekening',
       'penghuni.kontrak',
+      // Laporan kerusakan dari sisi pelapor (K-15). `kamar_id` diambil server
+      // dari kontrak aktif, bukan dari badan permintaan.
+      'penghuni.kerusakan.index',
+      'penghuni.kerusakan.store',
       'tagihan.show',
       'tagihan.denda',
       'tagihan.bayar-daring',
     ],
     gerbang:
-      'Lima endpoint `/penghuni/*` dan `bayar-daring` bergerbang ' +
+      'Tujuh endpoint `/penghuni/*` dan `bayar-daring` bergerbang ' +
       '`peran:penghuni`, dan itulah yang menentukan keanggotaan aktor: hanya ' +
       'penghuni. Dua endpoint baca di dalamnya hanya memakai `auth:sanctum` ' +
       'dan dipakai bersama ketiga peran lewat scope `Tagihan::terlihatOleh` ' +

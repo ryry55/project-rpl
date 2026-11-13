@@ -322,6 +322,43 @@ Titik uji: tanpa kebijakan → "Kos-Kosan"; nama tersimpan terbaca tanpa token; 
 nama; pratinjau 1%/hari plafon 30% tenggang 7 pada pokok Rp 1.500.000 telat 10 hari = Rp 45.000
 dari maksimum Rp 450.000.
 
+#### Laporan kerusakan dari portal penghuni *(amandemen 13 November 2026)*
+
+> Penghuni boleh **melaporkan kerusakan kamarnya sendiri** dari portal, **melihat status
+> laporannya**, dan **melampirkan foto** (JPG/PNG/WEBP, ≤ 5 MB, ≤ 3 per laporan). Foto hanya
+> bisa dibuka pelapor dan pemilik/pengelola, lewat tautan bertanda tangan berbatas waktu.
+
+Sebelum ini alurnya setengah: pencatatan dan penyelesaian ada (T14), tetapi pelapor aslinya tidak
+punya jalan masuk — ia mengirim WhatsApp, dan fotonya hilang ditelan percakapan.
+
+**`kamar_id` diambil server dari kontrak aktif, bukan dari request.** Kalau dibaca dari request,
+penghuni bisa menandai kamar orang lain sebagai `perbaikan` — mengubah data yang dilihat pemilik,
+bukan sekadar mengirim laporan. Akun tanpa kontrak aktif dijawab 422 dengan penjelasan, bukan 403:
+datanya belum lengkap, bukan alamatnya yang salah.
+
+**Foto disimpan di kolom `bytea`, bukan berkas di `storage/`.** Alasannya sama dengan gambar QRIS:
+`storage/` tidak dipasang sebagai volume, jadi berkas di sana hilang saat container dibangun ulang.
+Foto kerusakan yang hilang adalah bukti yang hilang. `bytea` ikut transaksi, ikut rollback, dan ikut
+cadangan basis data yang sudah ada.
+
+**Rute foto berada di luar `auth:sanctum`.** Tag `<img>` tidak bisa mengirim header `Authorization`;
+memaksakannya menghasilkan ikon rusak tanpa pesan. Yang menjaga bukan token melainkan tanda tangan
+berbatas waktu (30 menit) yang hanya dibuat untuk pelapor dan pengurus kos. Tautannya **relatif**
+(`signed:relative`), karena CSP produksi hanya mengizinkan `img-src 'self'` — tautan absolut ke port
+API akan diblokir peramban tanpa satu pun pesan.
+
+**Penghuni melihat laporan yang ia laporkan sendiri** (`dilaporkan_oleh`), bukan semua laporan
+kamarnya. Penghuni baru tidak mewarisi foto kamar dari penghuni sebelumnya: foto kamar adalah data
+pribadi orang yang memotretnya.
+
+Batas yang **tidak** berubah dari T14: biaya perbaikan tidak pernah masuk tagihan penghuni; kamar
+`perbaikan` tetap ditagih penuh; penutupan laporan tetap wewenang `kelola_kamar`.
+
+Titik uji: penghuni melapor → kamar `perbaikan`; `kamar_id` di badan permintaan diabaikan; akun
+tanpa kontrak 422; laporan ganda 422; foto tersimpan utuh (ukuran tercatat = ukuran isi); 4 foto
+ditolak; PDF ditolak; PNG > 5 MB ditolak; tautan tanpa tanda tangan 403; tautan kedaluwarsa 403;
+penghuni lain tidak melihat laporan itu; pemilik melihat fotonya di layar Kamar.
+
 ---
 
 ## 5. Keputusan teknis (mengikat)
@@ -339,6 +376,7 @@ dari maksimum Rp 450.000.
 | Denda | dihitung saat dibaca (derived), tidak disimpan | Nilai basi; harus ada job penyegar |
 | Parameter denda | dibekukan (snapshot) di tagihan saat terbit | Tagihan lama berubah saat parameter diubah |
 | R-02 | unique index + tangkap `23505` → 409 | Duplikat lolos saat request bersamaan |
+| Foto kerusakan | kolom `bytea` di `lampiran_kerusakan`; disajikan lewat rute `signed:relative` berumur 30 menit | Foto hilang saat container dibangun ulang, atau terbuka untuk siapa pun yang menebak id |
 | Auth | Laravel Sanctum, token bearer, dua peran | — |
 
 **Jepit jatuh tempo.** `jatuh_tempo(tagihan) = clamp(hari(tgl_masuk), jumlah_hari_bulan(periode))`.
@@ -618,7 +656,7 @@ di §6 sebagai `tanggal, jumlah, metode, bukti, dicatat_oleh`:
 ## 7. Permukaan API
 
 Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
-Daftar lengkap **91 endpoint**; rincian bentuk request/response ada di
+Daftar lengkap **94 endpoint**; rincian bentuk request/response ada di
 `docs/produk/6_TOOLS_CONTRACTS.md`.
 
 ### 7.1 Autentikasi, akun, dan PDP
@@ -706,10 +744,13 @@ Daftar lengkap **91 endpoint**; rincian bentuk request/response ada di
 | GET | `/penghuni/aturan` | `peran:penghuni` |
 | GET | `/penghuni/rekening` | `peran:penghuni` |
 | GET | `/penghuni/kontrak` | `peran:penghuni` |
+| GET/POST | `/penghuni/laporan-kerusakan` | `peran:penghuni` |
 | POST | `/tagihan/{tagihan}/bayar-daring` | `peran:penghuni` |
 | GET | `/penyiapan` | `peran:pemilik,pengelola` |
 | POST | `/webhook/midtrans` | publik (tanda tangan SHA512) |
 | GET | `/health` | publik |
+| GET | `/identitas-kos` | publik |
+| GET | `/lampiran-kerusakan/{id}` | publik + `signed:relative` (30 menit) |
 | GET | `/pemilik/saja` | `peran:pemilik` |
 
 **Dua jalur baca yang terbuka untuk ketiga peran.** `/tagihan/{id}` dan `/tagihan/{id}/denda`
@@ -945,6 +986,7 @@ Lokasi: `docs/uji/audit-ketertelusuran.md`.
 | R-07 isolasi + audit | scope `Tagihan::terlihatOleh` + `log_audit` append-only (trigger basis data) | `IsolasiDanAuditTest` (18 tes): `test_penghuni_hanya_melihat_tagihannya_sendiri`, `test_penghuni_mengakses_tagihan_orang_lain_mendapat_404_bukan_403`, `test_penghuni_mengakses_denda_tagihan_orang_lain_mendapat_404`, `test_penghuni_memanggil_endpoint_pemilik_ditolak_403`, `test_update_langsung_ke_log_audit_ditolak_basis_data`, `test_delete_langsung_ke_log_audit_ditolak_basis_data`; `docs/uji/e2e-t9.mjs` (26/26) | ✅ |
 | R-08 pola tagihan + tanggal terbit | `PolaTagihan` (murni) + `PenerbitanMassal` dua mode + `PenerbitTagihan` sadar pola | `PolaTagihanTest` (15 feature + 6 unit), `TanggalTerbitTest` (11), `docs/uji/e2e-anniversary.mjs` | ✅ |
 | Identitas kos + pratinjau denda (K-17) | `IdentitasKos` + kebijakan `nama_kos` global + `GET /identitas-kos` (publik) + `GET /kebijakan/pratinjau-denda` lewat `Kalkulator` | `NamaKosTest` (14 tes), `docs/uji/e2e-nama-kos.mjs` | ✅ |
+| Laporan kerusakan dari portal (K-15) | `LaporanKerusakanController::storePenghuni` (kamar dari kontrak aktif) + `lampiran_kerusakan` (`bytea`) + `PenyimpanLampiran` + rute `signed:relative` | `LampiranKerusakanTest` (12 tes), `docs/uji/e2e-kerusakan.mjs` | ✅ |
 
 Status: ⏳ belum, ✅ selesai, ⚠ sebagian, ⏸ ditunda.
 
@@ -967,6 +1009,8 @@ Ditunda dengan sadar, bukan terlupa.
 | Pola tagihan per kontrak | Satu saklar untuk seluruh kos (K-14d); pola per kontrak akan tersimpan tetapi tidak pernah dibaca penerbitan | Tidak ada rencana |
 | Impor data historis | Kos baru, tidak ada data lama | — |
 | Sub-metering listrik/air | Sewa all-in | — |
+| Status "sedang dikerjakan" pada laporan kerusakan | Laporan hanya punya dua keadaan (terbuka/selesai), dan dua kolom status selalu bisa bertentangan. Penghuni melihat "Menunggu perbaikan" lalu "Selesai" | Bisa ditambah sebagai kolom tersendiri bila pemilik memintanya |
+| Foto pada laporan yang dibuat pemilik/pengelola | Endpoint-nya menerima foto, tetapi formulir di layar Kamar belum punya medan unggah. K-15 memintanya untuk penghuni | Satu medan unggah di `KamarView.vue` bila dibutuhkan |
 
 ---
 

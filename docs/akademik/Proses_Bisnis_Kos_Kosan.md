@@ -1,7 +1,7 @@
 # Proses Bisnis & Spesifikasi Pemodelan Sistem Informasi Operasional Kos-Kosan
 
 > **Dibangkitkan, jangan disunting tangan** — `node docs/akademik/build-dokumen.js`.
-> Angka dibaca dari `rute-api.json` (91 endpoint), `tabel-domain.json` (24 tabel),
+> Angka dibaca dari `rute-api.json` (94 endpoint), `tabel-domain.json` (25 tabel),
 > `usecase-data.js` (14 use case), `api/composer.lock` (Laravel 12.70.1),
 > dan `docs/dfd/dfd-data.js` (16 aliran batas).
 
@@ -17,8 +17,8 @@ Pembedanya dari pencatatan manual bukan kelengkapan fitur, melainkan **siapa
 yang berhak melakukan apa**: **pemilik** memutuskan, **pengelola** berwenang
 terbatas mengusulkan, **penghuni** hanya membaca. Pengelola ber-wewenang
 `ubah_tarif` pun tidak menetapkan tarif. Uang dicatat sebagai peristiwa yang
-tidak bisa diubah. Cakupan: **91 endpoint** `/api`, **14 use case**, **3
-aktor**, **24 tabel domain** dari **45 migrasi**.
+tidak bisa diubah. Cakupan: **94 endpoint** `/api`, **14 use case**, **3
+aktor**, **25 tabel domain** dari **46 migrasi**.
 
 ## 2. Aktor dan Entitas Eksternal Sistem
 
@@ -64,7 +64,7 @@ Satu siklus bulanan; setiap langkah menunjuk endpoint nyata pada `api/routes/api
 ## 4. Pemodelan Berorientasi Objek (UML Use Case Diagram)
 
 Batas sistem mencakup seluruh fungsionalitas aplikasi operasional kos: **3
-aktor**, **14 use case** — jumlah final, diturunkan dari 91 endpoint nyata
+aktor**, **14 use case** — jumlah final, diturunkan dari 94 endpoint nyata
 yang terpetakan habis tanpa sisa dan tanpa satu pun dipakai dua use case.
 
 ### 4.1 Deskripsi 14 Use Cases Fungsional
@@ -78,8 +78,8 @@ yang terpetakan habis tanpa sisa dan tanpa satu pun dipakai dua use case.
    membuat kontrak atas satu kamar kosong, dan mengakhiri kontrak.
 4. **UC-04 Kelola Tarif Sewa & Komponen Biaya:** Menetapkan tarif per kamar
    dan komponen biaya; keduanya tambah-saja, riwayat tidak tertimpa.
-5. **UC-05 Kelola Kebijakan Kos:** Menetapkan tiga dimensi kebijakan kos —
-   satuan sewa, jatuh tempo, denda.
+5. **UC-05 Kelola Kebijakan Kos:** Menetapkan dimensi kebijakan kos: satuan
+   sewa, jatuh tempo, denda, pola tagihan, tanggal terbit, dan nama kos.
 6. **UC-06 Persetujuan Usulan Perubahan Tarif & Kebijakan:** Memproses
    antrean usulan pengelola dan keputusan pemilik atas perubahan tarif dan
    kebijakan.
@@ -99,8 +99,8 @@ yang terpetakan habis tanpa sisa dan tanpa satu pun dipakai dua use case.
 12. **UC-12 Kelola Akun Pengelola & Wewenang:** Membuat akun pengelola,
    menetapkan wewenangnya, mengirim ulang aktivasi, dan menonaktifkan akun.
 13. **UC-13 Portal Penghuni:** Menyajikan kontrak sewa, tagihan, denda,
-   aturan, dan rekening tujuan transfer milik penghuni sendiri, serta membuka
-   tautan bayar daring.
+   aturan, dan rekening tujuan transfer milik penghuni sendiri, membuka tautan
+   bayar daring, serta menerima laporan kerusakan beserta fotonya.
 14. **UC-14 Kelola Rekening Tujuan Pembayaran, Status Penyiapan &
    Diagnostik Sistem:** Mengelola rekening dan QRIS tujuan setoran, membaca
    status penyiapan kos, serta pemeriksaan kesehatan layanan dan peran.
@@ -153,7 +153,7 @@ dari pengelola karena pengelola mengusulkan (I-6) sementara pemilik memutuskan
 
 ## 6. Entitas Data Utama
 
-24 tabel domain dikelompokkan menjadi 12 entitas logis: pembaca laporan
+25 tabel domain dikelompokkan menjadi 12 entitas logis: pembaca laporan
 mengenal "kontrak", bukan tabel penghubung.
 
 | Entitas | Atribut Data Utama & Ruang Lingkup |

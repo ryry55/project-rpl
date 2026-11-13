@@ -1,24 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="1321" viewBox="0 0 1250 1321" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
-<rect width="1250" height="1321" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="1432" viewBox="0 0 1250 1432" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
+<rect width="1250" height="1432" fill="#ffffff"/>
 <title>Diagram Kelas Tagihan, pembayaran &amp; catatan</title>
 <text x="40" y="42" text-anchor="start" font-size="26" font-weight="700" fill="#0f172a">Diagram Kelas — Tagihan, pembayaran &amp; catatan</text>
 <text x="40" y="68" text-anchor="start" font-size="13" font-weight="400" fill="#475569">Uang yang harus masuk, uang yang sudah masuk, dan jejak siapa mengubah apa.</text>
 <text x="1210" y="42" text-anchor="end" font-size="13" font-weight="600" fill="#94a3b8">lembar c</text>
-<path d="M830 548.6 H817.5 V96 H422.5 V257.4 H420" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M830 909 H817.5 V909 H815" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M815 909 l7 -4.11764705882353 M815 909 l7 4.11764705882353" fill="none" stroke="#334155" stroke-width="1.2"/>
+<text x="836" y="904" text-anchor="start" font-size="10" font-weight="600" fill="#475569">*</text>
+<text x="821" y="904" text-anchor="start" font-size="10" font-weight="600" fill="#475569">1</text>
+<path d="M830 548.6 H820.8 V96 H423.5 V257.4 H420" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
 <path d="M420 257.4 l7 -4.11764705882353 M420 257.4 l7 4.11764705882353" fill="none" stroke="#334155" stroke-width="1.2"/>
 <text x="836" y="543.6" text-anchor="start" font-size="10" font-weight="600" fill="#475569">*</text>
 <text x="426" y="252.4" text-anchor="start" font-size="10" font-weight="600" fill="#475569">1</text>
-<path d="M830 900.5 H820.8 V110 H425.8 V406.5 H420" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M420 1019.5 H427.5 V406.5 H420" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
 <path d="M420 406.5 l7 -4.11764705882353 M420 406.5 l7 4.11764705882353" fill="none" stroke="#334155" stroke-width="1.2"/>
-<text x="836" y="895.5" text-anchor="start" font-size="10" font-weight="600" fill="#475569">*</text>
+<text x="414" y="1014.5" text-anchor="end" font-size="10" font-weight="600" fill="#475569">*</text>
 <text x="426" y="401.5" text-anchor="start" font-size="10" font-weight="600" fill="#475569">1</text>
-<path d="M830 313 H824.2 V124 H429.2 V555.6 H420" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M830 313 H824.2 V110 H431.5 V555.6 H420" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
 <path d="M420 555.6 l7 -4.11764705882353 M420 555.6 l7 4.11764705882353" fill="none" stroke="#334155" stroke-width="1.2"/>
 <text x="836" y="308" text-anchor="start" font-size="10" font-weight="600" fill="#475569">*</text>
 <text x="426" y="550.6" text-anchor="start" font-size="10" font-weight="600" fill="#475569">1</text>
-<path d="M420 1011 H432.5 V138 H827.5 V724.4 H830" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M815 1122 H827.5 V724.4 H830" fill="none" stroke="#334155" stroke-width="1.2" stroke-linejoin="round"/>
 <path d="M830 724.4 l-7 -4.11764705882353 M830 724.4 l-7 4.11764705882353" fill="none" stroke="#334155" stroke-width="1.2"/>
-<text x="414" y="1006" text-anchor="end" font-size="10" font-weight="600" fill="#475569">*</text>
+<text x="809" y="1117" text-anchor="end" font-size="10" font-weight="600" fill="#475569">*</text>
 <text x="824" y="719.4" text-anchor="end" font-size="10" font-weight="600" fill="#475569">1</text>
 <rect x="40" y="158" width="380" height="497" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
 <rect x="40" y="158" width="380" height="34" rx="6" fill="#eef2ff"/>
@@ -130,31 +134,34 @@
 <text x="410" y="860" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamptz</text>
 <line x1="40" y1="868" x2="420" y2="868" stroke="#cbd5e1" stroke-width="1"/>
 <text x="50" y="885" text-anchor="start" font-size="11" font-weight="400" fill="#94a3b8">(tidak ada operasi)</text>
-<rect x="40" y="924" width="380" height="174" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="40" y="924" width="380" height="191" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
 <rect x="40" y="924" width="380" height="34" rx="6" fill="#eef2ff"/>
 <rect x="40" y="952" width="380" height="6" fill="#eef2ff"/>
-<text x="52" y="946" text-anchor="start" font-size="15" font-weight="700" fill="#3730a3">VerifikasiPembayaran</text>
+<text x="52" y="946" text-anchor="start" font-size="15" font-weight="700" fill="#3730a3">TagihanRincian</text>
 <text x="408" y="945" text-anchor="end" font-size="9.5" font-weight="500" fill="#94a3b8">«Entity»</text>
 <text x="50" y="971" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«PK»</text>
 <text x="102" y="971" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">id</text>
 <text x="410" y="971" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
 <text x="50" y="988" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«FK»</text>
-<text x="102" y="988" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">pembayaran_id</text>
+<text x="102" y="988" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">tagihan_id</text>
 <text x="410" y="988" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
-<text x="50" y="1005" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«FK»</text>
-<text x="102" y="1005" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">diverifikasi_oleh</text>
-<text x="410" y="1005" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="50" y="1005" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="102" y="1005" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">nama</text>
+<text x="410" y="1005" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(80)</text>
 <text x="50" y="1022" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
-<text x="102" y="1022" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">keputusan</text>
-<text x="410" y="1022" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(10)</text>
+<text x="102" y="1022" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">nilai</text>
+<text x="410" y="1022" text-anchor="end" font-size="11" font-weight="400" fill="#475569">decimal</text>
 <text x="50" y="1039" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
-<text x="102" y="1039" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">catatan</text>
-<text x="410" y="1039" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(255)</text>
+<text x="102" y="1039" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">urutan</text>
+<text x="410" y="1039" text-anchor="end" font-size="11" font-weight="400" fill="#475569">smallint</text>
 <text x="50" y="1056" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
 <text x="102" y="1056" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">created_at</text>
 <text x="410" y="1056" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamp</text>
-<line x1="40" y1="1064" x2="420" y2="1064" stroke="#cbd5e1" stroke-width="1"/>
-<text x="50" y="1081" text-anchor="start" font-size="11" font-weight="400" fill="#94a3b8">(tidak ada operasi)</text>
+<text x="50" y="1073" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="102" y="1073" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">updated_at</text>
+<text x="410" y="1073" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamp</text>
+<line x1="40" y1="1081" x2="420" y2="1081" stroke="#cbd5e1" stroke-width="1"/>
+<text x="50" y="1098" text-anchor="start" font-size="11" font-weight="400" fill="#94a3b8">(tidak ada operasi)</text>
 <rect x="435" y="158" width="380" height="327" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
 <rect x="435" y="158" width="380" height="34" rx="6" fill="#eef2ff"/>
 <rect x="435" y="186" width="380" height="6" fill="#eef2ff"/>
@@ -275,6 +282,31 @@
 <text x="805" y="971" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamp</text>
 <line x1="435" y1="979" x2="815" y2="979" stroke="#cbd5e1" stroke-width="1"/>
 <text x="445" y="996" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">masihTerbuka()</text>
+<rect x="435" y="1035" width="380" height="174" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="435" y="1035" width="380" height="34" rx="6" fill="#eef2ff"/>
+<rect x="435" y="1063" width="380" height="6" fill="#eef2ff"/>
+<text x="447" y="1057" text-anchor="start" font-size="15" font-weight="700" fill="#3730a3">VerifikasiPembayaran</text>
+<text x="803" y="1056" text-anchor="end" font-size="9.5" font-weight="500" fill="#94a3b8">«Entity»</text>
+<text x="445" y="1082" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«PK»</text>
+<text x="497" y="1082" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">id</text>
+<text x="805" y="1082" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="445" y="1099" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«FK»</text>
+<text x="497" y="1099" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">pembayaran_id</text>
+<text x="805" y="1099" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="445" y="1116" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«FK»</text>
+<text x="497" y="1116" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">diverifikasi_oleh</text>
+<text x="805" y="1116" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
+<text x="445" y="1133" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="497" y="1133" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">keputusan</text>
+<text x="805" y="1133" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(10)</text>
+<text x="445" y="1150" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="497" y="1150" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">catatan</text>
+<text x="805" y="1150" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(255)</text>
+<text x="445" y="1167" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="497" y="1167" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">created_at</text>
+<text x="805" y="1167" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamp</text>
+<line x1="435" y1="1175" x2="815" y2="1175" stroke="#cbd5e1" stroke-width="1"/>
+<text x="445" y="1192" text-anchor="start" font-size="11" font-weight="400" fill="#94a3b8">(tidak ada operasi)</text>
 <rect x="830" y="158" width="380" height="310" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
 <rect x="830" y="158" width="380" height="34" rx="6" fill="#eef2ff"/>
 <rect x="830" y="186" width="380" height="6" fill="#eef2ff"/>
@@ -368,46 +400,49 @@
 <line x1="830" y1="732" x2="1210" y2="732" stroke="#cbd5e1" stroke-width="1"/>
 <text x="840" y="749" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">adalahPembalik()</text>
 <text x="840" y="766" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">statusVerifikasi()</text>
-<rect x="830" y="805" width="380" height="191" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="830" y="805" width="380" height="208" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
 <rect x="830" y="805" width="380" height="34" rx="6" fill="#eef2ff"/>
 <rect x="830" y="833" width="380" height="6" fill="#eef2ff"/>
-<text x="842" y="827" text-anchor="start" font-size="15" font-weight="700" fill="#3730a3">TagihanRincian</text>
+<text x="842" y="827" text-anchor="start" font-size="15" font-weight="700" fill="#3730a3">LampiranKerusakan</text>
 <text x="1198" y="826" text-anchor="end" font-size="9.5" font-weight="500" fill="#94a3b8">«Entity»</text>
 <text x="840" y="852" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«PK»</text>
 <text x="892" y="852" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">id</text>
 <text x="1200" y="852" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
 <text x="840" y="869" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3">«FK»</text>
-<text x="892" y="869" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">tagihan_id</text>
+<text x="892" y="869" text-anchor="start" font-size="11" font-weight="600" fill="#0f172a">laporan_kerusakan_id</text>
 <text x="1200" y="869" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
 <text x="840" y="886" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
-<text x="892" y="886" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">nama</text>
-<text x="1200" y="886" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(80)</text>
+<text x="892" y="886" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">nama_asli</text>
+<text x="1200" y="886" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(160)</text>
 <text x="840" y="903" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
-<text x="892" y="903" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">nilai</text>
-<text x="1200" y="903" text-anchor="end" font-size="11" font-weight="400" fill="#475569">decimal</text>
+<text x="892" y="903" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">mime</text>
+<text x="1200" y="903" text-anchor="end" font-size="11" font-weight="400" fill="#475569">varchar(60)</text>
 <text x="840" y="920" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
-<text x="892" y="920" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">urutan</text>
-<text x="1200" y="920" text-anchor="end" font-size="11" font-weight="400" fill="#475569">smallint</text>
+<text x="892" y="920" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">ukuran</text>
+<text x="1200" y="920" text-anchor="end" font-size="11" font-weight="400" fill="#475569">integer</text>
 <text x="840" y="937" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
-<text x="892" y="937" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">created_at</text>
-<text x="1200" y="937" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamp</text>
+<text x="892" y="937" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">isi</text>
+<text x="1200" y="937" text-anchor="end" font-size="11" font-weight="400" fill="#475569">bytea</text>
 <text x="840" y="954" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
-<text x="892" y="954" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">updated_at</text>
+<text x="892" y="954" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">created_at</text>
 <text x="1200" y="954" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamp</text>
-<line x1="830" y1="962" x2="1210" y2="962" stroke="#cbd5e1" stroke-width="1"/>
-<text x="840" y="979" text-anchor="start" font-size="11" font-weight="400" fill="#94a3b8">(tidak ada operasi)</text>
-<line x1="40" y1="1174" x2="1210" y2="1174" stroke="#cbd5e1"/>
-<text x="40" y="1196" text-anchor="start" font-size="11.5" font-weight="600" fill="#64748b">Asosiasi ke lembar lain (11) — tidak digambar sebagai garis supaya tidak menggantung di tepi kertas:</text>
-<text x="40" y="1216" text-anchor="start" font-size="11" font-weight="400" fill="#475569">LaporanKerusakan → User  (dilaporkan_oleh, * : 0..1)</text>
-<text x="420" y="1216" text-anchor="start" font-size="11" font-weight="400" fill="#475569">LaporanKerusakan → User  (ditutup_oleh, * : 0..1)</text>
-<text x="800" y="1216" text-anchor="start" font-size="11" font-weight="400" fill="#475569">LaporanKerusakan → Kamar  (kamar_id, * : 1)</text>
-<text x="40" y="1233" text-anchor="start" font-size="11" font-weight="400" fill="#475569">Pembayaran → User  (dicatat_oleh, * : 0..1)</text>
-<text x="420" y="1233" text-anchor="start" font-size="11" font-weight="400" fill="#475569">Pembayaran → User  (diterima_oleh, * : 0..1)</text>
-<text x="800" y="1233" text-anchor="start" font-size="11" font-weight="400" fill="#475569">Tagihan → User  (denda_dimaafkan_oleh, * : 0..1)</text>
-<text x="40" y="1250" text-anchor="start" font-size="11" font-weight="400" fill="#475569">Tagihan → User  (dibatalkan_oleh, * : 0..1)</text>
-<text x="420" y="1250" text-anchor="start" font-size="11" font-weight="400" fill="#475569">Tagihan → Kontrak  (kontrak_id, * : 1)</text>
-<text x="800" y="1250" text-anchor="start" font-size="11" font-weight="400" fill="#475569">UsulanPerubahan → User  (diajukan_oleh, * : 1)</text>
-<text x="40" y="1267" text-anchor="start" font-size="11" font-weight="400" fill="#475569">UsulanPerubahan → User  (diputuskan_oleh, * : 0..1)</text>
-<text x="420" y="1267" text-anchor="start" font-size="11" font-weight="400" fill="#475569">VerifikasiPembayaran → User  (diverifikasi_oleh, * : 0..1)</text>
-<text x="40" y="1287" text-anchor="start" font-size="10.5" font-weight="400" fill="#64748b">«PK» kunci primer · «FK» kunci asing · «UQ» unik · * banyak · 1 tepat satu · 0..1 boleh kosong · huruf 2.61 mm di A3 (ambang 2.52 mm)</text>
+<text x="840" y="971" text-anchor="start" font-size="9.5" font-weight="600" fill="#3730a3"></text>
+<text x="892" y="971" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">updated_at</text>
+<text x="1200" y="971" text-anchor="end" font-size="11" font-weight="400" fill="#475569">timestamp</text>
+<line x1="830" y1="979" x2="1210" y2="979" stroke="#cbd5e1" stroke-width="1"/>
+<text x="840" y="996" text-anchor="start" font-size="11" font-weight="400" fill="#0f172a">ringkas()</text>
+<line x1="40" y1="1285" x2="1210" y2="1285" stroke="#cbd5e1"/>
+<text x="40" y="1307" text-anchor="start" font-size="11.5" font-weight="600" fill="#64748b">Asosiasi ke lembar lain (11) — tidak digambar sebagai garis supaya tidak menggantung di tepi kertas:</text>
+<text x="40" y="1327" text-anchor="start" font-size="11" font-weight="400" fill="#475569">LaporanKerusakan → User  (dilaporkan_oleh, * : 0..1)</text>
+<text x="420" y="1327" text-anchor="start" font-size="11" font-weight="400" fill="#475569">LaporanKerusakan → User  (ditutup_oleh, * : 0..1)</text>
+<text x="800" y="1327" text-anchor="start" font-size="11" font-weight="400" fill="#475569">LaporanKerusakan → Kamar  (kamar_id, * : 1)</text>
+<text x="40" y="1344" text-anchor="start" font-size="11" font-weight="400" fill="#475569">Pembayaran → User  (dicatat_oleh, * : 0..1)</text>
+<text x="420" y="1344" text-anchor="start" font-size="11" font-weight="400" fill="#475569">Pembayaran → User  (diterima_oleh, * : 0..1)</text>
+<text x="800" y="1344" text-anchor="start" font-size="11" font-weight="400" fill="#475569">Tagihan → User  (denda_dimaafkan_oleh, * : 0..1)</text>
+<text x="40" y="1361" text-anchor="start" font-size="11" font-weight="400" fill="#475569">Tagihan → User  (dibatalkan_oleh, * : 0..1)</text>
+<text x="420" y="1361" text-anchor="start" font-size="11" font-weight="400" fill="#475569">Tagihan → Kontrak  (kontrak_id, * : 1)</text>
+<text x="800" y="1361" text-anchor="start" font-size="11" font-weight="400" fill="#475569">UsulanPerubahan → User  (diajukan_oleh, * : 1)</text>
+<text x="40" y="1378" text-anchor="start" font-size="11" font-weight="400" fill="#475569">UsulanPerubahan → User  (diputuskan_oleh, * : 0..1)</text>
+<text x="420" y="1378" text-anchor="start" font-size="11" font-weight="400" fill="#475569">VerifikasiPembayaran → User  (diverifikasi_oleh, * : 0..1)</text>
+<text x="40" y="1398" text-anchor="start" font-size="10.5" font-weight="400" fill="#64748b">«PK» kunci primer · «FK» kunci asing · «UQ» unik · * banyak · 1 tepat satu · 0..1 boleh kosong · huruf 2.61 mm di A3 (ambang 2.52 mm)</text>
 </svg>
