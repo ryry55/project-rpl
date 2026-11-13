@@ -37,7 +37,7 @@ perkakasnya sendiri tidak membusuk:
 
 1. Bangun image dengan cache layer.
 2. `docker compose up -d`, lalu tunggu `/api/health` menjawab **200**.
-3. `php artisan test` di dalam container - 898 tes.
+3. `php artisan test` di dalam container - 912 tes.
 4. Potret rute (`route:list --json`) disegarkan dari aplikasi, lalu
    `cek-angka-dokumen.js` dan `cek-cakupan-kontrak.js` dijalankan terhadap potret
    yang baru itu. Keduanya tidak bisa jalan di job `lint` karena butuh container:
@@ -49,8 +49,8 @@ perkakasnya sendiri tidak membusuk:
    pertama langkah ini menyerah pada detik ke-30 padahal log Chrome menunjukkan
    `DevTools listening` tiga detik kemudian. Menunggu 30 detik bukan pagar, ia
    hanya durasi yang kebetulan cukup di laptop.
-6. `./periksa.sh --hanya-e2e` - 27 skrip browser, 2 uji balapan, dan 1 uji jalur
-   proxy (33 skrip).
+6. `./periksa.sh --hanya-e2e` - 31 skrip browser, 2 uji balapan, dan 1 uji jalur
+   proxy (34 skrip).
 
 ### Kenapa uji browser tidak ditulis ulang dengan Playwright
 

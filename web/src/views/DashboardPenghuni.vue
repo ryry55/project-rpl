@@ -702,10 +702,53 @@ onMounted(muatLaporan)
       Tujuan pembayaran tidak dapat dimuat saat ini. Tanyakan langsung ke pemilik kos.
     </p>
 
+    <!-- Kredensial perangkat (K-16). Ditempatkan sebelum formulir kerusakan:
+         "sandi WiFi-nya apa" adalah pertanyaan yang paling sering diulang, dan
+         ia tidak pantas berada di bawah formulir panjang yang jarang dipakai.
+         Hanya WiFi: CCTV dan kartu RFID tidak pernah sampai ke portal penghuni.
+         Sandinya sudah ada di respons, tetapi baru ditampilkan setelah tombolnya
+         ditekan - supaya tidak terbaca orang yang kebetulan melihat layar. -->
+    <section v-if="perangkat.length > 0" class="kartu panel" aria-labelledby="judul-wifi">
+      <h2 id="judul-wifi">WiFi kos</h2>
+      <p class="lemah mungil">
+        Jaringan yang bisa Anda pakai. Jangan bagikan sandinya ke tamu.
+      </p>
+
+      <ul class="daftar-wifi">
+        <li v-for="p in perangkat" :key="p.id" class="satu-wifi">
+          <div>
+            <strong>{{ p.nama }}</strong>
+            <p v-if="p.lokasi" class="mungil lemah">{{ p.lokasi }}</p>
+            <p v-if="p.nama_pengguna" class="mungil">
+              Jaringan: <strong>{{ p.nama_pengguna }}</strong>
+            </p>
+            <p v-if="p.catatan" class="mungil lemah">{{ p.catatan }}</p>
+          </div>
+          <div class="sandi-wifi">
+            <code v-if="p.sandi && sandiTerbuka.includes(p.id)">{{ p.sandi }}</code>
+            <code v-else-if="p.sandi">••••••••</code>
+            <span v-else class="lemah mungil">Tanpa sandi</span>
+            <template v-if="p.sandi">
+              <button type="button" class="halus mungil" @click="balikSandi(p)">
+                {{ sandiTerbuka.includes(p.id) ? 'Sembunyikan' : 'Tampilkan' }}
+              </button>
+              <button type="button" class="halus mungil" @click="salinSandi(p)">
+                {{ tersalinPerangkat === p.id ? 'Tersalin' : 'Salin' }}
+              </button>
+            </template>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <p v-if="galatPerangkat" class="lemah mungil">
+      Sandi WiFi tidak dapat dimuat saat ini. Tanyakan langsung ke pemilik kos.
+    </p>
+
     <!-- Laporan kerusakan (K-15). Sebelum ini satu-satunya jalan adalah
          WhatsApp ke pemilik, dan fotonya hilang ditelan percakapan. Ditempatkan
-         setelah cara membayar: penghuni yang menemukan kerusakan biasanya baru
-         selesai membaca tagihannya. -->
+         setelah tagihan, cara membayar, dan sandi WiFi: itu yang dicari penghuni
+         lebih dulu, dan formulir ini yang paling jarang dibuka. -->
     <section class="kartu panel" aria-labelledby="judul-kerusakan">
       <h2 id="judul-kerusakan">Laporkan kerusakan</h2>
       <p class="lemah mungil">
@@ -805,47 +848,6 @@ onMounted(muatLaporan)
     <p class="lemah mungil kaki">
       Anda hanya dapat melihat tagihan milik Anda sendiri. Membuka tagihan penghuni lain
       akan dijawab seolah tagihan itu tidak ada.
-    </p>
-
-    <!-- Kredensial perangkat (K-16). Hanya WiFi: CCTV dan kartu RFID tidak
-         pernah sampai ke portal penghuni. Sandinya sudah ada di respons, tetapi
-         baru ditampilkan setelah tombolnya ditekan - supaya tidak terbaca orang
-         yang kebetulan melihat layar. -->
-    <section v-if="perangkat.length > 0" class="kartu panel" aria-labelledby="judul-wifi">
-      <h2 id="judul-wifi">WiFi kos</h2>
-      <p class="lemah mungil">
-        Jaringan yang bisa Anda pakai. Jangan bagikan sandinya ke tamu.
-      </p>
-
-      <ul class="daftar-wifi">
-        <li v-for="p in perangkat" :key="p.id" class="satu-wifi">
-          <div>
-            <strong>{{ p.nama }}</strong>
-            <p v-if="p.lokasi" class="mungil lemah">{{ p.lokasi }}</p>
-            <p v-if="p.nama_pengguna" class="mungil">
-              Jaringan: <strong>{{ p.nama_pengguna }}</strong>
-            </p>
-            <p v-if="p.catatan" class="mungil lemah">{{ p.catatan }}</p>
-          </div>
-          <div class="sandi-wifi">
-            <code v-if="p.sandi && sandiTerbuka.includes(p.id)">{{ p.sandi }}</code>
-            <code v-else-if="p.sandi">••••••••</code>
-            <span v-else class="lemah mungil">Tanpa sandi</span>
-            <template v-if="p.sandi">
-              <button type="button" class="halus mungil" @click="balikSandi(p)">
-                {{ sandiTerbuka.includes(p.id) ? 'Sembunyikan' : 'Tampilkan' }}
-              </button>
-              <button type="button" class="halus mungil" @click="salinSandi(p)">
-                {{ tersalinPerangkat === p.id ? 'Tersalin' : 'Salin' }}
-              </button>
-            </template>
-          </div>
-        </li>
-      </ul>
-    </section>
-
-    <p v-if="galatPerangkat" class="lemah mungil">
-      Sandi WiFi tidak dapat dimuat saat ini. Tanyakan langsung ke pemilik kos.
     </p>
 
     <!-- Aturan kos (T19). Ditempatkan setelah tagihan, bukan sebelumnya:
@@ -1260,6 +1262,26 @@ onMounted(muatLaporan)
   .satu-rekening {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+/* Di bawah 620px, judul dan tombol kepala portal tidak muat sebaris. Sebelum
+   ini keduanya berebut ruang: "Tagihan saya" turun ke dua baris dan tombolnya
+   mendorong judul ke tepi kiri. Judul halaman adalah hal pertama yang dibaca,
+   jadi ia mendapat barisnya sendiri dan tombolnya menyusul di bawah. */
+@media (max-width: 620px) {
+  .bar {
+    flex-wrap: wrap;
+  }
+
+  .merek {
+    flex: 1 1 100%;
+  }
+
+  /* Satu perangkat per baris: sandi dan tombolnya pindah ke bawah nama, bukan
+     berdesakan di kanan sampai namanya terpotong. */
+  .satu-wifi {
+    flex-direction: column;
   }
 }
 </style>

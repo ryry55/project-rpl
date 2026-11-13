@@ -99,8 +99,8 @@ Build memastikan tidak ada angka yang diketik tangan:
 - **100 endpoint** (`api/routes/api.php`)
 - **26 tabel**, **228 kolom**, **30 kunci asing**
 - **14 use case**, **16 aliran batas**
-- Tes: **912 PHP**, **19 Vitest**, **34 skrip uji** (568 detik untuk 941 langkah)
-- Ukuran huruf LRS: **2,62 mm** (A3 tegak), **1,86 mm** (A4 terbaik)
+- Tes: **912 PHP**, **19 Vitest**, **34 skrip uji** (546 detik untuk 942 langkah)
+- Ukuran huruf LRS: **2,54 mm** (A3 tegak), **1,80 mm** (A4 terbaik)
 
 Angka-angka ini dijaga oleh pemeriksa yang tertanam di generator. Lihat `docs/serah-terima.md` §5 untuk cara memeriksanya sendiri.
 
@@ -108,10 +108,11 @@ Angka-angka ini dijaga oleh pemeriksa yang tertanam di generator. Lihat `docs/se
 
 ## Status Gate
 
-CI hijau pada commit **f0f503c** (run `41276981323`). Hasil gate penuh:
+CI terakhir hijau pada commit **f0f503c** (run `41276981323`). Angka gate penuh
+terakhir, dijalankan lokal pada 13 November 2026:
 - Format/lint: pint, eslint, vitest bersih
 - Tes: 912 PHP / 4114 asersi, 19 Vitest / 235 asersi
-- Browser: 34 skrip / 941 langkah
+- Browser: 34 skrip / 942 langkah
 - Pemeriksa dokumen: konsistensi ERD/LRS, DFD, cakupan kontrak, angka dokumenn
 
 ---

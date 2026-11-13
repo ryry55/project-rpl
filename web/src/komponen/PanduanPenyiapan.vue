@@ -38,6 +38,13 @@ import { sesi } from '../sesi.js'
 import { pesanGalat } from '../format.js'
 const router = useRouter()
 
+/**
+ * Tanda keadaan langkah penyiapan. Huruf, bukan ikon gambar: ukurannya ikut
+ * huruf di sebelahnya, dan tidak perlu berkas tambahan untuk dua tanda.
+ */
+const TANDA_SELESAI = '✓' // taste-skill-ignore: tanda selesai, bukan emoji hiasan
+const TANDA_BELUM = '○' // taste-skill-ignore: tanda belum selesai
+
 const status = ref(null)
 const memuat = ref(true)
 
@@ -113,7 +120,7 @@ const langkahTampil = computed(() => {
       <li v-for="l in langkahTampil" :key="l.kunci" :class="{ selesai: l.selesai }">
         <div class="penyiapan-teks">
           <p class="penyiapan-judul">
-            <span class="penyiapan-tanda" aria-hidden="true">{{ l.selesai ? '✓' : '○' }}</span>
+            <span class="penyiapan-tanda" aria-hidden="true">{{ l.selesai ? TANDA_SELESAI : TANDA_BELUM }}</span>
             {{ l.judul }}
             <span v-if="!l.wajib" class="lencana lencana-netral">tidak wajib</span>
           </p>

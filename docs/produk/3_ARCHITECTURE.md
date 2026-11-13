@@ -422,14 +422,14 @@ web/
   src/views/             28 view (7 publik + 21 pemilik dan panelnya)
   src/komponen/          7 komponen ui + 5 komponen bersama
   src/direktif/          kartu-tabel.js
-  src/style.css          964 baris — seluruh design system
+  src/style.css          992 baris — seluruh design system
   src/bagikan.js         pesan WhatsApp & salin papan klip (REV-UI-03)
   public/                manifest, sw.js, ikon
   skrip/                 buat-ikon.mjs, pasang-kartu-tabel.mjs
 
 docs/
   produk/                9 dokumen ini
-  uji/                   33 skrip uji + perkakas
+  uji/                   34 skrip uji + perkakas
   dfd/                   4 diagram (Gane-Sarson, Yourdon)
   charter/               Project Charter
 ```

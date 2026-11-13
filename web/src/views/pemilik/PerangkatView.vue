@@ -481,8 +481,6 @@ onMounted(muat)
 
     <PesanBaris jenis="netral" mungil>
       Sandi disimpan terenkripsi dan hanya dikirim saat tombol <strong>Lihat sandi</strong> ditekan.
-      Penghuni hanya melihat sandi WiFi yang aktif; CCTV dan kartu RFID tidak pernah sampai ke
-      portalnya.
     </PesanBaris>
   </div>
 </template>

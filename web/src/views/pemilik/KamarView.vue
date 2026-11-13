@@ -949,9 +949,15 @@ onMounted(muat)
 
 /* Tanggal tarif berlaku turun ke baris kedua: satu baris berisi "Rp 1.250.000
    sejak 1 Jan 2026" memaksa kolom nominal selebar dua kali angkanya, dan di
-   layar sempit nominalnya terpotong di tengah angka. */
+   layar sempit nominalnya terpotong di tengah angka.
+
+   Huruf teks, bukan mono: `td.kanan` memberi seluruh sel nominal huruf mono
+   supaya digitnya rata, dan keterangan tanggal ikut terbawa sehingga
+   "sejak 1 Jan 2026" terbaca seperti angka. Yang perlu rata adalah nominalnya,
+   bukan keterangannya. */
 .tarif-sejak {
   display: block;
+  font-family: var(--font);
 }
 
 /* Alasan perbaikan turun ke baris kedua di bawah lencana. Dibatasi lebarnya

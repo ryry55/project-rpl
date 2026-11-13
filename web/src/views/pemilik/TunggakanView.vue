@@ -47,14 +47,19 @@ const kelompokTampil = computed(() => {
  *
  * Angka tanpa penekanan tidak menuntun perhatian. Pemilik yang membuka layar
  * harus langsung tahu mana yang perlu tindakan hari ini.
+ *
+ * Kelompok yang **kosong** tidak diberi warna keparahan. "0 di atas 60 hari"
+ * adalah kabar baik, dan merah pada nol membuat pemilik mencari masalah yang
+ * tidak ada — persis kebalikan dari gunanya warna di layar ini.
  */
-function kelasKelompok(kunci) {
+function kelasKelompok(k) {
+  const berisi = k.jumlah > 0
   return {
-    'kelompok-belum': kunci === 'belum_jatuh_tempo',
-    'kelompok-ringan': kunci === '0_30',
-    'kelompok-sedang': kunci === '31_60',
-    'kelompok-berat': kunci === 'lebih_60',
-    'kelompok-dipilih': kelompokAktif.value === kunci,
+    'kelompok-belum': k.kunci === 'belum_jatuh_tempo',
+    'kelompok-ringan': berisi && k.kunci === '0_30',
+    'kelompok-sedang': berisi && k.kunci === '31_60',
+    'kelompok-berat': berisi && k.kunci === 'lebih_60',
+    'kelompok-dipilih': kelompokAktif.value === k.kunci,
   }
 }
 
@@ -156,7 +161,7 @@ async function unduhTunggakan() {
           :key="k.kunci"
           type="button"
           class="kartu kartu-kelompok"
-          :class="kelasKelompok(k.kunci)"
+          :class="kelasKelompok(k)"
           @click="pilihKelompok(k.kunci)"
         >
           <span class="kelompok-judul mungil">{{ k.label }}</span>

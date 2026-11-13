@@ -514,7 +514,7 @@ SQLSTATE `23505`, dan trigger append-only, yang perilakunya berbeda di SQLite.
 docker compose exec api php artisan test          # 898 tes, 4072 asersi
 ```
 
-Seluruh pemeriksaan sekaligus — tes, format, lint, dan 33 skrip uji:
+Seluruh pemeriksaan sekaligus — tes, format, lint, dan 34 skrip uji:
 
 ```powershell
 .\periksa.ps1     # Windows

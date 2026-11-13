@@ -180,6 +180,33 @@ textarea {
   resize: vertical;
 }
 
+/* Unggah berkas (foto laporan kerusakan, gambar QRIS). Kotaknya sudah memakai
+ * aturan `input` di atas, tetapi bagian dalamnya digambar peramban sendiri:
+ * tombol abu-abu dengan label bahasa peramban, satu-satunya kendali di layar
+ * yang tidak memakai bahasa tombol aplikasi. Yang bisa ditata hanya tombol
+ * dalamnya, dan itu cukup untuk membuatnya satu keluarga dengan kendali lain. */
+input[type='file'] {
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+input[type='file']::file-selector-button {
+  height: 26px;
+  margin-right: 10px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--teks);
+  background: var(--permukaan-turun);
+  border: 1px solid var(--kendali);
+  border-radius: var(--radius-kecil);
+  cursor: pointer;
+}
+
+input[type='file']::file-selector-button:hover {
+  background: var(--aktif);
+}
+
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {

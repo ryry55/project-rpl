@@ -452,6 +452,10 @@ Ini bukan kemungkinan teoretis: sudah terjadi sekali, dan versi tanpa pagar
 10. Uji di 360px: `node docs/uji/uji-tata-letak.mjs` dan
     `node docs/uji/uji-kartu-tabel.mjs`.
 11. Jangan menambah warna lepas. Pakai token.
+12. Kendali unggah berkas memakai aturan global `input[type='file']` di
+    `style.css`. Bagian dalamnya digambar peramban sendiri — labelnya bahasa
+    peramban, tombolnya abu-abu bawaan — dan tanpa aturan itu ia satu-satunya
+    kendali di layar yang tidak memakai bahasa aplikasi.
 
 ---
 

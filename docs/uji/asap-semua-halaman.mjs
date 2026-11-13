@@ -310,6 +310,10 @@ jalankan(async () => {
     ['/pemilik/rekening', 'Rekening tujuan pembayaran'],
     ['/pemilik/fasilitas', 'Fasilitas'],
     ['/pemilik/aturan', 'Aturan kos'],
+    // Perangkat & akses (K-16) ikut disapu dengan alasan yang sama: halaman
+    // baru adalah tempat kesalahan render yang paling mudah lolos, dan
+    // satu-satunya tes lain yang membukanya adalah e2e-perangkat.
+    ['/pemilik/perangkat', 'Perangkat & akses'],
     ['/pemilik/audit', 'Jejak audit'],
     // Halaman akun pengelola (T24). Ikut disapu karena ia halaman baru, dan
     // halaman baru adalah tempat kesalahan yang paling sering lolos - tidak

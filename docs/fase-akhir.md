@@ -1,7 +1,7 @@
 # Fase akhir — yang tersisa, dan hanya Anda yang bisa mengerjakannya
 
-Diperbarui 31 Oktober 2026. Semua yang bisa diperiksa mesin sudah diperiksa:
-898 tes PHP, 19 tes Vitest, 33 skrip / 919 langkah browser, `uji-aksesibilitas.mjs`
+Diperbarui 13 November 2026. Semua yang bisa diperiksa mesin sudah diperiksa:
+912 tes PHP, 19 tes Vitest, 34 skrip / 942 langkah browser, `uji-aksesibilitas.mjs`
 27/27 di laptop **dan** di CI, gladi demo 39/39 pada database segar, uji beban
 lulus. Empat pagar baru dibuktikan bisa **merah** lebih dulu, bukan hanya hijau.
 
@@ -50,7 +50,7 @@ Jawab apa adanya. Sistem ini demo lokal, dan itu bukan kelemahan yang perlu
 disamarkan.
 
 - **"Sudah dipakai penghuni sungguhan?"** — Belum. Yang ada: demo lokal dengan
-  data contoh, 898 tes, dan uji browser yang menjalankan alurnya di peramban.
+  data contoh, 912 tes, dan uji browser yang menjalankan alurnya di peramban.
 - **"Kalau servernya mati, datanya hilang?"** — Basis data PostgreSQL di dalam
   Docker, dan cadangannya sudah **diuji pulih**, bukan hanya dibuat:
   `docker compose exec -T api sh /var/www/html/docker/backup.sh --uji-pulih`
