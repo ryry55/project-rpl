@@ -176,7 +176,35 @@ for (const b of baris) {
 console.log('')
 console.log(adaBeda ? 'ADA ANGKA YANG BEDA' : 'SEMUA ANGKA COCOK')
 
+// Nama tes yang DIKLAIM dokumen harus ada di suite. Ini kelas kesalahan yang
+// tidak tertangkap pemeriksaan angka: tes berganti nama, dokumen tetap
+// menyebut nama lama, dan pembaca yang mencarinya tidak menemukan apa pun.
+// 13 November 2026: empat nama di `audit-ketertelusuran.md` sudah basi.
+const isiTes = (() => {
+  const hasil = []
+  const jelajah = (dir) => {
+    for (const entri of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, entri.name)
+      if (entri.isDirectory()) jelajah(p)
+      else if (entri.name.endsWith('.php')) hasil.push(fs.readFileSync(p, 'utf8'))
+    }
+  }
+  jelajah(path.join(AKAR, 'api/tests'))
+  return hasil.join('\n')
+})()
+
+const namaHilang = []
+for (const d of ['docs/uji/audit-ketertelusuran.md', 'docs/produk/7_TESTING_EVALS.md']) {
+  const teks = fs.readFileSync(path.join(AKAR, d), 'utf8')
+  for (const m of teks.matchAll(/`(test_[a-z0-9_]+)`/g)) {
+    if (!isiTes.includes(`function ${m[1]}(`)) namaHilang.push(`${d}  ${m[1]}`)
+  }
+}
+console.log('')
+console.log(namaHilang.length === 0 ? 'SEMUA NAMA TES YANG DIKLAIM ADA' : 'ADA NAMA TES YANG TIDAK ADA')
+for (const n of namaHilang) console.log('  - ' + n)
+
 // Exit code, bukan hanya cetakan. Gerbang menilai langkah ini dari kode keluar;
 // sebelum ini skrip selalu keluar 0, sehingga `periksa.ps1`/`periksa.sh` dan CI
 // melaporkan "angka dokumen cocok" berapa pun temuannya.
-if (adaBeda) process.exitCode = 1
+if (adaBeda || namaHilang.length > 0) process.exitCode = 1

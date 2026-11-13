@@ -110,7 +110,7 @@ endpoint **publik**; pratinjau denda dihitung **server**.
 ```powershell
 powershell -ExecutionPolicy Bypass -File periksa.ps1              # SEMUA LULUS
 powershell -ExecutionPolicy Bypass -File periksa.ps1 -TanpaBuild  # bila image sudah dibangun
-node docs/uji/cek-angka-dokumen.js                                # SEMUA ANGKA COCOK
+node docs/uji/cek-angka-dokumen.js                                # angka + nama tes cocok
 node docs/uji/cek-diagram.js                                      # diagram tidak basi
 ```
 
