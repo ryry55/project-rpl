@@ -76,6 +76,50 @@ Lalu pastikan tiga akun bisa masuk: `pemilik@kos.test`, `pengelola@kos.test`,
 sesudah gladi terakhir — data demo yang dipakai saat sidang harus yang terakhir
 Anda lihat sendiri.
 
+## 5. Membagikan lewat Cloudflare Tunnel (dibuktikan 15 November 2026)
+
+Untuk kelompok yang jauh, atau saat sidang daring. Tunnel meneruskan ke
+tumpukan **demo** di laptop, jadi `APP_DEMO_MODE` dan panel simulasi tanggal
+tetap hidup — hal yang hilang bila memakai `Dockerfile.prod`.
+
+```powershell
+winget install --id Cloudflare.cloudflared -e   # atau unduh .exe, tanpa admin
+cloudflared tunnel --url http://localhost:3000  # cetak https://xxx.trycloudflare.com
+```
+
+Lalu isi **dua** variabel di `.env` dengan URL itu — `APP_URL` saja tidak cukup,
+karena tautan aktivasi dan lupa-sandi dibaca dari `APP_URL_SPA`:
+
+```
+APP_URL=https://xxx.trycloudflare.com
+APP_URL_SPA=https://xxx.trycloudflare.com
+```
+
+`docker compose up -d api && docker compose restart api-web && docker compose exec api php artisan config:clear`
+
+Lima jebakan yang sudah menggigit, semuanya senyap:
+
+- **URL berganti setiap tunnel dijalankan ulang.** Kalau lupa memperbarui kedua
+  variabel, foto laporan kerusakan tampil kosong (signed URL menunjuk localhost)
+  dan email aktivasi menaut ke alamat mati.
+- **Laptop tidur = 502.** Cloudflare menjawab 502, bukan galat yang menjelaskan.
+- **Batas login 20×/jam per email** (`PembatasMasuk`). Sepuluh orang bergantian
+  memakai `pemilik@kos.test` akan kena 429 dengan sandi yang benar. Jalankan
+  `docker compose exec api php artisan cache:clear` sebelum sesi, atau bagikan
+  akun berbeda per orang.
+- **`migrate:fresh --seed` tidak mengisi kamar, kontrak, atau tagihan** — seeder
+  sengaja berhenti di kebijakan yang belum diisi. Tanpa data contoh, semua layar
+  kosong dan terbaca seperti aplikasi rusak.
+- **Tidak perlu membuka `api-web` (8081).** SPA memakai `VITE_API_BASE=/api`,
+  jadi satu tunnel ke `:3000` melayani halaman dan API sekaligus.
+
+Akun demo tetap `pemilik@kos.test` / `pengelola@kos.test` / `penghuni@kos.test`,
+sandi `password`. Jangan pernah memakai data sungguhan di tumpukan ini: URL-nya
+publik, dan siapa pun yang memegangnya bisa masuk dengan sandi itu.
+
+Batasnya: tunnel bukan deploy. Tidak ada penjadwal tagihan otomatis, dan semua
+berhenti saat laptop dimatikan.
+
 ---
 
 ## Yang sengaja tidak dikerjakan
