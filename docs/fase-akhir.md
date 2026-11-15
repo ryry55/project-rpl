@@ -97,11 +97,19 @@ APP_URL_SPA=https://xxx.trycloudflare.com
 
 `docker compose up -d api && docker compose restart api-web && docker compose exec api php artisan config:clear`
 
+`APP_URL` tidak memengaruhi foto laporan kerusakan: `LampiranKerusakan::ringkas()`
+membangun tautannya dengan `absolute: false`, jadi peramban memakai origin
+halaman. Yang bergantung pada `URL_SPA` adalah **tautan di email** — aktivasi
+akun, lupa sandi, dan notifikasi. Salah isi di situ berarti penghuni baru
+menerima tautan ke alamat yang tidak bisa dibuka dari luar laptop.
+
 Lima jebakan yang sudah menggigit, semuanya senyap:
 
-- **URL berganti setiap tunnel dijalankan ulang.** Kalau lupa memperbarui kedua
-  variabel, foto laporan kerusakan tampil kosong (signed URL menunjuk localhost)
-  dan email aktivasi menaut ke alamat mati.
+- **URL berganti setiap tunnel dijalankan ulang.** Kalau lupa memperbarui
+  `APP_URL_SPA`, email aktivasi menaut ke alamat mati dan akun baru tidak pernah
+  bisa dipakai. `APP_URL` yang tertinggal juga membuat `config('cors')` di
+  profil produksi menolak origin yang salah — di profil demo tidak berpengaruh
+  karena satu origin.
 - **Laptop tidur = 502.** Cloudflare menjawab 502, bukan galat yang menjelaskan.
 - **Batas login 20×/jam per email** (`PembatasMasuk`). Sepuluh orang bergantian
   memakai `pemilik@kos.test` akan kena 429 dengan sandi yang benar. Jalankan
@@ -116,6 +124,17 @@ Lima jebakan yang sudah menggigit, semuanya senyap:
 Akun demo tetap `pemilik@kos.test` / `pengelola@kos.test` / `penghuni@kos.test`,
 sandi `password`. Jangan pernah memakai data sungguhan di tumpukan ini: URL-nya
 publik, dan siapa pun yang memegangnya bisa masuk dengan sandi itu.
+
+Bila kelompok harus **mencoba membuat akun**, tambahkan tunnel kedua ke Mailpit
+(`cloudflared tunnel --url http://localhost:8025`). Tanpa itu, email aktivasi
+berhenti di kotak surat laptop dan penghuni baru tidak akan pernah bisa masuk -
+layarnya akan menjawab "Akun ini belum diaktifkan". Alurnya sudah dibuktikan
+15 November 2026: buat penghuni, buka tautan dari Mailpit, tetapkan sandi,
+lalu masuk.
+
+Mailpit tidak punya kata sandi. Siapa pun yang memegang URL-nya bisa membaca
+seluruh email demo, termasuk tautan atur-sandi milik akun lain. Untuk kelas itu
+dapat diterima; untuk apa pun yang menyentuh data sungguhan, jangan.
 
 Batasnya: tunnel bukan deploy. Tidak ada penjadwal tagihan otomatis, dan semua
 berhenti saat laptop dimatikan.
