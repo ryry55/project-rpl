@@ -103,13 +103,18 @@ halaman. Yang bergantung pada `URL_SPA` adalah **tautan di email** — aktivasi
 akun, lupa sandi, dan notifikasi. Salah isi di situ berarti penghuni baru
 menerima tautan ke alamat yang tidak bisa dibuka dari luar laptop.
 
-Lima jebakan yang sudah menggigit, semuanya senyap:
+Enam jebakan yang sudah menggigit, semuanya senyap:
 
 - **URL berganti setiap tunnel dijalankan ulang.** Kalau lupa memperbarui
   `APP_URL_SPA`, email aktivasi menaut ke alamat mati dan akun baru tidak pernah
   bisa dipakai. `APP_URL` yang tertinggal juga membuat `config('cors')` di
   profil produksi menolak origin yang salah — di profil demo tidak berpengaruh
   karena satu origin.
+- **`APP_DEBUG=true` saat URL dibagikan.** Jawaban galat memuat jejak tumpukan:
+  potongan kode, path berkas, nama kueri — semuanya terbaca siapa pun yang
+  memegang URL. Sejak 16 November `docker-compose.yml` memakai
+  `${APP_DEBUG:-false}`; nyalakan sementara lewat `.env` hanya saat menelusuri
+  bug di laptop, lalu matikan lagi sebelum membagikan URL.
 - **Laptop tidur = 502.** Cloudflare menjawab 502, bukan galat yang menjelaskan.
 - **Batas login 20×/jam per email** (`PembatasMasuk`). Sepuluh orang bergantian
   memakai `pemilik@kos.test` akan kena 429 dengan sandi yang benar. Jalankan

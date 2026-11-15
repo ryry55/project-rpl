@@ -45,7 +45,13 @@ services:
     environment:
       APP_NAME: "Kos-Kosan"
       APP_ENV: ${APP_ENV:-local}
-      APP_DEBUG: ${APP_DEBUG:-true}
+      # `false`, bukan `true`. Tumpukan ini bisa dibuka dari internet lewat
+      # Cloudflare Tunnel (docs/fase-akhir.md §5), dan `APP_DEBUG=true` membuat
+      # jawaban galat memuat jejak tumpukan: potongan kode, path berkas, nama
+      # kueri. Di laptop itu berguna; begitu URL-nya dibagikan, ia menjadi
+      # bocoran yang tidak perlu. Jejak tumpukan tetap bisa dibaca dari
+      # `docker compose logs api`.
+      APP_DEBUG: ${APP_DEBUG:-false}
       # APP_KEY sengaja TIDAK dioper dari sini. Variabel environment kosong akan
       # menimpa isi .env, dan Laravel lalu menganggap kuncinya tidak diset.
       # Entrypoint yang membuatkan kunci ke dalam .env bila masih kosong.

@@ -495,3 +495,38 @@ Perilakunya tetap terjaga; hanya namanya yang tertinggal.
 
 Pagar barunya ada di `cek-angka-dokumen.js` dan dibuktikan bisa **merah**: satu
 nama palsu disisipkan, skrip keluar 1, lalu dihapus lagi.
+
+## Audit permukaan publik - 16 November 2026
+
+Audit menyeluruh 13 November memeriksa kode sebagai sistem tertutup. Setelah
+aplikasi dibagikan lewat Cloudflare Tunnel (`docs/fase-akhir.md` §5), ada satu
+permukaan yang berubah: siapa pun yang memegang URL bisa mencoba. Yang diperiksa
+karena itu bukan tata letak layar, melainkan apa yang bisa dicapai tanpa akun.
+
+| Yang diperiksa | Hasil |
+|---|---|
+| Rute tanpa `auth`/`signed` | 13, semuanya disengaja: SPA, health, identitas kos, login, atur-sandi, lupa-sandi, periksa-token, webhook, csp-laporan, dan rute `storage` bawaan Laravel |
+| Unggah `storage` | `PUT` menuntut `?upload=true` + tanda tangan relatif; tanpa itu 403. `GET` juga bertanda tangan |
+| Webhook Midtrans | menolak bila `server_key` kosong atau tanda tangan salah; 401 tanpa penjelasan |
+| Pembatas masuk | 5/menit per email+IP, 20/jam per email; lupa-sandi 3/jam; periksa-token 20/menit |
+| Enumerasi email | waktu jawaban disamakan untuk email yang tidak dikenal |
+| Simulasi tanggal | hanya berlaku bila `APP_DEMO_MODE=true`; header tak sah diabaikan, bukan 500 |
+| Rahasia di repo publik | tidak ada; `.env` gitignored dan `.dockerignore` mencegahnya ikut ke image |
+| `composer audit` | 4 advisory pada Laravel 12.70.1 dan Symfony 7.4.21, ditutup dengan 12.72.0 / 7.4.23 |
+| `npm audit --omit=dev` | 0 |
+| Port database | tidak dipublikasikan; hanya `api-web`, `web`, dan `mailpit` yang terbuka |
+
+Dua temuan diperbaiki, keduanya hanya muncul setelah URL dibagikan:
+
+- **`APP_DEBUG=true`** membuat jawaban galat memuat jejak tumpukan. Bawaannya
+  kini `false` di `docker-compose.yml`; jejak tumpukan dibaca dari log container.
+- **Header keamanan tidak ada di nginx demo.** `nosniff`, `X-Frame-Options`, dan
+  `Referrer-Policy` ditambahkan dan diulang di setiap lokasi yang punya
+  `add_header` sendiri (jebakan warisan `add_header`). HSTS dan CSP tetap hanya
+  di profil produksi: HSTS pada localhost akan mengunci peramban ke https untuk
+  semua port.
+
+Yang **tidak** diperbaiki karena memang keputusan demo, bukan cacat: sandi
+`password` pada tiga akun contoh, Mailpit tanpa sandi, dan `cors` `*` (SPA
+memakai origin yang sama; token Bearer tidak dikirim otomatis oleh peramban).
+Ketiganya harus disebut sebagai batas bila ditanya, bukan dijanjikan aman.
