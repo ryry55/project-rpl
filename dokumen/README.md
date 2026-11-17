@@ -12,14 +12,14 @@ powershell -ExecutionPolicy Bypass -File dokumen\segarkan.ps1
 
 | Subfolder | Dokumen | Berkas | Status |
 |---|---|---|---|
-| `01-charter` | Charter proyek | `KONTEKS_PROYEK.md` | menunggu review pemilik |
+| `01-charter` | Charter proyek | `KONTEKS_PROYEK.md` | menunggu review pemilik (angka dikoreksi audit 17 Nov) |
 | `02-proses-bisnis` | Proses bisnis tujuh bab | PDF 4 halaman | segar |
 | `03-use-case` | Diagram use case + serahan Pertemuan 4 (use case + DFD konteks) | PNG + PDF 2 halaman | segar |
-| `04-dfd` | DFD konteks + level 1 (dua notasi) + level 2 + kamus data | 4 PNG + 2 md | level 1 dicek saat fase dokumentasi |
+| `04-dfd` | DFD konteks + level 1 (dua notasi) + level 2 + kamus data | 4 PNG + 2 md | level-1 tak perlu berubah (audit 17 Nov); spec REV-FIN-02 menunggu satu kalimat K-19 |
 | `05-erd` | ERD berjenjang L0–L2 | 6 PNG | segar |
 | `06-lrs` | LRS lembar A3 (lampiran terpisah) + versi teks | PNG A3 + md | segar |
 | `07-bab-4` | Bab 4: normalisasi, ERD, LRS, spesifikasi data | PDF 8 halaman | segar |
-| `08-diagram-kelas` | Diagram kelas tiga lembar | 3 PNG | metode menunggu sinkron fase dokumentasi |
+| `08-diagram-kelas` | Diagram kelas tiga lembar | 3 PNG | segar — atribut & metode diturunkan dari skema + model, dijaga pemeriksa gate (audit 17 Nov) |
 | `09-diagram-urutan` | Diagram urutan 14 use case | 14 PNG | UC-09 menunggu sinkron K-19/K-20 |
 | `10-peta-ketertelusuran` | Peta aturan → kode → tes | md | menunggu baris K-19/K-20 |
 

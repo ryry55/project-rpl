@@ -4,7 +4,7 @@
 > berikutnya, dan apa yang tidak boleh diubah. Riwayatnya di `git log`.
 > **Maksimal 120 baris** — lebih dari itu ia menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: 17 November 2026, sesudah Fase 8 (integritas jalur uang).
+Terakhir diperbarui: 17 November 2026, audit paket dokumen sesudah Fase 8.
 
 ---
 
@@ -13,13 +13,14 @@ Terakhir diperbarui: 17 November 2026, sesudah Fase 8 (integritas jalur uang).
 | Hal | Nilai |
 |---|---|
 | Sesi terakhir | **Fase 8** — lima perbaikan audit jalur uang (K-19, K-20) |
-| Rencana berikutnya | **Fase dokumentasi** (charter, DFD, UC-09, diagram kelas), lalu Fase 9-10 `docs/rencana-fase-8-10.md` |
+| Rencana berikutnya | **Fase dokumentasi** (UC-09, ketertelusuran, kalimat K-19 di DFD, review charter), lalu Fase 9-10 `docs/rencana-fase-8-10.md` |
 | Suite PHP | **918 lulus / 4142 asersi**; pint & eslint bersih |
 | Gate penuh | **SEMUA LULUS** 17 Nov (pemeriksa dokumen + 34 skrip browser ikut hijau) |
 | Keputusan pemilik | **K-19, K-20 dijawab & diterapkan** (lihat §4); K-01..K-18 tidak berubah |
-| Tunnel demo | URL 16 Nov masih di `.env`; hidup dicek `nslookup <host> 8.8.8.8` |
+| Tunnel demo | URL baru 17 Nov di `.env` (URL 16 Nov mati); hidup dicek `nslookup <host> 8.8.8.8` |
 | Paket serahan | **`dokumen/`** — satu subfolder per dokumen; segarkan dengan `dokumen\segarkan.ps1` |
-| Working tree | Bersih sesudah commit Fase 8 |
+| CI GitHub | **hijau** pada `70996a8` (run `44029172981`) — kode Fase 8 tervalidasi run yang sama |
+| Working tree | Bersih sesudah commit audit dokumen |
 
 ## 2. Yang sesi Fase 8 kerjakan
 
@@ -49,11 +50,15 @@ di dua README, diagram kelas-c memuat `total_beku`, PDF Bab 4 + folder
 
 1. **Fase dokumentasi** (permintaan pemilik): sinkron `urutan-data.js` UC-09
    dengan alur baru (tautan dimatikan, total beku, cabang perlu tindakan);
-   sinkron metode di `kelas-data.js` (`catat()` 2 parameter baru, dsb.);
-   review manual charter `docs/produk/KONTEKS_PROYEK.md`; tambah baris
-   K-19/K-20 ke `docs/uji/audit-ketertelusuran.md`; bangun ulang diagram + PDF.
-   Tiap dokumen yang selesai disegarkan ke `dokumen/` (jalankan
-   `dokumen\segarkan.ps1`; status per dokumen ada di `dokumen/README.md`).
+   review manual charter `docs/produk/KONTEKS_PROYEK.md` — angka basi sudah
+   dikoreksi audit 17 Nov, review tinggal kejujuran ruang lingkup; tambah
+   baris K-19/K-20 ke `docs/uji/audit-ketertelusuran.md`; tambah satu
+   kalimat K-19 ke spec REV-FIN-02 di `docs/dfd/03-dfd-level-2.md`; bangun
+   ulang diagram + PDF. Metode diagram kelas TIDAK perlu disinkronkan —
+   atribut & metode diturunkan dari skema + model, dijaga pemeriksa gate
+   (terbukti audit 17 Nov). Tiap dokumen yang selesai disegarkan ke
+   `dokumen/` (jalankan `dokumen\segarkan.ps1`; status per dokumen ada di
+   `dokumen/README.md`).
 2. **Fase 9** (performa): withSum N+1, `per_page` pembayaran, `now()` →
    `WaktuSistem` di 5 titik, uji beban banding p95 610 ms.
 3. **Fase 10** (pemolesan): composable `useMuatDaftar`, kode mati, port ke
@@ -83,6 +88,15 @@ di dua README, diagram kelas-c memuat `total_beku`, PDF Bab 4 + folder
 - **Pipa `Select-Object -Last N` pada gate latar membuang output**: hanya N
   baris terakhir yang tersimpan di berkas .out — waktu/jumlah langkah tak bisa
   diverifikasi dari run itu. Jalankan gate tanpa pipa bila butuh angkanya.
+- **Klaim status di `dokumen/README.md` dibuktikan ke pemeriksa gate dulu**:
+  "metode kelas menunggu sinkron" ternyata salah diagnosis — metode diagram
+  kelas diturunkan otomatis dari model, dan kelas layanan domain memang tidak
+  digambar (aturan `kelas-data.js`: tiap kelas wajib punya tabel di skema).
+- **Hitung trigger dari basis data hidup, bukan dari teks migrasi**:
+  `parameter_denda_append_only` ikut mati bersama tabelnya di `hapus_deposit`
+  — migrasi memuat 9 nama, DB hidup punya 8. Query langsung
+  `docker compose exec db psql -U kos -d kos -tAc "..."` (jangan lewat
+  `sh -c` — baris hasilnya tertelan).
 
 ## 6. Verifikasi klaim berkas ini
 
