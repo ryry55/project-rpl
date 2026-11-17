@@ -473,3 +473,65 @@ uang (kapan tagihan dianggap terlambat).
 
 **Kalau tidak dijawab.** Tidak dipakai — keputusan sudah diambil.
 
+---
+
+## K-19 - Uang masuk lewat tagihan yang sudah dibatalkan - dijawab
+
+**Fase:** audit kode 16-17 November 2026 **Tanggal:** 17 November 2026
+
+**Jawaban (17 November 2026). Kunci dua pintu + catat.** Membatalkan tagihan
+menandai semua transaksi gateway yang masih `menunggu` menjadi `dibatalkan`,
+jadi tautannya tidak akan diterima lagi. Bila notifikasi settlement yang sah
+tetap datang untuk tagihan yang sudah batal, uangnya **dicatat** sebagai
+pembayaran berlabel "perlu tindakan" — rekap tidak boleh bohong terhadap
+rekening Midtrans; refund diurus di luar aplikasi.
+
+**Pertanyaan.** Membatalkan tagihan tidak mematikan tautan Midtrans-nya, dan
+pembayaran lewat tautan itu masuk ke Midtrans tanpa tercatat di aplikasi
+(dibuktikan runtime 16 November: 0 baris pembayaran, hanya Log warning).
+Kebijakan mana untuk uang yang masuk lewat tagihan batal?
+
+**Pilihan.**
+- **A. Kunci dua pintu + catat.** Pembatalan ikut menandai transaksi gateway;
+  uang yang terlanjur masuk tetap tercatat berlabel perlu tindakan.
+- **B. Cegah lebih dulu.** Tagihan dengan tautan aktif tidak boleh dibatalkan
+  sampai tautannya kedaluwarsa (maks. 60 menit).
+- **C. Biarkan.** Hanya Log warning; rekap tidak akan cocok dengan Midtrans.
+
+**Karena.** Menyentuh uang (pencatatan pendapatan) dan perilaku yang dilihat
+pengguna (tagihan batal yang menerima pembayaran). Catatan: ini bukan ranah
+idempotency — notifikasi ganda sudah dijaga tes yang ada; yang bocor adalah
+SATU notifikasi sah yang datang setelah pembatalan.
+
+**Kalau tidak dijawab.** Tidak dipakai — keputusan sudah diambil.
+
+---
+
+## K-20 - Denda yang tumbuh setelah tautan bayar dibuat - dijawab
+
+**Fase:** audit kode 16-17 November 2026 **Tanggal:** 17 November 2026
+
+**Jawaban (17 November 2026). Bekukan denda di nominal tautan.** Penghuni
+yang membayar jumlah tautan penuh dianggap **lunas**; denda yang tumbuh
+antara tautan dibuat dan dibayar dimaafkan otomatis. `total_final` dibekukan
+pada pokok + denda saat tautan dibuat — konsisten dengan konsep snapshot
+beku R-06.
+
+**Pertanyaan.** Nominal tautan gateway dibekukan pada hari dibuatnya; denda
+berjalan membuat sisa "receh" bila penghuni membayar beberapa hari kemudian
+(dibuktikan runtime 16 November: bayar 1.650.000 menurut tautan, total
+1.695.000 tiga hari kemudian, status sebagian). Kebijakan mana?
+
+**Pilihan.**
+- **A. Terima & jelaskan.** Sisa receh tetap terutang; cukup didokumentasikan.
+- **B. Bekukan denda di nominal tautan.** Bayar penuh menurut tautan = lunas.
+- **C. Tolak settlement kurang.** Webhook menolak; Midtrans mengembalikan
+  uang; penghuni membuat tautan baru.
+
+**Karena.** Mengubah nominal yang dianggap lunas dan yang dilihat penghuni di
+portal — uang dan perilaku pengguna, dua hal yang `AGENTS.md` larang diputuskan
+sendiri.
+
+**Kalau tidak dijawab.** Tidak dipakai — keputusan sudah diambil.
+
+

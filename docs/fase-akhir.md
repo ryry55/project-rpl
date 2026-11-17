@@ -103,13 +103,23 @@ halaman. Yang bergantung pada `URL_SPA` adalah **tautan di email** — aktivasi
 akun, lupa sandi, dan notifikasi. Salah isi di situ berarti penghuni baru
 menerima tautan ke alamat yang tidak bisa dibuka dari luar laptop.
 
-Enam jebakan yang sudah menggigit, semuanya senyap:
+Tujuh jebakan yang sudah menggigit, semuanya senyap:
 
 - **URL berganti setiap tunnel dijalankan ulang.** Kalau lupa memperbarui
   `APP_URL_SPA`, email aktivasi menaut ke alamat mati dan akun baru tidak pernah
   bisa dipakai. `APP_URL` yang tertinggal juga membuat `config('cors')` di
   profil produksi menolak origin yang salah — di profil demo tidak berpengaruh
   karena satu origin.
+- **Proses `cloudflared` yang masih hidup BUKAN bukti tunnel hidup.** 16
+  November: koneksi QUIC ke tepi Cloudflare putus (jaringan sesaat), tunnel
+  cepat dilepas, dan hostname menjadi NXDOMAIN — tetapi prosesnya terus
+  jalan berjam-jam, mengulang-ulang "Tunnel not found" di log tanpa satu
+  galat di layar. Gejalanya: kelompok mendapat "situs tidak dapat dijangkau"
+  padahal `Get-Process cloudflared` masih ada. Periksa DNS, bukan prosesnya:
+  `nslookup <host> 8.8.8.8`; NXDOMAIN = jalankan ulang kedua tunnel,
+  perbarui `APP_URL`/`APP_URL_SPA`, lalu `up -d api` + `restart api-web` +
+  `config:clear`. Berkasnya: `C:\Users\ACER\AppData\Local\cloudflared\`
+  (tidak di PATH — `Start-Process cloudflared` gagal "file not found").
 - **`APP_DEBUG=true` saat URL dibagikan.** Jawaban galat memuat jejak tumpukan:
   potongan kode, path berkas, nama kueri — semuanya terbaca siapa pun yang
   memegang URL. Sejak 16 November `docker-compose.yml` memakai
