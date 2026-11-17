@@ -18,6 +18,7 @@ Terakhir diperbarui: 17 November 2026, sesudah Fase 8 (integritas jalur uang).
 | Gate penuh | **SEMUA LULUS** 17 Nov (pemeriksa dokumen + 34 skrip browser ikut hijau) |
 | Keputusan pemilik | **K-19, K-20 dijawab & diterapkan** (lihat §4); K-01..K-18 tidak berubah |
 | Tunnel demo | URL 16 Nov masih di `.env`; hidup dicek `nslookup <host> 8.8.8.8` |
+| Paket serahan | **`dokumen/`** — satu subfolder per dokumen; segarkan dengan `dokumen\segarkan.ps1` |
 | Working tree | Bersih sesudah commit Fase 8 |
 
 ## 2. Yang sesi Fase 8 kerjakan
@@ -51,6 +52,8 @@ di dua README, diagram kelas-c memuat `total_beku`, PDF Bab 4 + folder
    sinkron metode di `kelas-data.js` (`catat()` 2 parameter baru, dsb.);
    review manual charter `docs/produk/KONTEKS_PROYEK.md`; tambah baris
    K-19/K-20 ke `docs/uji/audit-ketertelusuran.md`; bangun ulang diagram + PDF.
+   Tiap dokumen yang selesai disegarkan ke `dokumen/` (jalankan
+   `dokumen\segarkan.ps1`; status per dokumen ada di `dokumen/README.md`).
 2. **Fase 9** (performa): withSum N+1, `per_page` pembayaran, `now()` →
    `WaktuSistem` di 5 titik, uji beban banding p95 610 ms.
 3. **Fase 10** (pemolesan): composable `useMuatDaftar`, kode mati, port ke
