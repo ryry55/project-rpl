@@ -96,6 +96,10 @@ Kriteria penerimaan T2 yang bukan turunan langsung R-01..R-07.
 | Daftar membawa `dibayar`/`sisa` tanpa N+1 | `withSum('pembayaran as total_dibayar')` | `test_daftar_tagihan_membawa_dibayar_dan_sisa_tanpa_n_plus_satu` | ✅ |
 | Dua pembayaran serentak tidak melebihi tagihan | `SELECT ... FOR UPDATE` pada baris `tagihan` sebelum memeriksa sisa | `docs/uji/uji-balapan-t5.mjs` (12/12): satu 201, satu 422, pesan menyebut sisa Rp 500.000 | ✅ |
 | Penghuni tidak boleh mencatat pembayaran | `PastikanPeran` | `test_penghuni_tidak_boleh_mencatat_pembayaran`, `test_tanpa_login_ditolak`, `test_tagihan_tidak_ada_menghasilkan_404` | ✅ |
+| Batal tagihan mematikan tautan terbuka (K-19) | `PembatalTagihan::batalkan` menandai `transaksi_gateway` menunggu → dibatalkan dalam transaksi yang sama dengan pembatalan; audit memuat `tautan_gateway_dimatikan`; `expire` gateway untuk tautan itu diabaikan — transaksi `dibatalkan` tidak mundur | `test_membatalkan_tagihan_mematikan_tautan_gateway_yang_masih_terbuka` | ✅ |
+| Uang pasca-batal tetap dicatat berlabel "perlu tindakan" (K-19) | `PembayaranGateway::catatDibayar` → `PencatatPembayaran::catat(terimaPadaBatal: true)`; label pada `pembayaran.catatan`; batal tetap batal — pengembalian lewat Midtrans di luar aplikasi, rekap tetap jujur | `test_uang_yang_masuk_setelah_pembatalan_tercatat_berlabel_perlu_tindakan` | ✅ |
+| Bayar nominal tautan penuh = lunas (K-20) | `transaksi_gateway.total_beku` dibekukan `PembayaranGateway::mulai`; `catat(totalBeku)` memakainya sebagai dasar status — denda yang berjalan setelah tautan dimaafkan; baris lama tanpa beku memakai total hidup | `test_membayar_nominal_tautan_penuh_membuat_lunas_walau_denda_berjalan` | ✅ |
+| Sisa transaksi tanpa tautan tidak mengunci (temuan #1) | `PembayaranGateway::mulai` menghapus baris menunggu tanpa `redirect_url` dan membuang barisnya saat gateway gagal/timeout (`GatewayMenolak::tidakMenjawab`) — percobaan berikutnya dapat tautan baru | `test_sisa_menunggu_tanpa_tautan_dibersihkan_bukan_mengunci` | ✅ |
 
 ## Aturan isolasi & audit (T9)
 

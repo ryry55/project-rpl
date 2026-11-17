@@ -4,7 +4,7 @@
 > berikutnya, dan apa yang tidak boleh diubah. Riwayatnya di `git log`.
 > **Maksimal 120 baris** — lebih dari itu ia menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: 17 November 2026, audit paket dokumen sesudah Fase 8.
+Terakhir diperbarui: 17 November 2026, audit + fase dokumentasi sesudah Fase 8.
 
 ---
 
@@ -13,7 +13,7 @@ Terakhir diperbarui: 17 November 2026, audit paket dokumen sesudah Fase 8.
 | Hal | Nilai |
 |---|---|
 | Sesi terakhir | **Fase 8** — lima perbaikan audit jalur uang (K-19, K-20) |
-| Rencana berikutnya | **Fase dokumentasi** (UC-09, ketertelusuran, kalimat K-19 di DFD, review charter), lalu Fase 9-10 `docs/rencana-fase-8-10.md` |
+| Rencana berikutnya | **Review charter oleh pemilik**, lalu Fase 9-10 `docs/rencana-fase-8-10.md` |
 | Suite PHP | **918 lulus / 4142 asersi**; pint & eslint bersih |
 | Gate penuh | **SEMUA LULUS** 17 Nov (pemeriksa dokumen + 34 skrip browser ikut hijau) |
 | Keputusan pemilik | **K-19, K-20 dijawab & diterapkan** (lihat §4); K-01..K-18 tidak berubah |
@@ -46,19 +46,25 @@ build pertama memang ditolak pagar, itu bukti pagarnya hidup), tabel ukur 24 sel
 di dua README, diagram kelas-c memuat `total_beku`, PDF Bab 4 + folder
 `docs/akademik/final/` dibangun ulang (lembar b → b1/b2).
 
+Fase dokumentasi (17 Nov, sesi audit + perbaikan):
+
+- **UC-08 digambar ulang** sebagai alur webhook Midtrans — nominal dicocokkan
+  dengan `total_beku` (K-20), cabang "perlu tindakan" bila tagihan batal
+  (K-19); catat manual tetap memakai `PencatatPembayaran` yang sama.
+- **UC-13 digambar ulang** sebagai alur `bayar-daring` — tautan dipakai ulang,
+  nominal dibekukan saat tautan dibuat, sisa transaksi gagal dibuang (temuan
+  #1). Judul UC-09 dikoreksi ("daring" salah — diagramnya verifikasi manual).
+- **Peta ketertelusuran** +4 baris (K-19 dua perilaku, K-20, temuan #1);
+  **DFD level-2 REV-FIN-02** memuat K-19 pada perilaku + titik uji.
+- Pagar diagram terbukti hidup lagi: dua iterasi label sampai kanvas <= 1400
+  px dan huruf >= 2,52 mm (UC-08 2,63 mm; UC-13 2,79 mm).
+
 ## 3. Tiga aksi berikutnya
 
-1. **Fase dokumentasi** (permintaan pemilik): sinkron `urutan-data.js` UC-09
-   dengan alur baru (tautan dimatikan, total beku, cabang perlu tindakan);
-   review manual charter `docs/produk/KONTEKS_PROYEK.md` — angka basi sudah
-   dikoreksi audit 17 Nov, review tinggal kejujuran ruang lingkup; tambah
-   baris K-19/K-20 ke `docs/uji/audit-ketertelusuran.md`; tambah satu
-   kalimat K-19 ke spec REV-FIN-02 di `docs/dfd/03-dfd-level-2.md`; bangun
-   ulang diagram + PDF. Metode diagram kelas TIDAK perlu disinkronkan —
-   atribut & metode diturunkan dari skema + model, dijaga pemeriksa gate
-   (terbukti audit 17 Nov). Tiap dokumen yang selesai disegarkan ke
-   `dokumen/` (jalankan `dokumen\segarkan.ps1`; status per dokumen ada di
-   `dokumen/README.md`).
+1. **Review charter `docs/produk/KONTEKS_PROYEK.md` oleh pemilik** — angka
+   sudah dikoreksi audit 17 Nov; yang dicek: kejujuran ruang lingkup, tabel
+   "Yang sudah selesai", dan klaim demo. Fase dokumentasi kode sudah tuntas;
+   diagram kelas memang tidak menunggu apa pun (dijaga pemeriksa gate).
 2. **Fase 9** (performa): withSum N+1, `per_page` pembayaran, `now()` →
    `WaktuSistem` di 5 titik, uji beban banding p95 610 ms.
 3. **Fase 10** (pemolesan): composable `useMuatDaftar`, kode mati, port ke

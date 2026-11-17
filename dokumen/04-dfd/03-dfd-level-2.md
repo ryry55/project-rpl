@@ -178,8 +178,8 @@ tidak menerbitkan apa pun; ia hanya membebaskan periode yang dikunci 3.5.
 | Masukan | id tagihan, alasan pembatalan |
 | Keluaran | D4 dengan `status = 'dibatalkan'` |
 | Aturan | **REV-FIN-02** |
-| Perilaku | Status berubah, **baris tidak dihapus**. `alasan_batal`, `dibatalkan_oleh`, dan `dibatalkan_pada` diisi. Tagihan yang sudah menerima uang **ditolak** — jalan yang benar adalah menarik pembayarannya lebih dulu lewat baris pembalik |
-| Titik uji | batal tanpa alasan; batal tagihan berbayar; terbit ulang periode yang sudah dibatalkan; batal dua kali |
+| Perilaku | Status berubah, **baris tidak dihapus**. `alasan_batal`, `dibatalkan_oleh`, dan `dibatalkan_pada` diisi. Tagihan yang sudah menerima uang **ditolak** — jalan yang benar adalah menarik pembayarannya lebih dulu lewat baris pembalik. Sejak K-19, tautan bayar daring yang masih terbuka ikut dimatikan (`transaksi_gateway` menunggu → dibatalkan), dan uang yang terlanhur masuk lewat tautan lama tetap **dicatat** berlabel "perlu tindakan" — batal tetap batal, pengembaliannya lewat Midtrans di luar aplikasi |
+| Titik uji | batal tanpa alasan; batal tagihan berbayar; terbit ulang periode yang sudah dibatalkan; batal dua kali; batal saat tautan daring terbuka; uang masuk lewat tautan tagihan batal |
 
 Pembatalan bukan penghapusan karena tiga hal yang harus tetap bisa dijawab:
 nomor tagihan yang pernah disebut ke penghuni, alasan kenapa angkanya tidak
