@@ -1,7 +1,7 @@
 {
-  "dibuat": "2026-11-13T10:41:37.490Z",
+  "dibuat": "2026-11-17T05:27:26.754Z",
   "tabel": 26,
-  "kolom": 228,
+  "kolom": 229,
   "kunci_asing": 30,
   "tingkat": [
     {
@@ -92,8 +92,8 @@
         "usulan_perubahan",
         "verifikasi_pembayaran"
       ],
-      "huruf_mm": 2.54,
-      "huruf_a4_mm": 1.8
+      "huruf_mm": 2.56,
+      "huruf_a4_mm": 1.81
     }
   ]
 }

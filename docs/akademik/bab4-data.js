@@ -12,7 +12,7 @@
 //   4.2   Pendukung
 //
 // Angka dan nama tabel di sini TIDAK dikarang: seluruhnya diambil dari
-// docs/erd/skema.json (26 tabel, 228 kolom) dan dari seeder aplikasi.
+// docs/erd/skema.json (26 tabel, 229 kolom) dan dari seeder aplikasi.
 // Yang berupa contoh data diberi keterangan "contoh" supaya tidak dikira
 // potret basis data sungguhan.
 
@@ -179,21 +179,21 @@ const TABEL_AKHIR = [
 
 // ERD memakai tingkat logikal: Chen, 12 entitas, dengan atribut kunci.
 //
-// LRS digambar dalam SATU bagan berisi SELURUH 228 kolom, dan diserahkan
+// LRS digambar dalam SATU bagan berisi SELURUH 229 kolom, dan diserahkan
 // sebagai lampiran A3 terpisah - bukan ditempel di badan laporan A4.
 //
 // Ini hasil pengukuran seluruh kemungkinan (ambang baca 2,52 mm):
 //
 //   kolom | A4 tegak | A4 miring | A3 tegak | A3 miring
-//     2   |  0,98 mm |  0,69 mm  |  1,38 mm |  0,98 mm
-//     3   |  1,41 mm |  0,99 mm  |  1,99 mm |  1,41 mm
-//     4   |  1,80 mm |  1,27 mm  | **2,54 mm** |  1,80 mm   <-- dipakai
-//     5   |  1,67 mm |  1,52 mm  |  2,36 mm |  2,15 mm
-//     6   |  1,39 mm |  1,74 mm  |  1,97 mm |  2,46 mm
+//     2   |  1,00 mm |  0,70 mm  |  1,41 mm |  1,00 mm
+//     3   |  1,43 mm |  1,01 mm  |  2,02 mm |  1,43 mm
+//     4   |  1,81 mm |  1,28 mm  | **2,56 mm** |  1,81 mm   <-- dipakai
+//     5   |  1,68 mm |  1,53 mm  |  2,37 mm |  2,16 mm
+//     6   |  1,40 mm |  1,76 mm  |  1,98 mm |  2,49 mm
 //
-// Seluruh varian A4 gagal; yang terbaik 1,80 mm. Pada A3 tegak dengan empat
-// kolom hasilnya 2,54 mm. Karena itu lembar ini TIDAK ditempel di badan
-// laporan: A3 yang diskalakan ke lebar A4 kembali menjadi 1,80 mm.
+// Seluruh varian A4 gagal; yang terbaik 1,81 mm. Pada A3 tegak dengan empat
+// kolom hasilnya 2,56 mm. Karena itu lembar ini TIDAK ditempel di badan
+// laporan: A3 yang diskalakan ke lebar A4 kembali menjadi 1,81 mm.
 const GAMBAR = [
   {
     berkas: '../erd/01-L1-logikal.png',
@@ -207,7 +207,7 @@ const GAMBAR = [
     berkas: '../erd/03-L3-lrs.png',
     keterangan: 'Gambar 4.6 Logical Record Structure (LRS) — lampiran A3',
     catatan:
-      'Dua puluh enam tabel, seluruh 228 kolom, dalam satu bagan. Kunci primer ' +
+      'Dua puluh enam tabel, seluruh 229 kolom, dalam satu bagan. Kunci primer ' +
       'digarisbawahi; kunci asing bertanda bintang dan dihubungkan panah ke tabel ' +
       'yang dituju. Arah hubungan dibawa oleh panah, bukan oleh angka 1/N — angka ' +
       'itu milik notasi Chen dan tidak dipakai pada LRS.',

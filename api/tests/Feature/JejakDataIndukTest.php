@@ -445,4 +445,47 @@ class JejakDataIndukTest extends TestCase
             ->assertJsonPath('data.0.entitas_id', $kamarId)
             ->assertJsonPath('data.0.aksi', PencatatAudit::AKSI_KAMAR_TAMBAH);
     }
+
+    /**
+     * Temuan #3 (Fase 8): `PUT /penghuni/{id}` menulis dua tabel - data
+     * induk lalu akun login. Tanpa transaksi pembungkus, kegagalan pada
+     * tulisan kedua meninggalkan tulisan pertama tersimpan: data induk
+     * dan akun login jadi berbeda permanen. Kegagalan disimulasikan di
+     * tulisan kedua; keduanya harus kembali seperti semula.
+     */
+    public function test_kegagalan_di_tulisan_kedua_mengembalikan_seluruh_perubahan(): void
+    {
+        $penghuni = Penghuni::create([
+            'nama' => 'Budi Santoso',
+            'email' => 'budi@kos.test',
+            'no_hp' => '081200000001',
+        ]);
+
+        $user = User::create([
+            'name' => 'Budi Santoso',
+            'email' => 'budi@kos.test',
+            'password' => Hash::make('password'),
+            'peran' => User::PERAN_PENGHUNI,
+            'penghuni_id' => $penghuni->id,
+        ]);
+
+        // Tulisan KEDUA (akun login) gagal - mis. pelanggaran unik yang
+        // lolos validasi karena dua permintaan bersamaan.
+        User::updating(function () {
+            throw new RuntimeException('simulasi: tulis users gagal');
+        });
+
+        $this->sebagaiPemilik()
+            ->putJson("/api/penghuni/{$penghuni->id}", [
+                'nama' => 'Budi Santoso S.pd',
+                'email' => 'budi@kos.test',
+                'no_hp' => '081300000001',
+            ])->assertStatus(500);
+
+        $this->assertSame('Budi Santoso', $penghuni->fresh()->nama);
+        $this->assertSame('081200000001', $penghuni->fresh()->no_hp);
+        $this->assertSame('Budi Santoso', $user->fresh()->name);
+
+        User::flushEventListeners();
+    }
 }

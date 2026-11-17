@@ -113,20 +113,20 @@ di atas itu hurufnya mengecil di bawah ambang dan build menolak.
 `Gambar 4.6` (LRS) **tidak** ditanam ke badan laporan A4, melainkan diserahkan
 sebagai lampiran `docs/erd/03-L3-lrs.png` berukuran **A3 tegak**.
 
-Sebabnya diukur, bukan dipilih. Dengan seluruh 228 kolom, lembar A3 tegak
-terukur **2,54 mm** — masih di atas ambang baca 2,52 mm. Tabel di bawah adalah
+Sebabnya diukur, bukan dipilih. Dengan seluruh 229 kolom, lembar A3 tegak
+terukur **2,56 mm** — masih di atas ambang baca 2,52 mm. Tabel di bawah adalah
 pengukuran bentuk (berapa kolom per lembar), bukan isi:
 
 | Kolom | A4 tegak | A4 miring | A3 tegak | A3 miring |
 |---|---|---|---|---|
-| 2 | 0,98 mm | 0,69 mm | 1,38 mm | 0,98 mm |
-| 3 | 1,41 mm | 0,99 mm | 1,99 mm | 1,41 mm |
-| **4** | 1,80 mm | 1,27 mm | **2,54 mm** | 1,80 mm |
-| 5 | 1,67 mm | 1,52 mm | 2,36 mm | 2,15 mm |
-| 6 | 1,39 mm | 1,74 mm | 1,97 mm | 2,46 mm |
+| 2 | 1,00 mm | 0,70 mm | 1,41 mm | 1,00 mm |
+| 3 | 1,43 mm | 1,01 mm | 2,02 mm | 1,43 mm |
+| **4** | 1,81 mm | 1,28 mm | **2,56 mm** | 1,81 mm |
+| 5 | 1,68 mm | 1,53 mm | 2,37 mm | 2,16 mm |
+| 6 | 1,40 mm | 1,76 mm | 1,98 mm | 2,49 mm |
 
 Seluruh varian A4 gagal. Bila lembar A3 diskalakan ke lebar A4, hasilnya kembali
-1,80 mm — jadi menempelkannya di Bab 4 hanya akan menghasilkan gambar yang tidak
+1,81 mm — jadi menempelkannya di Bab 4 hanya akan menghasilkan gambar yang tidak
 terbaca, padahal lampirannya terbaca. Karena itu `build-bab4.js` memakai
 `tulisLampiran()`, bukan `tulisGambar()`: yang ditulis adalah keterangan gambar
 beserta ukuran lembarnya, bukan `<img>` yang diperkecil.

@@ -177,7 +177,7 @@ di `docs/serah-terima.md` §1, dan `cek-angka-dokumen.js` menjaga angka di sana.
 
 ```bash
 docker compose up -d
-docker compose exec api php artisan test          # 912 tes, 4114 asersi
+docker compose exec api php artisan test          # 918 tes, 4142 asersi
 docker compose exec api php artisan test --testsuite=Unit   # 116 tes murni, tanpa DB
 node docs/uji/e2e-t1.mjs                          # perlu Chrome --remote-debugging-port=9222
 node docs/uji/e2e-t2.mjs                          # 8 kamar + 6 penghuni + kontrak lewat UI

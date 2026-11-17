@@ -66,6 +66,16 @@ class PencatatPembayaran
      *                                  paling umum, dan memaksa pemilik memilih
      *                                  namanya sendiri setiap kali hanya
      *                                  menambah satu klik tanpa menambah fakta.
+     * @param  int|null  $totalBeku  Total yang dibekukan saat tautan gateway
+     *                               dibuat (K-20). Bila diisi, sisa dihitung
+     *                               terhadap angka ini, bukan total hidup -
+     *                               denda yang berjalan setelah tautan dibuat
+     *                               tidak boleh menyisakan receh pada penghuni
+     *                               yang membayar nominal tautannya penuh.
+     * @param  bool  $terimaPadaBatal  K-19: izin mencatat pembayaran pada
+     *                                 tagihan yang sudah dibatalkan. Hanya
+     *                                 untuk uang yang terlanhur masuk lewat
+     *                                 gateway - jalur manusia tetap ditolak.
      */
     public function catat(
         Tagihan $tagihan,
@@ -76,6 +86,8 @@ class PencatatPembayaran
         ?string $referensi = null,
         ?string $catatan = null,
         string $sumber = MetodePembayaran::SUMBER_DICATAT_PEMILIK,
+        ?int $totalBeku = null,
+        bool $terimaPadaBatal = false,
     ): HasilPembayaran {
         if ($jumlah <= 0) {
             throw PembayaranDitolak::jumlahTidakPositif($jumlah);
@@ -100,20 +112,70 @@ class PencatatPembayaran
             throw PembayaranDitolak::tunaiTanpaPemegang();
         }
 
-        return DB::transaction(function () use ($tagihan, $jumlah, $tanggalPembayaran, $metode, $penerima, $referensi, $catatan, $dicatatOleh, $sumber) {
+        return DB::transaction(function () use ($tagihan, $jumlah, $tanggalPembayaran, $metode, $penerima, $referensi, $catatan, $dicatatOleh, $sumber, $totalBeku, $terimaPadaBatal) {
             // Baca ulang di dalam transaksi dengan kunci baris. Instance yang
             // dioper pemanggil bisa sudah basi, dan tanpa kunci dua permintaan
             // bersamaan akan saling menimpa.
             /** @var Tagihan $tagihan */
             $tagihan = Tagihan::query()->whereKey($tagihan->getKey())->lockForUpdate()->firstOrFail();
 
-            if ($tagihan->status === Tagihan::STATUS_DIBATALKAN) {
+            $sebelum = (string) $tagihan->status;
+            $dibayar = $tagihan->totalDibayar();
+
+            if ($tagihan->status === Tagihan::STATUS_DIBATALKAN && ! $terimaPadaBatal) {
                 throw PembayaranDitolak::dibatalkan();
             }
 
-            $sebelum = (string) $tagihan->status;
-            $dibayar = $tagihan->totalDibayar();
-            $total = $this->totalDibebankan($tagihan);
+            // K-19: uang yang terlanhur masuk lewat tautan tagihan yang
+            // sudah dibatalkan tetap dicatat - tidak mencatatnya berarti
+            // uang menguap dari rekap, dan rekap yang tidak cocok dengan
+            // rekening Midtrans adalah rekap yang bohong. Status tagihan
+            // TIDAK disentuh: batal tetap batal, dan catatannya diberi
+            // label supaya operator tahu ada uang yang harus
+            // dikembalikan lewat Midtrans di luar aplikasi.
+            if ($tagihan->status === Tagihan::STATUS_DIBATALKAN) {
+                $pembayaran = Pembayaran::create([
+                    'tagihan_id' => $tagihan->id,
+                    'jumlah' => $jumlah,
+                    'metode' => $metode,
+                    'sumber' => $sumber,
+                    'referensi' => $referensi,
+                    'dicatat_oleh' => $dicatatOleh,
+                    'diterima_oleh' => $penerima,
+                    'tanggal_pembayaran' => $tanggalPembayaran->toDateString(),
+                    'catatan' => trim(($catatan ?? '').' - perlu tindakan: tagihan sudah dibatalkan.'),
+                ]);
+
+                $this->audit->catat(
+                    aksi: PencatatAudit::AKSI_TAGIHAN_BAYAR,
+                    entitas: 'tagihan',
+                    entitasId: $tagihan->id,
+                    nilaiLama: ['status' => $sebelum, 'dibayar' => $dibayar],
+                    nilaiBaru: [
+                        'status' => $sebelum,
+                        'dibayar' => $dibayar + $jumlah,
+                        'pembayaran_id' => $pembayaran->id,
+                        'jumlah' => $jumlah,
+                        'metode' => $metode,
+                        'diterima_oleh' => $penerima,
+                        'tanggal_pembayaran' => $tanggalPembayaran->toDateString(),
+                        'perlu_tindakan' => true,
+                    ],
+                );
+
+                // Total tagihan batal adalah nol: ia tidak menagih apa pun.
+                // Sisa tidak bermakna dan dikembalikan nol.
+                return new HasilPembayaran(
+                    pembayaran: $pembayaran,
+                    statusSebelum: $sebelum,
+                    statusSesudah: $sebelum,
+                    total: 0,
+                    dibayar: $dibayar + $jumlah,
+                    sisa: 0,
+                );
+            }
+
+            $total = $totalBeku ?? $this->totalDibebankan($tagihan);
             $sisa = $total - $dibayar;
 
             if ($sisa <= 0) {

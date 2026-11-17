@@ -4,7 +4,7 @@
 > berikutnya, dan apa yang tidak boleh diubah. Riwayatnya di `git log`.
 > **Maksimal 120 baris** — lebih dari itu ia menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: 17 November 2026, sesudah audit kode + verifikasi runtime.
+Terakhir diperbarui: 17 November 2026, sesudah Fase 8 (integritas jalur uang).
 
 ---
 
@@ -12,74 +12,80 @@ Terakhir diperbarui: 17 November 2026, sesudah audit kode + verifikasi runtime.
 
 | Hal | Nilai |
 |---|---|
-| Sesi terakhir | **Audit kode 16-17 Nov** — temuan diverifikasi runtime, bukan hanya dibaca |
-| Rencana berikutnya | **`docs/rencana-fase-8-10.md`** — Fase 8 (integritas uang) dikerjakan duluan |
-| Suite PHP | **912 lulus / 4114 asersi**; pint & eslint bersih |
-| Keputusan pemilik | **K-19, K-20 dijawab** (lihat §4); K-01..K-18 tidak berubah |
-| Tunnel demo | **URL baru 16 Nov** (isi di `.env` `APP_URL`/`APP_URL_SPA`); verifikasi hidup: `nslookup <host> 8.8.8.8` |
-| Working tree | Bersih sesudah commit dokumentasi audit |
+| Sesi terakhir | **Fase 8** — lima perbaikan audit jalur uang (K-19, K-20) |
+| Rencana berikutnya | **Fase dokumentasi** (charter, DFD, UC-09, diagram kelas), lalu Fase 9-10 `docs/rencana-fase-8-10.md` |
+| Suite PHP | **918 lulus / 4142 asersi**; pint & eslint bersih |
+| Gate penuh | **SEMUA LULUS** 17 Nov (pemeriksa dokumen + 34 skrip browser ikut hijau) |
+| Keputusan pemilik | **K-19, K-20 dijawab & diterapkan** (lihat §4); K-01..K-18 tidak berubah |
+| Tunnel demo | URL 16 Nov masih di `.env`; hidup dicek `nslookup <host> 8.8.8.8` |
+| Working tree | Bersih sesudah commit Fase 8 |
 
-## 2. Yang sesi audit kerjakan
+## 2. Yang sesi Fase 8 kerjakan
 
-Audit jalur uang/balapan tulis/kueri (beda dari audit 13 Nov: kebenaran kode,
-dan 16 Nov: permukaan publik). **12 temuan**, semua berat dibuktikan di runtime
-lewat tes sementara di `kos_test` (berkas dihapus sesudah verifikasi) —
-6/6 reproduksi + 1 hitung kueri (2 tagihan terbuka → 2 kueri SUM per tagihan).
-Rinciannya + langkah perbaikannya per fase: `docs/rencana-fase-8-10.md`.
+Lima temuan audit 16-17 Nov (lihat `docs/rencana-fase-8-10.md`):
 
-Insiden saat audit: **tunnel demo mati senyap** — koneksi QUIC ke tepi
-Cloudflare putus pukul 11:27 UTC, hostname jadi NXDOMAIN, tetapi proses
-`cloudflared` terus hidup sebagai zombi. Dijalankan ulang, dua URL baru,
-`.env` diperbarui, login/SPA/health/identitas diverifikasi hijau. Data demo
-utuh (4 kamar, 3 tagihan, 2 pembayaran, 2 perangkat).
+1. **#1** `mulai()`: sisa baris `menunggu` tanpa tautan dihapus saat ditemukan;
+   panggilan gateway dibungkus try/catch — kegagalan/timeout menghapus barisnya
+   (`GatewayMenolak::tidakMenjawab`), percobaan berikutnya dapat tautan baru.
+2. **#3** `PUT /penghuni/{id}` dibungkus `DB::transaction` (surep di luar).
+3. **#4** `lockForUpdate` baris kamar di `akhiri()` (setelah kontrak selesai,
+   sebelum cek `masihAktif`), `store()`, dan `selesai()` kerusakan.
+4. **K-19** `PembatalTagihan` menandai tautan `menunggu` → `dibatalkan`
+   (audit `tautan_gateway_dimatikan`); uang yang masuk untuk tagihan batal
+   TETAP dicatat berlabel "perlu tindakan" (rekap jujur; refund di luar app);
+   webhook tidak menurunkan transaksi `dibatalkan`.
+5. **K-20** kolom `transaksi_gateway.total_beku`; bayar nominal tautan penuh =
+   LUNAS, `total_final` dibekukan saat tautan dibuat.
+
+Konvensi dipegang: 6 tes baru **dibuktikan merah dulu**, lalu hijau; suite
+912 → 918. Dokumen ikut disegarkan: kolom 228 → 229, migrasi 47 → 48, huruf
+LRS 2,54 → 2,56 mm (celah kotak 86 → 78 px; **ambang 2,52 mm tidak dilepas** —
+build pertama memang ditolak pagar, itu bukti pagarnya hidup), tabel ukur 24 sel
+di dua README, diagram kelas-c memuat `total_beku`, PDF Bab 4 + folder
+`docs/akademik/final/` dibangun ulang (lembar b → b1/b2).
 
 ## 3. Tiga aksi berikutnya
 
-1. **Kerjakan Fase 8** dari `docs/rencana-fase-8-10.md` — lima perbaikan
-   jalur uang, tiap perbaikan diawali tes yang dibuktikan bisa gagal.
-2. **Verifikasi tunnel sebelum tiap sesi demo**: `nslookup <host> 8.8.8.8`
-   (NXDOMAIN = zombi, jalankan ulang; proses hidup bukan bukti — jebakan §5).
-3. **Gate penuh menghapus data demo** — reseed: `migrate:fresh --seed` +
-   `isi-demo.mjs` dengan URL tunnel dari `.env`, lalu `cache:clear`.
+1. **Fase dokumentasi** (permintaan pemilik): sinkron `urutan-data.js` UC-09
+   dengan alur baru (tautan dimatikan, total beku, cabang perlu tindakan);
+   sinkron metode di `kelas-data.js` (`catat()` 2 parameter baru, dsb.);
+   review manual charter `docs/produk/KONTEKS_PROYEK.md`; tambah baris
+   K-19/K-20 ke `docs/uji/audit-ketertelusuran.md`; bangun ulang diagram + PDF.
+2. **Fase 9** (performa): withSum N+1, `per_page` pembayaran, `now()` →
+   `WaktuSistem` di 5 titik, uji beban banding p95 610 ms.
+3. **Fase 10** (pemolesan): composable `useMuatDaftar`, kode mati, port ke
+   loopback, `X-Powered-By`, image produksi.
 
-## 4. Yang tidak boleh diubah
+## 4. Keputusan terkunci (baru)
 
-| Hal | Di mana |
-|---|---|
-| Aturan bisnis R-01..R-08 + identitas kos + kerusakan + perangkat | `SPEC.md` bagian 4 |
-| Wewenang pengelola (8) dan Model A | `SPEC.md` bagian 5 |
-| Keputusan pemilik K-01..K-20 | `docs/keputusan-terbuka.md` |
-| **K-19:** batal tagihan → transaksi gateway ikut `dibatalkan`; uang terlanjur masuk **dicatat** berlabel perlu tindakan | `docs/keputusan-terbuka.md` |
-| **K-20:** bayar jumlah tautan penuh = **lunas**; denda dibekukan saat tautan dibuat | `docs/keputusan-terbuka.md` |
-| Desain "buku besar tanpa warna" | `docs/produk/2_DESIGN_SYSTEM.md` |
-| Deposit dihapus; biaya perbaikan tak pernah masuk tagihan | `docs/utang-teknis.md` §3 |
+- **K-19 "kunci dua pintu + catat"**: batal mematikan tautan; uang pasca-batal
+  dicatat berlabel — BUKAN menolak pembatalan, BUKAN idempotency.
+- **K-20 "bekukan denda di nominal tautan"**: bayar penuh = lunas;
+  `total_beku` nullable (baris lama pakai total hidup).
 
-## 5. Jebakan yang sudah menggigit
+## 5. Jebakan yang sudah menggigit (baru)
 
-- **Proses `cloudflared` hidup ≠ tunnel hidup.** Cek DNS (`nslookup <host>
-  8.8.8.8`), bukan `Get-Process`. Berkasnya di
-  `C:\Users\ACER\AppData\Local\cloudflared\` — tidak di PATH.
-- **Kode dibakar ke image.** Tes baru tidak terlihat container sebelum
-  `docker compose build api`; `--filter` menjawab "No tests found" padahal
-  berkasnya ada. Build dulu, uji kemudian.
-- **Tes reproduksi jangan menuntut hitungan setelah 500 di dalam transaksi
-  RefreshDatabase** — pelanggaran unik membatalkan transaksi tes, kueri
-  berikutnya gagal `25P02`. Asersi cukup sampai status responsnya.
-- **`tinker --execute` menolak tag `<?php`** — hapus baris pembukanya.
-- **`.env` dua baris `APP_URL`/`APP_URL_SPA` tidak bersebelahan** — sunting
-  satu per satu.
-- **Jangan menyunting berkas saat gate berjalan**; `docs/uji/*.png` ditulis
-  ulang gate → `git checkout -- docs/uji/*.png` sebelum commit.
-- **`api-web` menyimpan IP lama `api`** — selalu `restart api-web` sesudah
-  mendiang ulang `api`.
+- **Closure `use` lupa menangkap parameter baru** → `ErrorException` → 500
+  tanpa jejak jelas. Dua regresi dari satu pola (`$sebelum`, `$totalBeku`/
+  `$terimaPadaBatal`). Selalu periksa daftar `use` saat menambah parameter.
+- **Tes balapan via hook `retrieved`**: hook menembak saat baris dikunci
+  (`lockForUpdate`) — kalau hook membuat kontrak aktif kedua SEBELUM kontrak
+  lama berstatus `selesai`, indeks `kontrak_satu_aktif_per_kamar` yang
+  menolak, bukan kode. Letakkan hook pada titik yang mau diuji (setelah
+  kontrak selesai, sebelum cek `masihAktif`).
+- **`kelas-data.js` menurunkan atribut dari `skema.json`**: migrasi kolom
+  membuat `kelas-c.svg` basi OTOMATIS — gate merah di "diagram kelas dan
+  urutan tidak basi". Perbaikannya `node docs/akademik/build-diagram.js` +
+  `export-png.ps1`, bukan menyunting SVG.
+- **Pipa `Select-Object -Last N` pada gate latar membuang output**: hanya N
+  baris terakhir yang tersimpan di berkas .out — waktu/jumlah langkah tak bisa
+  diverifikasi dari run itu. Jalankan gate tanpa pipa bila butuh angkanya.
 
-## 6. Cara memeriksa keadaan
+## 6. Verifikasi klaim berkas ini
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File periksa.ps1              # SEMUA LULUS
-powershell -ExecutionPolicy Bypass -File periksa.ps1 -TanpaBuild  # image sudah dibangun
-node docs/uji/cek-angka-dokumen.js                                # angka + nama tes cocok
+docker compose exec api php artisan test        # 918 tes, 4142 asersi
+node docs/uji/cek-angka-dokumen.js              # SEMUA ANGKA COCOK
+node docs/uji/cek-erd-lrs.js                     # 26 tabel, 229 kolom
+node docs/uji/cek-diagram.js                    # SVG = data, PNG = 2x SVG
 ```
-
-Tanpa uji browser: `-Cepat`. Di Linux/CI: `./periksa.sh`. Angka §1 diubah
-**sesudah** gate. Uji beban (di luar gate): `node docs/beban/uji-beban.mjs`.

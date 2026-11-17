@@ -294,7 +294,7 @@ powershell -ExecutionPolicy Bypass -File periksa.ps1   # Windows
 bash periksa.sh                                        # Linux/macOS/CI
 ```
 
-Itu menjalankan **seluruh** pagar: pint, eslint, vitest, 912 tes PHP, enam pemeriksa
+Itu menjalankan **seluruh** pagar: pint, eslint, vitest, 918 tes PHP, enam pemeriksa
 kesesuaian dokumen, dan **34 skrip uji** (31 browser, 2 balapan, 1 jalur proxy).
 Ada 35 berkas `.mjs` di `docs/uji/`; 34 di antaranya dijalankan gate, dan
 satu, `_cdp.mjs`, adalah pembantu yang tidak dijalankan sendiri. Butuh sekitar

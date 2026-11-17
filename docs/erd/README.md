@@ -7,15 +7,15 @@ Tujuh gambar, satu dokumen teks, satu sumber: **basis data yang berjalan**.
 | `00-L0-konseptual.svg` / `.png` | 0 — konseptual | 11 entitas inti, relasi, **tanpa atribut** |
 | `01-L1-logikal.svg` / `.png` | 1 — logikal | 12 entitas, relasi + atribut kunci |
 | `02-L2-fisikal-{a,b1,b2,c}.svg` / `.png` | 2 - fisikal | 26 tabel, **seluruh kolom dan tipenya** |
-| `03-L3-lrs.svg` / `.png` | 3 - LRS | 26 tabel, **seluruh 228 kolom**, satu lembar **A3** |
-| `03-lrs.md` | 3 - LRS | LRS lengkap sebagai teks: 228 kolom, 30 kunci asing |
+| `03-L3-lrs.svg` / `.png` | 3 - LRS | 26 tabel, **seluruh 229 kolom**, satu lembar **A3** |
+| `03-lrs.md` | 3 - LRS | LRS lengkap sebagai teks: 229 kolom, 30 kunci asing |
 | `skema.json` | — | Potret skema dari basis data; sumber semua berkas di atas |
 
 ## Kenapa berjenjang, bukan satu gambar
 
-ERD yang menggambar 26 tabel dan 228 kolom sekaligus **tidak bisa dibaca di
+ERD yang menggambar 26 tabel dan 229 kolom sekaligus **tidak bisa dibaca di
 A4**, dan itu bukan soal resolusi. Sudah diukur: pada satu lembar A4 berisi
-seluruh tabel, tinggi hurufnya hanya **1,80 mm** — di bawah ambang 2,52 mm.
+seluruh tabel, tinggi hurufnya hanya **1,81 mm** — di bawah ambang 2,52 mm.
 Menambah skala ekspor tidak menolong sama sekali, karena yang menentukan adalah
 nisbah huruf terhadap ukuran lembar, dan nisbah itu tidak berubah oleh jumlah
 piksel.
@@ -24,27 +24,27 @@ Yang perlu dicatat: **kegagalan itu bukan karena jumlah tabelnya, melainkan
 karena jumlah kolomnya.** Karena itu pemecahan lembar pada tingkat 2 ditentukan
 oleh pengukuran, bukan ditebak. Lihat `pecahTerbaca` di `build-tingkat.js`.
 
-## LRS: satu lembar A3, seluruh 228 kolom
+## LRS: satu lembar A3, seluruh 229 kolom
 
-LRS digambar **satu lembar berisi seluruh 228 kolom**, dan itu hanya terbaca
+LRS digambar **satu lembar berisi seluruh 229 kolom**, dan itu hanya terbaca
 bila dicetak di **A3 tegak**. Ini hasil pengukuran, bukan pilihan selera. Pada
 ambang baca 2,52 mm (setara 1,2% lebar A4), dengan seluruh kolom:
 
 | Kolom | A4 tegak | A4 miring | A3 tegak | A3 miring |
 |---|---|---|---|---|
-| 2 | 0,98 mm | 0,69 mm | 1,38 mm | 0,98 mm |
-| 3 | 1,41 mm | 0,99 mm | 1,99 mm | 1,41 mm |
-| **4** | 1,80 mm | 1,27 mm | **2,54 mm** | 1,80 mm |
-| 5 | 1,67 mm | 1,52 mm | 2,36 mm | 2,15 mm |
-| 6 | 1,39 mm | 1,74 mm | 1,97 mm | 2,46 mm |
+| 2 | 1,00 mm | 0,70 mm | 1,41 mm | 1,00 mm |
+| 3 | 1,43 mm | 1,01 mm | 2,02 mm | 1,43 mm |
+| **4** | 1,81 mm | 1,28 mm | **2,56 mm** | 1,81 mm |
+| 5 | 1,68 mm | 1,53 mm | 2,37 mm | 2,16 mm |
+| 6 | 1,40 mm | 1,76 mm | 1,98 mm | 2,49 mm |
 
-**Seluruh varian A4 gagal**; yang terbaik 1,80 mm. Pada A3 tegak dengan 4 kolom
-hasilnya **2,54 mm** — huruf terbesar di antara seluruh bentuk yang lolos ambang,
+**Seluruh varian A4 gagal**; yang terbaik 1,81 mm. Pada A3 tegak dengan 4 kolom
+hasilnya **2,56 mm** — huruf terbesar di antara seluruh bentuk yang lolos ambang,
 jadi bentuk itulah yang dipakai.
 
 Karena itu lembar LRS **diserahkan terpisah sebagai lampiran A3**, tidak ditempel
 ke badan laporan A4. Bila A3 yang sama diskalakan ke lebar A4, hasilnya kembali
-persis 1,80 mm — sama dengan menggambarnya di A4 sejak awal.
+persis 1,81 mm — sama dengan menggambarnya di A4 sejak awal.
 
 Satu konsekuensi: LRS **tidak memakai label kardinalitas `1`/`N`**. Angka itu
 milik notasi Chen (tingkat 0 dan 1); pada LRS hubungan dinyatakan oleh kunci
@@ -247,9 +247,9 @@ berbeda sepanjang sisinya masih terbaca.
 
 Tingkat 0 sengaja tanpa atribut sama sekali: `kunci: []` membuat `chen.js` tidak
 menggambar elips. Tingkat 1 menggambar kunci primer dan satu atribut pembeda.
-Seluruh 228 kolom ada di tingkat 2, di lembar LRS A3, dan di `03-lrs.md`.
+Seluruh 229 kolom ada di tingkat 2, di lembar LRS A3, dan di `03-lrs.md`.
 
-Menggambar 228 kolom sebagai elips mustahil dibaca, dan itu bukan penghematan -
+Menggambar 229 kolom sebagai elips mustahil dibaca, dan itu bukan penghematan -
 ERD Chen yang baik memang tidak menampilkan seluruh kolom.
 
 ## Catatan notasi

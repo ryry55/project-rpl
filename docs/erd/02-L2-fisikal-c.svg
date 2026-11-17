@@ -1,43 +1,43 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1185" height="2037" viewBox="0 0 1185 2037" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1185" height="2021" viewBox="0 0 1185 2021" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
 <title>ERD Level 2 — Fisikal (C)</title>
-<rect width="1185" height="2037" fill="#ffffff"/>
+<rect width="1185" height="2021" fill="#ffffff"/>
 <text x="80" y="100.4" text-anchor="start" dominant-baseline="central" font-size="34" font-weight="700" fill="#0f172a">ERD Level 2 — Fisikal (C)</text>
 <text x="80" y="138.2" text-anchor="start" dominant-baseline="central" font-size="18" font-weight="400" fill="#475569">Kontrak, Tagihan &amp; Pembayaran · 6 tabel · seluruh kolom dan tipenya</text>
-<path d="M 292 933.6 L 292 1019.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-<path d="M 759.5 1372.1 L 737.5 1372.1 L 737.5 1209 L 715.5 1209 L 715.5 1079.9 L 504 1079.9 L 504 977.6 L 373 977.6 L 373 933.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-<path d="M 737.5 854.2 L 715.5 854.2 L 715.5 691.1 L 682 691.1 L 682 637.1 L 504 637.1" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-<path d="M 462.5 1533.1 L 484.5 1533.1 L 484.5 1241.1 L 823.5 1241.1 L 823.5 1193.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 292 933.6 L 292 1011.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 759.5 1388.1 L 737.5 1388.1 L 737.5 1233.1 L 715.5 1233.1 L 715.5 1071.9 L 504 1071.9 L 504 1001.6 L 478.5 1001.6 L 478.5 989.6 L 373 989.6 L 373 933.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 737.5 878.2 L 715.5 878.2 L 715.5 723.4 L 682 723.4 L 682 637.1 L 504 637.1" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 462.5 1517.1 L 484.5 1517.1 L 484.5 1484.9 L 505.3 1484.9 L 505.3 1330.2 L 526 1330.2 L 526 1273.6 L 823.5 1273.6 L 823.5 1217.6" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
 <path d="M 704 271.2 L 682 271.2 L 682 475.1 L 504 475.1" fill="none" stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-<rect x="127.5" y="1019.6" width="329" height="335" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
-<path d="M 127.5 1063.7 L 456.5 1063.7" stroke="#94a3b8" stroke-width="2"/>
-<rect x="127.5" y="1019.6" width="329" height="44.1" rx="7" fill="#1e293b"/>
-<rect x="127.5" y="1054.7" width="329" height="9" fill="#1e293b"/>
-<text x="292" y="1041.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">kontrak</text>
-<text x="145.5" y="1079.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
-<text x="170.4" y="1079.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
-<text x="438.5" y="1079.9" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
-<rect x="128.5" y="1096" width="327" height="32.3" fill="#f8fafc"/>
-<text x="145.5" y="1112.1" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
-<text x="170.4" y="1112.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">kamar_id</text>
-<text x="438.5" y="1112.1" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
-<text x="145.5" y="1144.4" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
-<text x="170.4" y="1144.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">penghuni_id</text>
-<text x="438.5" y="1144.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
-<rect x="128.5" y="1160.6" width="327" height="32.3" fill="#f8fafc"/>
-<text x="170.4" y="1176.7" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">tgl_masuk</text>
-<text x="438.5" y="1176.7" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">date</text>
-<text x="170.4" y="1209" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">tgl_keluar</text>
-<text x="438.5" y="1209" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">date</text>
-<rect x="128.5" y="1225.2" width="327" height="32.3" fill="#f8fafc"/>
-<text x="170.4" y="1241.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">tarif_awal</text>
-<text x="438.5" y="1241.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">numeric(14,0)</text>
-<text x="170.4" y="1273.6" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">status</text>
-<text x="438.5" y="1273.6" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(255)</text>
-<rect x="128.5" y="1289.8" width="327" height="32.3" fill="#f8fafc"/>
-<text x="170.4" y="1305.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">created_at</text>
-<text x="438.5" y="1305.9" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamp</text>
-<text x="170.4" y="1338.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">updated_at</text>
-<text x="438.5" y="1338.2" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamp</text>
+<rect x="127.5" y="1011.6" width="329" height="335" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 127.5 1055.7 L 456.5 1055.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="127.5" y="1011.6" width="329" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="127.5" y="1046.7" width="329" height="9" fill="#1e293b"/>
+<text x="292" y="1033.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">kontrak</text>
+<text x="145.5" y="1071.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="170.4" y="1071.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<text x="438.5" y="1071.9" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
+<rect x="128.5" y="1088" width="327" height="32.3" fill="#f8fafc"/>
+<text x="145.5" y="1104.1" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="170.4" y="1104.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">kamar_id</text>
+<text x="438.5" y="1104.1" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
+<text x="145.5" y="1136.4" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="170.4" y="1136.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">penghuni_id</text>
+<text x="438.5" y="1136.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
+<rect x="128.5" y="1152.6" width="327" height="32.3" fill="#f8fafc"/>
+<text x="170.4" y="1168.7" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">tgl_masuk</text>
+<text x="438.5" y="1168.7" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">date</text>
+<text x="170.4" y="1201" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">tgl_keluar</text>
+<text x="438.5" y="1201" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">date</text>
+<rect x="128.5" y="1217.2" width="327" height="32.3" fill="#f8fafc"/>
+<text x="170.4" y="1233.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">tarif_awal</text>
+<text x="438.5" y="1233.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">numeric(14,0)</text>
+<text x="170.4" y="1265.6" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">status</text>
+<text x="438.5" y="1265.6" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(255)</text>
+<rect x="128.5" y="1281.8" width="327" height="32.3" fill="#f8fafc"/>
+<text x="170.4" y="1297.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">created_at</text>
+<text x="438.5" y="1297.9" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamp</text>
+<text x="170.4" y="1330.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">updated_at</text>
+<text x="438.5" y="1330.2" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamp</text>
 <rect x="80" y="178.6" width="424" height="755" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
 <path d="M 80 222.7 L 504 222.7" stroke="#94a3b8" stroke-width="2"/>
 <rect x="80" y="178.6" width="424" height="44.1" rx="7" fill="#1e293b"/>
@@ -102,94 +102,94 @@
 <rect x="81" y="901" width="422" height="32.3" fill="#f8fafc"/>
 <text x="122.9" y="917.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">denda_dimaafkan_pada</text>
 <text x="486" y="917.2" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamptz</text>
-<rect x="759.5" y="1279.6" width="290" height="271" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
-<path d="M 759.5 1323.7 L 1049.5 1323.7" stroke="#94a3b8" stroke-width="2"/>
-<rect x="759.5" y="1279.6" width="290" height="44.1" rx="7" fill="#1e293b"/>
-<rect x="759.5" y="1314.7" width="290" height="9" fill="#1e293b"/>
-<text x="904.5" y="1301.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">tagihan_rincian</text>
-<text x="777.5" y="1339.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
-<text x="802.4" y="1339.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
-<text x="1031.5" y="1339.9" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
-<rect x="760.5" y="1356" width="288" height="32.3" fill="#f8fafc"/>
-<text x="777.5" y="1372.1" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
-<text x="802.4" y="1372.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">tagihan_id</text>
-<text x="1031.5" y="1372.1" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
-<text x="802.4" y="1404.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">nama</text>
-<text x="1031.5" y="1404.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(80)</text>
-<rect x="760.5" y="1420.6" width="288" height="32.3" fill="#f8fafc"/>
-<text x="802.4" y="1436.7" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">nilai</text>
-<text x="1031.5" y="1436.7" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">numeric(14,0)</text>
-<text x="802.4" y="1469" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">urutan</text>
-<text x="1031.5" y="1469" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">smallint</text>
-<rect x="760.5" y="1485.2" width="288" height="32.3" fill="#f8fafc"/>
-<text x="802.4" y="1501.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">created_at</text>
-<text x="1031.5" y="1501.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamp</text>
-<text x="802.4" y="1533.6" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">updated_at</text>
-<text x="1031.5" y="1533.6" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamp</text>
-<rect x="737.5" y="761.6" width="334" height="432" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
-<path d="M 737.5 805.7 L 1071.5 805.7" stroke="#94a3b8" stroke-width="2"/>
-<rect x="737.5" y="761.6" width="334" height="44.1" rx="7" fill="#1e293b"/>
-<rect x="737.5" y="796.7" width="334" height="9" fill="#1e293b"/>
-<text x="904.5" y="783.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">pembayaran</text>
-<text x="755.5" y="821.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
-<text x="780.4" y="821.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
-<text x="1053.5" y="821.9" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
-<rect x="738.5" y="838" width="332" height="32.3" fill="#f8fafc"/>
-<text x="755.5" y="854.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
-<text x="780.4" y="854.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">tagihan_id</text>
-<text x="1053.5" y="854.2" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
-<text x="780.4" y="886.5" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">jumlah</text>
-<text x="1053.5" y="886.5" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">numeric(14,0)</text>
-<rect x="738.5" y="902.6" width="332" height="32.3" fill="#f8fafc"/>
-<text x="780.4" y="918.8" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">tanggal_pembayaran</text>
-<text x="1053.5" y="918.8" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">date</text>
-<text x="780.4" y="951.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">catatan</text>
-<text x="1053.5" y="951.1" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(255)</text>
-<rect x="738.5" y="967.2" width="332" height="32.3" fill="#f8fafc"/>
-<text x="780.4" y="983.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">created_at</text>
-<text x="1053.5" y="983.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamp</text>
-<text x="780.4" y="1015.7" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">metode</text>
-<text x="1053.5" y="1015.7" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(20)</text>
-<rect x="738.5" y="1031.8" width="332" height="32.3" fill="#f8fafc"/>
-<text x="780.4" y="1048" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">sumber</text>
-<text x="1053.5" y="1048" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(30)</text>
-<text x="780.4" y="1080.3" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">referensi</text>
-<text x="1053.5" y="1080.3" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(100)</text>
-<rect x="738.5" y="1096.4" width="332" height="32.3" fill="#f8fafc"/>
-<text x="755.5" y="1112.6" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
-<text x="780.4" y="1112.6" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">dicatat_oleh</text>
-<text x="1053.5" y="1112.6" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
-<text x="755.5" y="1144.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
-<text x="780.4" y="1144.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">diterima_oleh</text>
-<text x="1053.5" y="1144.9" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
-<rect x="738.5" y="1161" width="332" height="32.3" fill="#f8fafc"/>
-<text x="755.5" y="1177.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
-<text x="780.4" y="1177.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">pembalik_id</text>
-<text x="1053.5" y="1177.2" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
-<rect x="121.5" y="1440.6" width="341" height="238" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
-<path d="M 121.5 1484.7 L 462.5 1484.7" stroke="#94a3b8" stroke-width="2"/>
-<rect x="121.5" y="1440.6" width="341" height="44.1" rx="7" fill="#1e293b"/>
-<rect x="121.5" y="1475.7" width="341" height="9" fill="#1e293b"/>
-<text x="292" y="1462.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">verifikasi_pembayaran</text>
-<text x="139.5" y="1500.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
-<text x="164.4" y="1500.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
-<text x="444.5" y="1500.9" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
-<rect x="122.5" y="1517" width="339" height="32.3" fill="#f8fafc"/>
-<text x="139.5" y="1533.1" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
-<text x="164.4" y="1533.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">pembayaran_id</text>
-<text x="444.5" y="1533.1" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
-<text x="139.5" y="1565.4" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
-<text x="164.4" y="1565.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">diverifikasi_oleh</text>
-<text x="444.5" y="1565.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
-<rect x="122.5" y="1581.6" width="339" height="32.3" fill="#f8fafc"/>
-<text x="164.4" y="1597.7" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">keputusan</text>
-<text x="444.5" y="1597.7" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(10)</text>
-<text x="164.4" y="1630" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">catatan</text>
-<text x="444.5" y="1630" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(255)</text>
-<rect x="122.5" y="1646.2" width="339" height="32.3" fill="#f8fafc"/>
-<text x="164.4" y="1662.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">created_at</text>
-<text x="444.5" y="1662.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamp</text>
-<rect x="704" y="178.6" width="401" height="497" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<rect x="759.5" y="1295.6" width="290" height="271" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 759.5 1339.7 L 1049.5 1339.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="759.5" y="1295.6" width="290" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="759.5" y="1330.7" width="290" height="9" fill="#1e293b"/>
+<text x="904.5" y="1317.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">tagihan_rincian</text>
+<text x="777.5" y="1355.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="802.4" y="1355.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<text x="1031.5" y="1355.9" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
+<rect x="760.5" y="1372" width="288" height="32.3" fill="#f8fafc"/>
+<text x="777.5" y="1388.1" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="802.4" y="1388.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">tagihan_id</text>
+<text x="1031.5" y="1388.1" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
+<text x="802.4" y="1420.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">nama</text>
+<text x="1031.5" y="1420.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(80)</text>
+<rect x="760.5" y="1436.6" width="288" height="32.3" fill="#f8fafc"/>
+<text x="802.4" y="1452.7" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">nilai</text>
+<text x="1031.5" y="1452.7" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">numeric(14,0)</text>
+<text x="802.4" y="1485" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">urutan</text>
+<text x="1031.5" y="1485" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">smallint</text>
+<rect x="760.5" y="1501.2" width="288" height="32.3" fill="#f8fafc"/>
+<text x="802.4" y="1517.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">created_at</text>
+<text x="1031.5" y="1517.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamp</text>
+<text x="802.4" y="1549.6" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">updated_at</text>
+<text x="1031.5" y="1549.6" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamp</text>
+<rect x="737.5" y="785.6" width="334" height="432" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 737.5 829.7 L 1071.5 829.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="737.5" y="785.6" width="334" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="737.5" y="820.7" width="334" height="9" fill="#1e293b"/>
+<text x="904.5" y="807.7" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">pembayaran</text>
+<text x="755.5" y="845.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="780.4" y="845.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<text x="1053.5" y="845.9" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
+<rect x="738.5" y="862" width="332" height="32.3" fill="#f8fafc"/>
+<text x="755.5" y="878.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="780.4" y="878.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">tagihan_id</text>
+<text x="1053.5" y="878.2" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
+<text x="780.4" y="910.5" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">jumlah</text>
+<text x="1053.5" y="910.5" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">numeric(14,0)</text>
+<rect x="738.5" y="926.6" width="332" height="32.3" fill="#f8fafc"/>
+<text x="780.4" y="942.8" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">tanggal_pembayaran</text>
+<text x="1053.5" y="942.8" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">date</text>
+<text x="780.4" y="975.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">catatan</text>
+<text x="1053.5" y="975.1" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(255)</text>
+<rect x="738.5" y="991.2" width="332" height="32.3" fill="#f8fafc"/>
+<text x="780.4" y="1007.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">created_at</text>
+<text x="1053.5" y="1007.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamp</text>
+<text x="780.4" y="1039.7" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">metode</text>
+<text x="1053.5" y="1039.7" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(20)</text>
+<rect x="738.5" y="1055.8" width="332" height="32.3" fill="#f8fafc"/>
+<text x="780.4" y="1072" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">sumber</text>
+<text x="1053.5" y="1072" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(30)</text>
+<text x="780.4" y="1104.3" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">referensi</text>
+<text x="1053.5" y="1104.3" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(100)</text>
+<rect x="738.5" y="1120.4" width="332" height="32.3" fill="#f8fafc"/>
+<text x="755.5" y="1136.6" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="780.4" y="1136.6" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">dicatat_oleh</text>
+<text x="1053.5" y="1136.6" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
+<text x="755.5" y="1168.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="780.4" y="1168.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">diterima_oleh</text>
+<text x="1053.5" y="1168.9" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
+<rect x="738.5" y="1185" width="332" height="32.3" fill="#f8fafc"/>
+<text x="755.5" y="1201.2" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="780.4" y="1201.2" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">pembalik_id</text>
+<text x="1053.5" y="1201.2" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
+<rect x="121.5" y="1424.6" width="341" height="238" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<path d="M 121.5 1468.7 L 462.5 1468.7" stroke="#94a3b8" stroke-width="2"/>
+<rect x="121.5" y="1424.6" width="341" height="44.1" rx="7" fill="#1e293b"/>
+<rect x="121.5" y="1459.7" width="341" height="9" fill="#1e293b"/>
+<text x="292" y="1446.6" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="#ffffff">verifikasi_pembayaran</text>
+<text x="139.5" y="1484.9" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#b45309">PK</text>
+<text x="164.4" y="1484.9" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="700" text-decoration="underline" fill="#b45309">id</text>
+<text x="444.5" y="1484.9" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
+<rect x="122.5" y="1501" width="339" height="32.3" fill="#f8fafc"/>
+<text x="139.5" y="1517.1" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="164.4" y="1517.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">pembayaran_id</text>
+<text x="444.5" y="1517.1" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
+<text x="139.5" y="1549.4" text-anchor="start" dominant-baseline="central" font-size="13.68" font-weight="700" fill="#1d4ed8">FK</text>
+<text x="164.4" y="1549.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#1d4ed8">diverifikasi_oleh</text>
+<text x="444.5" y="1549.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">bigint</text>
+<rect x="122.5" y="1565.6" width="339" height="32.3" fill="#f8fafc"/>
+<text x="164.4" y="1581.7" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">keputusan</text>
+<text x="444.5" y="1581.7" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(10)</text>
+<text x="164.4" y="1614" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">catatan</text>
+<text x="444.5" y="1614" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">varchar(255)</text>
+<rect x="122.5" y="1630.2" width="339" height="32.3" fill="#f8fafc"/>
+<text x="164.4" y="1646.4" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">created_at</text>
+<text x="444.5" y="1646.4" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamp</text>
+<rect x="704" y="178.6" width="401" height="529" rx="7" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
 <path d="M 704 222.7 L 1105 222.7" stroke="#94a3b8" stroke-width="2"/>
 <rect x="704" y="178.6" width="401" height="44.1" rx="7" fill="#1e293b"/>
 <rect x="704" y="213.7" width="401" height="9" fill="#1e293b"/>
@@ -232,22 +232,24 @@
 <rect x="705" y="642.6" width="399" height="32.3" fill="#f8fafc"/>
 <text x="746.9" y="658.8" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">updated_at</text>
 <text x="1087" y="658.8" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">timestamp</text>
-<text x="309.1" y="976.6" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#b45309">N</text>
-<text x="274.9" y="976.6" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#0f766e">1</text>
-<text x="745.2" y="1355.1" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#b45309">N</text>
-<text x="390.1" y="955.6" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#0f766e">1</text>
-<text x="723.2" y="837.1" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#b45309">N</text>
+<text x="746.9" y="691.1" text-anchor="start" dominant-baseline="central" font-size="19" font-weight="500" fill="#0f172a">total_beku</text>
+<text x="1087" y="691.1" text-anchor="end" dominant-baseline="central" font-size="15.579999999999998" font-weight="400" fill="#475569">numeric(14,0)</text>
+<text x="309.1" y="972.6" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#b45309">N</text>
+<text x="274.9" y="972.6" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#0f766e">1</text>
+<text x="745.2" y="1371.1" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#b45309">N</text>
+<text x="390.1" y="961.6" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#0f766e">1</text>
+<text x="723.2" y="861.1" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#b45309">N</text>
 <text x="593" y="620" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#0f766e">1</text>
-<text x="476.8" y="1516.1" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#b45309">N</text>
-<text x="840.6" y="1217.4" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#0f766e">1</text>
+<text x="476.8" y="1500.1" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#b45309">N</text>
+<text x="840.6" y="1245.6" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#0f766e">1</text>
 <text x="689.7" y="254.1" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#b45309">N</text>
 <text x="593" y="458" text-anchor="middle" dominant-baseline="central" font-size="19.95" font-weight="700" fill="#0f766e">1</text>
-<rect x="80" y="1697.4" width="1025" height="263.6" rx="9" fill="#fafafa" stroke="#94a3b8" stroke-width="1"/>
-<text x="104" y="1727.4" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">PK = kunci primer · FK = kunci asing · UQ = unik · garis = hubungan kunci asing</text>
-<text x="104" y="1760.2" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">1 = tepat satu · N = banyak · angka di sisi anak menunjukkan berapa baris yang boleh menunjuk</text>
-<text x="104" y="1793" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">Kunci asing yang menyeberang ke lembar lain tidak bisa ditarik garisnya; tujuannya disebut di legenda.</text>
-<text x="104" y="1825.8" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">kunci asing menunjuk tabelnya sendiri: pembayaran.pembalik_id</text>
-<text x="104" y="1858.6" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">kunci asing ke lembar lain: kontrak.kamar_id → kamar · kontrak.penghuni_id → penghuni ·</text>
-<text x="104" y="1891.4" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">tagihan.denda_dimaafkan_oleh → users · tagihan.dibatalkan_oleh → users · pembayaran.dicatat_oleh → users ·</text>
-<text x="104" y="1924.2" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">pembayaran.diterima_oleh → users · verifikasi_pembayaran.diverifikasi_oleh → users</text>
+<rect x="80" y="1681.4" width="1025" height="263.6" rx="9" fill="#fafafa" stroke="#94a3b8" stroke-width="1"/>
+<text x="104" y="1711.4" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">PK = kunci primer · FK = kunci asing · UQ = unik · garis = hubungan kunci asing</text>
+<text x="104" y="1744.2" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">1 = tepat satu · N = banyak · angka di sisi anak menunjukkan berapa baris yang boleh menunjuk</text>
+<text x="104" y="1777" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">Kunci asing yang menyeberang ke lembar lain tidak bisa ditarik garisnya; tujuannya disebut di legenda.</text>
+<text x="104" y="1809.8" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">kunci asing menunjuk tabelnya sendiri: pembayaran.pembalik_id</text>
+<text x="104" y="1842.6" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">kunci asing ke lembar lain: kontrak.kamar_id → kamar · kontrak.penghuni_id → penghuni ·</text>
+<text x="104" y="1875.4" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">tagihan.denda_dimaafkan_oleh → users · tagihan.dibatalkan_oleh → users · pembayaran.dicatat_oleh → users ·</text>
+<text x="104" y="1908.2" text-anchor="start" dominant-baseline="central" font-size="16" font-weight="400" fill="#475569">pembayaran.diterima_oleh → users · verifikasi_pembayaran.diverifikasi_oleh → users</text>
 </svg>

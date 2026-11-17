@@ -1,5 +1,5 @@
 {
-  "diambil_pada": "2026-11-13T10:33:53.899Z",
+  "diambil_pada": "2026-11-17T05:16:34.873Z",
   "jumlah_tabel": 26,
   "tabel": [
     {
@@ -2477,6 +2477,15 @@
           "panjang": null,
           "presisi": null,
           "skala": null,
+          "boleh_null": true,
+          "bawaan": null
+        },
+        {
+          "nama": "total_beku",
+          "tipe": "numeric",
+          "panjang": null,
+          "presisi": 14,
+          "skala": 0,
           "boleh_null": true,
           "bawaan": null
         }

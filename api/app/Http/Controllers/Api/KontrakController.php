@@ -104,6 +104,17 @@ class KontrakController extends Controller
 
         try {
             $kontrak = DB::transaction(function () use ($request, $tglMasuk, $tarifBerlaku, $tarifDiminta) {
+                // Kunci baris kamar sebelum menulis kontrak dan statusnya
+                // (temuan #4, sisi kedua): `akhiri()` mengunci baris yang
+                // sama. Tanpa kunci di kedua sisi, akhiri bisa memeriksa
+                // "tidak ada kontrak aktif" tepat sebelum kontrak ini
+                // tercatat, lalu menulis kamar kosong padahal sudah
+                // berpenghuni.
+                Kamar::query()
+                    ->whereKey($request->integer('kamar_id'))
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
                 // Kamar belum punya tarif: baris pertama riwayat dibuat dari
                 // angka yang diketik pemilik.
                 //
@@ -229,6 +240,14 @@ class KontrakController extends Controller
                 'status' => 'selesai',
                 'tgl_keluar' => $kontrak->tgl_keluar ?? now()->toDateString(),
             ]);
+
+            // Kunci baris kamarnya sebelum memeriksa (temuan #4):
+            // pemeriksaan "masih ada kontrak aktif?" dan penulisan status
+            // kamar harus berada di wilayah yang tidak bisa dimasuki penulis
+            // lain. Tanpa kunci, kontrak baru yang tercatat di antara keduanya
+            // tidak terlihat - kamar tampil kosong padahal berpenghuni.
+            // Sisi lain balapan ini (`store`) mengunci baris yang sama.
+            Kamar::query()->whereKey($kontrak->kamar_id)->lockForUpdate()->firstOrFail();
 
             // Kamar kembali kosong hanya bila tidak ada kontrak aktif lain.
             $masihAktif = Kontrak::where('kamar_id', $kontrak->kamar_id)

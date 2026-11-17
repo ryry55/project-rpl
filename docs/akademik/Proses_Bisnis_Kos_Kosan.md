@@ -2,7 +2,7 @@
 
 > **Dibangkitkan, jangan disunting tangan** — `node docs/akademik/build-dokumen.js`.
 > Angka dibaca dari `rute-api.json` (100 endpoint), `tabel-domain.json` (26 tabel),
-> `usecase-data.js` (14 use case), `api/composer.lock` (Laravel 12.70.1),
+> `usecase-data.js` (14 use case), `api/composer.lock` (Laravel 12.72.0),
 > dan `docs/dfd/dfd-data.js` (16 aliran batas).
 
 
@@ -10,7 +10,7 @@
 
 **Sistem Informasi Operasional Kos-Kosan** mengelola operasional kos — kamar,
 penghuni, kontrak sewa, tarif dan kebijakan, tagihan bulanan, pembayaran,
-sampai laporan pendapatan dan tunggakan — sebagai API Laravel 12.70.1 +
+sampai laporan pendapatan dan tunggakan — sebagai API Laravel 12.72.0 +
 PostgreSQL dengan antarmuka Vue 3.
 
 Pembedanya dari pencatatan manual bukan kelengkapan fitur, melainkan **siapa
@@ -18,7 +18,7 @@ yang berhak melakukan apa**: **pemilik** memutuskan, **pengelola** berwenang
 terbatas mengusulkan, **penghuni** hanya membaca. Pengelola ber-wewenang
 `ubah_tarif` pun tidak menetapkan tarif. Uang dicatat sebagai peristiwa yang
 tidak bisa diubah. Cakupan: **100 endpoint** `/api`, **14 use case**, **3
-aktor**, **26 tabel domain** dari **47 migrasi**.
+aktor**, **26 tabel domain** dari **48 migrasi**.
 
 ## 2. Aktor dan Entitas Eksternal Sistem
 

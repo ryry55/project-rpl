@@ -221,9 +221,9 @@ const L1 = {
  *     yang harus terbaca adalah setiap kolom beserta tipenya - teksnya paling
  *     banyak;
  *   - level 3 (LRS)    : tetap SATU lembar, tetapi di kertas A3 tegak. Seluruh
- *     217 kolom terbaca di sana (2,62 mm), sedangkan A4 terbaik hanya 1,86 mm.
+ *     229 kolom terbaca di sana (2,56 mm), sedangkan A4 terbaik hanya 1,81 mm.
  *     Lembar A3 itu diserahkan sebagai lampiran, bukan ditempel ke badan
- *     laporan - mengecilkannya ke lebar A4 mengembalikan angkanya ke 1,86 mm.
+ *     laporan - mengecilkannya ke lebar A4 mengembalikan angkanya ke 1,81 mm.
  *
  * Jadi yang menentukan bukan jumlah tabel, melainkan berapa kolom yang digambar
  * dan sebesar apa kertasnya. Tabel 24 sel (2-6 kolom x A4/A3 tegak-miring) ada

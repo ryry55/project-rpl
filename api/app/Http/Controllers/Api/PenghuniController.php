@@ -125,53 +125,63 @@ class PenghuniController extends Controller
         // "tidak ada yang berubah" untuk setiap perubahan.
         $sebelum = $penghuni->only(['nama', 'no_hp']);
 
-        $penghuni->update($data);
+        // Satu transaksi untuk kedua tulisan (temuan #3): data induk dan
+        // akun login adalah satu kejadian. Tanpa pembungkus, kegagalan pada
+        // tulisan kedua meninggalkan tulisan pertama tersimpan - data induk
+        // dan akun login jadi berbeda permanen tanpa satu pun pesan galat.
+        $emailBerubah = null;
 
-        // REV-DAT-05: perubahannya berjejak, dan hanya kolom yang berubah yang
-        // dikirim. Nama dan nomor HP adalah dua kolom yang paling sering
-        // dikoreksi, dan pertanyaan "sebelumnya namanya apa" hanya bisa
-        // dijawab kalau nilai lamanya disimpan.
-        //
-        // Perubahan email sengaja TIDAK ikut dicatat di sini: ia urusan akun
-        // login, dan jejaknya ada pada `users` lewat alur aktivasi. Mencatatnya
-        // dua kali akan menghasilkan dua baris untuk satu kejadian.
-        $sesudah = $penghuni->only(['nama', 'no_hp']);
-        $berubah = array_keys(array_diff_assoc(
-            array_map('strval', $sesudah),
-            array_map('strval', $sebelum),
-        ));
+        DB::transaction(function () use ($penghuni, $user, $data, $sebelum, &$emailBerubah) {
+            $penghuni->update($data);
 
-        if ($berubah !== []) {
-            $this->audit->catat(
-                aksi: PencatatAudit::AKSI_PENGHUNI_UBAH,
-                entitas: 'penghuni',
-                entitasId: $penghuni->id,
-                nilaiLama: array_intersect_key($sebelum, array_flip($berubah)),
-                nilaiBaru: array_intersect_key($sesudah, array_flip($berubah)),
-            );
-        }
+            // REV-DAT-05: perubahannya berjejak, dan hanya kolom yang berubah yang
+            // dikirim. Nama dan nomor HP adalah dua kolom yang paling sering
+            // dikoreksi, dan pertanyaan "sebelumnya namanya apa" hanya bisa
+            // dijawab kalau nilai lamanya disimpan.
+            //
+            // Perubahan email sengaja TIDAK ikut dicatat di sini: ia urusan akun
+            // login, dan jejaknya ada pada `users` lewat alur aktivasi. Mencatatnya
+            // dua kali akan menghasilkan dua baris untuk satu kejadian.
+            $sesudah = $penghuni->only(['nama', 'no_hp']);
+            $berubah = array_keys(array_diff_assoc(
+                array_map('strval', $sesudah),
+                array_map('strval', $sebelum),
+            ));
 
-        // Nama dan email di akun login ikut disesuaikan supaya tidak berbeda
-        // dari data induknya.
-        //
-        // Mengganti email berarti membatalkan aktivasi sebelumnya: tautan lama
-        // dikirim ke alamat yang mungkin bukan milik penghuni ini, jadi ia
-        // tidak boleh lagi bisa dipakai. Akunnya dikembalikan ke keadaan belum
-        // aktif, dan tautan baru dikirim ke alamat yang baru.
-        $emailBerubah = $user && $user->email !== $penghuni->email;
-
-        if ($user) {
-            $user->update([
-                'name' => $penghuni->nama,
-                'email' => $penghuni->email,
-            ]);
-
-            if ($emailBerubah) {
-                $user->forceFill(['email_verified_at' => null])->save();
-                $user->tokens()->delete();
+            if ($berubah !== []) {
+                $this->audit->catat(
+                    aksi: PencatatAudit::AKSI_PENGHUNI_UBAH,
+                    entitas: 'penghuni',
+                    entitasId: $penghuni->id,
+                    nilaiLama: array_intersect_key($sebelum, array_flip($berubah)),
+                    nilaiBaru: array_intersect_key($sesudah, array_flip($berubah)),
+                );
             }
-        }
 
+            // Nama dan email di akun login ikut disesuaikan supaya tidak berbeda
+            // dari data induknya.
+            //
+            // Mengganti email berarti membatalkan aktivasi sebelumnya: tautan lama
+            // dikirim ke alamat yang mungkin bukan milik penghuni ini, jadi ia
+            // tidak boleh lagi bisa dipakai. Akunnya dikembalikan ke keadaan belum
+            // aktif, dan tautan baru dikirim ke alamat yang baru.
+            $emailBerubah = $user && $user->email !== $penghuni->email;
+
+            if ($user) {
+                $user->update([
+                    'name' => $penghuni->nama,
+                    'email' => $penghuni->email,
+                ]);
+
+                if ($emailBerubah) {
+                    $user->forceFill(['email_verified_at' => null])->save();
+                    $user->tokens()->delete();
+                }
+            }
+        });
+
+        // Surep aktivasinya dikirim di luar transaksi: SMTP bukan urusan
+        // basis data, dan transaksi tidak boleh menunggu jaringan luar.
         $terkirim = $emailBerubah
             ? $this->tautan->kirimAman($user, TokenAkun::JENIS_AKTIVASI)
             : null;

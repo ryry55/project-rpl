@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Kebijakan\PilihanKebijakan;
 use App\Domain\Pembayaran\MidtransGateway;
 use App\Models\Kamar;
 use App\Models\Kontrak;
@@ -99,6 +100,51 @@ class PembayaranGatewayTest extends TestCase
     private function tandaTangan(string $orderId, string $statusCode, string $gross): string
     {
         return hash('sha512', $orderId.$statusCode.$gross.self::KUNCI);
+    }
+
+    private function pemilik(): User
+    {
+        return User::firstOrCreate(
+            ['email' => 'pemilik@kos.test'],
+            ['name' => 'Pemilik', 'password' => Hash::make('password'), 'peran' => User::PERAN_PEMILIK],
+        );
+    }
+
+    /**
+     * Tagihan yang jatuh tempo 2026-10-15 dengan kebijakan denda 1%/hari,
+     * plafon 30%, tenggang 7 hari - angka yang bisa dihitung tangan dan
+     * cocok dengan `X-Simulasi-Tanggal`.
+     */
+    private function tagihanDenda(): Tagihan
+    {
+        $kamar = Kamar::create(['nomor' => 'A1', 'status_huni' => 'terisi']);
+        $penghuni = Penghuni::create(['nama' => 'Budi Santoso', 'email' => 'budi@kos.test']);
+
+        $kontrak = Kontrak::create([
+            'kamar_id' => $kamar->id,
+            'penghuni_id' => $penghuni->id,
+            'tgl_masuk' => '2026-10-15',
+            'tarif_awal' => 1500000,
+        ]);
+
+        return Tagihan::create([
+            'kontrak_id' => $kontrak->id,
+            'periode' => '2026-10-01',
+            'pokok' => 1500000,
+            'jatuh_tempo' => '2026-10-15',
+            'status' => Tagihan::STATUS_BELUM_BAYAR,
+            'tarif_terpakai' => ['prorata' => false, 'nilai' => 1500000],
+            'kebijakan_terpakai' => [
+                'denda' => [
+                    'tipe' => PilihanKebijakan::DENDA_PERSEN_HARIAN,
+                    'persen' => '1.00',
+                    'plafon_persen' => '30.00',
+                    'masa_tenggang' => 7,
+                    'nominal' => 0,
+                ],
+            ],
+            'terbit_pada' => now(),
+        ]);
     }
 
     // --- Membuat transaksi ------------------------------------------------
@@ -397,6 +443,161 @@ class PembayaranGatewayTest extends TestCase
             'transaction_status' => 'settlement',
             'signature_key' => $this->tandaTangan('KOS-99999-20260101000000', '200', '1500000.00'),
         ])->assertStatus(200)->assertJsonPath('keadaan', 'diabaikan');
+    }
+
+    // --- Sisa kegagalan, pembatalan, dan denda beku (Fase 8) ---------------
+
+    /**
+     * Temuan #1: `mulai()` yang gagal setelah baris tersimpan (mis. timeout
+     * gateway) meninggalkan baris `menunggu` tanpa tautan. Baris itu tidak
+     * bisa dipakai siapa pun, tetapi indeks unik satu-menunggu-per-tagihan
+     * menghalangi percobaan berikutnya - penghuni terkunci sampai barisnya
+     * dibersihkan. Percobaan kedua harus mendapat tautan baru.
+     */
+    public function test_sisa_menunggu_tanpa_tautan_dibersihkan_bukan_mengunci(): void
+    {
+        Http::fake([
+            '*/snap/v1/transactions' => Http::response([
+                'token' => 'TOKEN-BARU',
+                'redirect_url' => 'https://app.sandbox.midtrans.com/snap/v4/redirection/TOKEN-BARU',
+            ], 201),
+        ]);
+
+        $tagihan = $this->tagihan();
+
+        // Keadaan setelah kegagalan parsial: baris tersimpan, tautan tidak
+        // pernah didapat. Tidak ada yang bisa membayar baris ini.
+        $sisa = TransaksiGateway::create([
+            'tagihan_id' => $tagihan->id,
+            'order_id' => 'KOS-'.$tagihan->id.'-20260101000000',
+            'jumlah' => 1500000,
+            'status' => TransaksiGateway::STATUS_MENUNGGU,
+        ]);
+
+        $this->actingAs($this->penghuni(), 'sanctum')
+            ->postJson("/api/tagihan/{$tagihan->id}/bayar-daring")
+            ->assertStatus(201)
+            ->assertJsonPath('data.baru', true)
+            ->assertJsonPath('data.redirect_url', 'https://app.sandbox.midtrans.com/snap/v4/redirection/TOKEN-BARU');
+
+        // Baris sisa hilang; yang tersisa hanya transaksi yang punya tautan.
+        $this->assertNull($sisa->fresh());
+        $this->assertSame(1, TransaksiGateway::count());
+        $this->assertNotNull(TransaksiGateway::first()->redirect_url);
+    }
+
+    /**
+     * K-19 (temuan #2a): membatalkan tagihan mematikan tautan bayar yang
+     * masih terbuka. Tanpa ini, tagihan batal tetap bisa dibayar lewat
+     * tautan yang iseng masih hidup.
+     */
+    public function test_membatalkan_tagihan_mematikan_tautan_gateway_yang_masih_terbuka(): void
+    {
+        $tagihan = $this->tagihan();
+
+        $transaksi = TransaksiGateway::create([
+            'tagihan_id' => $tagihan->id,
+            'order_id' => 'KOS-'.$tagihan->id.'-20260101000000',
+            'jumlah' => 1500000,
+            'status' => TransaksiGateway::STATUS_MENUNGGU,
+            'token' => 'TOKEN-LAMA',
+            'redirect_url' => 'https://app.sandbox.midtrans.com/snap/v4/redirection/TOKEN-LAMA',
+        ]);
+
+        $this->actingAs($this->pemilik(), 'sanctum')
+            ->postJson("/api/tagihan/{$tagihan->id}/batal", ['alasan' => 'salah terbit untuk periode ini'])
+            ->assertOk();
+
+        $this->assertSame(TransaksiGateway::STATUS_DIBATALKAN, $transaksi->fresh()->status);
+    }
+
+    /**
+     * K-19 (temuan #2b): uang yang terlanjur masuk lewat tautan tagihan
+     * yang sudah dibatalkan tidak boleh menguap. Ia dicatat sebagai
+     * pembayaran berlabel perlu tindakan - rekap tidak boleh bohong
+     * terhadap rekening Midtrans; refund diurus di luar aplikasi.
+     */
+    public function test_uang_yang_masuk_setelah_pembatalan_tercatat_berlabel_perlu_tindakan(): void
+    {
+        $tagihan = $this->tagihan();
+
+        $transaksi = TransaksiGateway::create([
+            'tagihan_id' => $tagihan->id,
+            'order_id' => 'KOS-'.$tagihan->id.'-20260101000000',
+            'jumlah' => 1500000,
+            'status' => TransaksiGateway::STATUS_MENUNGGU,
+            'token' => 'TOKEN-LAMA',
+            'redirect_url' => 'https://app.sandbox.midtrans.com/snap/v4/redirection/TOKEN-LAMA',
+        ]);
+
+        $this->actingAs($this->pemilik(), 'sanctum')
+            ->postJson("/api/tagihan/{$tagihan->id}/batal", ['alasan' => 'salah terbit untuk periode ini'])
+            ->assertOk();
+
+        // Pembayaran sah: tanda tangan benar, nominal sama persis.
+        $this->postJson('/api/webhook/midtrans', [
+            'order_id' => $transaksi->order_id,
+            'status_code' => '200',
+            'gross_amount' => '1500000.00',
+            'transaction_status' => 'settlement',
+            'transaction_id' => 'abc-123',
+            'signature_key' => $this->tandaTangan($transaksi->order_id, '200', '1500000.00'),
+        ])->assertStatus(200);
+
+        $this->assertSame(1, Pembayaran::count());
+
+        $pembayaran = Pembayaran::first();
+        $this->assertSame(1500000, (int) $pembayaran->jumlah);
+        $this->assertStringContainsStringIgnoringCase('perlu tindakan', (string) $pembayaran->catatan);
+
+        // Tagihan tetap batal: uang yang terlanjur masuk tidak
+        // membangkitkan tagihan yang sudah dibatalkan.
+        $this->assertSame(Tagihan::STATUS_DIBATALKAN, $tagihan->fresh()->status);
+        $this->assertSame(TransaksiGateway::STATUS_DIBAYAR, $transaksi->fresh()->status);
+    }
+
+    /**
+     * K-20 (temuan #7): nominal tautan dibekukan saat dibuat. Penghuni
+     * yang membayar sebesar nominal itu penuh dianggap LUNAS - denda yang
+     * berjalan antara tautan dibuat dan dibayar dimaafkan otomatis,
+     * `total_final` dibekukan pada pokok + denda saat tautan dibuat.
+     */
+    public function test_membayar_nominal_tautan_penuh_membuat_lunas_walau_denda_berjalan(): void
+    {
+        Http::fake([
+            '*/snap/v1/transactions' => Http::response([
+                'token' => 'TOKEN-BEKU',
+                'redirect_url' => 'https://app.sandbox.midtrans.com/snap/v4/redirection/TOKEN-BEKU',
+            ], 201),
+        ]);
+
+        $tagihan = $this->tagihanDenda();
+
+        // 2026-11-01: terlambat 17 hari, tenggang 7 -> denda 10 hari
+        // x 1% x 1.500.000 = 150.000. Tautan dibekukan pada 1.650.000.
+        $this->actingAs($this->penghuni(), 'sanctum')
+            ->postJson("/api/tagihan/{$tagihan->id}/bayar-daring", [], ['X-Simulasi-Tanggal' => '2026-11-01'])
+            ->assertStatus(201)
+            ->assertJsonPath('data.jumlah', 1650000);
+
+        $transaksi = TransaksiGateway::first();
+
+        // Dibayar tiga hari kemudian: denda sudah tumbuh 45.000, tetapi
+        // yang diminta ke penghuni adalah nominal beku - dan membayarnya
+        // penuh berarti lunas.
+        $this->postJson('/api/webhook/midtrans', [
+            'order_id' => $transaksi->order_id,
+            'status_code' => '200',
+            'gross_amount' => '1650000.00',
+            'transaction_status' => 'settlement',
+            'transaction_id' => 'abc-123',
+            'signature_key' => $this->tandaTangan($transaksi->order_id, '200', '1650000.00'),
+        ], ['X-Simulasi-Tanggal' => '2026-11-04'])->assertStatus(200);
+
+        $tagihan = $tagihan->fresh();
+        $this->assertSame(Tagihan::STATUS_LUNAS, $tagihan->status);
+        $this->assertSame(1650000, (int) $tagihan->total_final);
+        $this->assertSame(TransaksiGateway::STATUS_DIBAYAR, $transaksi->fresh()->status);
     }
 
     // --- Kelas gateway secara langsung -----------------------------------

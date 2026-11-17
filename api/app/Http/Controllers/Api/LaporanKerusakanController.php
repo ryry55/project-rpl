@@ -146,12 +146,18 @@ class LaporanKerusakanController extends Controller
         }
 
         DB::transaction(function () use ($request, $laporan) {
+            // Kunci baris kamar lebih dulu (temuan #4): status setelah
+            // perbaikan dibaca dari kontrak-kontraknya, dan penulis status
+            // kamar lain (`akhiri`, kontrak baru) mengunci baris yang sama.
+            // Membaca tanpa kunci berarti status bisa ditulis dari bacaan
+            // yang kedaluwarsa.
+            $kamar = Kamar::query()->whereKey($laporan->kamar_id)->lockForUpdate()->firstOrFail();
+
             $laporan->update([
                 'selesai_pada' => now(),
                 'ditutup_oleh' => $request->user()->getAuthIdentifier(),
             ]);
 
-            $kamar = $laporan->kamar;
             $statusBaru = $kamar->statusSetelahPerbaikan();
             $kamar->update(['status_huni' => $statusBaru]);
 

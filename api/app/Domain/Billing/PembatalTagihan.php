@@ -4,6 +4,7 @@ namespace App\Domain\Billing;
 
 use App\Domain\Audit\PencatatAudit;
 use App\Models\Tagihan;
+use App\Models\TransaksiGateway;
 use App\Support\WaktuSistem;
 use Illuminate\Support\Facades\DB;
 
@@ -97,6 +98,16 @@ class PembatalTagihan
                 'total_final' => null,
             ]);
 
+            // K-19: tautan bayar yang masih terbuka ikut dimatikan. Tanpa
+            // ini, tagihan yang sudah batal tetap bisa dibayar lewat tautan
+            // yang iseng masih hidup - dan uangnya masuk tanpa menempel
+            // pada tagihan yang sah. `expire` dari gateway untuk tautan
+            // ini diabaikan webhook: transaksi `dibatalkan` tidak mundur.
+            $tautanDimatikan = TransaksiGateway::query()
+                ->where('tagihan_id', $tagihan->id)
+                ->where('status', TransaksiGateway::STATUS_MENUNGGU)
+                ->update(['status' => TransaksiGateway::STATUS_DIBATALKAN]);
+
             $this->audit->catat(
                 aksi: PencatatAudit::AKSI_TAGIHAN_BATAL,
                 entitas: 'tagihan',
@@ -109,6 +120,7 @@ class PembatalTagihan
                 nilaiBaru: [
                     'status' => Tagihan::STATUS_DIBATALKAN,
                     'alasan' => $alasan,
+                    'tautan_gateway_dimatikan' => $tautanDimatikan,
                 ],
             );
 

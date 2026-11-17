@@ -31,4 +31,14 @@ class GatewayMenolak extends RuntimeException
     {
         return new self('Midtrans menjawab sukses tetapi tidak mengirim token transaksi.');
     }
+
+    /**
+     * Gateway tidak menjawab dalam batas waktu - timeout atau jaringan
+     * putus di tengah permintaan. Dipisah dari {@see dariJawaban()} karena
+     * tidak ada jawaban HTTP yang bisa dilaporkan.
+     */
+    public static function tidakMenjawab(\Throwable $sebab): self
+    {
+        return new self('Midtrans tidak menjawab dalam batas waktu: '.$sebab->getMessage());
+    }
 }

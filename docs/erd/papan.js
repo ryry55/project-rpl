@@ -98,7 +98,9 @@ const HURUF_BAKU = {
   padKiri: 18,
   padKanan: 18,
   jarakKolom: 200,
-  jarakBaris: 86,
+  // Celah antar kotak. 86 px membuat LRS 229 kolom meleset 0,02 mm di bawah
+  // ambang A3; 78 px mengembalikannya tanpa mengubah ukuran huruf.
+  jarakBaris: 78,
   tepi: 80,
   legendaBaris: 2.05,
 };

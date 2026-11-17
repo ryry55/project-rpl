@@ -1,4 +1,4 @@
-# Dokumen Akademik — Final (1 November 2026)
+# Dokumen Akademik — Final (17 November 2026)
 
 Aplikasi **Kos-Kosan** sudah jadi; berkas ini berisi dokumen akademik yang diserahkan untuk tugas akhir. Semua file adalah hasil build dari generator — jangan disunting tangan.
 
@@ -17,10 +17,11 @@ Diagram tingkat lainnya juga terpisah (bukan digabung ke PDF):
 - `00-L0-konseptual.png`
 - `01-L1-logikal.png`
 - `02-L2-fisikal-a.png` (modul 1: Akun & tata kelola)
-- `02-L2-fisikal-b.png` (modul 2: Kamar & kebijakan)
+- `02-L2-fisikal-b1.png` (modul 2: Kamar, tarif & kebijakan)
+- `02-L2-fisikal-b2.png` (modul 2 lanjutan: Kerusakan & fotonya)
 - `02-L2-fisikal-c.png` (modul 3: Uang)
 
-Lembar LRS (`03-L3-lrs.png`) berukuran A3 tegak karena seluruh 228 kolom hanya terbaca di sana (**2,62 mm**). Di A4 terbaik hanya **1,86 mm**, di bawah ambang baca 2,52 mm.
+Lembar LRS (`03-L3-lrs.png`) berukuran A3 tegak karena seluruh 229 kolom hanya terbaca di sana (**2,56 mm**). Di A4 terbaik hanya **1,81 mm**, di bawah ambang baca 2,52 mm.
 
 ---
 
@@ -97,10 +98,10 @@ Generator membaca dari sumber-sumber itu; bila angka berubah (kolom bertambah, e
 
 Build memastikan tidak ada angka yang diketik tangan:
 - **100 endpoint** (`api/routes/api.php`)
-- **26 tabel**, **228 kolom**, **30 kunci asing**
+- **26 tabel**, **229 kolom**, **30 kunci asing**
 - **14 use case**, **16 aliran batas**
-- Tes: **912 PHP**, **19 Vitest**, **34 skrip uji** (546 detik untuk 942 langkah)
-- Ukuran huruf LRS: **2,54 mm** (A3 tegak), **1,80 mm** (A4 terbaik)
+- Tes: **918 PHP**, **19 Vitest**, **34 skrip uji** (942 langkah)
+- Ukuran huruf LRS: **2,56 mm** (A3 tegak), **1,81 mm** (A4 terbaik)
 
 Angka-angka ini dijaga oleh pemeriksa yang tertanam di generator. Lihat `docs/serah-terima.md` §5 untuk cara memeriksanya sendiri.
 
@@ -109,20 +110,21 @@ Angka-angka ini dijaga oleh pemeriksa yang tertanam di generator. Lihat `docs/se
 ## Status Gate
 
 CI terakhir hijau pada commit **f0f503c** (run `41276981323`). Angka gate penuh
-terakhir, dijalankan lokal pada 13 November 2026:
+terakhir, dijalankan lokal pada 17 November 2026 (**SEMUA LULUS**, 693 detik):
 - Format/lint: pint, eslint, vitest bersih
-- Tes: 912 PHP / 4114 asersi, 19 Vitest / 235 asersi
+- Tes: 918 PHP / 4142 asersi, 19 Vitest / 235 asersi
 - Browser: 34 skrip / 942 langkah
-- Pemeriksa dokumen: konsistensi ERD/LRS, DFD, cakupan kontrak, angka dokumenn
+- Pemeriksa dokumen: konsistensi ERD/LRS, DFD, cakupan kontrak, angka dokumen
 
 ---
 
 ## Catatan Terakhir
 
-Dokumen ini dibangun ulang setelah audit dokumen terakhir (1 Nov 2026):
-- Narasi LRS diperbaiki: "terbesar di antara yang lolos ambang", bukan "satu-satunya"
-- Piramida tes disegarkan: 730 Feature, 100 Unit
-- Peta ketertelusuran memuat T14 (laporan kerusakan kamar)
-- Istilah "skrip browser" diganti "skrip uji": 27 browser + 2 balapan + 1 jalur proxy
+Dokumen ini dibangun ulang setelah Fase 8 (integritas jalur uang, 17 Nov 2026):
+- Kolom 228 → 229: `transaksi_gateway.total_beku` (K-20); migrasi 47 → 48
+- Tinggi huruf LRS 2,54 → 2,56 mm setelah celah antar kotak diketatkan
+  (86 → 78 px); ambang baca 2,52 mm tidak berubah
+- Tes 912 → 918 PHP / 4142 asersi (enam tes jalur uang Fase 8, merah dulu)
+- Lembar kelas c kini memuat `total_beku`; lembar fisikal b1/b2 menggantikan b
 
 Yang masih perlu Anda lakukan: latihan ucap 3× dari `docs/demo-sidang.md` sebelum sidang.

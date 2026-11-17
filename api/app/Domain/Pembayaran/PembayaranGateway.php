@@ -88,14 +88,30 @@ class PembayaranGateway
             ->where('status', TransaksiGateway::STATUS_MENUNGGU)
             ->first();
 
-        if ($menunggu !== null && $menunggu->redirect_url !== null) {
-            return ['transaksi' => $menunggu, 'dibuat' => false];
+        if ($menunggu !== null) {
+            if ($menunggu->redirect_url !== null) {
+                return ['transaksi' => $menunggu, 'dibuat' => false];
+            }
+
+            // Sisa kegagalan parsial (temuan #1): baris tersimpan tetapi
+            // tautannya tidak pernah didapat, jadi tidak ada yang bisa
+            // membayarnya. Dibiarkan, ia menyita indeks unik
+            // satu-menunggu-per-tagihan dan percobaan berikutnya gagal 500
+            // selamanya. Dihapus, bukan dipakai ulang: `order_id`-nya
+            // mungkin sudah terdaftar di gateway dan tidak bisa dibuat ulang.
+            $menunggu->delete();
         }
 
         // Nominal yang diminta: sisa tagihan HARI INI, termasuk denda berjalan.
         // Dibekukan ke baris transaksi supaya notifikasi nanti dicocokkan
         // dengan angka ini, bukan dengan angka yang mungkin sudah berubah.
-        $jumlah = $this->penghitung->hitung($tagihan)->total() - $tagihan->totalDibayar();
+        //
+        // Totalnya ikut dibekukan (K-20): membayar nominal tautan penuh
+        // berarti lunas - denda yang berjalan setelah tautan dibuat
+        // dimaafkan, bukan disisakan sebagai receh yang tidak pernah
+        // diminta dari penghuni.
+        $total = $this->penghitung->hitung($tagihan)->total();
+        $jumlah = $total - $tagihan->totalDibayar();
 
         if ($jumlah <= 0) {
             throw PembayaranDitolak::sudahLunas($tagihan->totalDibayar());
@@ -107,6 +123,7 @@ class PembayaranGateway
             'tagihan_id' => $tagihan->id,
             'order_id' => $orderId,
             'jumlah' => $jumlah,
+            'total_beku' => $total,
             'status' => TransaksiGateway::STATUS_MENUNGGU,
             'kedaluwarsa_pada' => $this->waktu->sekarang()->addMinutes(
                 (int) config('services.midtrans.kedaluwarsa_menit', 60)
@@ -115,27 +132,42 @@ class PembayaranGateway
 
         $penghuni = $tagihan->kontrak?->penghuni;
 
-        $hasil = $this->gateway->buatTransaksi(
-            orderId: $orderId,
-            jumlah: $jumlah,
-            namaPenyewa: $penghuni?->nama ?? 'Penghuni',
-            emailPenyewa: $penghuni?->email,
-            kedaluwarsaMenit: (int) config('services.midtrans.kedaluwarsa_menit', 60),
-            // O-8: penghuni harus melihat apa yang ia bayar, bukan halaman
-            // gateway tanpa keterangan. `locale('id')` eksplisit karena
-            // `APP_LOCALE` berbeda antara laptop (`id`) dan bawaan Laravel
-            // (`en`) - tanpa itu nama bulan berubah mengikuti lingkungan.
-            keterangan: sprintf(
-                'Sewa kamar %s - %s',
-                $tagihan->kontrak?->kamar?->nomor ?? 'kos',
-                $tagihan->periode->locale('id')->translatedFormat('F Y'),
-            ),
-        );
+        try {
+            $hasil = $this->gateway->buatTransaksi(
+                orderId: $orderId,
+                jumlah: $jumlah,
+                namaPenyewa: $penghuni?->nama ?? 'Penghuni',
+                emailPenyewa: $penghuni?->email,
+                kedaluwarsaMenit: (int) config('services.midtrans.kedaluwarsa_menit', 60),
+                // O-8: penghuni harus melihat apa yang ia bayar, bukan halaman
+                // gateway tanpa keterangan. `locale('id')` eksplisit karena
+                // `APP_LOCALE` berbeda antara laptop (`id`) dan bawaan Laravel
+                // (`en`) - tanpa itu nama bulan berubah mengikuti lingkungan.
+                keterangan: sprintf(
+                    'Sewa kamar %s - %s',
+                    $tagihan->kontrak?->kamar?->nomor ?? 'kos',
+                    $tagihan->periode->locale('id')->translatedFormat('F Y'),
+                ),
+            );
 
-        $transaksi->update([
-            'token' => $hasil['token'],
-            'redirect_url' => $hasil['redirect_url'],
-        ]);
+            $transaksi->update([
+                'token' => $hasil['token'],
+                'redirect_url' => $hasil['redirect_url'],
+            ]);
+        } catch (GatewayMenolak $e) {
+            // Tautan tidak didapat: baris ini tidak bisa dibayar siapa pun.
+            // Dibuang di sini supaya kegagalan gateway tidak mengunci
+            // penghuni (temuan #1) - percobaan berikutnya membuat baru.
+            $transaksi->delete();
+
+            throw $e;
+        } catch (\Throwable $e) {
+            // Timeout/jaringan: sama tidak boleh meninggalkan sisa, dan
+            // jawabannya tetap satu bentuk yang dipahami controller.
+            $transaksi->delete();
+
+            throw GatewayMenolak::tidakMenjawab($e);
+        }
 
         return ['transaksi' => $transaksi->fresh(), 'dibuat' => true];
     }
@@ -187,9 +219,15 @@ class PembayaranGateway
             // Transaksi yang sudah `dibayar` tidak boleh mundur menjadi gagal.
             // Midtrans kadang mengirim `expire` untuk transaksi lama setelah
             // `settlement`; menurunkannya akan membuat tagihan yang sudah lunas
-            // tampak belum dibayar.
-            if ($transaksi->status === TransaksiGateway::STATUS_DIBAYAR) {
-                return HasilNotifikasi::diabaikan('transaksi sudah dibayar, status gagal diabaikan');
+            // tampak belum dibayar. Transaksi `dibatalkan` juga tidak mundur:
+            // tautan yang dimatikan pembatalan tagihan (K-19) memang akan
+            // menerima `expire` - menimpanya berarti menghapus jejak kenapa
+            // tautannya mati.
+            if (in_array($transaksi->status, [
+                TransaksiGateway::STATUS_DIBAYAR,
+                TransaksiGateway::STATUS_DIBATALKAN,
+            ], true)) {
+                return HasilNotifikasi::diabaikan('transaksi sudah selesai ('.$transaksi->status.'), status gagal diabaikan');
             }
 
             $transaksi->update([
@@ -260,6 +298,14 @@ class PembayaranGateway
                     referensi: $transaksi->order_id,
                     catatan: 'Pembayaran daring (Midtrans)',
                     sumber: MetodePembayaran::SUMBER_GATEWAY_WEBHOOK,
+                    // K-20: total dibekukan saat tautan dibuat - membayar
+                    // nominal tautan penuh berarti lunas. Baris lama tanpa
+                    // angka beku memakai total hidup seperti sebelumnya.
+                    totalBeku: $transaksi->total_beku !== null ? (int) $transaksi->total_beku : null,
+                    // K-19: uang yang terlanhur masuk untuk tagihan yang
+                    // sudah dibatalkan tetap dicatat (berlabel perlu
+                    // tindakan), bukan dibiarkan menguap dari rekap.
+                    terimaPadaBatal: true,
                 );
 
                 $transaksi->update([
@@ -300,6 +346,16 @@ class PembayaranGateway
             }
 
             throw $e;
+        }
+
+        // K-19: uang yang tercatat pada tagihan batal tidak membangkitkan
+        // tagihannya - batal tetap batal - tetapi operator harus melihat
+        // bahwa ada uang yang perlu dikembalikan lewat Midtrans.
+        if ($hasil->statusSebelum === Tagihan::STATUS_DIBATALKAN) {
+            return HasilNotifikasi::perluTindakan(
+                'Pembayaran tercatat berlabel perlu tindakan: tagihannya sudah dibatalkan. '
+                .'Uangnya dikembalikan lewat Midtrans, di luar aplikasi.'
+            );
         }
 
         return HasilNotifikasi::dibayar($hasil);

@@ -43,6 +43,7 @@ class TransaksiGateway extends Model
         'tagihan_id',
         'order_id',
         'jumlah',
+        'total_beku',
         'status',
         'redirect_url',
         'token',

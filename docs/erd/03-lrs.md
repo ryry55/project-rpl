@@ -9,7 +9,7 @@
 > dokumen ini berbeda dengan migrasi, migrasi yang benar — dan dokumen ini
 > yang harus dibangun ulang dengan `node docs/erd/build-lrs.js`.
 
-Versi 1.0 · 26 tabel · 228 kolom · PostgreSQL 16
+Versi 1.0 · 26 tabel · 229 kolom · PostgreSQL 16
 
 ## 1. Hubungan dengan ERD
 
@@ -61,7 +61,7 @@ tagihan = (<u>id</u>, kontrak_id*, periode, pokok, jatuh_tempo, status, tarif_te
 tagihan_rincian = (<u>id</u>, tagihan_id*, nama, nilai, urutan, created_at, updated_at)
 pembayaran = (<u>id</u>, tagihan_id*, jumlah, tanggal_pembayaran, catatan, created_at, metode, sumber, referensi, dicatat_oleh*, diterima_oleh*, pembalik_id*)
 verifikasi_pembayaran = (<u>id</u>, pembayaran_id*, diverifikasi_oleh*, keputusan, catatan, created_at)
-transaksi_gateway = (<u>id</u>, tagihan_id*, order_id, jumlah, status, redirect_url, token, transaction_id, transaction_status, fraud_status, kedaluwarsa_pada, dibayar_pada, created_at, updated_at)
+transaksi_gateway = (<u>id</u>, tagihan_id*, order_id, jumlah, status, redirect_url, token, transaction_id, transaction_status, fraud_status, kedaluwarsa_pada, dibayar_pada, created_at, updated_at, total_beku)
 rekening = (<u>id</u>, jenis, nama, nomor, atas_nama, catatan, aktif, urutan, created_at, updated_at, gambar, gambar_mime, gambar_ukuran)
 aturan_kos = (<u>id</u>, judul, isi, kategori, sanksi, aktif, urutan, created_at, updated_at)
 perangkat = (<u>id</u>, jenis, nama, lokasi, nama_pengguna, sandi, catatan, aktif, urutan, created_at, updated_at)
@@ -360,7 +360,7 @@ Transaksi Midtrans untuk pembayaran daring, termasuk `order_id` dan statusnya.
 | `tagihan_id` | bigint | wajib | FK | → `tagihan.id` |
 | `order_id` | varchar(64) | wajib | UQ | unik; dipakai mencocokkan webhook Midtrans dengan transaksi |
 | `jumlah` | numeric(14,0) | wajib | — |  |
-| `status` | varchar(20) | wajib | — | menunggu \| berhasil \| gagal \| kedaluwarsa |
+| `status` | varchar(20) | wajib | — | menunggu \| dibayar \| gagal \| kedaluwarsa \| dibatalkan |
 | `redirect_url` | text | boleh | — |  |
 | `token` | varchar(128) | boleh | — |  |
 | `transaction_id` | varchar(64) | boleh | — |  |
@@ -370,6 +370,7 @@ Transaksi Midtrans untuk pembayaran daring, termasuk `order_id` dan statusnya.
 | `dibayar_pada` | timestamp | boleh | — |  |
 | `created_at` | timestamp | boleh | — |  |
 | `updated_at` | timestamp | boleh | — |  |
+| `total_beku` | numeric(14,0) | boleh | — | total tagihan (pokok + denda) saat tautan dibuat; membayar nominal tautan penuh berarti lunas (K-20) |
 
 Indeks unik parsial — aturan bisnis yang ditegakkan basis data:
 
