@@ -294,6 +294,10 @@ class RekapPendapatan
     {
         $tagihan = Tagihan::query()
             ->whereNotIn('status', [Tagihan::STATUS_LUNAS, Tagihan::STATUS_DIBATALKAN])
+            // Temuan #5: `PenghitungDenda` membaca `tanggalPokokLunas()`, yang
+            // menjumlahkan pembayaran per tagihan. Satu query di muka membuat
+            // rekap tidak lagi menumbuhkan kueri bersama jumlah tagihan terbuka.
+            ->withSum('pembayaran as total_dibayar', 'jumlah')
             ->get(['id', 'pokok', 'jatuh_tempo', 'status', 'kebijakan_terpakai',
                 'tarif_denda_persen', 'plafon_persen', 'masa_tenggang']);
 

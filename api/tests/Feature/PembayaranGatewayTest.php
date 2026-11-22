@@ -604,7 +604,7 @@ class PembayaranGatewayTest extends TestCase
 
     public function test_tanda_tangan_memakai_perbandingan_waktu_tetap(): void
     {
-        $gateway = new MidtransGateway(self::KUNCI, 'client', false);
+        $gateway = new MidtransGateway(self::KUNCI, false);
 
         $benar = hash('sha512', 'ORDER-1'.'200'.'1500000.00'.self::KUNCI);
 
@@ -615,7 +615,7 @@ class PembayaranGatewayTest extends TestCase
 
     public function test_capture_hanya_lunas_bila_fraud_status_accept(): void
     {
-        $gateway = new MidtransGateway(self::KUNCI, 'client', false);
+        $gateway = new MidtransGateway(self::KUNCI, false);
 
         $this->assertTrue($gateway->statusBerartiDibayar('settlement', null));
         $this->assertTrue($gateway->statusBerartiDibayar('capture', 'accept'));
@@ -629,10 +629,10 @@ class PembayaranGatewayTest extends TestCase
     public function test_alamat_snap_mengikuti_lingkungan(): void
     {
         $this->assertStringContainsString(
-            'sandbox', (new MidtransGateway('k', 'c', false))->alamatSnap(),
+            'sandbox', (new MidtransGateway('k', false))->alamatSnap(),
         );
         $this->assertStringNotContainsString(
-            'sandbox', (new MidtransGateway('k', 'c', true))->alamatSnap(),
+            'sandbox', (new MidtransGateway('k', true))->alamatSnap(),
         );
     }
 }

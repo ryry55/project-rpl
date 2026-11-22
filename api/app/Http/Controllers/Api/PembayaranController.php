@@ -50,7 +50,7 @@ class PembayaranController extends Controller
             'sampai' => ['required', 'date_format:Y-m-d', 'after_or_equal:dari'],
         ]);
 
-        $daftar = Pembayaran::query()
+        $query = Pembayaran::query()
             ->whereBetween('tanggal_pembayaran', [$data['dari'], $data['sampai']])
             ->with([
                 'verifikasi',
@@ -68,16 +68,36 @@ class PembayaranController extends Controller
                 'tagihan.kontrak.kamar',
             ])
             ->orderByDesc('tanggal_pembayaran')
-            ->orderByDesc('id')
-            ->get();
+            ->orderByDesc('id');
+
+        $meta = [
+            'dari' => $data['dari'],
+            'sampai' => $data['sampai'],
+            'metode' => MetodePembayaran::label(),
+        ];
+
+        // K-05 (temuan #6): berhalaman HANYA bila diminta, sama seperti daftar
+        // tagihan. Tanpa `per_page` bentuknya tidak berubah - layar pembayaran
+        // memakai daftar utuh pada rentang yang dipilihnya sendiri.
+        if ($request->filled('per_page')) {
+            $request->validate(['per_page' => ['integer', 'min:1', 'max:200']]);
+
+            $halaman = $query->paginate($request->integer('per_page'));
+
+            return response()->json([
+                'data' => PembayaranResource::collection($halaman->items()),
+                'meta' => $meta + [
+                    'per_page' => $halaman->perPage(),
+                    'halaman' => $halaman->currentPage(),
+                    'halaman_terakhir' => $halaman->lastPage(),
+                    'total' => $halaman->total(),
+                ],
+            ]);
+        }
 
         return response()->json([
-            'data' => PembayaranResource::collection($daftar),
-            'meta' => [
-                'dari' => $data['dari'],
-                'sampai' => $data['sampai'],
-                'metode' => MetodePembayaran::label(),
-            ],
+            'data' => PembayaranResource::collection($query->get()),
+            'meta' => $meta,
         ]);
     }
 

@@ -105,7 +105,11 @@ services:
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
       TZ: Asia/Jakarta
     ports:
-      - "${MAILPIT_UI_PORT:-8025}:8025"
+      # Hanya loopback (temuan #11): Mailpit menyimpan seluruh surat keluar
+      # tanpa autentikasi, dan `0.0.0.0:8025` membuat siapa pun di jaringan
+      # yang sama bisa membacanya. Cloudflare Tunnel tetap bekerja - ia
+      # menghubungi localhost, bukan alamat LAN.
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
     restart: unless-stopped
 
   api-web:
@@ -118,7 +122,7 @@ services:
       - ./api/public:/var/www/html/public:ro
       - ./api/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
-      - "${API_PORT:-8080}:80"
+      - "127.0.0.1:${API_PORT:-8080}:80"
     depends_on:
       - api
     restart: unless-stopped
@@ -134,7 +138,7 @@ services:
         # argumen ini, sehingga default `false` berlaku dan petunjuknya hilang.
         VITE_MODE_DEMO: "true"
     ports:
-      - "${WEB_PORT:-3000}:80"
+      - "127.0.0.1:${WEB_PORT:-3000}:80"
     depends_on:
       - api-web
     restart: unless-stopped

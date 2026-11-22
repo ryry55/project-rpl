@@ -10,6 +10,7 @@ use App\Http\Resources\LaporanKerusakanResource;
 use App\Models\Kamar;
 use App\Models\LampiranKerusakan;
 use App\Models\LaporanKerusakan;
+use App\Support\WaktuSistem;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -50,6 +51,7 @@ class LaporanKerusakanController extends Controller
     public function __construct(
         private readonly PencatatAudit $audit,
         private readonly PenyimpanLampiran $lampiran,
+        private readonly WaktuSistem $waktu,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -154,7 +156,7 @@ class LaporanKerusakanController extends Controller
             $kamar = Kamar::query()->whereKey($laporan->kamar_id)->lockForUpdate()->firstOrFail();
 
             $laporan->update([
-                'selesai_pada' => now(),
+                'selesai_pada' => $this->waktu->sekarang(),
                 'ditutup_oleh' => $request->user()->getAuthIdentifier(),
             ]);
 

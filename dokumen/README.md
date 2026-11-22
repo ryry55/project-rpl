@@ -29,7 +29,7 @@ Diagram normalisasi 1NF–4NF ada di dalam PDF Bab 4; sumber SVG-nya
 ## Angka yang dijaga pemeriksa gate
 
 100 endpoint · 26 tabel · 229 kolom · 30 kunci asing · 48 migrasi ·
-918 tes PHP / 4142 asersi · 34 skrip uji / 942 langkah browser · huruf LRS
+927 tes PHP / 4177 asersi · 34 skrip uji / 942 langkah browser · huruf LRS
 2,56 mm pada A3 tegak (ambang baca 2,52 mm).
 
 Memeriksa semuanya sendiri: `powershell -ExecutionPolicy Bypass -File periksa.ps1`.

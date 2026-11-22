@@ -6,7 +6,6 @@ use App\Domain\Audit\PencatatAudit;
 use App\Domain\Pembayaran\MetodePembayaran;
 use App\Models\Pembayaran;
 use App\Models\Tagihan;
-use App\Support\WaktuSistem;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
@@ -53,7 +52,6 @@ class PencatatPembayaran
 {
     public function __construct(
         private readonly PenghitungDenda $penghitung,
-        private readonly WaktuSistem $waktu,
         private readonly PencatatAudit $audit,
     ) {}
 

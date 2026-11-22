@@ -9,6 +9,7 @@ use App\Models\Penghuni;
 use App\Models\Tagihan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -468,5 +469,49 @@ class TunggakanHttpTest extends TestCase
     public function test_tanpa_login_ditolak(): void
     {
         $this->getJson('/api/tunggakan')->assertStatus(401);
+    }
+
+    // --- Beban -------------------------------------------------------------
+
+    /**
+     * Temuan #5 (Fase 9): jumlah kueri tidak boleh tumbuh bersama jumlah tagihan.
+     *
+     * `PenghitungDenda::hitung()` memanggil `Tagihan::tanggalPokokLunas()`, dan
+     * jalur itu menjumlahkan pembayaran per tagihan. Tanpa `withSum` di kueri
+     * tunggakan, dua tagihan terbuka berarti dua `SELECT SUM` tambahan - dan
+     * daftar 390 tagihan berarti 390 kueri hanya untuk satu angka. Responsnya
+     * tetap benar, jadi tidak ada asersi lain yang akan menangkapnya.
+     */
+    public function test_jumlah_kueri_tunggakan_tidak_tumbuh_bersama_jumlah_tagihan(): void
+    {
+        $this->buatTagihan('A1', 'Ani');
+        $this->buatTagihan('A2', 'Budi');
+
+        $kueri = 0;
+        DB::listen(function () use (&$kueri): void {
+            $kueri++;
+        });
+
+        $ukur = function () use (&$kueri): int {
+            $kueri = 0;
+            $this->sebagaiPemilik()
+                ->withHeader('X-Simulasi-Tanggal', '2026-11-21')
+                ->getJson('/api/tunggakan')
+                ->assertOk();
+
+            return $kueri;
+        };
+
+        $dua = $ukur();
+
+        $this->buatTagihan('A3', 'Cici');
+        $this->buatTagihan('A4', 'Dedi');
+        $empat = $ukur();
+
+        $this->assertSame(
+            $dua,
+            $empat,
+            "jumlah kueri tunggakan naik dari {$dua} ke {$empat} saat tagihan bertambah dari 2 ke 4 - ada penjumlahan pembayaran per baris (N+1)",
+        );
     }
 }

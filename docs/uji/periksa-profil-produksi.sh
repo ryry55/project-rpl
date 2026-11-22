@@ -143,6 +143,17 @@ lapor '.env.example memakai QUEUE_CONNECTION=sync (tidak ada worker di produksi)
     "$(grep -qE '^QUEUE_CONNECTION=sync$' "$AKAR/api/.env.example" && echo 0 || echo 1)" \
     'database berarti pekerjaan antri diam tanpa queue:work'
 
+# --- X-Powered-By disembunyikan (temuan #12) ------------------------------
+# PHP memasang `X-Powered-By: PHP/<versi>` sendiri dan nginx meneruskannya.
+# Header itu memberi tahu versi persis yang berjalan - cukup untuk mencari CVE
+# yang cocok tanpa mencoba apa pun. Diperiksa di sini karena kedua berkas nginx
+# berada di luar build context image api, sehingga tidak ada tes PHP yang bisa
+# membacanya.
+lapor 'nginx demo menyembunyikan X-Powered-By' \
+    "$(ada 'fastcgi_hide_header X-Powered-By' "$AKAR/api/docker/nginx/default.conf")"
+lapor 'nginx produksi menyembunyikan X-Powered-By' \
+    "$(ada 'fastcgi_hide_header X-Powered-By' "$AKAR/docker/prod/nginx.conf.template")"
+
 echo ''
 if [ "${#GAGAL[@]}" -eq 0 ]; then
     echo 'PROFIL PRODUKSI LULUS'

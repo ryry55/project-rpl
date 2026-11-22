@@ -181,7 +181,7 @@ di `docs/serah-terima.md` §1, dan `cek-angka-dokumen.js` menjaga angka di sana.
 
 ```bash
 docker compose up -d
-docker compose exec api php artisan test          # 918 tes, 4142 asersi
+docker compose exec api php artisan test          # 927 tes, 4177 asersi
 docker compose exec api php artisan test --testsuite=Unit   # 116 tes murni, tanpa DB
 node docs/uji/e2e-t1.mjs                          # perlu Chrome --remote-debugging-port=9222
 node docs/uji/e2e-t2.mjs                          # 8 kamar + 6 penghuni + kontrak lewat UI
@@ -534,3 +534,33 @@ Yang **tidak** diperbaiki karena memang keputusan demo, bukan cacat: sandi
 `password` pada tiga akun contoh, Mailpit tanpa sandi, dan `cors` `*` (SPA
 memakai origin yang sama; token Bearer tidak dikirim otomatis oleh peramban).
 Ketiganya harus disebut sebagai batas bila ditanya, bukan dijanjikan aman.
+
+## Audit performa & pemolesan - 22 November 2026 (Fase 9-10)
+
+Dua fase terakhir `docs/rencana-fase-8-10.md`, dikerjakan berurutan sesudah
+Fase 8. Yang diuji di sini bukan kebenaran angka - itu sudah ditutup audit
+sebelumnya - melainkan **bentuk akses data** dan **satu sumber waktu**.
+
+| Temuan | Perbaikan | Bukti |
+|---|---|---|
+| #5 N+1 piutang/tunggakan | `withSum('pembayaran as total_dibayar')` di `DaftarTunggakan::susun` dan `RekapPendapatan::piutang` | `test_jumlah_kueri_tunggakan_tidak_tumbuh_bersama_jumlah_tagihan` (merah: 6 → 8 kueri), `test_jumlah_kueri_rekap_tidak_tumbuh_bersama_jumlah_tagihan` |
+| #6 `GET /pembayaran` tanpa batas | `per_page` opsional, pola K-05; tanpa `per_page` bentuk respons tidak berubah | `test_daftar_pembayaran_berhalaman_hanya_bila_per_page_diminta` |
+| #8 `now()` di lima jalur tulis | `WaktuSistem` disuntik ke `PenerbitTagihan`, `KontrakController` (dua tempat), `LaporanKerusakanController`, `PemutusUsulan` (dua tempat) | `test_terbit_pada_memakai_tanggal_simulasi`, `test_status_kontrak_baru_dinilai_dengan_tanggal_simulasi`, `test_tgl_keluar_memakai_tanggal_simulasi`, `test_selesai_pada_memakai_tanggal_simulasi`, `test_diputuskan_pada_memakai_tanggal_simulasi_saat_disetujui`, `test_diputuskan_pada_memakai_tanggal_simulasi_saat_ditolak` |
+| #9 pola `galatMuat` disalin 16 view | composable `useMuatDaftar()`; `PenghuniView` dimigrasikan sebagai bukti | `uji-galat-muat.mjs` tetap hijau (10 layar) |
+| #10 kode mati | `MidtransGateway::clientKey()` + parameter `clientKey` dibuang; `PencatatPembayaran` tidak lagi menerima `WaktuSistem`; `Pembayaran::asal()` dihapus. `TransaksiGateway::STATUS_DIBATALKAN` **tidak** dihapus - K-19 memakainya | pint + 927 tes |
+| #11 port terbuka ke LAN | `docker-compose.yml`: tiga port dipatok `127.0.0.1` | `docker compose ps` → `127.0.0.1:8081`, `:3000`, `:8025` |
+| #12 `X-Powered-By` | `fastcgi_hide_header X-Powered-By` di nginx demo **dan** template produksi | `curl -I /api/health` → header tidak ada, `Content-Type` tetap lewat (kontrol positif) |
+
+Enam tes #8 ditulis lebih dulu dan **dibuktikan merah** sebelum perbaikan: semuanya
+gagal dengan tanggal mesin (`2026-11-22`) alih-alih tanggal simulasi. Itu bentuk
+kegagalan yang benar untuk konvensi ini - bukan "kolomnya kosong", melainkan
+"tanggal yang salah tercatat".
+
+Asersi #5 mengukur **jumlah kueri**, bukan durasi. Durasi berubah menurut mesin
+dan tetangga di runner; jumlah kueri hanya berubah kalau bentuk akses datanya
+berubah, dan itulah yang dijaga.
+
+Dua butir sengaja tidak berpagar otomatis dan harus disebut sebagai batas:
+port loopback (#11) dan header `X-Powered-By` (#12) hanya bisa diperiksa dari
+luar container, jadi tidak ada tes PHP yang membacanya. Perintah pemeriksanya
+ada di `docs/serah-terima.md` §6.

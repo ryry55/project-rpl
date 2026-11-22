@@ -8,6 +8,7 @@ use App\Domain\Notifikasi\Peristiwa;
 use App\Domain\Notifikasi\Surat;
 use App\Models\User;
 use App\Models\UsulanPerubahan;
+use App\Support\WaktuSistem;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -38,6 +39,7 @@ class PemutusUsulan
         private readonly PenerapPerubahan $penerap,
         private readonly PencatatAudit $audit,
         private readonly Pemberitahu $pemberitahu,
+        private readonly WaktuSistem $waktu,
     ) {}
 
     /**
@@ -86,7 +88,7 @@ class PemutusUsulan
             $usulan->update([
                 'status' => UsulanPerubahan::STATUS_DISETUJUI,
                 'diputuskan_oleh' => $pemutus->getKey(),
-                'diputuskan_pada' => now(),
+                'diputuskan_pada' => $this->waktu->sekarang(),
             ]);
 
             $pengusul = $usulan->pengusul;
@@ -118,7 +120,7 @@ class PemutusUsulan
             $usulan->update([
                 'status' => UsulanPerubahan::STATUS_DITOLAK,
                 'diputuskan_oleh' => $pemutus->getKey(),
-                'diputuskan_pada' => now(),
+                'diputuskan_pada' => $this->waktu->sekarang(),
                 'alasan' => $alasan,
             ]);
 

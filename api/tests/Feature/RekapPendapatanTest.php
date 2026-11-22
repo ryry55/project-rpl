@@ -596,4 +596,87 @@ class RekapPendapatanTest extends TestCase
             ->getJson('/api/pembayaran/penerima')
             ->assertForbidden();
     }
+
+    // --- Beban -------------------------------------------------------------
+
+    /**
+     * Temuan #5 (Fase 9): piutang dihitung tanpa satu kueri pun per tagihan.
+     *
+     * `piutang()` memanggil `PenghitungDenda` untuk setiap tagihan terbuka, dan
+     * penghitung itu membaca `tanggalPokokLunas()` - yang menjumlahkan
+     * pembayaran per baris. Kueri rekap karena itu tumbuh bersama jumlah
+     * tagihan terbuka, padahal rekap adalah layar yang dibuka paling sering
+     * oleh pemilik.
+     */
+    public function test_jumlah_kueri_rekap_tidak_tumbuh_bersama_jumlah_tagihan(): void
+    {
+        $this->buatTagihan('A1');
+        $this->buatTagihan('A2');
+
+        $kueri = 0;
+        DB::listen(function () use (&$kueri): void {
+            $kueri++;
+        });
+
+        $ukur = function () use (&$kueri): int {
+            $kueri = 0;
+            $this->rekap()->assertOk();
+
+            return $kueri;
+        };
+
+        $dua = $ukur();
+
+        $this->buatTagihan('A3');
+        $this->buatTagihan('A4');
+        $empat = $ukur();
+
+        $this->assertSame(
+            $dua,
+            $empat,
+            "jumlah kueri rekap naik dari {$dua} ke {$empat} saat tagihan terbuka bertambah dari 2 ke 4 - piutang menjumlahkan pembayaran per baris (N+1)",
+        );
+    }
+
+    /**
+     * Temuan #6 (Fase 9): `GET /pembayaran` berhalaman hanya bila diminta.
+     *
+     * Bentuknya menyalin K-05 yang sudah dipakai daftar tagihan: tanpa
+     * `per_page` respons tidak berubah sama sekali, dengan `per_page` pemanggil
+     * mendapat kunci halaman. Endpoint ini sebelumnya tanpa batas apa pun, dan
+     * satu tahun pembayaran pada kos besar cukup untuk membuat satu permintaan
+     * memuat seluruh riwayat beserta enam relasinya.
+     */
+    public function test_daftar_pembayaran_berhalaman_hanya_bila_per_page_diminta(): void
+    {
+        $tagihan = $this->buatTagihan();
+
+        $this->catat($tagihan, 100_000, 'tunai', '2026-11-01', $this->pemilik->id);
+        $this->catat($tagihan, 100_000, 'tunai', '2026-11-02', $this->pemilik->id);
+        $this->catat($tagihan, 100_000, 'tunai', '2026-11-03', $this->pemilik->id);
+
+        $rentang = '/api/pembayaran?dari=2026-11-01&sampai=2026-11-30';
+
+        $this->sebagaiPemilik()->getJson($rentang)
+            ->assertOk()
+            ->assertJsonCount(3, 'data')
+            ->assertJsonMissingPath('meta.total');
+
+        $this->sebagaiPemilik()->getJson($rentang.'&per_page=2')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('meta.per_page', 2)
+            ->assertJsonPath('meta.halaman', 1)
+            ->assertJsonPath('meta.halaman_terakhir', 2)
+            ->assertJsonPath('meta.total', 3);
+
+        $this->sebagaiPemilik()->getJson($rentang.'&per_page=2&page=2')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('meta.halaman', 2);
+
+        // Di luar batas ditolak, bukan dipotong diam-diam.
+        $this->sebagaiPemilik()->getJson($rentang.'&per_page=201')->assertStatus(422);
+        $this->sebagaiPemilik()->getJson($rentang.'&per_page=0')->assertStatus(422);
+    }
 }

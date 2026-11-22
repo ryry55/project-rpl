@@ -10,6 +10,7 @@ use App\Models\KebijakanKos;
 use App\Models\Kontrak;
 use App\Models\Tagihan;
 use App\Models\TagihanRincian;
+use App\Support\WaktuSistem;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
@@ -37,6 +38,7 @@ class PenerbitTagihan
         private readonly PencariTarif $pencari,
         private readonly PenyelesaiKebijakan $kebijakan,
         private readonly PencatatAudit $audit,
+        private readonly WaktuSistem $waktu,
     ) {}
 
     /**
@@ -229,7 +231,7 @@ class PenerbitTagihan
                         'kamar_id' => $kebijakanDenda->kamar_id,
                     ],
                 ],
-                'terbit_pada' => now(),
+                'terbit_pada' => $this->waktu->sekarang(),
             ]);
 
             foreach ($baris as $urutan => $satuBaris) {

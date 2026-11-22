@@ -63,7 +63,7 @@ commit harus menyebut K-19/K-20. Perbaikan #2 jangan mengembalikan larangan
 `PembatalTagihan` "tagihan yang sudah menerima uang tidak boleh dibatalkan"
 (uang yang masuk SETELAH batal dicatat berlabel, bukan menolak pembatalan).
 
-## Fase 9 — Performa & konsistensi (temuan 5, 6, 8)
+## Fase 9 — Performa & konsistensi (temuan 5, 6, 8) — **selesai 22 Nov 2026**
 
 1. **#5 — `withSum('pembayaran as total_dibayar', 'jumlah')`** di
    `DaftarTunggakan` dan `RekapPendapatan::piutang()` (bentuknya sudah
@@ -78,7 +78,7 @@ commit harus menyebut K-19/K-20. Perbaikan #2 jangan mengembalikan larangan
    610 ms (16 November).
 5. Gate penuh + reseed demo.
 
-## Fase 10 — Pemolesan & pra-sidang (temuan 9, 10, 11, 12)
+## Fase 10 — Pemolesan & pra-sidang (temuan 9, 10, 11, 12) — **selesai 22 Nov 2026**
 
 1. **#9 — composable `useMuatDaftar()`** (memuat + galatMuat + penjaga
    "kosong vs gagal muat"). Migrasi satu view dulu sebagai bukti,

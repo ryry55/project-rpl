@@ -11,6 +11,7 @@ use App\Http\Resources\KontrakResource;
 use App\Models\Kamar;
 use App\Models\Kontrak;
 use App\Models\LaporanKerusakan;
+use App\Support\WaktuSistem;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -22,6 +23,7 @@ class KontrakController extends Controller
         private readonly PencariTarif $pencari,
         private readonly PenerapPerubahan $penerap,
         private readonly PencatatAudit $audit,
+        private readonly WaktuSistem $waktu,
     ) {}
 
     public function index(): JsonResponse
@@ -149,7 +151,7 @@ class KontrakController extends Controller
                     // menempati kamar. Tanpa ini, mencatat penghuni bulan
                     // depan berarti menerbitkan tagihan untuk bulan yang
                     // belum ia tempati.
-                    'status' => $tglMasuk->isAfter(now('Asia/Jakarta')->startOfDay()) ? 'dipesan' : 'aktif',
+                    'status' => $tglMasuk->isAfter($this->waktu->hariIni()) ? 'dipesan' : 'aktif',
                 ]);
 
                 // Status kamar mengikuti kontraknya, supaya daftar kamar
@@ -238,7 +240,7 @@ class KontrakController extends Controller
 
             $kontrak->update([
                 'status' => 'selesai',
-                'tgl_keluar' => $kontrak->tgl_keluar ?? now()->toDateString(),
+                'tgl_keluar' => $kontrak->tgl_keluar ?? $this->waktu->hariIni()->toDateString(),
             ]);
 
             // Kunci baris kamarnya sebelum memeriksa (temuan #4):

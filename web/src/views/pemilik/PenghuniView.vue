@@ -2,14 +2,16 @@
 import { computed, onMounted, ref } from 'vue'
 import { sesi } from '../../sesi.js'
 import { tanggal, pesanGalat, galatPerBidang } from '../../format.js'
+import { useMuatDaftar } from '../../composables/useMuatDaftar.js'
 import KepalaHalaman from '../../komponen/ui/KepalaHalaman.vue'
 import PesanBaris from '../../komponen/ui/PesanBaris.vue'
 import MedanForm from '../../komponen/ui/MedanForm.vue'
 import BarisKosong from '../../komponen/ui/BarisKosong.vue'
 
-const daftar = ref([])
-const memuat = ref(true)
-const galatMuat = ref('')
+// Tiga keadaan daftar (memuat / gagal / kosong) hidup di satu tempat sejak
+// temuan #9: pola yang disalin ke 16 layar selalu punya satu salinan yang lupa
+// membedakan "gagal" dari "kosong".
+const { daftar, memuat, galatMuat, muat } = useMuatDaftar('/penghuni')
 
 const formTerbuka = ref(false)
 const menyimpan = ref(false)
@@ -40,19 +42,6 @@ const tersaring = computed(() => {
       (p.no_hp || '').includes(kunci),
   )
 })
-
-async function muat() {
-  memuat.value = true
-  galatMuat.value = ''
-  try {
-    const hasil = await sesi.panggil('/penghuni')
-    daftar.value = hasil.data
-  } catch (e) {
-    galatMuat.value = pesanGalat(e)
-  } finally {
-    memuat.value = false
-  }
-}
 
 function bukaForm() {
   form.value = { nama: '', email: '', no_hp: '' }

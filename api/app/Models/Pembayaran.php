@@ -89,19 +89,6 @@ class Pembayaran extends Model
     }
 
     /**
-     * Baris yang ditarik kembali oleh baris ini.
-     *
-     * Hanya terisi pada baris pembalik. Arahnya satu arah: pembalik menunjuk
-     * asalnya, asal tidak menunjuk pembaliknya - hubungan sebaliknya dibaca
-     * lewat query `where('pembalik_id', $id)`, karena satu pembayaran hanya
-     * boleh punya satu pembalik.
-     */
-    public function asal(): BelongsTo
-    {
-        return $this->belongsTo(self::class, 'pembalik_id');
-    }
-
-    /**
      * Baris pembalik yang menarik kembali baris ini, bila ada.
      *
      * Satu arah, dan paling banyak satu: unique index `pembalik_id` menjamin

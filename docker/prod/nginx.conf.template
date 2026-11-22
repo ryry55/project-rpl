@@ -131,6 +131,10 @@ http {
 
         location = /index.php {
             fastcgi_pass php_fpm;
+            # Temuan #12: `X-Powered-By: PHP/<versi>` dipasang PHP sendiri dan
+            # diteruskan nginx. Header itu memberi tahu versi persis yang
+            # berjalan - cukup untuk mencari CVE yang cocok tanpa mencoba apa pun.
+            fastcgi_hide_header X-Powered-By;
             fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
             fastcgi_param DOCUMENT_ROOT $realpath_root;
             # FASE 0.2 - komentar ini sebelumnya menyebut `trustProxies` sebagai

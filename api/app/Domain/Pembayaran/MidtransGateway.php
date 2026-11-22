@@ -40,7 +40,6 @@ class MidtransGateway
 {
     public function __construct(
         private readonly ?string $serverKey,
-        private readonly ?string $clientKey,
         private readonly bool $produksi,
     ) {}
 
@@ -48,7 +47,6 @@ class MidtransGateway
     {
         return new self(
             serverKey: config('services.midtrans.server_key'),
-            clientKey: config('services.midtrans.client_key'),
             produksi: (bool) config('services.midtrans.is_production'),
         );
     }
@@ -61,11 +59,6 @@ class MidtransGateway
     public function siap(): bool
     {
         return is_string($this->serverKey) && trim($this->serverKey) !== '';
-    }
-
-    public function clientKey(): ?string
-    {
-        return $this->clientKey;
     }
 
     /** Alamat Snap: sandbox dan produksi memakai host yang berbeda. */

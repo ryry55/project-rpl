@@ -46,6 +46,11 @@ class DaftarTunggakan
             // R-04: tagihan lunas dan dibatalkan tidak pernah masuk tunggakan.
             ->whereNotIn('status', [Tagihan::STATUS_LUNAS, Tagihan::STATUS_DIBATALKAN])
             ->with(['kontrak.kamar', 'kontrak.penghuni'])
+            // Satu query penjumlahan untuk seluruh daftar, bukan satu per
+            // tagihan (temuan #5). `PenghitungDenda` membaca
+            // `tanggalPokokLunas()`, dan jalur itu menjumlahkan pembayaran -
+            // tanpa baris ini, daftar 390 tagihan menjalankan 390 `SELECT SUM`.
+            ->withSum('pembayaran as total_dibayar', 'jumlah')
             ->orderBy('jatuh_tempo')
             ->orderBy('id')
             ->get();

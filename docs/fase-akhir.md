@@ -1,7 +1,7 @@
 # Fase akhir — yang tersisa, dan hanya Anda yang bisa mengerjakannya
 
 Diperbarui 13 November 2026. Semua yang bisa diperiksa mesin sudah diperiksa:
-918 tes PHP, 19 tes Vitest, 34 skrip / 942 langkah browser, `uji-aksesibilitas.mjs`
+927 tes PHP, 19 tes Vitest, 34 skrip / 942 langkah browser, `uji-aksesibilitas.mjs`
 27/27 di laptop **dan** di CI, gladi demo 39/39 pada database segar, uji beban
 lulus. Empat pagar baru dibuktikan bisa **merah** lebih dulu, bukan hanya hijau.
 
@@ -41,9 +41,43 @@ Lulus bila `p95` di bawah 1.000 ms dan `galat: 0`. Tiga pengukuran di mesin ini:
 
 - [x] Diukur 31 Oktober 2026: p95 603 ms, lulus.
 - [x] Diukur 13 November 2026: p95 610 ms, 129 permintaan/detik, 0 galat.
+- [ ] Diukur 22 November 2026 **setelah 390 tagihan disiapkan**: p95 1064–1356 ms,
+      **GAGAL**, padahal kode tidak melambat. Lihat di bawah.
 
 Bila p95 melewati ambang: tutup Chrome dan tab lain lebih dulu, lalu ulangi.
 Yang diukur adalah mesin yang sedang dipakai, bukan sifat aplikasi.
+
+### Angka 22 November yang gagal — apa yang sebenarnya diukur
+
+Pengukuran ulang sesudah Fase 9 memberi p95 **1064 ms** (lalu 1283 dan 1356 ms
+pada dua ulangan), dan `galat: 0` di ketiganya. Sebelum itu disalahkan pada kode,
+tiga pemeriksaan dilakukan:
+
+| Pemeriksaan | Hasil | Artinya |
+|---|---|---|
+| Latensi serial (`BEBAN_BERSAMAAN=1`, 50 permintaan) | p50 **94 ms** | satu permintaan tetap cepat |
+| Kode sebelum Fase 9 (HEAD `0b12032`), serial | p50 **96 ms** | perubahannya **tidak** memperlambat |
+| Jumlah worker php-fpm di container demo | **5** (`www.conf`, bawaan image) | 500 × 94 ms ÷ 5 ≈ 9,4 detik — persis waktu yang terukur |
+| Konkurensi disamakan dengan jumlah worker (5 bersamaan, 500 permintaan) | p50 **96 ms**, p95 **161 ms**, 48 permintaan/detik, 0 galat | **LULUS** — antrean hilang, aplikasinya sama |
+
+Jadi p95 pada 50 bersamaan mengukur **antrean di depan lima worker**, bukan
+kecepatan aplikasi. Untuk satu kos dengan paling banyak 30 kamar, lima worker
+tidak pernah menjadi antrean: 50 permintaan serentak adalah beban sintetis.
+
+**Jangan naikkan `pm.max_children` untuk membuat angka ini lulus.** Itu mengubah
+konfigurasi demo agar cocok dengan beban buatan, dan biaya memorinya dibayar
+setiap hari pada laptop yang juga menjalankan Chrome saat sidang. Profil
+produksi sudah memakai 8 (`docker/prod/php-fpm.conf`), dan di sana angkanya
+memang perlu diukur ulang terhadap beban nyata.
+
+Batas yang harus disebut bila ditanya: **p95 1.000 ms hanya tercapai bila
+konkurensi tidak melebihi jumlah worker.** Skripnya tidak mengukur itu sendiri —
+ia melaporkan p95 apa adanya, dan yang membacanya harus tahu bahwa di atas 5
+bersamaan angkanya bercerita tentang panjang antrean.
+
+**Cara mengukur ulang sebelum sidang:** `BEBAN_BERSAMAAN=5 node
+docs/beban/uji-beban.mjs`. Bawaan 50 tetap boleh dipakai, tetapi angkanya akan
+gagal di mesin ini karena antrean worker — bukan karena aplikasinya.
 
 ## 3. Tiga pertanyaan yang hampir pasti ditanya
 
@@ -51,7 +85,7 @@ Jawab apa adanya. Sistem ini demo lokal, dan itu bukan kelemahan yang perlu
 disamarkan.
 
 - **"Sudah dipakai penghuni sungguhan?"** — Belum. Yang ada: demo lokal dengan
-  data contoh, 918 tes, dan uji browser yang menjalankan alurnya di peramban.
+  data contoh, 927 tes, dan uji browser yang menjalankan alurnya di peramban.
 - **"Kalau servernya mati, datanya hilang?"** — Basis data PostgreSQL di dalam
   Docker, dan cadangannya sudah **diuji pulih**, bukan hanya dibuat:
   `docker compose exec -T api sh /var/www/html/docker/backup.sh --uji-pulih`
