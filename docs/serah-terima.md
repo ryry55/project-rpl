@@ -19,7 +19,7 @@ Terakhir diperbarui: 22 November 2026, Fase 9-10 selesai.
 | Keputusan pemilik | **K-19, K-20 dijawab & diterapkan**; K-01..K-18 tidak berubah |
 | Tunnel demo | URL 17 Nov **mati** (laptop restart); nyalakan ulang sebelum demo (§6) |
 | Paket serahan | **`dokumen/`** — segarkan dengan `dokumen\segarkan.ps1` |
-| CI GitHub | hijau pada `0b12032` (run `44032077238`); commit Fase 9-10 menyusul |
+| CI GitHub | **hijau** pada `4850f6b` (run `45041520685`, 11m55s) — kode Fase 9-10 tervalidasi |
 | Working tree | Bersih sesudah commit Fase 9-10 |
 
 ## 2. Yang sesi Fase 9-10 kerjakan (22 Nov 2026)
@@ -125,7 +125,7 @@ node docs/uji/cek-diagram.js                    # SVG = data, PNG = 2x SVG
 bash docs/uji/periksa-profil-produksi.sh        # PROFIL PRODUKSI LULUS (25 baris)
 docker compose ps                               # port hanya 127.0.0.1
 curl -sI http://localhost:8081/api/health       # tanpa X-Powered-By
-$env:BEBAN_BERSAMAAN='5'; node docs/beban/uji-beban.mjs   # p95 di bawah 1000 ms
+$env:BEBAN_BERSAMAAN='5'; node docs/beban/uji-beban.mjs   # p95 128 ms (22 Nov, 390 tagihan)
 ```
 
 Hidupkan demo (tunnel 17 Nov sudah mati):
