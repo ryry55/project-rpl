@@ -17,55 +17,47 @@ Terakhir diperbarui: 22 November 2026, Fase 9-10 selesai.
 | Suite PHP | **927 lulus / 4177 asersi** (dari 918/4142); pint & eslint bersih; 19 vitest |
 | Gate penuh | **SEMUA LULUS** 22 Nov (692 detik, 34 skrip / 942 langkah browser) |
 | Keputusan pemilik | **K-19, K-20 dijawab & diterapkan**; K-01..K-18 tidak berubah |
-| Tunnel demo | URL 17 Nov **mati** (laptop restart); nyalakan ulang sebelum demo (§6) |
+| Tunnel demo | **hidup 22 Nov** — URL cepat berganti, salin dari `.env` (cara di §6) |
 | Paket serahan | **`dokumen/`** — segarkan dengan `dokumen\segarkan.ps1` |
 | CI GitHub | **hijau** pada `4850f6b` (run `45041520685`, 11m55s) — kode Fase 9-10 tervalidasi |
-| Working tree | Bersih sesudah commit Fase 9-10 |
+| Working tree | Bersih sesudah commit sesi ini |
 
-## 2. Yang sesi Fase 9-10 kerjakan (22 Nov 2026)
+## 2. Yang sesi ini kerjakan (22 Nov 2026)
 
-Fase 8 (K-19/K-20, lima temuan jalur uang) ditutup di commit `3c8f7db`;
-rinciannya di `git log` dan `docs/rencana-fase-8-10.md`.
-
-**Fase 9 — performa & konsistensi**
-
-1. **#5** `withSum('pembayaran as total_dibayar', 'jumlah')` di
-   `DaftarTunggakan::susun` dan `RekapPendapatan::piutang` — N+1 penjumlahan
-   hilang. Bukti: dua tes jumlah kueri, merah dulu (6 → 8 kueri).
-2. **#6** `per_page` opsional di `GET /pembayaran`, pola K-05; tanpa
-   `per_page` respons tidak berubah.
-3. **#8** `now()` → `WaktuSistem` di **enam** titik: `PenerbitTagihan`,
-   `KontrakController` (status `dipesan` + `tgl_keluar`),
-   `LaporanKerusakanController` (`selesai_pada`), `PemutusUsulan`
-   (setujui + tolak). Enam tes `SimulasiTanggalTulisTest` merah dulu.
-
-**Fase 10 — pemolesan**
-
-4. **#9** composable `web/src/composables/useMuatDaftar.js`; `PenghuniView`
-   dimigrasikan sebagai bukti, `uji-galat-muat.mjs` tetap hijau (30 langkah).
-5. **#10** kode mati dibuang: `MidtransGateway::clientKey()` + parameter
-   `clientKey`, injeksi `WaktuSistem` di `PencatatPembayaran`,
-   `Pembayaran::asal()`. `TransaksiGateway::STATUS_DIBATALKAN` **dipakai** K-19.
-6. **#11** tiga port demo dipatok `127.0.0.1` (API, SPA, Mailpit).
-7. **#12** `fastcgi_hide_header X-Powered-By` di nginx demo + template produksi,
-   **dipagari** dua pemeriksaan baru di `periksa-profil-produksi.sh`
-   (kontrol negatif: satu baris dihapus → GAGAL, dipulihkan → LULUS).
+Fase 9-10 selesai dan ter-commit (`4850f6b`); rincian per temuan di
+`docs/rencana-fase-8-10.md`, `docs/fase-akhir.md`, dan `git log`. Intinya:
+N+1 penjumlahan hilang (`withSum` di tunggakan + rekap), `per_page` opsional di
+`GET /pembayaran`, `now()` → `WaktuSistem` di enam titik tulis, composable
+`useMuatDaftar` (satu view dimigrasikan), kode mati dibuang, tiga port demo ke
+`127.0.0.1`, dan `X-Powered-By` disembunyikan + dipagari di
+`periksa-profil-produksi.sh`.
 
 Suite **918 → 927 tes / 4142 → 4177 asersi**. Gate penuh 22 Nov: SEMUA LULUS,
-692 detik, 34 skrip / **942 langkah** (angkanya tidak berubah).
+692 detik, 34 skrip / **942 langkah**.
+
+**Keputusan pemilik sesudah Fase 9-10**
+
+8. **`pm.max_children` demo = 8, `pm = static`** (`api/docker/php/zz-fpm.conf`),
+   disamakan dengan profil produksi. Uji beban 50 bersamaan: p95 **707 ms**
+   (run pertama sesudah restart) dan 721 ms, 77 permintaan/detik, 0 galat.
+   Dengan `dynamic`, run pertama menanggung kelahiran worker (p95 1510 ms).
+9. **Tunnel demo hidup** kembali (`cloudflared` → port 3000; SPA meneruskan
+   `/api` ke api-web).
+10. **Diagram urutan TIDAK masuk Bab 4 PDF** — Bab 4 adalah laporan Sistem
+    Basis Data (normalisasi/ERD/LRS/spesifikasi); 14 diagram urutan tetap
+    diserahkan sebagai berkas terpisah `urutan-UC-*.svg/png`. Alasan di
+    `docs/akademik/README.md`.
 
 ## 3. Tiga aksi berikutnya
 
 1. **Review charter `docs/produk/KONTEKS_PROYEK.md` oleh pemilik** — angka
    sudah disegarkan (927 tes), yang dicek: kejujuran ruang lingkup, tabel
    "Yang sudah selesai", dan klaim demo. Ini satu-satunya pekerjaan tersisa.
-2. **Hidupkan demo sebelum sidang** (§6) — tunnel 17 Nov mati, URL baru harus
-   masuk `.env` lalu `isi-demo.mjs` dijalankan ulang.
-3. **Putuskan `pm.max_children` demo** (opsional): 5 worker bawaan image
-   membuat p95 gagal di 50 bersamaan. Bukti dan alasannya di
-   `docs/fase-akhir.md` §2 — angkanya 161 ms pada 5 bersamaan, 1064+ pada 50.
-   Jangan diubah hanya agar angka lulus; ubah hanya bila demo memang akan
-   dihantam banyak orang sekaligus.
+2. **Demo sudah siap** — tunnel hidup (URL di `.env` dan §1), data demo terisi.
+   Kalau URL berganti, jalankan ulang `isi-demo.mjs` dan `cache:clear` (§6).
+3. **Putuskan diagram urutan** — sudah diputuskan: **tidak masuk Bab 4 PDF**;
+   alasannya di `docs/akademik/README.md` (14 diagram urutan tetap diserahkan
+   sebagai berkas terpisah).
 
 ## 4. Keputusan terkunci (baru)
 
@@ -102,11 +94,11 @@ Suite **918 → 927 tes / 4142 → 4177 asersi**. Gate penuh 22 Nov: SEMUA LULUS
   — migrasi memuat 9 nama, DB hidup punya 8. Query langsung
   `docker compose exec db psql -U kos -d kos -tAc "..."` (jangan lewat
   `sh -c` — baris hasilnya tertelan).
-- **p95 uji beban mengukur antrean php-fpm, bukan aplikasi**: container demo
-  memakai `pm.max_children = 5` bawaan image. Pada 50 bersamaan, 500 permintaan
-  antre dan p95 menjadi 1064–1356 ms; pada 5 bersamaan p95 161 ms. Uji A/B
-  membuktikan kode Fase 9 **tidak** lebih lambat (serial 94 vs 96 ms). Jangan
-  menyimpulkan regresi dari angka p95 tanpa memeriksa jumlah worker.
+- **p95 uji beban mengukur antrean php-fpm, bukan aplikasi**: worker 5 (bawaan
+  image) membuat 50 bersamaan antre dan p95 1064–1356 ms; serial 94 ms. Kini
+  demo memakai 8 worker `static`. Dengan `dynamic`, run pertama sesudah
+  restart menanggung kelahiran worker (p95 1510 ms) — itu yang paling
+  menyesatkan, karena run kedua langsung 704 ms.
 - **`git stash` + build ulang = satu-satunya A/B yang sah di repo ini**: kode
   dibakar ke image, jadi membandingkan kode lama dan baru menuntut build ulang
   di antara keduanya. Tanpa itu, "kode lama" yang diukur adalah image baru.
@@ -125,16 +117,17 @@ node docs/uji/cek-diagram.js                    # SVG = data, PNG = 2x SVG
 bash docs/uji/periksa-profil-produksi.sh        # PROFIL PRODUKSI LULUS (25 baris)
 docker compose ps                               # port hanya 127.0.0.1
 curl -sI http://localhost:8081/api/health       # tanpa X-Powered-By
-$env:BEBAN_BERSAMAAN='5'; node docs/beban/uji-beban.mjs   # p95 128 ms (22 Nov, 390 tagihan)
+node docs/beban/uji-beban.mjs                      # 50 bersamaan: p95 707 ms, 0 galat
 ```
 
-Hidupkan demo (tunnel 17 Nov sudah mati):
+Tunnel demo (arahkan ke SPA; nginx SPA meneruskan `/api`):
 
 ```powershell
 Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force
-& "$env:LOCALAPPDATA\cloudflared\cloudflared.exe" tunnel --url http://localhost:8081
-& "$env:LOCALAPPDATA\cloudflared\cloudflared.exe" tunnel --url http://localhost:8025
+& "$env:LOCALAPPDATA\cloudflared\cloudflared.exe" tunnel --url http://localhost:3000
 # URL baru -> .env (APP_URL, APP_URL_SPA), lalu:
-node "$env:TEMP\opencode\isi-demo.mjs" "<url-api-baru>"
-docker compose exec api php artisan cache:clear
+docker compose up -d api; docker compose exec api php artisan cache:clear
+node "$env:TEMP\opencode\isi-demo.mjs" "<url-baru>"
 ```
+
+Mailpit untuk email demo tetap di `http://localhost:8025` (tidak lewat tunnel).

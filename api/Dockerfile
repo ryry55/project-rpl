@@ -44,6 +44,9 @@ RUN composer dump-autoload --optimize --no-interaction \
 
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/app.ini
+# Jumlah worker demo disamakan dengan produksi (8, bukan bawaan 5) - sebabnya
+# di komentar berkas ini dan docs/fase-akhir.md bagian 2.
+COPY docker/php/zz-fpm.conf /usr/local/etc/php-fpm.d/zz-fpm.conf
 COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY docker/backup.sh /usr/local/bin/backup.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/backup.sh

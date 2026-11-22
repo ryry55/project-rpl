@@ -134,6 +134,29 @@ beserta ukuran lembarnya, bukan `<img>` yang diperkecil.
 Konsekuensinya: Bab 4 turun dari 10 menjadi 8 halaman. Penomoran gambar tidak
 berubah — `Gambar 4.5` ERD dan `Gambar 4.6` LRS tetap berurutan.
 
+## Diagram urutan tidak masuk Bab 4
+
+Diputuskan 22 November 2026: ke-14 diagram urutan **tidak** ditanam ke
+`Bab_4_Implementasi_dan_Pengujian.pdf`. Mereka diserahkan sebagai berkas
+terpisah (`urutan-UC-01..14.svg/png`), sama seperti sebelumnya.
+
+Alasannya terukur, bukan selera:
+
+1. **Formatnya berbeda.** Bab 4 mengikuti contoh laporan mata kuliah Sistem
+   Basis Data: normalisasi NF0–3NF, ERD, LRS, spesifikasi data. Diagram urutan
+   adalah notasi perilaku UML, bukan artefak basis data; mencampurnya membuat
+   bab itu tidak lagi menjawab format yang diminta.
+2. **Hurufnya tidak lagi terbaca di A4.** Kanvas terlebar 1357 px, dirancang
+   agar huruf 12 px menjadi **2,52 mm di A3 tegak** (297 mm). Di A4 tegak
+   (210 mm) huruf yang sama menjadi **1,86 mm** — di bawah ambang baca. Ini
+   persis alasan LRS menjadi lampiran A3, bukan gambar di badan laporan.
+3. **Tidak ada yang memintanya.** Bab 4 tetap 8 halaman; menambah 14 diagram
+   akan mengubah penomoran `Gambar 4.x` tanpa permintaan dari dosen.
+
+Bila penguji menanyakan alur sistem, tunjukkan berkas `urutan-UC-*.png`
+langsung — 14 gambar utuh dalam ukuran aslinya, bukan diperkecil sampai tidak
+terbaca.
+
 ## Yang dijaga build
 
 Build gagal bila jumlah use case bukan 14, ada endpoint yang tidak ada di
