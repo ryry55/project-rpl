@@ -128,6 +128,12 @@ done
 
 lapor 'Dockerfile.prod memakai entrypoint produksi' \
     "$(grep -q 'entrypoint-prod.sh' "$AKAR/Dockerfile.prod" && echo 0 || echo 1)"
+# Vercel Container Runtime hanya mengenali Dockerfile/Containerfile di root,
+# jadi deploy memakai `Dockerfile.vercel` - salinan apa adanya. Salinan yang
+# menyimpang membuat deploy menjalankan image lama tanpa satu pun galat.
+lapor 'Dockerfile.vercel identik dengan Dockerfile.prod' \
+    "$(cmp -s "$AKAR/Dockerfile.prod" "$AKAR/Dockerfile.vercel" && echo 0 || echo 1)" \
+    'salin ulang: Copy-Item Dockerfile.prod Dockerfile.vercel'
 lapor 'supervisord menjalankan penjadwal' \
     "$(grep -q 'schedule:work' "$AKAR/docker/prod/supervisord.conf" && echo 0 || echo 1)"
 

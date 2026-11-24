@@ -88,3 +88,6 @@ docs/akademik/_*.html
 # Prototipe adalah kertas kerja, bukan kode produksi: arah yang disetujui sudah
 # tinggal di `web/src/style.css` dan dijelaskan di `DESIGN.md`.
 .taste-skill/
+
+.vercel
+.env*

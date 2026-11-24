@@ -97,9 +97,6 @@ RUN apk add --no-cache \
 
 WORKDIR /var/www/html
 
-# Dependensi dari tahap sebelumnya - sudah tanpa paket dev.
-COPY --from=php-deps /var/www/html/vendor ./vendor
-
 # Composer hanya dipinjam untuk `dump-autoload`, lalu dihapus pada RUN yang
 # sama. Tanpa `dump-autoload`, autoloader hasil `composer install` masih
 # memakai peta kelas dari tahap sebelumnya - di sana `api/app` belum ada,
@@ -109,6 +106,24 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Kode aplikasi.
 COPY api/ ./
 
+# Buang `vendor/` yang ikut terbawa dari mesin pengembang. `COPY` menggabungkan
+# direktori, bukan menggantinya - tanpa baris ini paket dev host tetap
+# tertinggal di image walau tidak terdaftar, menambah ukuran dan permukaan
+# serangan.
+RUN rm -rf vendor
+
+# Dependensi dari tahap sebelumnya - sudah tanpa paket dev.
+#
+# URUTAN PENTING: baris ini harus SESUDAH `COPY api/ ./`. `api/` membawa
+# `vendor/` milik mesin pengembang bila `.dockerignore` tidak berlaku (Vercel
+# mengunggah konteks build sendiri). Vendor host memuat paket dev, sehingga
+# `dump-autoload --no-dev` membuang kelasnya dari classmap tetapi
+# `bootstrap/cache/packages.php` tetap menyebutnya - dan build gagal dengan
+# `Class "NunoMaduro\Collision\...\CollisionServiceProvider" not found`.
+# Menyalin vendor bersih sesudahnya membuat hasil build tidak bergantung pada
+# keadaan working tree.
+COPY --from=php-deps /var/www/html/vendor ./vendor
+
 # SPA masuk ke public/, sehingga nginx dan PHP berbagi satu document root.
 # Inilah yang membuat satu origin mungkin: `/api/*` ditangani index.php,
 # sisanya dilayani sebagai berkas statis lalu jatuh ke index.html.
@@ -117,7 +132,13 @@ COPY --from=spa /app/dist ./public
 # Direktori ditulis satu per satu, bukan `storage/framework/{a,b,c}`: `/bin/sh`
 # di Alpine adalah BusyBox ash yang TIDAK mengenal brace expansion, sehingga
 # bentuk itu membuat satu direktori bernama harfiah `{cache,sessions,views}`.
-RUN composer dump-autoload --optimize --no-dev --no-interaction \
+# Manifest cache milik mesin pengembang bisa menyebut paket dev (`collision`)
+# yang tidak ada di image `--no-dev`; `package:discover` lalu gagal dengan
+# "Class ... not found". Build Vercel mengunggah berkas yang tidak disaring
+# `.dockerignore`, jadi manifest itu dihapus di sini - build tidak boleh
+# bergantung pada keadaan working tree.
+RUN rm -f bootstrap/cache/*.php \
+    && composer dump-autoload --optimize --no-dev --no-interaction \
     && rm /usr/bin/composer \
     && mkdir -p storage/framework/cache/data \
                 storage/framework/sessions \
@@ -151,3 +172,10 @@ EXPOSE 8080
 # migrasi, dan memeriksa pagar produksi - hal yang sama seperti di laptop.
 ENTRYPOINT ["/usr/local/bin/entrypoint-prod.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+
+# --- Cermin untuk Vercel -----------------------------------------------------
+# Vercel Container Runtime hanya membaca `Dockerfile`, `Containerfile`,
+# `Dockerfile.vercel`, atau `Containerfile.vercel` di root. Berkas ini
+# disalin apa adanya menjadi `Dockerfile.vercel`; salinan yang menyimpang
+# membuat deploy memakai image lama tanpa satu pun galat, jadi
+# `docs/uji/periksa-profil-produksi.sh` menolak bila keduanya berbeda.
