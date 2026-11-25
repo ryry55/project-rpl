@@ -9,18 +9,18 @@ use Carbon\CarbonInterface;
  *
  * Sebelum ini nama kos tertulis di kode di empat tempat: judul bilah pemilik,
  * subjudul layar masuk, subjek email, dan kaki kuitansi. Semuanya berbunyi
- * "Kos-Kosan" — nama contoh, bukan nama kos siapa pun.
+ * "Huni" — nama contoh, bukan nama kos siapa pun.
  *
  * Satu kelas, bukan empat pembacaan kebijakan yang tersebar, karena keempat
  * tempat itu harus menampilkan nama yang **sama**. Kalau masing-masing membaca
  * sendiri, satu tempat akan lupa memakai nilai bawaan dan menampilkan kosong.
  *
- * Nilai bawaannya sengaja tetap "Kos-Kosan": kos yang tidak pernah menyentuh
+ * Nilai bawaannya sengaja tetap "Huni": kos yang tidak pernah menyentuh
  * layar Kebijakan tidak boleh tiba-tiba kehilangan judulnya.
  */
 class IdentitasKos
 {
-    public const BAWAAN = 'Kos-Kosan';
+    public const BAWAAN = 'Huni';
 
     public function __construct(private readonly PenyelesaiKebijakan $penyelesai) {}
 

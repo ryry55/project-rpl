@@ -12,7 +12,7 @@ const route = useRoute()
 /**
  * Inisial lencana dari nama kos.
  *
- * Dulu lencananya selalu "KK" karena namanya selalu "Kos-Kosan". Nama yang bisa
+ * Dulu lencananya selalu "KK" karena namanya selalu "Huni". Nama yang bisa
  * diganti membuat dua huruf tetap itu terbaca seperti sisa aplikasi lain.
  */
 const inisialKos = computed(() =>

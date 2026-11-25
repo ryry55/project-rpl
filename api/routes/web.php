@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => response()->json([
     'data' => [
-        'aplikasi' => 'Sistem Informasi Operasional Kos-Kosan',
+        'aplikasi' => 'Sistem Informasi Operasional Huni',
         'api' => '/api',
     ],
 ]));

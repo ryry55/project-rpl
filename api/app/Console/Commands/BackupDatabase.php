@@ -117,7 +117,7 @@ class BackupDatabase extends Command
             return false;
         }
 
-        fwrite($pegangan, '-- Dump data Kos-Kosan, dibuat '.now('Asia/Jakarta')->toDateTimeString()." WIB\n");
+        fwrite($pegangan, '-- Dump data Huni, dibuat '.now('Asia/Jakarta')->toDateTimeString()." WIB\n");
         fwrite($pegangan, "-- Tanpa DDL. Pulihkan ke skema yang sudah dimigrasi.\n\n");
 
         foreach ($tabel as $nama) {

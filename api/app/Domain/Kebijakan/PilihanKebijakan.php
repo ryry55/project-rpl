@@ -67,7 +67,7 @@ final class PilihanKebijakan
      * memakai batas panjang, bukan `in`. Nilainya dipakai di judul bilah,
      * subjudul layar masuk, subjek email, dan kuitansi.
      *
-     * Tidak wajib: kosong berarti "Kos-Kosan", perilaku sebelum fitur ini.
+     * Tidak wajib: kosong berarti "Huni", perilaku sebelum fitur ini.
      */
     public const TIPE_NAMA_KOS = 'nama_kos';
 

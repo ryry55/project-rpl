@@ -1,10 +1,10 @@
-{{ $jenis === 'aktivasi' ? 'Aktifkan akun Kos-Kosan Anda' : 'Atur ulang kata sandi Kos-Kosan Anda' }}
+{{ $jenis === 'aktivasi' ? 'Aktifkan akun Huni Anda' : 'Atur ulang kata sandi Huni Anda' }}
 
 Halo {{ $nama }},
 
 @if ($jenis === 'aktivasi')
 Pemilik kos Anda baru membuatkan akun untuk Anda di Sistem Informasi
-Operasional Kos-Kosan. Sebelum tautan di bawah dibuka, akun ini belum bisa
+Operasional Huni. Sebelum tautan di bawah dibuka, akun ini belum bisa
 dipakai masuk - dan tidak ada seorang pun, termasuk pemilik kos, yang tahu
 kata sandi akun ini. Kata sandi ditetapkan oleh Anda sendiri pada langkah
 berikutnya.

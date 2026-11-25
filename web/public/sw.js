@@ -1,4 +1,4 @@
-/* Service worker Kos-Kosan.
+/* Service worker Huni.
  *
  * Tugasnya sempit dan disengaja: membuat aplikasi bisa dipasang ke layar utama
  * dan tetap terbuka saat jaringan putus. Ia TIDAK menyentuh data.

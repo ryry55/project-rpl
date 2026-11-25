@@ -10,7 +10,7 @@ use Illuminate\Http\JsonResponse;
  * Nama kos untuk layar yang dibuka sebelum masuk (K-17).
  *
  * Layar masuk adalah satu-satunya halaman yang dilihat orang sebelum punya
- * token, dan judulnya harus menyebut kos yang benar — "Kos-Kosan" di layar
+ * token, dan judulnya harus menyebut kos yang benar — "Huni" di layar
  * masuk kos orang lain terbaca seperti aplikasi yang belum disiapkan.
  *
  * **Tanpa `auth`**, dan isinya sengaja hanya nama. Nama kos tertulis di papan

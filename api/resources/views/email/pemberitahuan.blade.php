@@ -11,7 +11,7 @@
 {!! $pesan !!}
 
 --
-{!! $label !!} - Sistem Informasi Operasional Kos-Kosan
+{!! $label !!} - Sistem Informasi Operasional Huni
 
 @if ($tautan)
 Buka: {!! $alamat !!}{!! $tautan !!}

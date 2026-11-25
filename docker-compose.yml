@@ -43,7 +43,7 @@ services:
       context: ./api
       dockerfile: Dockerfile
     environment:
-      APP_NAME: "Kos-Kosan"
+      APP_NAME: "Huni"
       APP_ENV: ${APP_ENV:-local}
       # `false`, bukan `true`. Tumpukan ini bisa dibuka dari internet lewat
       # Cloudflare Tunnel (docs/fase-akhir.md §5), dan `APP_DEBUG=true` membuat
@@ -83,7 +83,7 @@ services:
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-kos@contoh.test}
-      MAIL_FROM_NAME: "Kos-Kosan"
+      MAIL_FROM_NAME: "Huni"
       RUN_MIGRATIONS: "true"
       RUN_SEEDER: "true"
     depends_on:
