@@ -12,15 +12,16 @@ Terakhir diperbarui: 22 November 2026, Fase 9-10 selesai.
 
 | Hal | Nilai |
 |---|---|
-| Sesi terakhir | **Fase 9-10** — performa (temuan 5, 6, 8) + pemolesan (9, 10, 11, 12) |
-| Rencana berikutnya | **Review charter oleh pemilik** — satu-satunya sisa; tidak ada fase kode lagi |
-| Suite PHP | **927 lulus / 4177 asersi** (dari 918/4142); pint & eslint bersih; 19 vitest |
+| Sesi terakhir | **Deploy Vercel, rename Huni, proposal RPL** (25 Nov 2026) |
+| Rencana berikutnya | **Isi sampul proposal** + review charter pemilik; tidak ada fase kode lagi |
+| Suite PHP | **927 lulus / 4177 asersi**; pint & eslint bersih; 19 vitest |
 | Gate penuh | **SEMUA LULUS** 22 Nov (692 detik, 34 skrip / 942 langkah browser) |
 | Keputusan pemilik | **K-19, K-20 dijawab & diterapkan**; K-01..K-18 tidak berubah |
-| Tunnel demo | **hidup 22 Nov** — URL cepat berganti, salin dari `.env` (cara di §6) |
+| Tunnel demo | **mati** (URL 22 Nov kedaluwarsa); hidupkan ulang bila perlu — §6 |
 | **Deploy live** | **`https://kos-kosan-rosy.vercel.app`** (Vercel Container Runtime + Supabase); jebakannya di `docs/vercel.md` |
+| **Proposal RPL** | `dokumen/11-proposal/Proposal_RPL_Huni.docx` — 33 hlm, model **Waterfall**, sampul placeholder |
 | Paket serahan | **`dokumen/`** — segarkan dengan `dokumen\segarkan.ps1` |
-| CI GitHub | **hijau** pada `4850f6b` (run `45041520685`, 11m55s) — kode Fase 9-10 tervalidasi |
+| CI GitHub | **hijau** pada `e0b0eb6` (run `45636552308`, 10m49s) |
 | Working tree | Bersih sesudah commit sesi ini |
 
 ## 2. Yang sesi ini kerjakan (22 Nov 2026)
@@ -38,16 +39,10 @@ Suite **918 → 927 tes / 4142 → 4177 asersi**. Gate penuh 22 Nov: SEMUA LULUS
 
 **Keputusan pemilik sesudah Fase 9-10**
 
-8. **`pm.max_children` demo = 8, `pm = static`** (`api/docker/php/zz-fpm.conf`),
-   disamakan dengan profil produksi. Uji beban 50 bersamaan: p95 **707 ms**
-   (run pertama sesudah restart) dan 721 ms, 77 permintaan/detik, 0 galat.
-   Dengan `dynamic`, run pertama menanggung kelahiran worker (p95 1510 ms).
-9. **Tunnel demo hidup** kembali (`cloudflared` → port 3000; SPA meneruskan
-   `/api` ke api-web).
-10. **Diagram urutan TIDAK masuk Bab 4 PDF** — Bab 4 adalah laporan Sistem
-    Basis Data (normalisasi/ERD/LRS/spesifikasi); 14 diagram urutan tetap
-    diserahkan sebagai berkas terpisah `urutan-UC-*.svg/png`. Alasan di
-    `docs/akademik/README.md`.
+8. **`pm.max_children` demo = 8, `pm = static`** (`api/docker/php/zz-fpm.conf`);
+   uji beban 50 bersamaan: p95 707 ms dan 721 ms (77 permintaan/detik).
+9. **Diagram urutan TIDAK masuk Bab 4 PDF** — Bab 4 adalah laporan Sistem
+   Basis Data; 14 diagram tetap diserahkan terpisah (`docs/akademik/README.md`).
 
 **Deploy Vercel (25 November 2026)** — `https://kos-kosan-rosy.vercel.app`,
 Container Runtime (image `Dockerfile.vercel` apa adanya) + Postgres Supabase.
@@ -57,16 +52,21 @@ simulasi tanggal (`APP_DEMO_MODE` ditolak entrypoint), email sungguhan
 `docs/vercel.md`; yang terpenting: **`api/vendor` wajib di `.vercelignore`**,
 tanpa itu Vercel menolak "12 Serverless Functions" walau memakai Container.
 
+**Proposal RPL (25 November 2026)** — `dokumen/11-proposal/Proposal_RPL_Huni.docx`,
+33 halaman, model **Waterfall** (wajib mata kuliah). Isinya dari repo: 28 FR,
+12 NFR, 9 aturan bisnis, 14 use case, dan 18 gambar. Tiga diagram baru dibuat
+(activity ×3, arsitektur, waterfall) dan dijaga pemeriksa tata letak. Sampul
+masih placeholder; halaman diagram memakai landscape agar huruf ≥ 6 pt.
+
 ## 3. Tiga aksi berikutnya
 
 1. **Review charter `docs/produk/KONTEKS_PROYEK.md` oleh pemilik** — angka
    sudah disegarkan (927 tes), yang dicek: kejujuran ruang lingkup, tabel
-   "Yang sudah selesai", dan klaim demo. Ini satu-satunya pekerjaan tersisa.
-2. **Demo sudah siap** — tunnel hidup (URL di `.env` dan §1), data demo terisi.
-   Kalau URL berganti, jalankan ulang `isi-demo.mjs` dan `cache:clear` (§6).
-3. **Putuskan diagram urutan** — sudah diputuskan: **tidak masuk Bab 4 PDF**;
-   alasannya di `docs/akademik/README.md` (14 diagram urutan tetap diserahkan
-   sebagai berkas terpisah).
+   "Yang sudah selesai", dan klaim demo.
+2. **Isi sampul proposal** (kelompok, 4 nama + NIM, prodi) dan baca 3.2 —
+   daftar kebutuhan itu yang dinilai paling teliti.
+3. **Demo:** tunnel 22 Nov mati; aplikasi live tetap jalan. Untuk demo denda
+   dari HP, hidupkan tunnel (§6) — simulasi tanggal hanya ada di mode demo.
 
 ## 4. Keputusan terkunci (baru)
 
