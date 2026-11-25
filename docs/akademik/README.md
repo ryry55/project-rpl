@@ -18,6 +18,8 @@ suntingan akan hilang pada build berikutnya.
 | `02-dfd-konteks.svg` / `.png` | DFD konteks (vektor + PNG 2x) |
 | `kelas-{a,b,c}.svg` / `.png` | Diagram kelas, tiga lembar (vektor + PNG 2x) |
 | `urutan-UC-01..14.svg` / `.png` | Diagram urutan, satu per use case (vektor + PNG 2x) |
+| `aktivitas-{terbit-tagihan,catat-pembayaran,hitung-denda}.svg` / `.png` | Diagram aktivitas untuk proposal (vektor + PNG 2x) |
+| `arsitektur-sistem.svg` / `.png` | Arsitektur dua lingkungan (demo dan produksi) untuk proposal |
 
 **Dua format laporan, keduanya diminta.** `Proses_Bisnis_Kos_Kosan.md`
 mengikuti template tujuh bab (narasi 4 halaman + dua halaman diagram).
@@ -47,6 +49,10 @@ lain.** Diagram tangan tidak bisa diperbaiki saat angkanya berubah.
 | `urutan-data.js` | 14 skenario: peserta, langkah, panah balik, catatan kaki |
 | `urutan-gambar.js` | Menggambar SVG urutan + **pemeriksa** rute dan kelas yang benar-benar ada di `api/app` |
 | `build-diagram.js` | Menulis 17 SVG; menolak menulis bila data ditolak penggambar |
+| `aktivitas-data.js` | Sumber tiga alur aktivitas proposal (terbit tagihan, catat pembayaran, denda) |
+| `aktivitas-gambar.js` | Menggambar tiga diagram aktivitas + **pemeriksa** (kotak beririsan, keluar kanvas, cabang kosong) |
+| `arsitektur-gambar.js` | Menggambar arsitektur dua lingkungan + pemeriksa tata letak kotak |
+| `build-proposal.js` | Menulis `dokumen/11-proposal/Proposal_RPL_Huni.docx` (isi dari usecase-data, tabel, dan gambar) |
 | `rute-api.json` | Potret `route:list --json` - 100 endpoint |
 | `tabel-domain.json` | Potret 26 tabel domain dari `pg_attribute` |
 
@@ -55,6 +61,8 @@ lain.** Diagram tangan tidak bisa diperbaiki saat angkanya berubah.
 ```powershell
 node docs/akademik/build.js           # SVG
 node docs/akademik/build-diagram.js   # 17 SVG kelas + urutan
+node docs/akademik/aktivitas-gambar.js  # 3 SVG diagram aktivitas
+node docs/akademik/arsitektur-gambar.js # 1 SVG arsitektur
 node docs/akademik/build-dokumen.js   # tiga berkas .md
 powershell -ExecutionPolicy Bypass -File docs/akademik/export-png.ps1   # PNG 2x
 powershell -ExecutionPolicy Bypass -File docs/akademik/export-pdf.ps1        # narasi -> PDF

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="914" viewBox="0 0 1120 914" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <marker id="kepala" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1e293b"/>
+    </marker>
+    <marker id="kepalaHijau" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#15803d"/>
+    </marker>
+    <marker id="kepalaMerah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b91c1c"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="60" y="52" font-size="24" font-weight="700" fill="#0f172a">ACTIVITY DIAGRAM TERBIT TAGIHAN</text>
+  <text x="60" y="76" font-size="13" fill="#475569">Sistem Informasi Operasional Huni  -  Gambar III.2</text>
+  <line x1="490" y1="156" x2="490" y2="204" stroke="#1e293b" stroke-width="1.6" marker-end="url(#kepala)"/>
+  <line x1="490" y1="302" x2="490" y2="334" stroke="#1e293b" stroke-width="1.6" marker-end="url(#kepala)"/>
+  <line x1="490" y1="400" x2="490" y2="432" stroke="#1e293b" stroke-width="1.6" marker-end="url(#kepala)"/>
+  <line x1="490" y1="498" x2="490" y2="530" stroke="#1e293b" stroke-width="1.6" marker-end="url(#kepala)"/>
+  <line x1="490" y1="596" x2="490" y2="628" stroke="#1e293b" stroke-width="1.6" marker-end="url(#kepala)"/>
+  <line x1="490" y1="726" x2="490" y2="758" stroke="#1e293b" stroke-width="1.6" marker-end="url(#kepala)"/>
+  <line x1="680" y1="254" x2="726" y2="254" stroke="#15803d" stroke-width="1.4" marker-end="url(#kepalaHijau)"/>
+  <line x1="300" y1="254" x2="254" y2="254" stroke="#b91c1c" stroke-width="1.4" marker-end="url(#kepalaMerah)"/>
+  <text x="732" y="246" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="700" fill="#15803d">ya</text>
+  <text x="224" y="246" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">tidak</text>
+  <line x1="680" y1="678" x2="726" y2="678" stroke="#15803d" stroke-width="1.4" marker-end="url(#kepalaHijau)"/>
+  <line x1="300" y1="678" x2="254" y2="678" stroke="#b91c1c" stroke-width="1.4" marker-end="url(#kepalaMerah)"/>
+  <text x="732" y="670" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="700" fill="#15803d">ya</text>
+  <text x="224" y="670" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">tidak</text>
+  <line x1="726" y1="385" x2="680" y2="385" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <line x1="726" y1="474" x2="680" y2="474" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <circle cx="490" cy="140" r="16" fill="#0f172a"/>
+  <polygon points="490,206 680,254 490,302 300,254" fill="#fff7ed" stroke="#b45309" stroke-width="1.6"/><text x="490" y="259" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="600" fill="#0f172a" text-anchor="middle">Kebijakan kos lengkap?</text>
+  <rect x="726" y="336" width="300" height="98" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4"/><text x="876" y="363" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#475569" text-anchor="middle">Kebijakan kos lengkap (R-02): satuan</text><text x="876" y="381" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#475569" text-anchor="middle">sewa, jatuh tempo, denda. Tanpa</text><text x="876" y="399" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#475569" text-anchor="middle">ketiganya tagihan tidak boleh terbit -</text><text x="876" y="417" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#475569" text-anchor="middle">sistem tidak menebak angka uang.</text>
+  <rect x="300" y="336" width="380" height="64" rx="8" fill="#ffffff" stroke="#1e293b" stroke-width="1.6"/><text x="490" y="364" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#0f172a" text-anchor="middle">Sistem menghitung pokok: prorata bila masuk di</text><text x="490" y="382" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#0f172a" text-anchor="middle">tengah bulan</text>
+  <rect x="726" y="434" width="300" height="80" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4"/><text x="876" y="461" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#475569" text-anchor="middle">Prorata = tarif x hari tinggal / hari</text><text x="876" y="479" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#475569" text-anchor="middle">dalam bulan, hari masuk ikut dihitung</text><text x="876" y="497" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#475569" text-anchor="middle">(R-01).</text>
+  <rect x="300" y="434" width="380" height="64" rx="8" fill="#ffffff" stroke="#1e293b" stroke-width="1.6"/><text x="490" y="462" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#0f172a" text-anchor="middle">Sistem membekukan tarif dan kebijakan yang</text><text x="490" y="480" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#0f172a" text-anchor="middle">dipakai</text>
+  <rect x="300" y="532" width="380" height="64" rx="8" fill="#ffffff" stroke="#1e293b" stroke-width="1.6"/><text x="490" y="560" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#0f172a" text-anchor="middle">Sistem menyimpan tagihan, rincian, dan jejak</text><text x="490" y="578" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#0f172a" text-anchor="middle">audit dalam satu transaksi</text>
+  <polygon points="490,630 680,678 490,726 300,678" fill="#fff7ed" stroke="#b45309" stroke-width="1.6"/><text x="490" y="674" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="600" fill="#0f172a" text-anchor="middle">Tagihan untuk periode itu sudah</text><text x="490" y="692" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="600" fill="#0f172a" text-anchor="middle">ada?</text>
+  <circle cx="490" cy="782" r="20" fill="#ffffff" stroke="#0f172a" stroke-width="2"/><circle cx="490" cy="782" r="12" fill="#0f172a"/>
+</svg>

@@ -22,6 +22,7 @@ powershell -ExecutionPolicy Bypass -File dokumen\segarkan.ps1
 | `08-diagram-kelas` | Diagram kelas tiga lembar | 3 PNG | segar — atribut & metode diturunkan dari skema + model, dijaga pemeriksa gate (audit 17 Nov) |
 | `09-diagram-urutan` | Diagram urutan 14 use case | 14 PNG | segar - UC-08 (webhook) dan UC-13 (tautan) menggambar alur K-19/K-20 (17 Nov); **sengaja di luar Bab 4** - huruf 12 px hanya 2,52 mm di A3, 1,86 mm di A4 (`docs/akademik/README.md`) |
 | `10-peta-ketertelusuran` | Peta aturan → kode → tes | md | segar — baris K-19/K-20 + temuan #1 (17 Nov) |
+| `11-proposal` | Proposal RPL (BAB I-V, 33 halaman) | DOCX | baru 25 Nov — sampul masih placeholder; diagram UML pada halaman landscape |
 
 Diagram normalisasi 1NF–4NF ada di dalam PDF Bab 4; sumber SVG-nya
 `docs/akademik/04-*.svg`.

@@ -391,19 +391,19 @@ function gambarUseCase(rute) {
   ].join('\n');
 
   const isi = [
-    head(kanvas.w, kanvas.h, 'Diagram Use Case — Sistem Informasi Operasional Kos-Kosan'),
+    head(kanvas.w, kanvas.h, 'Diagram Use Case — Sistem Informasi Operasional Huni'),
     teks(60, 46, 'DIAGRAM USE CASE', 26, 700, C.ink, 'start'),
     teks(
       60,
       74,
-      `Sistem Informasi Operasional Kos-Kosan  ·  ${D.AKTOR.length} aktor  ·  ${D.USE_CASE.length} use case`,
+      `Sistem Informasi Operasional Huni  ·  ${D.AKTOR.length} aktor  ·  ${D.USE_CASE.length} use case`,
       14,
       400,
       C.sub,
       'start'
     ),
     `<rect x="${batas.x}" y="${batas.y}" width="${batas.w}" height="${batas.h}" rx="10" fill="${C.batasIsi}" stroke="${C.batas}" stroke-width="1.6"/>`,
-    teks(batas.x + batas.w / 2, batas.y + 30, 'Sistem Informasi Operasional Kos-Kosan', 14, 700, C.batasLabel),
+    teks(batas.x + batas.w / 2, batas.y + 30, 'Sistem Informasi Operasional Huni', 14, 700, C.batasLabel),
     garis.join('\n'),
     posisi.map((e) => elipsUC(e, e.uc.kode)).join('\n'),
     D.AKTOR.map((a) => aktor(a, D.TATA_LETAK.aktor[a.kunci])).join('\n'),

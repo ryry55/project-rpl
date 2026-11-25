@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1300" height="1200" viewBox="0 0 1300 1200" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
 <rect width="1300" height="1200" fill="#ffffff"/>
-<title>Diagram Use Case — Sistem Informasi Operasional Kos-Kosan</title>
+<title>Diagram Use Case — Sistem Informasi Operasional Huni</title>
 <text x="60" y="46" text-anchor="start" dominant-baseline="central" font-size="26" font-weight="700" fill="#0f172a">DIAGRAM USE CASE</text>
-<text x="60" y="74" text-anchor="start" dominant-baseline="central" font-size="14" font-weight="400" fill="#475569">Sistem Informasi Operasional Kos-Kosan  ·  3 aktor  ·  14 use case</text>
+<text x="60" y="74" text-anchor="start" dominant-baseline="central" font-size="14" font-weight="400" fill="#475569">Sistem Informasi Operasional Huni  ·  3 aktor  ·  14 use case</text>
 <rect x="300" y="84" width="660" height="1044" rx="10" fill="#fbfcfe" stroke="#94a3b8" stroke-width="1.6"/>
-<text x="630" y="114" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="700" fill="#334155">Sistem Informasi Operasional Kos-Kosan</text>
+<text x="630" y="114" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="700" fill="#334155">Sistem Informasi Operasional Huni</text>
 <path d="M180 584 L418 132" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
 <path d="M180 584 L418 204" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
 <path d="M180 584 L418 276" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
@@ -97,5 +97,5 @@
 <text x="390" y="1164" text-anchor="start" dominant-baseline="central" font-size="11.5" font-weight="500" fill="#475569">use case</text>
 <rect x="500" y="1151" width="26" height="26" fill="#fbfcfe" stroke="#94a3b8" stroke-width="1.4"/>
 <text x="534" y="1164" text-anchor="start" dominant-baseline="central" font-size="11.5" font-weight="500" fill="#475569">batas sistem</text>
-<text x="60" y="1190" text-anchor="start" dominant-baseline="central" font-size="11.5" font-weight="400" fill="#475569">3 aktor  ·  14 use case  ·  86 endpoint nyata  ·  setiap use case menunjuk minimal satu rute pada api/routes/api.php</text>
+<text x="60" y="1190" text-anchor="start" dominant-baseline="central" font-size="11.5" font-weight="400" fill="#475569">3 aktor  ·  14 use case  ·  100 endpoint nyata  ·  setiap use case menunjuk minimal satu rute pada api/routes/api.php</text>
 </svg>
