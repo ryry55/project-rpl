@@ -20,6 +20,7 @@ suntingan akan hilang pada build berikutnya.
 | `urutan-UC-01..14.svg` / `.png` | Diagram urutan, satu per use case (vektor + PNG 2x) |
 | `aktivitas-{terbit-tagihan,catat-pembayaran,hitung-denda}.svg` / `.png` | Diagram aktivitas untuk proposal (vektor + PNG 2x) |
 | `arsitektur-sistem.svg` / `.png` | Arsitektur dua lingkungan (demo dan produksi) untuk proposal |
+| `waterfall.svg` / `.png` | Tahapan model Waterfall untuk proposal (Gambar II.1) |
 
 **Dua format laporan, keduanya diminta.** `Proses_Bisnis_Kos_Kosan.md`
 mengikuti template tujuh bab (narasi 4 halaman + dua halaman diagram).

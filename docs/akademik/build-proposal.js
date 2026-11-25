@@ -196,7 +196,7 @@ const DAFTAR_TABEL = [
   ['Tabel III.2', 'Kebutuhan Nonfungsional Sistem', '12'],
   ['Tabel III.3', 'Aktor dan Hak Akses', '12'],
   ['Tabel III.4', 'Kebutuhan Fungsional per Aktor', '12'],
-  ['Tabel III.5', 'Deskripsi Use Case UC-07 Terbitkan & Kelola Tagihan', '13'],
+  ['Tabel III.5', 'Deskripsi Use Case UC-07 Terbitkan & Kelola Tagihan', '14'],
   ['Tabel III.6', 'Deskripsi Use Case UC-08 Catat Pembayaran Sewa', '14'],
   ['Tabel III.7', 'Teknologi yang Digunakan', '24'],
   ['Tabel IV.1', 'Kesesuaian Kebutuhan Fungsional dengan Rancangan Antarmuka', '31'],
@@ -204,6 +204,7 @@ const DAFTAR_TABEL = [
 ];
 
 const DAFTAR_GAMBAR = [
+  ['Gambar II.1', 'Tahapan Model Waterfall', '9'],
   ['Gambar III.1', 'Use Case Diagram Sistem Informasi Operasional Huni', '15'],
   ['Gambar III.2', 'Activity Diagram Terbit Tagihan', '16'],
   ['Gambar III.3', 'Activity Diagram Catat Pembayaran', '17'],
@@ -456,7 +457,7 @@ async function utama() {
     butir('Setiap klaim dibuktikan. Aturan uang tidak cukup "diperiksa dengan mata"; ia diuji otomatis dan hasilnya tercatat.'),
     butir('Perubahan dijaga riwayatnya. Data keuangan bersifat tambah-saja, dan setiap perubahan angka memiliki jejak audit.'),
     p(
-      'Tahapan rekayasa perangkat lunak yang dipakai meliputi analisis kebutuhan, perancangan, implementasi, pengujian, dan pemeliharaan. Pada proyek ini kelima tahap tidak berjalan satu kali, melainkan berulang dalam siklus pendek, sebagaimana dijelaskan pada subbab berikutnya.',
+      'Tahapan rekayasa perangkat lunak yang dipakai meliputi analisis kebutuhan, perancangan, implementasi, pengujian, dan pemeliharaan. Pada proyek ini kelima tahap dijalankan berurutan, masing-masing dengan keluaran yang menjadi masukan tahap berikutnya, sebagaimana dijelaskan pada subbab 3.1.',
       { indentasi: true }
     ),
 
@@ -473,9 +474,10 @@ async function utama() {
       [16, 30, 27, 27]
     ),
     p(
-      'Perbandingan di atas menjadi dasar pemilihan model pada subbab 3.1. Model yang dipilih harus sesuai dengan keadaan proyek: tim kecil, kebutuhan yang sebagian sudah jelas tetapi rinciannya baru terlihat setelah dicoba, dan tidak ada anggaran untuk mengulang dari awal.',
+      'Perbandingan di atas menjadi dasar pemilihan model pada subbab 3.1. Model yang dipilih harus sesuai dengan keadaan proyek: kebutuhan dapat ditetapkan di muka, lingkupnya tetap, dan setiap tahap dituntut menghasilkan dokumen yang dapat diperiksa sebelum tahap berikutnya dimulai.',
       { indentasi: true }
     ),
+    ...gambar('waterfall.png', 'docs/akademik', 'Gambar II.1 Tahapan Model Waterfall', 15),
     new Paragraph({ children: [new PageBreak()] }),
 
     /* ----------------------------------------------------------- BAB III */
@@ -483,18 +485,19 @@ async function utama() {
 
     h2('3.1 Pemilihan Model Pengembangan Perangkat Lunak'),
     p(
-      'Model yang dipilih adalah Agile dengan pendekatan iteratif-incremental. Alasannya tiga. Pertama, kebutuhan sistem ini sudah diketahui kerangkanya, tetapi rinciannya baru terbukti ketika dijalankan: apakah prorata dihitung dari tanggal masuk, bagaimana denda berhenti saat pokok lunas, dan bagaimana status tagihan berubah ketika pembayaran ditarik. Pertanyaan seperti itu lebih cepat dijawab dengan membuat satu penambahan kecil lalu menguji perilakunya daripada menuliskan seluruh rancangan di atas kertas. Kedua, tim berukuran kecil sehingga koordinasi tidak membutuhkan upacara yang berat. Ketiga, pengujian otomatis memungkinkan perubahan dilakukan tanpa takut merusak aturan yang sudah benar, dan hal itu merupakan syarat agar siklus pendek tidak berubah menjadi tambal-sulam.',
+      'Model yang dipilih adalah Waterfall. Alasannya tiga. Pertama, kebutuhan sistem ini dapat ditetapkan di muka: objeknya satu kos dengan aturan yang ditentukan pemilik, sehingga daftar kebutuhan fungsional dan nonfungsional dapat diselesaikan dan disetujui sebelum penulisan kode dimulai. Kedua, lingkupnya tetap dan tidak menunggu umpan balik pasar; yang berubah selama pengerjaan adalah penemuan kesalahan dan penyempurnaan aturan, bukan penambahan fitur baru, sehingga perubahan itu dicatat sebagai amandemen kontrak kebutuhan, bukan sebagai siklus baru. Ketiga, setiap tahap menghasilkan dokumen yang menjadi masukan tahap berikutnya, dan itu cocok dengan kebutuhan akademik yang menuntut jejak perancangan yang dapat diperiksa: analisis kebutuhan, desain, implementasi, pengujian, dan pemeliharaan.',
       { indentasi: true }
     ),
-    p('Rancangan pengembangan dibagi menjadi lima iterasi. Setiap iterasi menghasilkan sesuatu yang dapat dinilai, bukan sekadar dokumen.', { indentasi: true }),
+    p('Konsekuensi yang harus diterima adalah sifatnya yang kaku: kesalahan yang baru ditemukan pada tahap pengujian menuntut penelusuran kembali ke tahap desain. Karena itu setiap tahap diberi gerbang yang harus lulus sebelum tahap berikutnya dimulai, dan perubahan setelah gerbang dilampirkan sebagai amandemen bernomor agar tidak ada aturan yang berubah tanpa jejak.', { indentasi: true }),
+    p('Tahapan pengembangan beserta keluarannya adalah sebagai berikut.', { indentasi: true }),
     tabel(
-      ['Iterasi', 'Hasil yang dapat dinilai', 'Pengujian'],
+      ['Tahap', 'Aktivitas dan keluaran', 'Gerbang'],
       [
-        ['1. Fondasi', 'Autentikasi tiga peran, skema basis data, kerangka API dan SPA', 'Tes autentikasi dan isolasi data'],
-        ['2. Data induk', 'Kamar, fasilitas, penghuni, kontrak, tarif, dan kebijakan kos', 'Tes prorata dan kebijakan wajib'],
-        ['3. Uang masuk', 'Penerbitan tagihan, pencatatan pembayaran, denda, pembatalan dan pembalikan', 'Tes denda, status turunan, dan append-only'],
-        ['4. Pengawasan', 'Rekap pendapatan, tunggakan, jejak audit, wewenang pengelola, dan alur persetujuan', 'Tes rekonsiliasi dan wewenang'],
-        ['5. Pemantapan', 'Portal penghuni, pembayaran daring, PWA, aksesibilitas, dan penyebaran', 'Uji peramban, uji aksesibilitas, uji beban'],
+        ['1. Analisis kebutuhan', 'Wawancara pemilik kos; 28 kebutuhan fungsional, 12 kebutuhan nonfungsional, dan 9 aturan bisnis', 'Kebutuhan disetujui pemilik; tidak ada fitur tanpa nomor kebutuhan'],
+        ['2. Desain sistem', 'Skema basis data, use case, activity, sequence, dan class diagram, rancangan antarmuka', 'Setiap kelas menunjuk tabel yang ada; setiap use case menunjuk endpoint nyata'],
+        ['3. Implementasi', 'API Laravel, antarmuka Vue 3, dan basis data PostgreSQL', 'Build berhasil; tes unit dan integrasi hijau'],
+        ['4. Pengujian', '927 tes PHP, 19 tes Vitest, 34 skrip uji peramban, uji aksesibilitas, dan uji beban', 'Seluruh uji lulus; tidak ada temuan terbuka'],
+        ['5. Pemeliharaan', 'Perbaikan temuan audit dan penyesuaian aturan (mis. perlakuan uang pada tagihan yang dibatalkan)', 'Setiap perubahan dicatat sebagai amandemen dan diuji ulang'],
       ],
       [18, 55, 27]
     ),
@@ -734,7 +737,7 @@ async function utama() {
       { indentasi: true }
     ),
     p(
-      'Model Agile dengan pendekatan iteratif-incremental dipilih karena kebutuhan sistem ini baru terbukti rinciannya ketika dijalankan, sementara tim berukuran kecil dan tidak tersedia anggaran untuk mengulang dari awal. Setiap iterasi menghasilkan bagian yang dapat dinilai dan diuji, sehingga perubahan pada satu aturan tidak merusak aturan lain.',
+      'Model Waterfall dipilih karena kebutuhan sistem ini dapat ditetapkan di muka dan lingkupnya tetap, sehingga setiap tahap dapat diselesaikan dan diperiksa sebelum tahap berikutnya dimulai. Kekakuan model itu diimbangi dua hal: gerbang pengujian pada setiap tahap, dan pencatatan setiap perubahan aturan sebagai amandemen bernomor, sehingga tidak ada aturan yang berubah tanpa jejak.',
       { indentasi: true }
     ),
     p(

@@ -61,7 +61,8 @@ $berkas = @(
     'aktivitas-terbit-tagihan.svg',
     'aktivitas-catat-pembayaran.svg',
     'aktivitas-hitung-denda.svg',
-    'arsitektur-sistem.svg'
+    'arsitektur-sistem.svg',
+    'waterfall.svg'
 )
 foreach ($n in 1..14) { $berkas += ('urutan-UC-{0:D2}.svg' -f $n) }
 
