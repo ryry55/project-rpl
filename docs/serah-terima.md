@@ -50,15 +50,12 @@ Suite **918 → 927 tes / 4142 → 4177 asersi**. Gate penuh 22 Nov: SEMUA LULUS
     `docs/akademik/README.md`.
 
 **Deploy Vercel (25 November 2026)** — `https://kos-kosan-rosy.vercel.app`,
-Vercel Container Runtime (image `Dockerfile.vercel` apa adanya) + Postgres
-Supabase. Akun pemilik live: `pemilik@kos.test` (sandi di
-`%TEMP%\opencode\sandi-pemilik-live.txt`, sudah diganti dari hasil bangkitan).
-Tiga hal yang tidak ikut: simulasi tanggal (entrypoint menolak
-`APP_DEMO_MODE=true`), email sungguhan (`MAIL_MAILER=log`), cron tagihan
-harian (belum dibuat — keputusan pemilik). Empat jebakan deploy ada di
-`docs/vercel.md`; yang terpenting: **`api/vendor` harus di `.vercelignore`**,
-kalau tidak Vercel menolak dengan "12 Serverless Functions" walau memakai
-Container Runtime.
+Container Runtime (image `Dockerfile.vercel` apa adanya) + Postgres Supabase.
+Sandi pemilik live: `%TEMP%\opencode\sandi-pemilik-live.txt`. Tidak ikut:
+simulasi tanggal (`APP_DEMO_MODE` ditolak entrypoint), email sungguhan
+(`MAIL_MAILER=log`), cron tagihan (belum dibuat). Empat jebakannya di
+`docs/vercel.md`; yang terpenting: **`api/vendor` wajib di `.vercelignore`**,
+tanpa itu Vercel menolak "12 Serverless Functions" walau memakai Container.
 
 ## 3. Tiga aksi berikutnya
 
