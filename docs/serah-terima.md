@@ -18,6 +18,7 @@ Terakhir diperbarui: 22 November 2026, Fase 9-10 selesai.
 | Gate penuh | **SEMUA LULUS** 22 Nov (692 detik, 34 skrip / 942 langkah browser) |
 | Keputusan pemilik | **K-19, K-20 dijawab & diterapkan**; K-01..K-18 tidak berubah |
 | Tunnel demo | **hidup 22 Nov** — URL cepat berganti, salin dari `.env` (cara di §6) |
+| **Deploy live** | **`https://kos-kosan-rosy.vercel.app`** (Vercel Container Runtime + Supabase); jebakannya di `docs/vercel.md` |
 | Paket serahan | **`dokumen/`** — segarkan dengan `dokumen\segarkan.ps1` |
 | CI GitHub | **hijau** pada `4850f6b` (run `45041520685`, 11m55s) — kode Fase 9-10 tervalidasi |
 | Working tree | Bersih sesudah commit sesi ini |
@@ -47,6 +48,17 @@ Suite **918 → 927 tes / 4142 → 4177 asersi**. Gate penuh 22 Nov: SEMUA LULUS
     Basis Data (normalisasi/ERD/LRS/spesifikasi); 14 diagram urutan tetap
     diserahkan sebagai berkas terpisah `urutan-UC-*.svg/png`. Alasan di
     `docs/akademik/README.md`.
+
+**Deploy Vercel (25 November 2026)** — `https://kos-kosan-rosy.vercel.app`,
+Vercel Container Runtime (image `Dockerfile.vercel` apa adanya) + Postgres
+Supabase. Akun pemilik live: `pemilik@kos.test` (sandi di
+`%TEMP%\opencode\sandi-pemilik-live.txt`, sudah diganti dari hasil bangkitan).
+Tiga hal yang tidak ikut: simulasi tanggal (entrypoint menolak
+`APP_DEMO_MODE=true`), email sungguhan (`MAIL_MAILER=log`), cron tagihan
+harian (belum dibuat — keputusan pemilik). Empat jebakan deploy ada di
+`docs/vercel.md`; yang terpenting: **`api/vendor` harus di `.vercelignore`**,
+kalau tidak Vercel menolak dengan "12 Serverless Functions" walau memakai
+Container Runtime.
 
 ## 3. Tiga aksi berikutnya
 
