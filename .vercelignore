@@ -1,0 +1,12 @@
+﻿# Artefak yang DIPASANG ULANG di dalam image, bukan dikirim dari laptop.
+#
+# api/vendor berisi ribuan berkas .php. Vercel memindai folder api/ sebagai
+# direktori fungsi serverless, dan pada paket Hobby batasnya 12 - deployment
+# ditolak dengan "No more than 12 Serverless Functions can be added to a
+# Deployment on the Hobby plan" walau project memakai Container Runtime.
+# Terbukti lewat bisect: dengan api/ di-ignore, deploy lolos; dengan vendor
+# saja yang di-ignore, deploy juga lolos. Vendor tidak dibutuhkan saat upload
+# karena Dockerfile.vercel menjalankan `composer install` sendiri.
+api/vendor
+web/node_modules
+node_modules
