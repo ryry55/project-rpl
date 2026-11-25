@@ -433,7 +433,7 @@ async function utama() {
 
     h2('2.1 Konsep Perangkat Lunak'),
     p(
-      'Perangkat lunak adalah kumpulan instruksi yang dieksekusi komputer untuk menghasilkan fungsi tertentu, ditambah data dan dokumentasi yang menyertainya. Sommerville (2016) menekankan bahwa perangkat lunak bukan sekadar program: ia adalah produk yang dikembangkan, dipelihara, dan berubah sepanjang waktu. Perangkat lunak berbeda dari perangkat keras karena tidak "aus", tetapi justru cenderung bertambah rumit setiap kali diubah.',
+      'Perangkat lunak adalah kumpulan instruksi yang dieksekusi komputer untuk menghasilkan fungsi tertentu, ditambah data dan dokumentasi yang menyertainya. Sommerville (2016) menekankan bahwa perangkat lunak bukan sekadar program: ia adalah produk yang dikembangkan, dipelihara, dan berubah sepanjang waktu. Perangkat lunak berbeda dari perangkat keras karena tidak "aus", tetapi justru cenderung bertambah rumit setiap kali diubah [1].',
       { indentasi: true }
     ),
     p(
@@ -447,7 +447,7 @@ async function utama() {
 
     h2('2.2 Rekayasa Perangkat Lunak'),
     p(
-      'Rekayasa perangkat lunak adalah penerapan pendekatan yang sistematis, disiplin, dan terukur untuk pengembangan, pengoperasian, dan pemeliharaan perangkat lunak (Pressman & Maxim, 2020). Tujuannya bukan menghasilkan kode sebanyak mungkin, melainkan menghasilkan perangkat lunak yang benar, dapat dipelihara, dan sesuai kebutuhan pada biaya yang wajar.',
+      'Rekayasa perangkat lunak adalah penerapan pendekatan yang sistematis, disiplin, dan terukur untuk pengembangan, pengoperasian, dan pemeliharaan perangkat lunak (Pressman & Maxim, 2020). Tujuannya bukan menghasilkan kode sebanyak mungkin, melainkan menghasilkan perangkat lunak yang benar, dapat dipelihara, dan sesuai kebutuhan pada biaya yang wajar [2].',
       { indentasi: true }
     ),
     p('Prinsip yang dipegang dalam perancangan ini adalah sebagai berikut:', { indentasi: true }),
@@ -461,7 +461,7 @@ async function utama() {
     ),
 
     h2('2.3 Model Pengembangan Perangkat Lunak'),
-    p('Beberapa model pengembangan yang umum dipakai beserta karakteristiknya:', { indentasi: true }),
+    p('Beberapa model pengembangan yang umum dipakai [1][2] beserta karakteristiknya:', { indentasi: true }),
     tabel(
       ['Model', 'Karakteristik', 'Kelebihan', 'Kekurangan'],
       [
@@ -572,7 +572,7 @@ async function utama() {
 
     h2('3.5 Perancangan Proses Sistem Menggunakan UML'),
     p(
-      'Pemodelan menggunakan empat diagram UML. Seluruh gambar ditempatkan pada halaman memanjang (landscape) setelah subbab ini agar teks di dalamnya tetap terbaca; penjelasan setiap diagram mengikuti urutan gambarnya.',
+      'Pemodelan menggunakan empat diagram UML [3]. Seluruh gambar ditempatkan pada halaman memanjang (landscape) setelah subbab ini agar teks di dalamnya tetap terbaca; penjelasan setiap diagram mengikuti urutan gambarnya.',
       { indentasi: true }
     ),
     h3('3.5.1 Use Case Diagram'),
