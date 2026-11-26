@@ -1,6 +1,6 @@
 ---
-name: Kos-Kosan
-description: Sistem informasi operasional kos-kosan — buku besar tanpa warna untuk pemilik kos 5–30 kamar.
+name: Huni
+description: Sistem informasi operasional Huni - buku besar tanpa warna untuk pemilik kos 5-30 kamar.
 colors:
   ground: "#f8f8f8"
   surface: "#ffffff"
@@ -95,7 +95,7 @@ components:
     padding: "8px 11px"
 ---
 
-# Design System: Kos-Kosan
+# Design System: Huni
 
 ## Overview
 

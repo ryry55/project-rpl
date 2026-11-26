@@ -16,6 +16,15 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     /*
+    | Rahasia endpoint cron (Vercel Cron).
+    |
+    | Kosong berarti endpoint cron dimatikan (503), bukan dijalankan tanpa
+    | autentikasi: endpoint yang menerbitkan tagihan tanpa penjaga adalah jalan
+    | bagi siapa pun untuk menagih seluruh penghuni.
+    */
+    'cron_secret' => env('CRON_SECRET'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-# Konteks Proyek — Sistem Informasi Operasional Kos-Kosan
+# Konteks Proyek — Sistem Informasi Operasional Huni
 
 > **Baca ini dulu.** Dokumen ini adalah pintu masuk: apa proyek ini, untuk siapa,
 > sudah sampai mana, dan apa yang harus dilakukan berikutnya.

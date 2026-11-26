@@ -1,96 +1,96 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="1200" viewBox="0 0 1300 1200" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
-<rect width="1300" height="1200" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1330" height="760" viewBox="0 0 1330 760" font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
+<rect width="1330" height="760" fill="#ffffff"/>
 <title>Diagram Use Case — Sistem Informasi Operasional Huni</title>
 <text x="60" y="46" text-anchor="start" dominant-baseline="central" font-size="26" font-weight="700" fill="#0f172a">DIAGRAM USE CASE</text>
 <text x="60" y="74" text-anchor="start" dominant-baseline="central" font-size="14" font-weight="400" fill="#475569">Sistem Informasi Operasional Huni  ·  3 aktor  ·  14 use case</text>
-<rect x="300" y="84" width="660" height="1044" rx="10" fill="#fbfcfe" stroke="#94a3b8" stroke-width="1.6"/>
-<text x="630" y="114" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="700" fill="#334155">Sistem Informasi Operasional Huni</text>
-<path d="M180 584 L418 132" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M180 584 L418 204" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M180 584 L418 276" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M180 584 L418 348" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M180 584 L418 420" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M180 584 L418 492" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M180 584 L418 564" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M180 584 L418 636" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M180 584 L418 708" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M180 584 L418 780" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M180 584 L418 852" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M180 584 L418 924" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M180 584 L418 1068" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 356 L842 132" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 356 L842 204" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 356 L842 276" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 356 L842 348" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 356 L842 420" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 356 L842 492" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 356 L842 564" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 356 L842 636" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 356 L842 708" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 356 L842 780" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 356 L842 852" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 356 L842 1068" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 884 L842 132" fill="none" stroke="#b45309" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 884 L842 852" fill="none" stroke="#b45309" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<path d="M1120 884 L842 996" fill="none" stroke="#b45309" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
-<ellipse cx="630" cy="132" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="123" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-01</text>
-<text x="630" y="141" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Registrasi &amp; Login Akun</text>
-<ellipse cx="630" cy="204" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="195" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-02</text>
-<text x="630" y="213" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Kelola Kamar, Fasilitas &amp; Aturan</text>
-<ellipse cx="630" cy="276" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="267" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-03</text>
-<text x="630" y="285" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Kelola Penghuni &amp; Kontrak</text>
-<ellipse cx="630" cy="348" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="339" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-04</text>
-<text x="630" y="357" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Kelola Tarif &amp; Komponen Biaya</text>
-<ellipse cx="630" cy="420" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="411" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-05</text>
-<text x="630" y="429" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Kelola Kebijakan Kos</text>
-<ellipse cx="630" cy="492" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="483" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-06</text>
-<text x="630" y="501" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Persetujuan Usulan Perubahan</text>
-<ellipse cx="630" cy="564" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="555" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-07</text>
-<text x="630" y="573" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Terbitkan &amp; Kelola Tagihan</text>
-<ellipse cx="630" cy="636" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="627" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-08</text>
-<text x="630" y="645" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Catat Pembayaran Sewa</text>
-<ellipse cx="630" cy="708" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="699" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-09</text>
-<text x="630" y="717" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Verifikasi &amp; Koreksi Pembayaran</text>
-<ellipse cx="630" cy="780" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="771" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-10</text>
-<text x="630" y="789" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Laporan Rekap &amp; Jejak Audit</text>
-<ellipse cx="630" cy="852" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="843" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-11</text>
-<text x="630" y="861" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Preferensi Akun, Notifikasi &amp; Data Pribadi</text>
-<ellipse cx="630" cy="924" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="915" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-12</text>
-<text x="630" y="933" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Kelola Akun Pengelola &amp; Wewenang</text>
-<ellipse cx="630" cy="996" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="987" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-13</text>
-<text x="630" y="1005" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Portal Penghuni</text>
-<ellipse cx="630" cy="1068" rx="212" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
-<text x="630" y="1059" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-14</text>
-<text x="630" y="1077" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Rekening, Penyiapan &amp; Diagnostik</text>
-<circle cx="150" cy="558" r="13" fill="#eef2ff" stroke="#3730a3" stroke-width="2"/>
-<path d="M150 571 V608" fill="none" stroke="#3730a3" stroke-width="2"/>
-<path d="M128 584 H172" fill="none" stroke="#3730a3" stroke-width="2"/>
-<path d="M150 608 L134 638 M150 608 L166 638" fill="none" stroke="#3730a3" stroke-width="2"/>
-<text x="150" y="660" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="700" fill="#0f172a">Pemilik</text>
-<text x="150" y="678" text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="500" fill="#475569">Kos</text>
-<circle cx="1150" cy="330" r="13" fill="#ecfdf5" stroke="#0f766e" stroke-width="2"/>
-<path d="M1150 343 V380" fill="none" stroke="#0f766e" stroke-width="2"/>
-<path d="M1128 356 H1172" fill="none" stroke="#0f766e" stroke-width="2"/>
-<path d="M1150 380 L1134 410 M1150 380 L1166 410" fill="none" stroke="#0f766e" stroke-width="2"/>
-<text x="1150" y="432" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="700" fill="#0f172a">Pengelola</text>
-<circle cx="1150" cy="858" r="13" fill="#fffbeb" stroke="#b45309" stroke-width="2"/>
-<path d="M1150 871 V908" fill="none" stroke="#b45309" stroke-width="2"/>
-<path d="M1128 884 H1172" fill="none" stroke="#b45309" stroke-width="2"/>
-<path d="M1150 908 L1134 938 M1150 908 L1166 938" fill="none" stroke="#b45309" stroke-width="2"/>
-<text x="1150" y="960" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="700" fill="#0f172a">Penghuni</text>
+<rect x="200" y="84" width="930" height="604" rx="10" fill="#fbfcfe" stroke="#94a3b8" stroke-width="1.6"/>
+<text x="218" y="106" text-anchor="start" dominant-baseline="central" font-size="14" font-weight="700" fill="#334155">Sistem Informasi Operasional Huni</text>
+<path d="M60 370 L220 150" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M60 370 L760 150" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M60 370 L220 226" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M60 370 L760 226" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M60 370 L220 302" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M60 370 L760 302" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M60 370 L220 378" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M60 370 L760 378" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M60 370 L220 454" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M60 370 L760 454" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M60 370 L220 530" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M60 370 L760 530" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M60 370 L760 606" fill="none" stroke="#3730a3" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 234 L640 150" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 234 L1180 150" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 234 L640 226" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 234 L1180 226" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 234 L640 302" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 234 L1180 302" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 234 L640 378" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 234 L1180 378" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 234 L640 454" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 234 L1180 454" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 234 L640 530" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 234 L1180 606" fill="none" stroke="#0f766e" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 544 L640 150" fill="none" stroke="#b45309" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 544 L640 530" fill="none" stroke="#b45309" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<path d="M1240 544 L640 606" fill="none" stroke="#b45309" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+<ellipse cx="430" cy="150" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="430" y="141" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-01</text>
+<text x="430" y="159" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Registrasi &amp; Login Akun</text>
+<ellipse cx="970" cy="150" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="970" y="141" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-02</text>
+<text x="970" y="159" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Kelola Kamar, Fasilitas &amp; Aturan</text>
+<ellipse cx="430" cy="226" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="430" y="217" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-03</text>
+<text x="430" y="235" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Kelola Penghuni &amp; Kontrak</text>
+<ellipse cx="970" cy="226" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="970" y="217" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-04</text>
+<text x="970" y="235" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Kelola Tarif &amp; Komponen Biaya</text>
+<ellipse cx="430" cy="302" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="430" y="293" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-05</text>
+<text x="430" y="311" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Kelola Kebijakan Kos</text>
+<ellipse cx="970" cy="302" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="970" y="293" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-06</text>
+<text x="970" y="311" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Persetujuan Usulan Perubahan</text>
+<ellipse cx="430" cy="378" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="430" y="369" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-07</text>
+<text x="430" y="387" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Terbitkan &amp; Kelola Tagihan</text>
+<ellipse cx="970" cy="378" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="970" y="369" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-08</text>
+<text x="970" y="387" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Catat Pembayaran Sewa</text>
+<ellipse cx="430" cy="454" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="430" y="445" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-09</text>
+<text x="430" y="463" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Verifikasi &amp; Koreksi Pembayaran</text>
+<ellipse cx="970" cy="454" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="970" y="445" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-10</text>
+<text x="970" y="463" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Laporan Rekap &amp; Jejak Audit</text>
+<ellipse cx="430" cy="530" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="430" y="521" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-11</text>
+<text x="430" y="539" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Preferensi Akun, Notifikasi &amp; Data Pribadi</text>
+<ellipse cx="970" cy="530" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="970" y="521" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-12</text>
+<text x="970" y="539" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Kelola Akun Pengelola &amp; Wewenang</text>
+<ellipse cx="430" cy="606" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="430" y="597" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-13</text>
+<text x="430" y="615" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Portal Penghuni</text>
+<ellipse cx="970" cy="606" rx="210" ry="30" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+<text x="970" y="597" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="#64748b">UC-14</text>
+<text x="970" y="615" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="#0f172a">Rekening, Penyiapan &amp; Diagnostik</text>
+<circle cx="60" cy="344" r="13" fill="#eef2ff" stroke="#3730a3" stroke-width="2"/>
+<path d="M60 357 V394" fill="none" stroke="#3730a3" stroke-width="2"/>
+<path d="M38 370 H82" fill="none" stroke="#3730a3" stroke-width="2"/>
+<path d="M60 394 L44 424 M60 394 L76 424" fill="none" stroke="#3730a3" stroke-width="2"/>
+<text x="60" y="446" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="700" fill="#0f172a">Pemilik</text>
+<text x="60" y="464" text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="500" fill="#475569">Kos</text>
+<circle cx="1270" cy="208" r="13" fill="#ecfdf5" stroke="#0f766e" stroke-width="2"/>
+<path d="M1270 221 V258" fill="none" stroke="#0f766e" stroke-width="2"/>
+<path d="M1248 234 H1292" fill="none" stroke="#0f766e" stroke-width="2"/>
+<path d="M1270 258 L1254 288 M1270 258 L1286 288" fill="none" stroke="#0f766e" stroke-width="2"/>
+<text x="1270" y="310" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="700" fill="#0f172a">Pengelola</text>
+<circle cx="1270" cy="518" r="13" fill="#fffbeb" stroke="#b45309" stroke-width="2"/>
+<path d="M1270 531 V568" fill="none" stroke="#b45309" stroke-width="2"/>
+<path d="M1248 544 H1292" fill="none" stroke="#b45309" stroke-width="2"/>
+<path d="M1270 568 L1254 598 M1270 568 L1286 598" fill="none" stroke="#b45309" stroke-width="2"/>
+<text x="1270" y="620" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="700" fill="#0f172a">Penghuni</text>
 <path d="M60 1164 H120" fill="none" stroke="#94a3b8" stroke-width="1.35"/>
 <text x="128" y="1164" text-anchor="start" dominant-baseline="central" font-size="11.5" font-weight="500" fill="#475569">asosiasi aktor–use case</text>
 <ellipse cx="356" cy="1164" rx="26" ry="13" fill="#ffffff" stroke="#1e293b" stroke-width="1.6"/>

@@ -1,4 +1,4 @@
-# Project Charter — Sistem Informasi Operasional Kos-Kosan
+# Project Charter — Sistem Informasi Operasional Huni
 
 Dokumen ini adalah deliverable akademik untuk mata kuliah RPL. Isinya menjadi **sumber
 primer** bagi `/to-spec` di fase berikutnya: ruang lingkup, aktor, dan aturan bisnis di sini

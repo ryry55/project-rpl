@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Sumber ERD berjenjang — Sistem Informasi Operasional Kos-Kosan
+ * Sumber ERD berjenjang — Sistem Informasi Operasional Huni
  * -------------------------------------------------------------------------
  * Empat tingkat, satu basis data. Yang bertambah dari tingkat ke tingkat adalah
  * RINCIAN, bukan kebenaran: semuanya dibangun dari `skema.json` yang sama,

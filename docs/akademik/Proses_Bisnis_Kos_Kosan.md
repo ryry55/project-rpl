@@ -1,4 +1,4 @@
-# Proses Bisnis & Spesifikasi Pemodelan Sistem Informasi Operasional Kos-Kosan
+# Proses Bisnis & Spesifikasi Pemodelan Sistem Informasi Operasional Huni
 
 > **Dibangkitkan, jangan disunting tangan** — `node docs/akademik/build-dokumen.js`.
 > Angka dibaca dari `rute-api.json` (100 endpoint), `tabel-domain.json` (26 tabel),
@@ -8,7 +8,7 @@
 
 ## 1. Ringkasan Eksekutif Sistem
 
-**Sistem Informasi Operasional Kos-Kosan** mengelola operasional kos — kamar,
+**Sistem Informasi Operasional Huni** mengelola operasional kos — kamar,
 penghuni, kontrak sewa, tarif dan kebijakan, tagihan bulanan, pembayaran,
 sampai laporan pendapatan dan tunggakan — sebagai API Laravel 12.72.0 +
 PostgreSQL dengan antarmuka Vue 3.
@@ -116,10 +116,10 @@ alasannya ada di `use-case-diagram.md` §4.
 
 ## 5. Pemodelan Terstruktur (Data Flow Diagram / DFD Konteks)
 
-Proses sentral **0.0 Sistem Informasi Operasional Kos-Kosan** menghubungkan
-**4 entitas eksternal** melalui **16 aliran data utama (8 masuk dan 8
-keluar)**. Gambarnya di `dfd-konteks.md`, dibaca dari `docs/dfd/dfd-data.js` —
-sumber tunggal yang sama dengan DFD teknis.
+Proses sentral **0.0 Sistem Informasi Operasional Huni** menghubungkan **4
+entitas eksternal** melalui **16 aliran data utama (8 masuk dan 8 keluar)**.
+Gambarnya di `dfd-konteks.md`, dibaca dari `docs/dfd/dfd-data.js` — sumber
+tunggal yang sama dengan DFD teknis.
 
 ### 5.1 Matriks 16 Aliran Data Utama (Input & Output)
 

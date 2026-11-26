@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Pembangun tabel README — Sistem Informasi Operasional Kos-Kosan
+ * Pembangun tabel README — Sistem Informasi Operasional Huni
  * ---------------------------------------------------------------
  * Mengisi bagian di antara penanda
  *

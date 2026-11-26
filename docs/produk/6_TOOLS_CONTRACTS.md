@@ -116,7 +116,7 @@ menerapkan. Lihat §6.
 | `POST` | `/api/periksa-token` | `{ token, jenis? }` → `{ data: { berlaku, nama, email } }`; `429` bila terlalu sering |
 | `POST` | `/api/atur-sandi` | `{ token, jenis, password, password_confirmation }` |
 | `GET` | `/api/health` | `200 { data: { status: "ok", database, zona_waktu, waktu } }` atau `503` dengan `status: "down"` |
-| `GET` | `/api/identitas-kos` | `{ data: { nama } }` — nama kos untuk layar masuk; `"Kos-Kosan"` bila belum ditetapkan |
+| `GET` | `/api/identitas-kos` | `{ data: { nama } }` — nama kos untuk layar masuk; `"Huni"` bila belum ditetapkan |
 | `GET` | `/api/pemilik/saja` | Pemeriksa middleware `peran:pemilik`; `403` untuk peran lain |
 
 `/lupa-sandi` selalu `200` meski email tidak terdaftar. Membalas `404` untuk

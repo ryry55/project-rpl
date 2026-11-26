@@ -67,7 +67,7 @@ Catatan perbaikan pada tahap ini:
 
 ERD menggambarkan entitas beserta relasinya memakai notasi Chen: persegi panjang untuk entitas, elips untuk atribut, belah ketupat untuk relasi. Yang digambar adalah tingkat logikal — dua belas entitas inti dengan atribut kuncinya. Tabel teknis seperti token aktivitas, jejak audit, dan kotak masuk notifikasi tidak digambar karena tidak menambah pemahaman konsep.
 
-*Gambar 4.5 ERD Sistem Informasi Operasional Kos-Kosan*
+*Gambar 4.5 ERD Sistem Informasi Operasional Huni*
 
 ![](../erd/01-L1-logikal.png)
 

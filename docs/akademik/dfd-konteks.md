@@ -1,4 +1,4 @@
-# DFD Konteks (Level 0) — Sistem Informasi Operasional Kos-Kosan
+# DFD Konteks (Level 0) — Sistem Informasi Operasional Huni
 
 > **Dibangkitkan, jangan disunting tangan.** Jalankan
 > `node docs/akademik/build.js && node docs/akademik/build-dokumen.js`.
@@ -20,7 +20,7 @@ Yourdon/DeMarco untuk gambar yang sama ada di `docs/dfd/01-dfd-konteks-yourdon.s
 
 ## 2. Proses Sentral
 
-Proses tunggal **0.0 Sistem Informasi Operasional Kos-Kosan** mewakili seluruh
+Proses tunggal **0.0 Sistem Informasi Operasional Huni** mewakili seluruh
 sistem sebagai satu simpul. Pada level ini belum ada penyimpanan data — D1–D6
 muncul di level 1, dan jumlah aliran batas di kedua level sengaja sama
 (16) supaya tidak ada aliran yang hilang saat dekomposisi.

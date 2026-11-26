@@ -197,7 +197,7 @@ const TABEL_AKHIR = [
 const GAMBAR = [
   {
     berkas: '../erd/01-L1-logikal.png',
-    keterangan: 'Gambar 4.5 ERD Sistem Informasi Operasional Kos-Kosan',
+    keterangan: 'Gambar 4.5 ERD Sistem Informasi Operasional Huni',
     catatan:
       'Notasi Chen. Dua belas entitas inti beserta atribut kuncinya. Tabel teknis ' +
       '(token_akun, log_audit, notifications, dan sejenisnya) sengaja tidak digambar ' +

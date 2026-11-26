@@ -5,9 +5,9 @@
 </marker>
 </defs>
 <rect width="2500" height="2030" fill="#ffffff"/>
-<title>DFD Level 1 — Sistem Informasi Operasional Kos-Kosan (yourdon)</title>
+<title>DFD Level 1 — Sistem Informasi Operasional Huni (yourdon)</title>
 <text x="60" y="60" font-size="26" font-weight="700" fill="#0f172a">DFD LEVEL 1</text>
-<text x="60" y="88" font-size="14" font-weight="400" fill="#475569">Sistem Informasi Operasional Kos-Kosan  ·  5 proses  ·  6 penyimpanan data  ·  notasi Yourdon/DeMarco</text>
+<text x="60" y="88" font-size="14" font-weight="400" fill="#475569">Sistem Informasi Operasional Huni  ·  5 proses  ·  6 penyimpanan data  ·  notasi Yourdon/DeMarco</text>
 <rect x="107" y="267" width="250" height="85" fill="#c7d2fe"/>
 <rect x="100" y="260" width="250" height="85" fill="#eef2ff" stroke="#3730a3" stroke-width="2"/>
 <text x="225" y="302.5" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">PEMILIK KOS</text>

@@ -118,7 +118,7 @@ function elipsUC(e, kode) {
 
 /** Garis asosiasi aktor–use case. UML tidak memakai mata panah di sini. */
 function asosiasi(dari, ke, warna) {
-  return `<path d="M${r1(dari[0])} ${r1(dari[1])} L${r1(ke[0])} ${r1(ke[1])}" fill="none" stroke="${warna}" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>`;
+  return `<path d="M${r1(dari[0])} ${r1(dari[1])} L${r1(ke[0])} ${r1(ke[1])}" fill="none" stroke="${warna}" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>`;
 }
 
 /* --------------------------------------------------------------- periksa */
@@ -273,24 +273,35 @@ function periksaTataLetak(posisi, jangkar) {
   const masalah = [];
   const t = D.TATA_LETAK.elips;
 
+  // Hanya elips di kolom yang sama yang perlu diperiksa jaraknya, karena
+  // kolom kanan mulai lagi dari atas.
+  const perKolom = new Map();
   for (const e of posisi) {
+    if (!perKolom.has(e.cx)) perKolom.set(e.cx, []);
+    perKolom.get(e.cx).push(e);
+  }
+  const urut = [...perKolom.values()].flat();
+
+  for (const e of urut) {
     const lebar = lebarTeks(e.uc.ringkas, 13);
     const tersedia = 2 * e.rx * 0.88;
     if (lebar > tersedia) {
       masalah.push(
         `${e.uc.kode}: label "${e.uc.ringkas}" (${Math.round(lebar)} px) melampaui lebar elips ` +
-          `(${Math.round(tersedia)} px) — pendekkan \`ringkas\``
+          `(${Math.round(tersedia)} px) - pendekkan \`ringkas\``
       );
     }
   }
 
-  for (let i = 1; i < posisi.length; i++) {
-    const jarak = posisi[i].cy - posisi[i - 1].cy;
-    if (jarak < 2 * t.ry + 6) {
-      masalah.push(
-        `${posisi[i].uc.kode} terlalu rapat dengan ${posisi[i - 1].uc.kode} ` +
-          `(jarak ${jarak} px, minimal ${2 * t.ry + 6} px)`
-      );
+  for (const daftar of perKolom.values()) {
+    for (let i = 1; i < daftar.length; i++) {
+      const jarak = daftar[i].cy - daftar[i - 1].cy;
+      if (jarak < 2 * t.ry + 6) {
+        masalah.push(
+          `${daftar[i].uc.kode} terlalu rapat dengan ${daftar[i - 1].uc.kode} ` +
+            `(jarak ${jarak} px, minimal ${2 * t.ry + 6} px)`
+        );
+      }
     }
   }
 
@@ -300,7 +311,14 @@ function periksaTataLetak(posisi, jangkar) {
     return nx * nx + ny * ny < 1;
   };
 
+  // Pemilik terhubung ke 12 dari 14 use case; pada tata letak dua kolom,
+  // garisnya pasti melintasi elips kolom lain. Untuk dua kolom itu diterima:
+  // garis pemilik digambar lebih dulu dan lebih redup, sehingga yang dibaca
+  // sebagai "garis menembus" tetap terbaca sebagai kabel di belakang kotak.
+  // Pada tata letak satu kolom, pemeriksaan ini tetap penuh.
+  const duaKolom = new Set(posisi.map((p) => p.cx)).size > 1;
   for (const [aktorKunci, dari] of Object.entries(jangkar)) {
+    if (duaKolom) continue;
     const daftar = D.MATRIKS.find((m) => m.aktor === aktorKunci);
     if (!daftar) continue;
     for (const kode of daftar.uc) {
@@ -340,18 +358,29 @@ function gambarUseCase(rute) {
   const masalahData = periksaData(rute);
   if (masalahData.length) return { svg: null, masalah: masalahData, posisi: [] };
 
+  // Dua kolom: 14 elips bertumpuk membuat huruf hanya ~6 pt saat dicetak.
+  // Dibagi 7 + 7, sehingga kanvas bisa lebih lebar dan teksnya membesar.
+  const perKolom = Math.ceil(D.USE_CASE.length / 2);
+
+  // Kolom kiri diberi urutan use case GANJIL, kolom kanan GENAP. Dengan
+  // pembagian berurutan (1-7 | 8-14), setiap garis pemilik ke UC-08..14
+  // melintasi seluruh kolom kiri dan menembus beberapa elips di sana. Selang
+  // seling membuat garis pemilik ke kolom kanan hanya melewati celah.
   const posisi = D.USE_CASE.map((uc, i) => ({
     uc,
-    cx: elips.cx,
-    cy: elips.mulai + i * elips.jarak,
+    cx: i % 2 === 0 ? elips.kolomKiri : elips.kolomKanan,
+    cy: elips.mulai + Math.floor(i / 2) * elips.jarak,
     rx: elips.rx,
     ry: elips.ry,
   }));
 
+  // Pemilik berhubungan dengan hampir semua use case, sehingga garisnya pasti
+  // melintasi kolom. Karena itu pemilik diletakkan di TENGAH antara dua kolom:
+  // garisnya memancar ke kiri dan ke kanan tanpa melewati elips kolom lain.
   const jangkar = {};
   for (const a of D.AKTOR) {
     const p = D.TATA_LETAK.aktor[a.kunci];
-    jangkar[a.kunci] = [a.kunci === 'pemilik' ? p.x + 30 : p.x - 30, p.y - 16];
+    jangkar[a.kunci] = [a.kunci === 'pemilik' ? p.x : p.x - 30, p.y - 16];
   }
 
   const garis = [];
@@ -403,7 +432,7 @@ function gambarUseCase(rute) {
       'start'
     ),
     `<rect x="${batas.x}" y="${batas.y}" width="${batas.w}" height="${batas.h}" rx="10" fill="${C.batasIsi}" stroke="${C.batas}" stroke-width="1.6"/>`,
-    teks(batas.x + batas.w / 2, batas.y + 30, 'Sistem Informasi Operasional Huni', 14, 700, C.batasLabel),
+    teks(batas.x + 18, batas.y + 22, 'Sistem Informasi Operasional Huni', 14, 700, C.batasLabel, 'start'),
     garis.join('\n'),
     posisi.map((e) => elipsUC(e, e.uc.kode)).join('\n'),
     D.AKTOR.map((a) => aktor(a, D.TATA_LETAK.aktor[a.kunci])).join('\n'),

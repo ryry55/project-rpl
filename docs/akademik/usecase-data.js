@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Sumber tunggal 14 use case — Sistem Informasi Operasional Kos-Kosan
+ * Sumber tunggal 14 use case — Sistem Informasi Operasional Huni
  * -------------------------------------------------------------------
  * Berkas ini memuat SELURUH isi semantik pemodelan use case: tiga aktor,
  * empat belas use case, dan endpoint nyata yang mendasari masing-masing.
@@ -518,13 +518,21 @@ const CATATAN_MATRIKS = [
  * jarak 72 px menuntut kanvas setinggi 1180 px.
  */
 const TATA_LETAK = {
-  kanvas: { w: 1300, h: 1200 },
-  batas: { x: 300, y: 84, w: 660, h: 1044 },
-  elips: { cx: 630, rx: 212, ry: 32, mulai: 132, jarak: 72 },
+  kanvas: { w: 1330, h: 760 },
+  batas: { x: 200, y: 84, w: 930, h: 604 },
+  elips: {
+    cx: 630,
+    kolomKiri: 430,
+    kolomKanan: 970,
+    rx: 210,
+    ry: 30,
+    mulai: 150,
+    jarak: 76,
+  },
   aktor: {
-    pemilik: { x: 150, y: 600 },
-    pengelola: { x: 1150, y: 372 },
-    penghuni: { x: 1150, y: 900 },
+    pemilik: { x: 60, y: 386 },
+    pengelola: { x: 1270, y: 250 },
+    penghuni: { x: 1270, y: 560 },
   },
 };
 

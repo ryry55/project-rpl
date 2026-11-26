@@ -1,4 +1,4 @@
-# Diagram Use Case — Sistem Informasi Operasional Kos-Kosan
+# Diagram Use Case — Sistem Informasi Operasional Huni
 
 > **Dibangkitkan, jangan disunting tangan.** Jalankan
 > `node docs/akademik/build.js && node docs/akademik/build-dokumen.js`.

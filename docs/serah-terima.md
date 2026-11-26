@@ -17,8 +17,8 @@ Terakhir diperbarui: 22 November 2026, Fase 9-10 selesai.
 | Suite PHP | **927 lulus / 4177 asersi**; pint & eslint bersih; 19 vitest |
 | Gate penuh | **SEMUA LULUS** 22 Nov (692 detik, 34 skrip / 942 langkah browser) |
 | Keputusan pemilik | **K-19, K-20 dijawab & diterapkan**; K-01..K-18 tidak berubah |
-| Tunnel demo | **mati** (URL 22 Nov kedaluwarsa); hidupkan ulang bila perlu — §6 |
-| **Deploy live** | **`https://kos-kosan-rosy.vercel.app`** (Vercel Container Runtime + Supabase); jebakannya di `docs/vercel.md` |
+| Tunnel demo | **hidup** 26 Nov — URL di `.env` (cepat berganti; §6) |
+| **Deploy live** | **`https://kos-kosan-rosy.vercel.app`** — region **sin1**, cron tagihan aktif |
 | **Proposal RPL** | `dokumen/11-proposal/Proposal_RPL_Huni.docx` — 33 hlm, model **Waterfall**, sampul placeholder |
 | Paket serahan | **`dokumen/`** — segarkan dengan `dokumen\segarkan.ps1` |
 | CI GitHub | **hijau** pada `e0b0eb6` (run `45636552308`, 10m49s) |
@@ -47,10 +47,18 @@ Suite **918 → 927 tes / 4142 → 4177 asersi**. Gate penuh 22 Nov: SEMUA LULUS
 **Deploy Vercel (25 November 2026)** — `https://kos-kosan-rosy.vercel.app`,
 Container Runtime (image `Dockerfile.vercel` apa adanya) + Postgres Supabase.
 Sandi pemilik live: `%TEMP%\opencode\sandi-pemilik-live.txt`. Tidak ikut:
-simulasi tanggal (`APP_DEMO_MODE` ditolak entrypoint), email sungguhan
-(`MAIL_MAILER=log`), cron tagihan (belum dibuat). Empat jebakannya di
-`docs/vercel.md`; yang terpenting: **`api/vendor` wajib di `.vercelignore`**,
-tanpa itu Vercel menolak "12 Serverless Functions" walau memakai Container.
+simulasi tanggal (`APP_DEMO_MODE` ditolak entrypoint) dan email sungguhan
+(`MAIL_MAILER=log`). Empat jebakannya di `docs/vercel.md`; yang terpenting:
+**`api/vendor` wajib di `.vercelignore`**, tanpa itu Vercel menolak
+"12 Serverless Functions" walau memakai Container.
+
+**Cron + region (26 November 2026)** — `GET /api/cron/tagihan` dijaga
+`CRON_SECRET`, dipanggil Vercel Cron 00:10 WIB; memakai `PenerbitanHarian`,
+kelas yang sama dengan penjadwal container. Deployment pertama berjalan di
+`iad1` (Virginia) sementara basis data di Singapura: p50 8.282 ms, 1
+permintaan/detik. Sesudah `"regions": ["sin1"]`: p95 **225 ms**, 31
+permintaan/detik, 0 galat. Pada 50 bersamaan: p95 1.019 ms + 28 galat 500
+(batas pooler Supabase). Angkanya di `docs/fase-akhir.md` §2.
 
 **Proposal RPL (25 November 2026)** — `dokumen/11-proposal/Proposal_RPL_Huni.docx`,
 33 halaman, model **Waterfall** (wajib mata kuliah). Isinya dari repo: 28 FR,
@@ -89,11 +97,9 @@ masih placeholder; halaman diagram memakai landscape agar huruf ≥ 6 pt.
   membuat `kelas-c.svg` basi OTOMATIS — gate merah di "diagram kelas dan
   urutan tidak basi". Perbaikannya `node docs/akademik/build-diagram.js` +
   `export-png.ps1`, bukan menyunting SVG.
-- **Gate berjalan sambil disunting, dan dipipa**: `Select-Object -Last N`
-  membuang semua output kecuali N baris terakhir (waktu/jumlah langkah tak bisa
-  diverifikasi), dan menyunting skrip yang sedang dibaca bash membuatnya gagal
-  di tengah baris. Sunting dulu, jalankan kemudian; jangan pipa bila butuh
-  angkanya — pipa juga mengubah `node ... 2>&1` menjadi galat fatal di PS 5.1.
+- **Gate berjalan sambil disunting, dan dipipa**: `Select-Object -Last N` membuang
+  output (waktu/langkah tak bisa diverifikasi), dan menyunting skrip yang sedang
+  dibaca bash membuatnya gagal di tengah baris. Sunting dulu, jalankan kemudian.
 - **Klaim status di `dokumen/README.md` dibuktikan ke pemeriksa gate dulu**:
   "metode kelas menunggu sinkron" ternyata salah diagnosis — metode diagram
   kelas diturunkan otomatis dari model, dan kelas layanan domain memang tidak
@@ -103,18 +109,13 @@ masih placeholder; halaman diagram memakai landscape agar huruf ≥ 6 pt.
   — migrasi memuat 9 nama, DB hidup punya 8. Query langsung
   `docker compose exec db psql -U kos -d kos -tAc "..."` (jangan lewat
   `sh -c` — baris hasilnya tertelan).
-- **p95 uji beban mengukur antrean php-fpm, bukan aplikasi**: worker 5 (bawaan
-  image) membuat 50 bersamaan antre dan p95 1064–1356 ms; serial 94 ms. Kini
-  demo memakai 8 worker `static`. Dengan `dynamic`, run pertama sesudah
-  restart menanggung kelahiran worker (p95 1510 ms) — itu yang paling
-  menyesatkan, karena run kedua langsung 704 ms.
-- **`git stash` + build ulang = satu-satunya A/B yang sah di repo ini**: kode
-  dibakar ke image, jadi membandingkan kode lama dan baru menuntut build ulang
-  di antara keduanya. Tanpa itu, "kode lama" yang diukur adalah image baru.
-- **Uji beban butuh data setara, bukan data sisa gate**: 390 tagihan dibuat
-  lewat `PenerbitTagihan` (bukan INSERT mentah) sebelum mengukur; sesudahnya
-  `migrate:fresh --seed` + `isi-demo.mjs` supaya data demo tidak tercemar
-  tiga kamar `B1..B3` dan tagihan 2016.
+- **p95 mengukur antrean atau jarak, bukan kode**: demo 5 worker → p95 1064 ms;
+  `dynamic` menanggung kelahiran worker (1510 ms), karena itu `static`. Di
+  Vercel, container `iad1` + basis data Singapura → p50 8.282 ms; `sin1` → p95
+  225 ms. Periksa jumlah worker DAN region sebelum menyimpulkan regresi.
+- **`git stash` + build ulang = satu-satunya A/B yang sah**: kode dibakar ke
+  image. Uji beban juga butuh data setara (390 tagihan lewat `PenerbitTagihan`),
+  lalu `migrate:fresh --seed` + `isi-demo.mjs` sesudahnya.
 
 ## 6. Verifikasi klaim berkas ini
 

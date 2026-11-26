@@ -1,4 +1,4 @@
-# Panduan Tim — Sistem Informasi Operasional Kos-Kosan
+# Panduan Tim — Sistem Informasi Operasional Huni
 
 > **Untuk siapa dokumen ini.** Untuk lima orang yang mengerjakan proyek ini:
 > pemilik produk, analis sistem, dua pengembang, dan penguji. Ditulis dengan

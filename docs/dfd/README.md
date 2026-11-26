@@ -1,4 +1,4 @@
-# DFD — Sistem Informasi Operasional Kos-Kosan
+# DFD — Sistem Informasi Operasional Huni
 
 Notasi **Gane-Sarson** (versi utama) dan **Yourdon/DeMarco** (versi pembanding). Seluruh gambar
 dihasilkan dari skrip, sehingga bisa diubah dan dibangun ulang kapan saja. Kedua versi memakai
@@ -64,7 +64,7 @@ bisa menjadi *black hole* tanpa satu pun peringatan.
 
 ## 1. DFD Konteks (DFD Nol / Level 0)
 
-Proses tunggal **0.0 Sistem Informasi Operasional Kos-Kosan** menghubungkan
+Proses tunggal **0.0 Sistem Informasi Operasional Huni** menghubungkan
 **4 entitas eksternal** melalui **16 aliran data utama** (8 masuk, 8 keluar).
 
 <!-- AWAL:aliran-konteks -->
@@ -171,7 +171,7 @@ yang dibekukan di `transaksi_gateway` sebelum baris pembayaran dibuat.
 | --- | --- | --- | --- |
 | **D1** | Kamar & Laporan Kerusakan | <code>id, nomor, tipe, status_huni · laporan_kerusakan: id, kamar_id, deskripsi, selesai_pada</code> | Kamar beserta status huninya (kosong, terisi, dipesan, perbaikan) dan laporan kerusakannya. Laporan yang belum ditutup membuat kamar berstatus perbaikan, tetapi kamar tetap ditagih penuh. |
 | **D2** | Penghuni & Kontrak | <code>penghuni: id, nama, no_hp, email · kontrak: id, kamar_id, penghuni_id, tgl_masuk, tgl_keluar, tarif_awal, status</code> | Data penghuni dan kontrak sewanya. tarif_awal membekukan tarif yang berlaku ketika kontrak ditandatangani. |
-| **D3** | Tarif, Kebijakan & Komponen | <code>tarif_sewa: kamar_id, nilai, berlaku_dari · komponen_biaya: nama, nilai, satuan, kamar_id, berlaku_dari · kebijakan_kos: tipe, nilai, persen, plafon_persen, masa_tenggang, nominal, tanggal, kamar_id, berlaku_dari</code> | Tarif sewa, kebijakan kos per dimensi, dan komponen biaya. Bersifat tambah-saja: perubahan membuat baris baru dengan berlaku_dari sendiri, baris lama tidak pernah ditimpa. |
+| **D3** | Tarif, Kebijakan & Komponen | <code>tarif_sewa: kamar_id, nilai, berlaku_dari · komponen_biaya: nama, nilai, satuan, kamar_id, berlaku_dari · kebijakan_kos: tipe, nilai, persen, plafon_persen, masa_tenggang, nominal, tanggal, kamar_id, berlaku_dari · perangkat: jenis, nama, lokasi, nama_pengguna, sandi, aktif</code> | Tarif sewa, kebijakan kos per dimensi, komponen biaya, dan kredensial perangkat (WiFi, CCTV, RFID). Tarif dan kebijakan bersifat tambah-saja: perubahan membuat baris baru dengan berlaku_dari sendiri, baris lama tidak pernah ditimpa. Sandi perangkat dienkripsi dan hanya dikirim saat diminta. |
 | **D4** | Tagihan | <code>id, kontrak_id, periode, pokok, total_final, jatuh_tempo, status, tarif_terpakai, kebijakan_terpakai</code> | Tagihan bulanan beserta salinan tarif dan kebijakan yang dipakai saat terbit. Denda tidak disimpan sebagai kolom: ia dihitung ulang setiap kali dibaca, dan hanya `total_final` yang dibekukan saat tagihan lunas. |
 | **D5** | Pembayaran | <code>id, tagihan_id, tanggal_pembayaran, jumlah, metode, sumber, diterima_oleh, dicatat_oleh</code> | Uang yang benar-benar diterima, dicatat per tanggal pembayaran. Metode mencakup tunai, transfer, QRIS, dan gateway; sumber memisahkan yang dicatat orang dari yang datang lewat webhook. |
 | **D6** | Log Audit | <code>id, aktor_id, aktor_nama, aksi, entitas, entitas_id, nilai_lama, nilai_baru, dibuat_pada</code> | Jejak setiap perubahan, ditulis tiga proses dan dibaca proses laporan. Bersifat tambah-saja dan dijaga trigger basis data, bukan hanya kode. |
@@ -216,7 +216,7 @@ yang dibekukan di `transaksi_gateway` sebelum baris pembayaran dibuat.
 | --- | --- | --- | --- | --- |
 | **10** | Proses 1.0 | Store D1 | data kamar | <code>nomor, tipe, status_huni, laporan_kerusakan</code> |
 | **11** | Proses 1.0 | Store D2 | kontrak sewa | <code>kontrak_id, penghuni, kamar, tgl_masuk, tarif_awal</code> |
-| **12** | Proses 2.0 | Store D3 | tarif, kebijakan & komponen | <code>tarif: kamar_id, nilai, berlaku_dari · kebijakan: tipe, nilai, angka, kamar_id, berlaku_dari</code> |
+| **12** | Proses 2.0 | Store D3 | tarif, kebijakan & komponen | <code>tarif: kamar_id, nilai, berlaku_dari · kebijakan: tipe, nilai, angka, kamar_id, berlaku_dari · perangkat: jenis, nama, sandi</code> |
 | **13** | Proses 2.0 | Store D6 | log audit perubahan | <code>aktor, aksi, nilai_lama, nilai_baru, waktu</code> |
 | **14** | Proses 3.0 | Store D4 | tagihan | <code>periode, pokok, jatuh_tempo, status, tarif_terpakai, kebijakan_terpakai</code> |
 | **15** | Proses 3.0 | Store D6 | log audit penerbitan | <code>aktor, aksi, tagihan_id, waktu</code> |
@@ -368,7 +368,7 @@ terlihat seperti dua gambar yang saling bertentangan.
 | Kekurangan | proses dan penyimpanan sama-sama kotak, sekilas mirip | bentuknya menyimpang dari lingkaran baku |
 
 **Catatan tentang bentuk proses Yourdon.** Yourdon/DeMarco baku memakai **lingkaran**. Di sini
-dipakai **elips**, dan itu disengaja: nama proses kos-kosan tidak muat di dalam lingkaran seukuran
+dipakai **elips**, dan itu disengaja: nama proses Huni tidak muat di dalam lingkaran seukuran
 apa pun yang masih menyisakan ruang untuk panah. Memaksakan lingkaran berarti mengecilkan huruf
 sampai tidak terbaca, atau memendekkan nama sampai kehilangan arti. Elips tetap membedakan proses
 dari entitas (kotak) dan penyimpanan (dua garis) — satu-satunya hal yang penting dari bentuknya.

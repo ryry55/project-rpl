@@ -454,7 +454,7 @@ function gambarKonteks(notasi) {
     ...kotak.P0,
     id: gane ? '0.0' : '0',
     tag: 'PROSES 0.0',
-    nama: ['SISTEM INFORMASI', 'OPERASIONAL', 'KOS-KOSAN'],
+    nama: ['SISTEM INFORMASI', 'OPERASIONAL', 'HUNI'],
     band: 46,
     ukuranNama: 17,
   };
@@ -532,10 +532,10 @@ function gambarKonteks(notasi) {
   ].join('\n');
 
   const isi = [
-    head(W, H, `DFD Konteks (DFD Nol) — Sistem Informasi Operasional Kos-Kosan (${notasi})`),
+    head(W, H, `DFD Konteks (DFD Nol) — Sistem Informasi Operasional Huni (${notasi})`),
     judul(
       'DFD KONTEKS (DFD NOL / LEVEL 0)',
-      `Sistem Informasi Operasional Kos-Kosan  ·  ${D.ENTITAS.length} entitas  ·  notasi ${gane ? 'Gane-Sarson' : 'Yourdon/DeMarco'}`
+      `Sistem Informasi Operasional Huni  ·  ${D.ENTITAS.length} entitas  ·  notasi ${gane ? 'Gane-Sarson' : 'Yourdon/DeMarco'}`
     ),
     entitas(entitasKotak.E1),
     entitas(entitasKotak.E2),
@@ -776,10 +776,10 @@ function gambarLevel1(notasi) {
   ].join('\n');
 
   const bagian = [
-    head(W, H, `DFD Level 1 — Sistem Informasi Operasional Kos-Kosan (${notasi})`),
+    head(W, H, `DFD Level 1 — Sistem Informasi Operasional Huni (${notasi})`),
     judul(
       'DFD LEVEL 1',
-      `Sistem Informasi Operasional Kos-Kosan  ·  ${D.PROSES.length} proses  ·  ${D.STORE.length} penyimpanan data  ·  notasi ${gane ? 'Gane-Sarson' : 'Yourdon/DeMarco'}`
+      `Sistem Informasi Operasional Huni  ·  ${D.PROSES.length} proses  ·  ${D.STORE.length} penyimpanan data  ·  notasi ${gane ? 'Gane-Sarson' : 'Yourdon/DeMarco'}`
     ),
     Object.values(entitasKotak).map(entitas).join('\n'),
     gane

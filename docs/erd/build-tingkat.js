@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Pembangun ERD berjenjang + LRS — Sistem Informasi Operasional Kos-Kosan
+ * Pembangun ERD berjenjang + LRS — Sistem Informasi Operasional Huni
  * -------------------------------------------------------------------------
  * Menghasilkan empat tingkat dari satu sumber (`skema.json`):
  *

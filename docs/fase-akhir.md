@@ -85,6 +85,36 @@ itu sintetis untuk satu kos berisi paling banyak 30 kamar.
 (bawaan 50 bersamaan). Untuk melihat latensi tanpa antrean, pakai
 `BEBAN_BERSAMAAN=1`.
 
+### Uji beban terhadap produksi (Vercel + Supabase, 26 November 2026)
+
+Angka di atas diukur di laptop. Mengukur produksi memberi temuan yang tidak
+terlihat dari laptop: **region deployment menentukan segalanya.**
+
+| Region container | Konkurensi | p50 / p95 | Laju | Galat |
+|---|---|---|---|---|
+| `iad1` (Virginia) — bawaan | 5 | 8.282 / 8.620 ms | 1 permintaan/detik | 2 |
+| **`sin1` (Singapura)** | 5 | **154 / 225 ms** | **31 permintaan/detik** | **0** |
+| `sin1` | 50 | 648 / 1.019 ms | 72 permintaan/detik | 28 |
+
+Basis data ada di Singapura. Dengan container di Virginia, setiap kueri
+menyeberangi dua benua - dan itu bukan sifat aplikasi, melainkan salah pilih
+region. Sesudah `"regions": ["sin1"]` di `vercel.json`, p95 turun **38 kali**.
+
+Pada 50 bersamaan muncul 28 galat 500: batas koneksi pooler sesi Supabase
+(delapan worker FPM per instans, dikali beberapa instans). Untuk satu kos
+dengan paling banyak 30 kamar, 5-10 pengguna serentak adalah keadaan nyata.
+Jangan menaikkan konkurensi uji untuk "membuktikan" skala yang tidak akan
+terjadi.
+
+Perintahnya:
+
+```powershell
+$env:API_URL='https://kos-kosan-rosy.vercel.app/api'
+$env:BEBAN_SANDI='<sandi pemilik live>'
+$env:BEBAN_BERSAMAAN='5'
+node docs/beban/uji-beban.mjs
+```
+
 ## 3. Tiga pertanyaan yang hampir pasti ditanya
 
 Jawab apa adanya. Sistem ini demo lokal, dan itu bukan kelemahan yang perlu

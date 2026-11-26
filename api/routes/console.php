@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Billing\PenerbitanHarian;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -47,12 +48,7 @@ Artisan::command('inspire', function () {
  * jadi menjalankannya dua kali tidak menggandakan tagihan.
  */
 Schedule::call(function () {
-    $hariIni = now('Asia/Jakarta');
-
-    Artisan::call('tagihan:terbitkan', [
-        'periode' => $hariIni->toDateString(),
-        '--hari-ini' => $hariIni->toDateString(),
-    ]);
+    app(PenerbitanHarian::class)->jalankan();
 })
     ->name('terbitkan-tagihan-harian')
     ->dailyAt('00:10')

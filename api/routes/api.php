@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AturanController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CronController;
 use App\Http\Controllers\Api\DendaController;
 use App\Http\Controllers\Api\EksporController;
 use App\Http\Controllers\Api\FasilitasController;
@@ -77,6 +78,12 @@ Route::get('/health', HealthController::class)->name('api.health');
 // Nama kos untuk layar masuk (K-17). Tanpa auth karena layar masuk dibuka
 // sebelum ada token; isinya hanya nama, yang tertulis di papan depan kos.
 Route::get('/identitas-kos', IdentitasKosController::class)->name('api.identitas-kos');
+
+// Pemicu cron tagihan harian untuk lingkungan tanpa penjadwal (Vercel).
+// Dijaga CRON_SECRET; bila rahasianya kosong endpoint menjawab 503 dan tidak
+// menjalankan apa pun. URL-nya sengaja tidak menyebut "admin" atau "internal":
+// yang menjaga adalah rahasia, bukan nama yang tidak ditebak.
+Route::get('/cron/tagihan', [CronController::class, 'tagihan'])->name('api.cron.tagihan');
 
 // Foto lampiran kerusakan (K-15). Tanpa `auth:sanctum` dengan sengaja: tag
 // `<img>` tidak bisa mengirim header `Authorization`, dan memaksakannya

@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Generator dokumen akademik — Sistem Informasi Operasional Kos-Kosan
+ * Generator dokumen akademik — Sistem Informasi Operasional Huni
  * -------------------------------------------------------------------
  * Jalankan:  node docs/akademik/build-dokumen.js
  *
@@ -197,7 +197,7 @@ function bab1() {
   // muncul utuh di UC-12 dan di `SPEC.md`; mengulangnya di ringkasan memakan
   // seperempat bab 1 untuk informasi yang pembaca temui lagi dua bab kemudian.
   const isi = [
-    `**Sistem Informasi Operasional Kos-Kosan** mengelola operasional kos — kamar, penghuni, kontrak sewa, tarif dan kebijakan, tagihan bulanan, pembayaran, sampai laporan pendapatan dan tunggakan — sebagai API Laravel ${LARAVEL} + PostgreSQL dengan antarmuka Vue 3.`,
+    `**Sistem Informasi Operasional Huni** mengelola operasional kos — kamar, penghuni, kontrak sewa, tarif dan kebijakan, tagihan bulanan, pembayaran, sampai laporan pendapatan dan tunggakan — sebagai API Laravel ${LARAVEL} + PostgreSQL dengan antarmuka Vue 3.`,
     `Pembedanya dari pencatatan manual bukan kelengkapan fitur, melainkan **siapa yang berhak melakukan apa**: **pemilik** memutuskan, **pengelola** berwenang terbatas mengusulkan, **penghuni** hanya membaca. Pengelola ber-wewenang \`ubah_tarif\` pun tidak menetapkan tarif. Uang dicatat sebagai peristiwa yang tidak bisa diubah. Cakupan: **${jumlahEndpoint} endpoint** \`/api\`, **${U.USE_CASE.length} use case**, **${U.AKTOR.length} aktor**, **${TABEL.length} tabel domain** dari **${MIGRASI} migrasi**.`,
   ];
   return `## 1. Ringkasan Eksekutif Sistem
@@ -283,7 +283,7 @@ function bab5() {
   return `## 5. Pemodelan Terstruktur (Data Flow Diagram / DFD Konteks)
 
 ${lipat(
-    `Proses sentral **0.0 Sistem Informasi Operasional Kos-Kosan** menghubungkan **${DFD.ENTITAS.length} entitas eksternal** melalui **${aliranBatas.length} aliran data utama (${aliranMasuk.length} masuk dan ${aliranKeluar.length} keluar)**. Gambarnya di \`dfd-konteks.md\`, dibaca dari \`docs/dfd/dfd-data.js\` — sumber tunggal yang sama dengan DFD teknis.`
+    `Proses sentral **0.0 Sistem Informasi Operasional Huni** menghubungkan **${DFD.ENTITAS.length} entitas eksternal** melalui **${aliranBatas.length} aliran data utama (${aliranMasuk.length} masuk dan ${aliranKeluar.length} keluar)**. Gambarnya di \`dfd-konteks.md\`, dibaca dari \`docs/dfd/dfd-data.js\` — sumber tunggal yang sama dengan DFD teknis.`
   )}
 
 ### 5.1 Matriks ${aliranBatas.length} Aliran Data Utama (Input & Output)
@@ -344,7 +344,7 @@ ${daftar.join('\n')}`;
 /* ------------------------------------------------- dokumen narasi utuh */
 
 function dokumenNarasi() {
-  const kepala = `# Proses Bisnis & Spesifikasi Pemodelan Sistem Informasi Operasional Kos-Kosan
+  const kepala = `# Proses Bisnis & Spesifikasi Pemodelan Sistem Informasi Operasional Huni
 
 > **Dibangkitkan, jangan disunting tangan** — \`node docs/akademik/build-dokumen.js\`.
 > Angka dibaca dari \`rute-api.json\` (${RUTE.length} endpoint), \`tabel-domain.json\` (${TABEL.length} tabel),
@@ -388,7 +388,7 @@ function dokumenUseCase() {
 
   const catatan = U.CATATAN_MATRIKS.map((c) => `- **(${c.kode}) ${c.uc}** — ${c.teks}`);
 
-  return `# Diagram Use Case — Sistem Informasi Operasional Kos-Kosan
+  return `# Diagram Use Case — Sistem Informasi Operasional Huni
 
 > **Dibangkitkan, jangan disunting tangan.** Jalankan
 > \`node docs/akademik/build.js && node docs/akademik/build-dokumen.js\`.
@@ -463,7 +463,7 @@ function dokumenDfd() {
       `| **${a.kode}** | Proses ${idProses[a.dari]} | ${namaEntitas[a.ke]} | ${[].concat(a.label).join(' ')} | \`${a.struktur}\` |`
   );
 
-  return `# DFD Konteks (Level 0) — Sistem Informasi Operasional Kos-Kosan
+  return `# DFD Konteks (Level 0) — Sistem Informasi Operasional Huni
 
 > **Dibangkitkan, jangan disunting tangan.** Jalankan
 > \`node docs/akademik/build.js && node docs/akademik/build-dokumen.js\`.
@@ -485,7 +485,7 @@ Yourdon/DeMarco untuk gambar yang sama ada di \`docs/dfd/01-dfd-konteks-yourdon.
 
 ## 2. Proses Sentral
 
-Proses tunggal **0.0 Sistem Informasi Operasional Kos-Kosan** mewakili seluruh
+Proses tunggal **0.0 Sistem Informasi Operasional Huni** mewakili seluruh
 sistem sebagai satu simpul. Pada level ini belum ada penyimpanan data — D1–D6
 muncul di level 1, dan jumlah aliran batas di kedua level sengaja sama
 (${aliranBatas.length}) supaya tidak ada aliran yang hilang saat dekomposisi.

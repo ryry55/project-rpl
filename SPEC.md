@@ -1,4 +1,4 @@
-# SPEC — Sistem Informasi Operasional Kos-Kosan
+# SPEC — Sistem Informasi Operasional Huni
 
 Status: **final, siap dipecah jadi tiket**. Tanggal: 22 Oktober 2026.
 Sumber: `docs/charter/Project_Charter_Kos-Kosan.docx`, `docs/dfd/README.md`,
@@ -294,10 +294,10 @@ validasi **dan** CHECK constraint; ganti pola di tengah bulan tidak menerbitkan 
 #### Identitas kos *(amandemen 13 November 2026)*
 
 > Nama kos adalah **kebijakan global berteks bebas** (1–60 karakter). Kosong berarti
-> "Kos-Kosan" — perilaku sebelum fitur ini. Nama itu dipakai di layar masuk, bilah pemilik,
+> "Huni" — perilaku sebelum fitur ini. Nama itu dipakai di layar masuk, bilah pemilik,
 > judul tab, subjek email, dan kuitansi.
 
-Sebelum ini nama kos tertulis di kode di empat tempat, semuanya berbunyi "Kos-Kosan" — nama
+Sebelum ini nama kos tertulis di kode di empat tempat, semuanya berbunyi "Huni" — nama
 contoh, bukan nama kos siapa pun. Karena itu tipe `nama_kos` **tidak wajib**: kos yang tidak
 pernah menyentuh layar Kebijakan tetap menagih dan tetap punya judul.
 
@@ -317,7 +317,7 @@ angka yang paling dipertanyakan penghuni. Pratinjau memakai kebijakan yang **ber
 nilai yang sedang diketik: pratinjau yang memakai nilai yang belum disimpan menjanjikan angka
 yang tidak pernah dipakai tagihan.
 
-Titik uji: tanpa kebijakan → "Kos-Kosan"; nama tersimpan terbaca tanpa token; `kamar_id` ditolak
+Titik uji: tanpa kebijakan → "Huni"; nama tersimpan terbaca tanpa token; `kamar_id` ditolak
 422; nama kosong dan 61 karakter ditolak validasi **dan** CHECK constraint; subjek email memakai
 nama; pratinjau 1%/hari plafon 30% tenggang 7 pada pokok Rp 1.500.000 telat 10 hari = Rp 45.000
 dari maksimum Rp 450.000.
@@ -412,7 +412,7 @@ ditolak 403.
 | Periode | kolom `periode` bertipe `date`, diisi **awal siklus** (tanggal 1 pada pola `tanggal_1`, `tgl_masuk` pada `anniversary`) | Urutan dan unique index jadi rumit |
 | Pola tagihan | satu baris kebijakan global `pola_tagihan`; kosong = `tanggal_1` | Setelan per kontrak tersimpan tetapi tidak pernah dibaca |
 | Tanggal terbit | satu baris kebijakan global `tanggal_terbit` (1–28); kosong = hari siklus mulai | Tanggal 29–31 tidak ada di Februari → tagihan tidak pernah terbit |
-| Nama kos | satu baris kebijakan global `nama_kos` (teks 1–60); kosong = "Kos-Kosan" | Nama contoh tertulis di layar kos orang lain |
+| Nama kos | satu baris kebijakan global `nama_kos` (teks 1–60); kosong = "Huni" | Nama contoh tertulis di layar kos orang lain |
 | Pratinjau denda | dihitung server lewat `Kalkulator`, bukan rumus salinan di peramban | Pratinjau berbeda satu rupiah dari tagihan sungguhan |
 | Jatuh tempo | tanggal hari masuk penghuni, **dijepit ke akhir bulan**; tidak pernah mendahului awal siklus | Bug yang muncul 4× setahun |
 | Denda | dihitung saat dibaca (derived), tidak disimpan | Nilai basi; harus ada job penyegar |

@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Generator dokumen akademik — Sistem Informasi Operasional Kos-Kosan
+ * Generator dokumen akademik — Sistem Informasi Operasional Huni
  * -------------------------------------------------------------------
  * Sumber editable:
  *     usecase-data.js   — aktor, 14 use case, matriks, catatan kaki, tata letak

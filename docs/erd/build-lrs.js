@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Generator LRS — Sistem Informasi Operasional Kos-Kosan
+ * Generator LRS — Sistem Informasi Operasional Huni
  * -------------------------------------------------------------------------
  * LRS (Logical Record Structure) adalah bentuk logis basis data: tabel apa
  * saja yang ada, kolom apa saja isinya, mana kunci primer, dan ke mana kunci

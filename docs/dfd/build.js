@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Generator DFD notasi GANE-SARSON — Sistem Informasi Operasional Kos-Kosan
+ * Generator DFD notasi GANE-SARSON — Sistem Informasi Operasional Huni
  * -------------------------------------------------------------------------
  * Sumber editable:
  *     dfd-data.js    — entitas, proses, penyimpanan, aliran, rute, kamus data

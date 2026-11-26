@@ -1,7 +1,7 @@
 ﻿'use strict';
 
 /**
- * Sumber tunggal data DFD — Sistem Informasi Operasional Kos-Kosan
+ * Sumber tunggal data DFD — Sistem Informasi Operasional Huni
  * -----------------------------------------------------------------
  * Berkas ini memuat SELURUH isi semantik diagram: entitas, proses,
  * penyimpanan data, aliran data, aturan bisnis, kamus data, dan tata letak.

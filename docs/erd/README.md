@@ -1,4 +1,4 @@
-# ERD berjenjang dan LRS — Sistem Informasi Operasional Kos-Kosan
+# ERD berjenjang dan LRS - Sistem Informasi Operasional Huni
 
 Tujuh gambar, satu dokumen teks, satu sumber: **basis data yang berjalan**.
 

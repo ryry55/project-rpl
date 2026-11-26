@@ -1,4 +1,4 @@
-# Sistem Informasi Operasional Kos-Kosan
+# Sistem Informasi Operasional Huni
 
 Aplikasi untuk pemilik kos kecil (5–30 kamar) mengelola operasionalnya: tagihan sewa dengan prorata
 penghuni baru, denda keterlambatan, umur tunggakan, pembayaran, dan portal penghuni. Lihat `SPEC.md`

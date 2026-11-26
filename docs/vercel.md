@@ -38,13 +38,36 @@ komunitas, dan bukan serverless per-berkas.
    Gerbang ini terbukti bekerja: sebelum sandi diganti, semua endpoint menjawab
    **403**, bukan data.
 
+## Region: `sin1`, bukan bawaan `iad1`
+
+Deployment pertama berjalan di `iad1` (Virginia) sementara basis data di
+Singapura. Setiap kueri menyeberangi dua benua, dan hasil uji beban produksi
+membuatnya terlihat: p50 **8.282 ms**, 1 permintaan/detik. Setelah
+`"regions": ["sin1"]` di `vercel.json`, p50 **154 ms**, p95 **225 ms**, 31
+permintaan/detik, **0 galat** (500 permintaan, 5 bersamaan).
+
+Pada 50 bersamaan: p95 1.019 ms dengan **28 galat 500**. Itu batas koneksi
+basis data (delapan worker FPM per instans fungsi, dikali beberapa instans,
+menuju pooler sesi Supabase), bukan kode. Untuk satu kos dengan paling banyak
+30 kamar, 5-10 pengguna serentak adalah keadaan nyata; beban 50 adalah sintetis.
+
+## Cron tagihan harian
+
+`GET /api/cron/tagihan`, dijaga `CRON_SECRET` (tanpa itu 503; token salah 401).
+Vercel Cron memanggilnya `10 17 * * *` (00:10 WIB). Endpoint memanggil
+`PenerbitanHarian` - kelas yang sama dengan penjadwal container - sehingga
+periode dan zona waktunya tidak bisa berbeda antara dua pemicu.
+
+Terbukti di produksi: `{"dijalankan":true}` dengan keluaran
+`terbit 0, dilewati 3, gagal 0` (idempoten pada hari yang tagihannya sudah ada).
+
 ## Yang tidak ikut live
 
 | Fitur | Sebab |
 |---|---|
 | Simulasi tanggal denda | entrypoint menolak `APP_DEMO_MODE=true`; header `X-Simulasi-Tanggal` dimatikan di produksi |
-| Email sungguhan | `MAIL_MAILER=log`; tautan aktivasi hanya muncul di log Vercel |
-| Cron tagihan harian | butuh endpoint cron + Vercel Cron; belum dibuat (menunggu keputusan) |
+| Email sungguhan | `MAIL_MAILER=log`; tautan aktivasi hanya muncul di log Vercel. Butuh domain terverifikasi di Brevo |
+| Batas konkurensi tinggi | 50 bersamaan memunculkan 500 dari pooler basis data; pakai ≤10 untuk demo |
 
 ## Perintah
 

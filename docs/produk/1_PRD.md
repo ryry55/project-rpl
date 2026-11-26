@@ -1,4 +1,4 @@
-# 1. PRD — Sistem Informasi Operasional Kos-Kosan
+# 1. PRD — Sistem Informasi Operasional Huni
 
 > Dokumen ini menjawab: **untuk siapa produk ini, masalah apa yang dipecahkan,
 > dan bagaimana kami tahu masalahnya benar-benar terpecahkan.**

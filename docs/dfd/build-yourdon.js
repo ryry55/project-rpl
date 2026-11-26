@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Generator DFD notasi YOURDON / DeMARCO — Sistem Informasi Operasional Kos-Kosan
+ * Generator DFD notasi YOURDON / DeMARCO — Sistem Informasi Operasional Huni
  * -------------------------------------------------------------------------------
  * Membaca data yang sama persis dengan `build.js` (lihat `dfd-data.js`), lalu
  * menggambar dengan konvensi Yourdon: proses berupa lingkaran, penyimpanan data

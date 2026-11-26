@@ -5,9 +5,9 @@
 </marker>
 </defs>
 <rect width="1900" height="1260" fill="#ffffff"/>
-<title>DFD Konteks (DFD Nol) — Sistem Informasi Operasional Kos-Kosan (yourdon)</title>
+<title>DFD Konteks (DFD Nol) — Sistem Informasi Operasional Huni (yourdon)</title>
 <text x="60" y="60" font-size="26" font-weight="700" fill="#0f172a">DFD KONTEKS (DFD NOL / LEVEL 0)</text>
-<text x="60" y="88" font-size="14" font-weight="400" fill="#475569">Sistem Informasi Operasional Kos-Kosan  ·  4 entitas  ·  notasi Yourdon/DeMarco</text>
+<text x="60" y="88" font-size="14" font-weight="400" fill="#475569">Sistem Informasi Operasional Huni  ·  4 entitas  ·  notasi Yourdon/DeMarco</text>
 <rect x="87" y="157" width="240" height="560" fill="#c7d2fe"/>
 <rect x="80" y="150" width="240" height="560" fill="#eef2ff" stroke="#3730a3" stroke-width="2"/>
 <text x="200" y="430" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">PEMILIK KOS</text>
@@ -24,7 +24,7 @@
 <text x="930" y="334" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#0f172a">0</text>
 <text x="930" y="463" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="600" fill="#0f172a">SISTEM INFORMASI</text>
 <text x="930" y="482.8" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="600" fill="#0f172a">OPERASIONAL</text>
-<text x="930" y="502.6" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="600" fill="#0f172a">KOS-KOSAN</text>
+<text x="930" y="502.6" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="600" fill="#0f172a">HUNI</text>
 <path d="M320 210 L700 210" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
 <path d="M320 270 L700 270" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
 <path d="M320 330 L700 330" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)" stroke-linejoin="round" stroke-linecap="round"/>
