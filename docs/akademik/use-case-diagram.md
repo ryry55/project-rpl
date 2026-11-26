@@ -30,7 +30,7 @@ Berkas: `01-use-case.svg` (vektor) dan `01-use-case.png` (2x, siap tempel).
 ## 3. Daftar 14 Use Case dan Endpoint Pendukungnya
 
 Setiap use case menunjuk minimal satu endpoint nyata. Pemetaannya
-**tertutup**: 100 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
+**tertutup**: 101 endpoint pada `api/routes/api.php` terpakai habis, dan tidak
 ada satu pun yang dipakai dua use case. `build.js` memeriksa ketiga hal itu
 dan gagal bila tidak terpenuhi.
 
@@ -42,7 +42,7 @@ dan gagal bila tidak terpenuhi.
 | **UC-04** | Kelola Tarif Sewa & Komponen Biaya | `tarif.index`<br>`tarif.store`<br>`tarif.berlaku`<br>`komponen.index`<br>`komponen.store` |
 | **UC-05** | Kelola Kebijakan Kos | `kebijakan.index`<br>`kebijakan.store`<br>`kebijakan.pratinjau-denda` |
 | **UC-06** | Persetujuan Usulan Perubahan Tarif & Kebijakan | `usulan.index`<br>`usulan.setujui`<br>`usulan.tolak` |
-| **UC-07** | Terbitkan & Kelola Tagihan Bulanan | `tagihan.index`<br>`tagihan.store`<br>`tagihan.terbitkan`<br>`tagihan.batal`<br>`tagihan.maaf-denda` |
+| **UC-07** | Terbitkan & Kelola Tagihan Bulanan | `tagihan.index`<br>`tagihan.store`<br>`tagihan.terbitkan`<br>`tagihan.batal`<br>`tagihan.maaf-denda`<br>`api.cron.tagihan` |
 | **UC-08** | Catat Pembayaran Sewa | `tagihan.bayar`<br>`pembayaran.index`<br>`pembayaran.penerima`<br>`pembayaran.tunai-saya`<br>`api.webhook.midtrans` |
 | **UC-09** | Verifikasi & Koreksi Pembayaran | `pembayaran.verifikasi`<br>`pembayaran.pembalik` |
 | **UC-10** | Laporan Rekap Pendapatan, Tunggakan & Jejak Audit | `rekap.index`<br>`tunggakan.index`<br>`audit-log.index`<br>`ekspor.rekap`<br>`ekspor.tunggakan`<br>`ekspor.pembayaran` |
@@ -92,6 +92,11 @@ dan begitu pula sebaliknya.
   masuk yang sama bagi ketiga peran. Memecahnya menjadi tiga use case akan
   menggambarkan tiga pekerjaan berbeda, padahal penggunanya mengalami satu
   urutan yang sama.
+
+- **UC-07.** Pemicu harian `GET /api/cron/tagihan` ikut di sini karena ia menjalankan
+  `PenerbitanHarian` yang sama dengan tombol terbitkan, hanya pemicunya
+  penjadwal. Ia tidak bergerbang peran - pemanggilnya Vercel Cron, bukan
+  pengguna - dan dijaga `CRON_SECRET`.
 
 - **UC-08.** Webhook gateway (`POST /api/webhook/midtrans`) ikut di sini karena ia
   peristiwa pencatatan uang yang sama, hanya pemicunya mesin bukan orang. Ia

@@ -105,7 +105,7 @@ menerapkan. Lihat §6.
 
 ---
 
-## 3. Autentikasi, akun, dan kesehatan (13 endpoint)
+## 3. Autentikasi, akun, dan kesehatan (14 endpoint)
 
 ### 3.1 Publik
 
@@ -184,6 +184,16 @@ karenanya akan mengunci orang selamanya pada kesalahan yang sudah diperbaiki.
 
 Jawabannya **409** dengan alasan yang bisa dibaca, bukan 403: pengguna berhak
 meminta, hanya waktunya belum tepat.
+
+### 3.4 Operasional
+
+| Metode | Path | Catatan |
+|---|---|---|
+| `GET` | `/api/cron/tagihan` | Dijaga `Authorization: Bearer <CRON_SECRET>`: `503` bila rahasia belum disetel, `401` bila token salah. Menjalankan `PenerbitanHarian` yang sama dengan penjadwal container |
+
+Pemicu ini ada karena Vercel Cron tidak menjalankan `schedule:work`; ia memanggil
+HTTP. Karena memakai kelas yang sama, periode dan zona waktunya tidak bisa
+berbeda antara dua pemicu.
 
 ---
 
@@ -1095,7 +1105,7 @@ tidak pernah dijalankan.
 | Notifikasi | 5 | `/notifikasi*`, `/pengaturan-notifikasi` |
 | Infrastruktur | 4 | `/health` (§3.1), `/identitas-kos` (§3.1), `/pemilik/saja`, `/penyiapan` (§5.5) |
 | Webhook gateway | 1 | `/webhook/midtrans` (§8.0.1) |
-| **Total** | **100** | |
+| **Total** | **101** | |
 
 ---
 

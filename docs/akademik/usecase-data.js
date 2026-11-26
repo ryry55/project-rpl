@@ -236,10 +236,16 @@ const USE_CASE = [
       'tagihan.terbitkan',
       'tagihan.batal',
       'tagihan.maaf-denda',
+      'api.cron.tagihan',
     ],
     gerbang:
       'Menerbitkan dan membatalkan menuntut `terbitkan_tagihan`; pemaafan ' +
       'denda khusus pemilik karena melepaskan uang yang seharusnya diterima.',
+    gabungan:
+      'Pemicu harian `GET /api/cron/tagihan` ikut di sini karena ia menjalankan ' +
+      '`PenerbitanHarian` yang sama dengan tombol terbitkan, hanya pemicunya ' +
+      'penjadwal. Ia tidak bergerbang peran - pemanggilnya Vercel Cron, bukan ' +
+      'pengguna - dan dijaga `CRON_SECRET`.',
   },
   {
     kode: 'UC-08',

@@ -705,7 +705,7 @@ di §6 sebagai `tanggal, jumlah, metode, bukti, dicatat_oleh`:
 ## 7. Permukaan API
 
 Semua di bawah `/api`. Auth lewat `Authorization: Bearer <token>`.
-Daftar lengkap **100 endpoint**; rincian bentuk request/response ada di
+Daftar lengkap **101 endpoint**; rincian bentuk request/response ada di
 `docs/produk/6_TOOLS_CONTRACTS.md`.
 
 ### 7.1 Autentikasi, akun, dan PDP

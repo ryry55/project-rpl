@@ -54,7 +54,7 @@ lain.** Diagram tangan tidak bisa diperbaiki saat angkanya berubah.
 | `aktivitas-gambar.js` | Menggambar tiga diagram aktivitas + **pemeriksa** (kotak beririsan, keluar kanvas, cabang kosong) |
 | `arsitektur-gambar.js` | Menggambar arsitektur dua lingkungan + pemeriksa tata letak kotak |
 | `build-proposal.js` | Menulis `dokumen/11-proposal/Proposal_RPL_Huni.docx` (isi dari usecase-data, tabel, dan gambar) |
-| `rute-api.json` | Potret `route:list --json` - 100 endpoint |
+| `rute-api.json` | Potret `route:list --json` - 101 endpoint |
 | `tabel-domain.json` | Potret 26 tabel domain dari `pg_attribute` |
 
 ## Membangun ulang
@@ -184,7 +184,7 @@ langkah yang tidak kembali ke aktornya, atau huruf di bawah 2,52 mm di A3.
 ketujuh belas SVG dan PNG yang di-commit dengan hasil penggambaran data
 sekarang — termasuk memastikan setiap PNG tepat 2x SVG-nya.
 
-Angka pada dokumen dibaca dari sumbernya, bukan diketik: 100 endpoint, 26 tabel,
+Angka pada dokumen dibaca dari sumbernya, bukan diketik: 101 endpoint, 26 tabel,
 46 migrasi, 16 aliran batas, versi Laravel dari `api/composer.lock`. Tidak ada
 angka yang boleh dikarang — lihat `docs/serah-terima.md` §5 untuk cara
 memeriksanya.

@@ -88,7 +88,7 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 
 | Hal | Angka |
 |---|---|
-| Endpoint API | **100** |
+| Endpoint API | **101** |
 | Tabel (di luar infrastruktur Laravel) | **26** (35 di skema `public`) |
 | Migrasi | **48** |
 | Model Eloquent | **24** |
