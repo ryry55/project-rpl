@@ -181,7 +181,7 @@ di `docs/serah-terima.md` §1, dan `cek-angka-dokumen.js` menjaga angka di sana.
 
 ```bash
 docker compose up -d
-docker compose exec api php artisan test          # 927 tes, 4177 asersi
+docker compose exec api php artisan test          # 931 tes, 4188 asersi
 docker compose exec api php artisan test --testsuite=Unit   # 116 tes murni, tanpa DB
 node docs/uji/e2e-t1.mjs                          # perlu Chrome --remote-debugging-port=9222
 node docs/uji/e2e-t2.mjs                          # 8 kamar + 6 penghuni + kontrak lewat UI
@@ -547,7 +547,7 @@ sebelumnya - melainkan **bentuk akses data** dan **satu sumber waktu**.
 | #6 `GET /pembayaran` tanpa batas | `per_page` opsional, pola K-05; tanpa `per_page` bentuk respons tidak berubah | `test_daftar_pembayaran_berhalaman_hanya_bila_per_page_diminta` |
 | #8 `now()` di lima jalur tulis | `WaktuSistem` disuntik ke `PenerbitTagihan`, `KontrakController` (dua tempat), `LaporanKerusakanController`, `PemutusUsulan` (dua tempat) | `test_terbit_pada_memakai_tanggal_simulasi`, `test_status_kontrak_baru_dinilai_dengan_tanggal_simulasi`, `test_tgl_keluar_memakai_tanggal_simulasi`, `test_selesai_pada_memakai_tanggal_simulasi`, `test_diputuskan_pada_memakai_tanggal_simulasi_saat_disetujui`, `test_diputuskan_pada_memakai_tanggal_simulasi_saat_ditolak` |
 | #9 pola `galatMuat` disalin 16 view | composable `useMuatDaftar()`; `PenghuniView` dimigrasikan sebagai bukti | `uji-galat-muat.mjs` tetap hijau (10 layar) |
-| #10 kode mati | `MidtransGateway::clientKey()` + parameter `clientKey` dibuang; `PencatatPembayaran` tidak lagi menerima `WaktuSistem`; `Pembayaran::asal()` dihapus. `TransaksiGateway::STATUS_DIBATALKAN` **tidak** dihapus - K-19 memakainya | pint + 927 tes |
+| #10 kode mati | `MidtransGateway::clientKey()` + parameter `clientKey` dibuang; `PencatatPembayaran` tidak lagi menerima `WaktuSistem`; `Pembayaran::asal()` dihapus. `TransaksiGateway::STATUS_DIBATALKAN` **tidak** dihapus - K-19 memakainya | pint + 931 tes |
 | #11 port terbuka ke LAN | `docker-compose.yml`: tiga port dipatok `127.0.0.1` | `docker compose ps` → `127.0.0.1:8081`, `:3000`, `:8025` |
 | #12 `X-Powered-By` | `fastcgi_hide_header X-Powered-By` di nginx demo **dan** template produksi | `curl -I /api/health` → header tidak ada, `Content-Type` tetap lewat (kontrol positif) |
 

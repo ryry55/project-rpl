@@ -15,7 +15,7 @@ Versi 1.0 · 26 Oktober 2026 · Status: diserahkan
 Aplikasi web untuk pemilik kos kecil (5-30 kamar) mengelola kamar, penghuni,
 tagihan, dan pembayaran. Dibangun sebagai tugas besar mata kuliah Rekayasa
 Perangkat Lunak: Laravel 12.72.0 API-only + Vue 3 SPA + PostgreSQL 16, satu perintah
-Docker Compose untuk menjalankan, 927 tes PHP dan 34 skrip uji untuk
+Docker Compose untuk menjalankan, 931 tes PHP dan 34 skrip uji untuk
 menjaganya. Yang membedakannya dari aplikasi sejenis: **setiap kos boleh punya
 cara kerja sendiri** — satuan sewa, jatuh tempo, dan bentuk dendanya dipilih dari
 menu, bukan dipaksa mengikuti satu pola.
@@ -92,11 +92,11 @@ menjaga tagihan yang sudah terbit tetap benar selamanya.
 | Tabel (di luar infrastruktur Laravel) | **26** (35 di skema `public`) |
 | Migrasi | **48** |
 | Model Eloquent | **24** |
-| Kelas domain | **55** (14 folder) |
+| Kelas domain | **56** (14 folder) |
 | Pengendali | **30** |
 | Middleware | **7** |
 | Trigger basis data | **8** (7 append-only + 1 penjaga pembalik) |
-| Tes PHP | **927** (4177 asersi) di **55** berkas |
+| Tes PHP | **931** (4188 asersi) di **56** berkas |
 | Skrip browser | **35** `.mjs` (34 terdaftar di gate; `uji-proxy.mjs` terpisah) |
 | Halaman SPA | **28** komponen view · **24** rute bernama |
 | Wewenang pengelola | **8** |
@@ -247,7 +247,7 @@ KONTEKS_PROYEK.md  ← Anda di sini: apa, untuk siapa, sampai mana
 ├── 4_AGENTS.md           Cara mengubah kode tanpa merusak apa pun
 ├── 5_SCHEMAS.md          25 tabel, CHECK, indeks, trigger (dari DB nyata)
 ├── 6_TOOLS_CONTRACTS.md  94 endpoint, middleware, bentuk request/response
-├── 7_TESTING_EVALS.md    927 tes, 34 skrip, prinsip "buktikan bisa gagal"
+├── 7_TESTING_EVALS.md    931 tes, 34 skrip, prinsip "buktikan bisa gagal"
 └── 8_OPERATIONS_SOP.md   Deploy, backup, pemulihan, insiden, batas gratis
 ```
 

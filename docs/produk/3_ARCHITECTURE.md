@@ -73,7 +73,7 @@ return (new TagihanResource($hasil->tagihan))->response()->setStatusCode(201);
 
 ### 2.2 Domain — tempat semua aturan tinggal
 
-55 kelas di `app/Domain/`, dikelompokkan per masalah, bukan per tabel:
+56 kelas di `app/Domain/`, dikelompokkan per masalah, bukan per tabel:
 
 | Folder | Isi | Contoh |
 |---|---|---|
@@ -409,14 +409,14 @@ penutupan. Daftar yang tidak dicatat akan terlupakan.
 
 ```
 api/
-  app/Domain/            55 kelas, 13 folder - semua aturan
-  app/Http/Controllers/  30 pengendali — hanya menerjemahkan
+  app/Domain/            56 kelas, 13 folder - semua aturan
+  app/Http/Controllers/  31 pengendali — hanya menerjemahkan
   app/Http/Middleware/   6 middleware
   app/Http/Requests/     validasi
   app/Http/Resources/    15 resource — bentuk JSON
   app/Models/            23 model — hanya bentuk data
   database/migrations/   48 migrasi
-  tests/                 55 berkas tes, 927 tes
+  tests/                 56 berkas tes, 931 tes
 
 web/
   src/views/             28 view (7 publik + 21 pemilik dan panelnya)

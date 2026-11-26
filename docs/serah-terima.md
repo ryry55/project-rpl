@@ -14,7 +14,7 @@ Terakhir diperbarui: 22 November 2026, Fase 9-10 selesai.
 |---|---|
 | Sesi terakhir | **Deploy Vercel, rename Huni, proposal RPL** (25 Nov 2026) |
 | Rencana berikutnya | **Isi sampul proposal** + review charter pemilik; tidak ada fase kode lagi |
-| Suite PHP | **927 lulus / 4177 asersi**; pint & eslint bersih; 19 vitest |
+| Suite PHP | **931 lulus / 4188 asersi**; pint & eslint bersih; 19 vitest |
 | Gate penuh | **SEMUA LULUS** 22 Nov (692 detik, 34 skrip / 942 langkah browser) |
 | Keputusan pemilik | **K-19, K-20 dijawab & diterapkan**; K-01..K-18 tidak berubah |
 | Tunnel demo | **hidup** 26 Nov — URL di `.env` (cepat berganti; §6) |
@@ -34,7 +34,7 @@ N+1 penjumlahan hilang (`withSum` di tunggakan + rekap), `per_page` opsional di
 `127.0.0.1`, dan `X-Powered-By` disembunyikan + dipagari di
 `periksa-profil-produksi.sh`.
 
-Suite **918 → 927 tes / 4142 → 4177 asersi**. Gate penuh 22 Nov: SEMUA LULUS,
+Suite **918 → 931 tes / 4142 → 4188 asersi**. Gate penuh 22 Nov: SEMUA LULUS,
 692 detik, 34 skrip / **942 langkah**.
 
 **Keputusan pemilik sesudah Fase 9-10**
@@ -69,7 +69,7 @@ masih placeholder; halaman diagram memakai landscape agar huruf ≥ 6 pt.
 ## 3. Tiga aksi berikutnya
 
 1. **Review charter `docs/produk/KONTEKS_PROYEK.md` oleh pemilik** — angka
-   sudah disegarkan (927 tes), yang dicek: kejujuran ruang lingkup, tabel
+   sudah disegarkan (931 tes), yang dicek: kejujuran ruang lingkup, tabel
    "Yang sudah selesai", dan klaim demo.
 2. **Isi sampul proposal** (kelompok, 4 nama + NIM, prodi) dan baca 3.2 —
    daftar kebutuhan itu yang dinilai paling teliti.
@@ -120,7 +120,7 @@ masih placeholder; halaman diagram memakai landscape agar huruf ≥ 6 pt.
 ## 6. Verifikasi klaim berkas ini
 
 ```powershell
-docker compose exec api php artisan test        # 927 tes, 4177 asersi
+docker compose exec api php artisan test        # 931 tes, 4188 asersi
 node docs/uji/cek-angka-dokumen.js              # SEMUA ANGKA COCOK
 node docs/uji/cek-erd-lrs.js                     # 26 tabel, 229 kolom
 node docs/uji/cek-diagram.js                    # SVG = data, PNG = 2x SVG
