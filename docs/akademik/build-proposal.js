@@ -314,7 +314,7 @@ const TEKNOLOGI = [
   ['Kerangka kerja API', 'Laravel 12 dengan Sanctum untuk token API'],
   ['Kerangka kerja antarmuka', 'Vue 3 dengan Vite 6'],
   ['Basis data', 'PostgreSQL 16 (demo), PostgreSQL 17 di Supabase (produksi)'],
-  ['Pengujian', 'PHPUnit (927 tes, 4.177 asersi), Vitest (19 tes), 34 skrip uji peramban'],
+  ['Pengujian', 'PHPUnit (931 tes, 4.188 asersi), Vitest (19 tes), 34 skrip uji peramban'],
   ['Penjalan lokal', 'Docker Compose: nginx, PHP-FPM, PostgreSQL, Mailpit'],
   ['Penyebaran', 'Vercel Container Runtime + Supabase'],
   ['Kendali versi', 'Git, GitHub, GitHub Actions'],
@@ -496,7 +496,7 @@ async function utama() {
         ['1. Analisis kebutuhan', 'Wawancara pemilik kos; 28 kebutuhan fungsional, 12 kebutuhan nonfungsional, dan 9 aturan bisnis', 'Kebutuhan disetujui pemilik; tidak ada fitur tanpa nomor kebutuhan'],
         ['2. Desain sistem', 'Skema basis data, use case, activity, sequence, dan class diagram, rancangan antarmuka', 'Setiap kelas menunjuk tabel yang ada; setiap use case menunjuk endpoint nyata'],
         ['3. Implementasi', 'API Laravel, antarmuka Vue 3, dan basis data PostgreSQL', 'Build berhasil; tes unit dan integrasi hijau'],
-        ['4. Pengujian', '927 tes PHP, 19 tes Vitest, 34 skrip uji peramban, uji aksesibilitas, dan uji beban', 'Seluruh uji lulus; tidak ada temuan terbuka'],
+        ['4. Pengujian', '931 tes PHP, 19 tes Vitest, 34 skrip uji peramban, uji aksesibilitas, dan uji beban', 'Seluruh uji lulus; tidak ada temuan terbuka'],
         ['5. Pemeliharaan', 'Perbaikan temuan audit dan penyesuaian aturan (mis. perlakuan uang pada tagihan yang dibatalkan)', 'Setiap perubahan dicatat sebagai amandemen dan diuji ulang'],
       ],
       [18, 55, 27]

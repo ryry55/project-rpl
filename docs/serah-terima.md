@@ -4,7 +4,7 @@
 > berikutnya, dan apa yang tidak boleh diubah. Riwayatnya di `git log`.
 > **Maksimal 120 baris** — lebih dari itu ia menjadi `SPEC.md` kedua.
 
-Terakhir diperbarui: 22 November 2026, Fase 9-10 selesai.
+Terakhir diperbarui: 26 November 2026, sesudah cron, region, dan perbaikan CI.
 
 ---
 
@@ -12,8 +12,8 @@ Terakhir diperbarui: 22 November 2026, Fase 9-10 selesai.
 
 | Hal | Nilai |
 |---|---|
-| Sesi terakhir | **Deploy Vercel, rename Huni, proposal RPL** (25 Nov 2026) |
-| Rencana berikutnya | **Isi sampul proposal** + review charter pemilik; tidak ada fase kode lagi |
+| Sesi terakhir | **Deploy Vercel, cron, region sin1, perbaikan hitungan endpoint** (26 Nov 2026) |
+| Rencana berikutnya | **Email Gmail SMTP** + isi sampul proposal + tabel blackbox; tidak ada fase kode lagi |
 | Suite PHP | **931 lulus / 4188 asersi**; pint & eslint bersih; 19 vitest |
 | Gate penuh | **SEMUA LULUS** 22 Nov (692 detik, 34 skrip / 942 langkah browser) |
 | Keputusan pemilik | **K-19, K-20 dijawab & diterapkan**; K-01..K-18 tidak berubah |
@@ -21,7 +21,7 @@ Terakhir diperbarui: 22 November 2026, Fase 9-10 selesai.
 | **Deploy live** | **`https://kos-kosan-rosy.vercel.app`** — region **sin1**, cron tagihan aktif |
 | **Proposal RPL** | `dokumen/11-proposal/Proposal_RPL_Huni.docx` — 33 hlm, model **Waterfall**, sampul placeholder |
 | Paket serahan | **`dokumen/`** — segarkan dengan `dokumen\segarkan.ps1` |
-| CI GitHub | **hijau** pada `e0b0eb6` (run `45636552308`, 10m49s) |
+| CI GitHub | **hijau** pada `1f0a7e6` (run `45770705344`, 11m51s, 931 tes + 34 skrip) |
 | Working tree | Bersih sesudah commit sesi ini |
 
 ## 2. Yang sesi ini kerjakan (22 Nov 2026)
@@ -68,13 +68,13 @@ masih placeholder; halaman diagram memakai landscape agar huruf ≥ 6 pt.
 
 ## 3. Tiga aksi berikutnya
 
-1. **Review charter `docs/produk/KONTEKS_PROYEK.md` oleh pemilik** — angka
-   sudah disegarkan (931 tes), yang dicek: kejujuran ruang lingkup, tabel
-   "Yang sudah selesai", dan klaim demo.
-2. **Isi sampul proposal** (kelompok, 4 nama + NIM, prodi) dan baca 3.2 —
-   daftar kebutuhan itu yang dinilai paling teliti.
-3. **Demo:** tunnel 22 Nov mati; aplikasi live tetap jalan. Untuk demo denda
-   dari HP, hidupkan tunnel (§6) — simulasi tanggal hanya ada di mode demo.
+1. **Pasang email Gmail SMTP** sesudah App Password tersedia di
+   `%TEMP%\opencode\google-smtp.txt`; uji aktivasi, reset, dan notifikasi.
+2. **Isi sampul proposal** (kelompok, 4 nama + NIM, prodi), lalu bangun ulang
+   DOCX + PDF. Angka di proposal sudah 931 tes / 4.188 asersi.
+3. **Buat tabel pengujian blackbox** dari 9 sub-proses DFD level 2; sumber
+   skripnya `docs/uji/` (34 skrip, 942 langkah), belum ada dokumen serahannya.
+4. **Review charter** dan **rotasi sandi Supabase** sebelum sidang.
 
 ## 4. Keputusan terkunci (baru)
 

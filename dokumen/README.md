@@ -8,7 +8,7 @@ generator, dijaga pemeriksa gate). Setelah sumber dibangun ulang, jalankan:
 powershell -ExecutionPolicy Bypass -File dokumen\segarkan.ps1
 ```
 
-## Isi dan status (17 November 2026)
+## Isi dan status (26 November 2026)
 
 | Subfolder | Dokumen | Berkas | Status |
 |---|---|---|---|
@@ -29,7 +29,7 @@ Diagram normalisasi 1NF–4NF ada di dalam PDF Bab 4; sumber SVG-nya
 
 ## Angka yang dijaga pemeriksa gate
 
-100 endpoint · 26 tabel · 229 kolom · 30 kunci asing · 48 migrasi ·
+101 endpoint · 26 tabel · 229 kolom · 30 kunci asing · 48 migrasi ·
 931 tes PHP / 4188 asersi · 34 skrip uji / 942 langkah browser · huruf LRS
 2,56 mm pada A3 tegak (ambang baca 2,52 mm).
 
